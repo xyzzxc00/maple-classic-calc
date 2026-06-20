@@ -646,6 +646,38 @@ body {
 .cm-card.spot-fit { border-color: var(--leaf-green); background: var(--cream-deep); }
 .spots-add-btn { width: 100%; margin-top: 16px; }
 
+/* ---------- Jobs intro ---------- */
+.job-card {
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  margin-bottom: 14px;
+}
+.job-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.job-icon { font-size: 28px; line-height: 1; }
+.job-branch { font-weight: 800; font-size: 16px; color: var(--ink); }
+.job-first { font-size: 12px; color: var(--ink-soft); }
+.job-desc { font-size: 14px; color: var(--ink-soft); margin: 0 0 12px; line-height: 1.6; }
+.job-paths { display: flex; flex-direction: column; gap: 8px; }
+.job-path {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  background: var(--cream-deep);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  font-size: 13px;
+}
+.job-path-step { font-weight: 700; color: var(--ink); }
+.job-path-final { color: var(--leaf-green); }
+.job-path-arrow { color: var(--ink-soft); }
+.job-path-note { color: var(--ink-soft); font-size: 12px; margin-left: auto; }
+@media (max-width: 560px) {
+  .job-path-note { margin-left: 0; width: 100%; }
+}
+
 /* ---------- Footer ---------- */
 .site-footer {
   text-align: center;

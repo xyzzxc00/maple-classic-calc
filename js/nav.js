@@ -7,12 +7,14 @@
   const pages = {
     calc: document.getElementById("pageCalc"),
     spots: document.getElementById("pageSpots"),
+    jobs: document.getElementById("pageJobs"),
     timer: document.getElementById("pageTimer"),
     cm: document.getElementById("pageCm"),
   };
   const tabs = {
     calc: document.getElementById("navCalc"),
     spots: document.getElementById("navSpots"),
+    jobs: document.getElementById("navJobs"),
     timer: document.getElementById("navTimer"),
     cm: document.getElementById("navCm"),
   };
@@ -35,6 +37,7 @@
 
   tabs.calc.addEventListener("click", () => switchNav("calc"));
   tabs.spots.addEventListener("click", () => switchNav("spots"));
+  tabs.jobs.addEventListener("click", () => switchNav("jobs"));
   tabs.timer.addEventListener("click", () => switchNav("timer"));
   tabs.cm.addEventListener("click", () => switchNav("cm"));
 
