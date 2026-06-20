@@ -37,7 +37,7 @@
       const g = groups.get(r.map);
       g.jobs.add(r.job);
       g.levels.push(r.level);
-      g.expRates.push(r.expPerHour);
+      g.expRates.push(r.expPer10Min);
       g.count++;
     });
     return Array.from(groups.values()).map((g) => ({
@@ -45,7 +45,7 @@
       jobs: Array.from(g.jobs),
       levelMin: Math.min(...g.levels),
       levelMax: Math.max(...g.levels),
-      avgExpPerHour: Math.round(g.expRates.reduce((a, b) => a + b, 0) / g.expRates.length),
+      avgExpPer10Min: Math.round(g.expRates.reduce((a, b) => a + b, 0) / g.expRates.length),
       count: g.count,
     }));
   }
@@ -68,7 +68,7 @@
       const aFit = isSuitable(a) ? 1 : 0;
       const bFit = isSuitable(b) ? 1 : 0;
       if (aFit !== bFit) return bFit - aFit;
-      return b.avgExpPerHour - a.avgExpPerHour;
+      return b.avgExpPer10Min - a.avgExpPer10Min;
     });
 
     els.list.innerHTML =
@@ -79,7 +79,7 @@
           return `<div class="cm-card${fit ? " spot-fit" : ""}">
         <div class="cm-job">${escHtml(s.map)}${fit ? " ⭐" : ""}</div>
         <div class="cm-map">回報過的角色等級 Lv.${s.levelMin} - ${s.levelMax}</div>
-        <div class="cm-stat"><span>平均 EXP / 小時</span><span>${s.avgExpPerHour.toLocaleString()}</span></div>
+        <div class="cm-stat"><span>平均 EXP / 10分鐘</span><span>${s.avgExpPer10Min.toLocaleString()}</span></div>
         <div class="cm-stat"><span>回報職業</span><span>${escHtml(s.jobs.join("、"))}</span></div>
         <div class="cm-note">💬 ${s.count} 筆回報</div>
       </div>`;

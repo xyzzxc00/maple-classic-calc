@@ -213,9 +213,9 @@
   });
 
   els.applyToCmBtn.addEventListener("click", () => {
-    if (!lastExpPerHour) return;
+    if (!lastExpPerMin) return;
     window.MapleNav.switchNav("cm");
-    if (window.MapleCommunity) window.MapleCommunity.openFormWithExpPerHour(lastExpPerHour);
+    if (window.MapleCommunity) window.MapleCommunity.openFormWithExpPer10Min(Math.round(lastExpPerMin * 10));
   });
 
   renderTimer();

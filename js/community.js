@@ -39,7 +39,7 @@
     job: document.getElementById("cmJob"),
     map: document.getElementById("cmMap"),
     level: document.getElementById("cmLevel"),
-    expPerHour: document.getElementById("cmExpPerHour"),
+    expPer10Min: document.getElementById("cmExpPer10Min"),
     note: document.getElementById("cmNote"),
     submitBtn: document.getElementById("cmSubmitBtn"),
     cancelBtn: document.getElementById("cmCancelBtn"),
@@ -89,19 +89,19 @@
     }, 150);
   }
 
-  function openFormWithExpPerHour(expPerHour) {
+  function openFormWithExpPer10Min(expPer10Min) {
     openForm();
-    els.expPerHour.value = expPerHour;
+    els.expPer10Min.value = expPer10Min;
   }
 
   async function submitRecord() {
     const job = els.job.value.trim();
     const map = els.map.value.trim();
     const level = parseInt(els.level.value, 10);
-    const expPerHour = parseExpVal(els.expPerHour.value);
+    const expPer10Min = parseExpVal(els.expPer10Min.value);
     const note = els.note.value.trim();
 
-    if (!job || !map || isNaN(level) || level < 1 || isNaN(expPerHour) || expPerHour <= 0) {
+    if (!job || !map || isNaN(level) || level < 1 || isNaN(expPer10Min) || expPer10Min <= 0) {
       els.msg.textContent = "請填寫所有必填欄位（*）";
       els.msg.className = "cm-msg err";
       return;
@@ -122,7 +122,7 @@
         job,
         map,
         level,
-        expPerHour: Math.round(expPerHour),
+        expPer10Min: Math.round(expPer10Min),
         ...(note && { note }),
         ts: firebase.firestore.FieldValue.serverTimestamp(),
       });
@@ -131,7 +131,7 @@
       els.job.value = "";
       els.map.value = "";
       els.level.value = "";
-      els.expPerHour.value = "";
+      els.expPer10Min.value = "";
       els.note.value = "";
       await loadRecords();
       if (window.MapleSpots) window.MapleSpots.render();
@@ -189,7 +189,7 @@
         <div class="cm-job">${escHtml(r.job)}</div>
         <div class="cm-map">📍 ${escHtml(r.map)}</div>
         <div class="cm-stat"><span>角色等級</span><span>Lv.${r.level}</span></div>
-        <div class="cm-stat"><span>EXP / 小時</span><span>${r.expPerHour.toLocaleString()}</span></div>
+        <div class="cm-stat"><span>EXP / 10分鐘</span><span>${r.expPer10Min.toLocaleString()}</span></div>
         ${r.note ? `<div class="cm-note">💬 ${escHtml(r.note)}</div>` : ""}
         <div class="cm-ts">${tsText}</div>
       </div>`;
@@ -206,7 +206,7 @@
   window.MapleCommunity = {
     loadRecords,
     openForm,
-    openFormWithExpPerHour,
+    openFormWithExpPer10Min,
     getRecords: () => allRecords,
   };
 })();
