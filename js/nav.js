@@ -1,16 +1,18 @@
 /**
- * nav.js — 分頁切換（練等計算 / 計時器 / 社群資料庫）
+ * nav.js — 分頁切換（練等計算 / 建議練功地點 / 計時器 / 社群資料庫）
  */
 (function () {
   const STORAGE_KEY = "maple_classic_nav_v1";
 
   const pages = {
     calc: document.getElementById("pageCalc"),
+    spots: document.getElementById("pageSpots"),
     timer: document.getElementById("pageTimer"),
     cm: document.getElementById("pageCm"),
   };
   const tabs = {
     calc: document.getElementById("navCalc"),
+    spots: document.getElementById("navSpots"),
     timer: document.getElementById("navTimer"),
     cm: document.getElementById("navCm"),
   };
@@ -27,6 +29,7 @@
   }
 
   tabs.calc.addEventListener("click", () => switchNav("calc"));
+  tabs.spots.addEventListener("click", () => switchNav("spots"));
   tabs.timer.addEventListener("click", () => switchNav("timer"));
   tabs.cm.addEventListener("click", () => switchNav("cm"));
 

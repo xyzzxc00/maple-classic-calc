@@ -31,6 +31,7 @@
 <nav class="wrap nav-tabs-wrap">
   <div class="nav-tabs">
     <button class="nav-tab active" id="navCalc" type="button">🍄 練等計算</button>
+    <button class="nav-tab" id="navSpots" type="button">🗺 建議練功地點</button>
     <button class="nav-tab" id="navTimer" type="button">⏱ 計時器 / EXP 測速</button>
     <button class="nav-tab" id="navCm" type="button">👥 社群經驗資料庫</button>
   </div>
@@ -110,9 +111,14 @@
     <p class="share-hint" id="shareHint" hidden>已複製連結！貼給朋友就能看到一樣的計算結果</p>
   </section>
 
+
+</main>
+
+<main class="wrap" id="pageSpots" hidden>
+
   <section class="panel spots-panel">
     <div class="panel-head">
-      <h2>建議練功地點</h2>
+      <h2>🗺 建議練功地點</h2>
       <span class="badge">依目前等級篩選</span>
     </div>
     <div class="spots-table-wrap">
@@ -203,7 +209,31 @@
 
     <div class="cm-top">
       <div class="cm-filter-row">
-        <input class="cm-filter-input" id="cmFilterJob" list="cmJobOptions" placeholder="篩選職業">
+        <select class="cm-filter-input" id="cmFilterJob">
+          <option value="">全部職業</option>
+          <optgroup label="劍士系">
+            <option value="英雄">英雄</option>
+            <option value="聖騎士">聖騎士</option>
+            <option value="黑騎士">黑騎士</option>
+          </optgroup>
+          <optgroup label="法師系">
+            <option value="火毒大魔導士">火毒大魔導士</option>
+            <option value="冰雷大魔導士">冰雷大魔導士</option>
+            <option value="主教">主教</option>
+          </optgroup>
+          <optgroup label="弓箭手系">
+            <option value="箭神">箭神</option>
+            <option value="神射手">神射手</option>
+          </optgroup>
+          <optgroup label="盜賊系">
+            <option value="夜使者">夜使者</option>
+            <option value="暗影神偷">暗影神偷</option>
+          </optgroup>
+          <optgroup label="海盜系">
+            <option value="拳霸">拳霸</option>
+            <option value="槍神">槍神</option>
+          </optgroup>
+        </select>
         <input class="cm-filter-input" id="cmFilterMap" placeholder="🔍 篩選地圖">
         <input class="cm-filter-input cm-filter-lv" id="cmFilterLvMin" type="number" min="1" max="200" placeholder="最低等級">
         <span class="cm-filter-sep">~</span>
@@ -212,19 +242,35 @@
       <button class="btn btn-primary" id="cmAddBtn" type="button">＋ 新增紀錄</button>
     </div>
 
-    <datalist id="cmJobOptions">
-      <option value="劍士"></option>
-      <option value="法師"></option>
-      <option value="弓箭手"></option>
-      <option value="盜賊"></option>
-      <option value="海盜"></option>
-    </datalist>
-
     <div class="cm-form" id="cmForm" hidden>
       <div class="field-grid three-col">
         <label class="field">
           <span>職業 *</span>
-          <input type="text" id="cmJob" list="cmJobOptions" placeholder="例：劍士">
+          <select id="cmJob">
+            <option value="" disabled selected>請選擇職業</option>
+            <optgroup label="劍士系">
+              <option value="英雄">英雄</option>
+              <option value="聖騎士">聖騎士</option>
+              <option value="黑騎士">黑騎士</option>
+            </optgroup>
+            <optgroup label="法師系">
+              <option value="火毒大魔導士">火毒大魔導士</option>
+              <option value="冰雷大魔導士">冰雷大魔導士</option>
+              <option value="主教">主教</option>
+            </optgroup>
+            <optgroup label="弓箭手系">
+              <option value="箭神">箭神</option>
+              <option value="神射手">神射手</option>
+            </optgroup>
+            <optgroup label="盜賊系">
+              <option value="夜使者">夜使者</option>
+              <option value="暗影神偷">暗影神偷</option>
+            </optgroup>
+            <optgroup label="海盜系">
+              <option value="拳霸">拳霸</option>
+              <option value="槍神">槍神</option>
+            </optgroup>
+          </select>
         </label>
         <label class="field">
           <span>地圖名稱（怪物）*</span>

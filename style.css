@@ -185,8 +185,12 @@ body {
   font-size: 13px;
   color: var(--ink-soft);
   font-weight: 700;
+  min-width: 0;
 }
-.field input {
+.field input,
+.field select {
+  width: 100%;
+  min-width: 0;
   font-family: 'Baloo 2', sans-serif;
   font-size: 18px;
   padding: 10px 12px;
@@ -194,8 +198,10 @@ body {
   border: 2px solid var(--line);
   background: #fff;
   color: var(--ink);
+  cursor: auto;
 }
-.field input:focus, .char-select:focus {
+.field select { cursor: pointer; }
+.field input:focus, .field select:focus, .char-select:focus {
   outline: 3px solid var(--gold);
   outline-offset: 1px;
   border-color: var(--gold-deep);
