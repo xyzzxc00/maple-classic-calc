@@ -26,6 +26,11 @@
     if (page === "cm" && window.MapleCommunity) {
       window.MapleCommunity.loadRecords();
     }
+    if (page === "spots" && window.MapleCommunity) {
+      window.MapleCommunity.loadRecords().then(() => {
+        if (window.MapleSpots) window.MapleSpots.render();
+      });
+    }
   }
 
   tabs.calc.addEventListener("click", () => switchNav("calc"));

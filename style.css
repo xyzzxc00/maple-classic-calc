@@ -3,6 +3,7 @@
   --sky-bottom: #D7F1F8;
   --cream: #FFF9EE;
   --cream-deep: #FCEFD3;
+  --surface: #FFFFFF;
   --ink: #2B2620;
   --ink-soft: #6B6256;
   --mushroom-red: #E8553B;
@@ -16,6 +17,19 @@
   --shadow-card: 0 6px 0 rgba(43,38,32,0.08), 0 16px 30px -12px rgba(43,38,32,0.25);
 }
 
+body.dark {
+  --sky-top: #0E1A2B;
+  --sky-bottom: #1B2A3D;
+  --cream: #232323;
+  --cream-deep: #2A2A2A;
+  --surface: #2E2E2E;
+  --ink: #F0EDE6;
+  --ink-soft: #B3ACA0;
+  --line: rgba(240, 237, 230, 0.14);
+  --shadow-card: 0 6px 0 rgba(0,0,0,0.3), 0 16px 30px -12px rgba(0,0,0,0.5);
+}
+body.dark .cloud { opacity: 0.12; }
+
 * { box-sizing: border-box; }
 
 body {
@@ -26,6 +40,7 @@ body {
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
+  transition: background 0.3s, color 0.3s;
 }
 
 .sr-only {
@@ -177,7 +192,7 @@ body {
   padding: 10px 12px;
   border-radius: var(--radius-md);
   border: 2px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   color: var(--ink);
 }
 
@@ -209,7 +224,7 @@ body {
   padding: 10px 12px;
   border-radius: var(--radius-md);
   border: 2px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   color: var(--ink);
   cursor: auto;
 }
@@ -256,7 +271,6 @@ body {
   font-weight: 700;
   cursor: pointer;
 }
-.calc-btn { margin-top: 4px; }
 .input-panel > .field { margin-bottom: 18px; }
 
 /* ---------- EXP bar (signature element) ---------- */
@@ -321,7 +335,7 @@ body {
   .stat-grid { grid-template-columns: 1fr; }
 }
 .stat-card {
-  background: #fff;
+  background: var(--surface);
   border-radius: var(--radius-md);
   padding: 14px;
   text-align: center;
@@ -344,7 +358,7 @@ body {
 /* ---------- Multiplier buttons ---------- */
 .mult-btns { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 12px; }
 .mult-btn {
-  background: #fff;
+  background: var(--surface);
   border: 2px solid var(--line);
   border-radius: var(--radius-md);
   color: var(--ink-soft);
@@ -369,7 +383,7 @@ body {
   .time-grid { grid-template-columns: 1fr; }
 }
 .time-box {
-  background: #fff;
+  background: var(--surface);
   border-radius: var(--radius-md);
   padding: 14px;
   text-align: center;
@@ -499,7 +513,7 @@ body {
   padding: 7px 10px;
   border-radius: var(--radius-md);
   border: 2px solid var(--line);
-  background: #fff;
+  background: var(--surface);
   font-family: 'Baloo 2', sans-serif;
   font-size: 15px;
   text-align: center;
@@ -586,7 +600,7 @@ body {
 .cm-top { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
 .cm-filter-row { display: flex; gap: 8px; flex: 1; flex-wrap: wrap; align-items: center; }
 .cm-filter-input {
-  background: #fff;
+  background: var(--surface);
   border: 2px solid var(--line);
   border-radius: var(--radius-md);
   padding: 9px 12px;
@@ -611,7 +625,7 @@ body {
 @media (max-width: 760px) { .cm-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 560px) { .cm-grid { grid-template-columns: 1fr; } }
 .cm-card {
-  background: #fff;
+  background: var(--surface);
   border: 2px solid var(--line);
   border-radius: var(--radius-md);
   padding: 14px;
@@ -628,6 +642,10 @@ body {
 .cm-ts { font-size: 11px; color: var(--ink-soft); margin-top: auto; }
 .cm-empty, .cm-loading { color: var(--ink-soft); text-align: center; padding: 32px 0; font-size: 14px; }
 
+/* ---------- Suggested spots ---------- */
+.cm-card.spot-fit { border-color: var(--leaf-green); background: var(--cream-deep); }
+.spots-add-btn { width: 100%; margin-top: 16px; }
+
 /* ---------- Footer ---------- */
 .site-footer {
   text-align: center;
@@ -636,4 +654,27 @@ body {
   color: var(--ink-soft);
   position: relative;
   z-index: 1;
+}
+
+/* ---------- Theme toggle ---------- */
+.theme-toggle {
+  position: fixed;
+  top: 14px;
+  right: 16px;
+  z-index: 200;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  padding: 8px 16px;
+  cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: all 0.2s;
+}
+.theme-toggle:hover { border-color: var(--leaf-green); color: var(--leaf-green); }
+@media (max-width: 480px) {
+  .theme-toggle { top: 10px; right: 10px; padding: 7px 12px; font-size: 12px; }
 }

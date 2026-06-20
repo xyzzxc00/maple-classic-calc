@@ -13,6 +13,13 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
+<script>
+  if (localStorage.getItem("maple_classic_theme") === "dark") {
+    document.body.classList.add("dark");
+  }
+</script>
+
+<button class="theme-toggle" id="themeToggle" type="button">🌙 暗色</button>
 
 <div class="sky-bg" aria-hidden="true">
   <div class="cloud cloud-a"></div>
@@ -101,8 +108,6 @@
         <input type="number" id="ownedCoupons" min="0" step="1" placeholder="例：10">
       </label>
     </div>
-
-    <button class="btn btn-primary calc-btn" id="calcBtn" type="button">開始計算</button>
   </section>
 
   <section class="panel result-panel" id="resultPanel" hidden>
@@ -161,21 +166,11 @@
   <section class="panel spots-panel">
     <div class="panel-head">
       <h2>🗺 建議練功地點</h2>
-      <span class="badge">依目前等級篩選</span>
+      <span class="badge">依目前等級排序</span>
     </div>
-    <div class="spots-table-wrap">
-      <table class="spots-table" id="spotsTable">
-        <thead>
-          <tr>
-            <th>地點</th>
-            <th>適合等級</th>
-            <th>每小時預估經驗</th>
-            <th>備註</th>
-          </tr>
-        </thead>
-        <tbody id="spotsBody"></tbody>
-      </table>
-    </div>
+    <p class="cm-disclaimer">這裡的地點是玩家在「社群經驗資料庫」回報的真實效率自動整理出來的，不是官方資料。遊戲上線後，回報的人越多，建議就越準。</p>
+    <div id="spotsList"><p class="cm-loading">載入中...</p></div>
+    <button class="btn btn-ghost spots-add-btn" id="spotsAddBtn" type="button">＋ 我也要回報練功地點</button>
   </section>
 
 </main>
@@ -351,9 +346,11 @@
 
 <script src="js/data.js"></script>
 <script src="js/calculator.js"></script>
+<script src="js/spots.js"></script>
 <script src="js/app.js"></script>
 <script src="js/timer.js"></script>
 <script src="js/community.js"></script>
 <script src="js/nav.js"></script>
+<script src="js/theme.js"></script>
 </body>
 </html>

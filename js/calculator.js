@@ -126,15 +126,6 @@ const MapleCalculator = (() => {
   }
 
   /**
-   * 找出適合目前等級的練功地點（依 levelRange 篩選）
-   */
-  function findSuitableSpots(level, spots) {
-    return spots.filter(
-      (s) => level >= s.levelRange[0] && level <= s.levelRange[1]
-    );
-  }
-
-  /**
    * 把目前的查詢條件編碼成可分享的 URL 參數
    */
   function encodeShareParams({ currentLevel, currentExp, targetLevel, expPerMin, mult, dailyHours, ownedCoupons }) {
@@ -176,7 +167,6 @@ const MapleCalculator = (() => {
     calcTimes,
     calcCoupons,
     calcDailyDays,
-    findSuitableSpots,
     encodeShareParams,
     decodeShareParams,
   };

@@ -36,34 +36,9 @@ const EXP_TABLE = [
   1312399800, 1384319309, 1460180007, 1540197871, 1624600714, 1713628833, 1807535693, 1906588648, 2011069705,
 ];
 
-// ===== 2. 練等地點 / 怪物效率資料（佔位）=====
-// 等封測資料出來後，把每個地點的怪物 EXP、建議等級填進去即可。
-const GRINDING_SPOTS = [
-  {
-    id: "spot_placeholder_1",
-    name: "（待補）楓葉村周邊",
-    levelRange: [1, 15],
-    monsterExp: null,   // 單隻怪物 EXP，待補
-    expPerHour: null,   // 預估每小時經驗，待補
-    note: "封測開始後更新真實怪物與地圖資訊",
-  },
-  {
-    id: "spot_placeholder_2",
-    name: "（待補）中階練功地圖",
-    levelRange: [15, 35],
-    monsterExp: null,
-    expPerHour: null,
-    note: "封測開始後更新",
-  },
-  {
-    id: "spot_placeholder_3",
-    name: "（待補）高階練功地圖",
-    levelRange: [35, 70],
-    monsterExp: null,
-    expPerHour: null,
-    note: "封測開始後更新",
-  },
-];
+// ===== 2. 練等地點 =====
+// 建議練功地點改用玩家在「社群經驗資料庫」回報的真實資料（js/spots.js），
+// 不再用靠猜的佔位資料。
 
 // ===== 3. 任務一次性經驗（佔位）=====
 // 經典版常見的「新手引導任務」「轉職任務」會給一次性大量經驗，先留空位之後填。
@@ -75,6 +50,5 @@ const QUEST_EXP = [
 // 匯出（純瀏覽器環境用全域變數，不使用 ES module，避免要架建置流程）
 window.MapleData = {
   EXP_TABLE,
-  GRINDING_SPOTS,
   QUEST_EXP,
 };

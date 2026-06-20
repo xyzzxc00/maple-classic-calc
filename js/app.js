@@ -23,7 +23,6 @@
     customMult: document.getElementById("customMult"),
     dailyHours: document.getElementById("dailyHours"),
     ownedCoupons: document.getElementById("ownedCoupons"),
-    calcBtn: document.getElementById("calcBtn"),
     resultPanel: document.getElementById("resultPanel"),
     expBarFill: document.getElementById("expBarFill"),
     expBarLabel: document.getElementById("expBarLabel"),
@@ -45,7 +44,6 @@
     dailyDays: document.getElementById("dailyDays"),
     shareBtn: document.getElementById("shareBtn"),
     shareHint: document.getElementById("shareHint"),
-    spotsBody: document.getElementById("spotsBody"),
   };
 
   let currentMult = 2;
@@ -167,13 +165,13 @@
   els.multBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       setMult(parseFloat(btn.dataset.val));
-      if (!els.resultPanel.hidden) runCalculation();
+      runCalculation();
     });
   });
   els.customMult.addEventListener("input", () => {
     currentMult = parseFloat(els.customMult.value) || 1;
     els.multBtns.forEach((b) => b.classList.remove("active"));
-    if (!els.resultPanel.hidden) runCalculation();
+    runCalculation();
   });
 
   // ---------- 計算與渲染 ----------
@@ -183,7 +181,11 @@
 
   function runCalculation() {
     persistFormToActiveChar();
+    calcAndRender();
+  }
 
+  // 只計算畫面顯示，不寫入角色存檔（分享連結載入時用這個，避免覆蓋對方的角色資料）
+  function calcAndRender() {
     const currentLevel = parseInt(els.currentLevel.value, 10) || 1;
     const currentExp = parseInt(els.currentExp.value, 10) || 0;
     const targetLevel = parseInt(els.targetLevel.value, 10) || 1;
@@ -246,27 +248,14 @@
       els.couponStatsBox.hidden = false;
     }
 
-    renderSpotsTable(currentLevel);
+    if (window.MapleSpots) window.MapleSpots.setCurrentLevel(currentLevel);
     renderCharSelect();
   }
 
-  function renderSpotsTable(currentLevel) {
-    const spots = window.MapleData.GRINDING_SPOTS;
-    els.spotsBody.innerHTML = "";
-    spots.forEach((s) => {
-      const tr = document.createElement("tr");
-      const inRange = currentLevel >= s.levelRange[0] && currentLevel <= s.levelRange[1];
-      tr.innerHTML = `
-        <td>${s.name}${inRange ? " ⭐" : ""}</td>
-        <td>Lv.${s.levelRange[0]} - ${s.levelRange[1]}</td>
-        <td>${s.expPerHour ? s.expPerHour.toLocaleString() : "待補"}</td>
-        <td>${s.note}</td>
-      `;
-      els.spotsBody.appendChild(tr);
-    });
-  }
-
-  els.calcBtn.addEventListener("click", runCalculation);
+  // 打字就自動即時計算，不需要按按鈕
+  [els.currentLevel, els.currentExp, els.targetLevel, els.expPer10Min, els.dailyHours, els.ownedCoupons].forEach(
+    (el) => el.addEventListener("input", runCalculation)
+  );
 
   // ---------- 分享連結 ----------
   els.shareBtn.addEventListener("click", async () => {
@@ -294,7 +283,7 @@
   function init() {
     renderCharSelect();
 
-    // 如果網址帶有分享參數，優先套用
+    // 如果網址帶有分享參數，只暫時顯示，不寫入角色存檔
     const shared = MapleCalculator.decodeShareParams(location.search);
     if (shared.currentLevel && shared.targetLevel) {
       els.currentLevel.value = shared.currentLevel;
@@ -304,11 +293,11 @@
       setMult(shared.mult || 2);
       els.dailyHours.value = shared.dailyHours || "";
       els.ownedCoupons.value = shared.ownedCoupons || "";
+      calcAndRender();
     } else {
       loadCharIntoForm(activeCharId);
+      runCalculation();
     }
-
-    runCalculation();
   }
 
   window.MapleApp = { runCalculation };

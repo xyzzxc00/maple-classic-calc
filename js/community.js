@@ -81,13 +81,17 @@
   els.addBtn.addEventListener("click", toggleForm);
   els.cancelBtn.addEventListener("click", toggleForm);
 
-  function openFormWithExpPerHour(expPerHour) {
+  function openForm() {
     if (!formOpen) toggleForm();
-    els.expPerHour.value = expPerHour;
     setTimeout(() => {
       els.form.scrollIntoView({ behavior: "smooth", block: "center" });
       els.job.focus();
     }, 150);
+  }
+
+  function openFormWithExpPerHour(expPerHour) {
+    openForm();
+    els.expPerHour.value = expPerHour;
   }
 
   async function submitRecord() {
@@ -129,7 +133,8 @@
       els.level.value = "";
       els.expPerHour.value = "";
       els.note.value = "";
-      loadRecords();
+      await loadRecords();
+      if (window.MapleSpots) window.MapleSpots.render();
     } catch (e) {
       els.msg.textContent = "送出失敗，請稍後再試";
       els.msg.className = "cm-msg err";
@@ -198,5 +203,10 @@
     el.addEventListener("input", renderRecords)
   );
 
-  window.MapleCommunity = { loadRecords, openFormWithExpPerHour };
+  window.MapleCommunity = {
+    loadRecords,
+    openForm,
+    openFormWithExpPerHour,
+    getRecords: () => allRecords,
+  };
 })();
