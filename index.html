@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新楓之谷經典版 練等計算機｜經驗值 / 升級時間試算</title>
+<meta name="description" content="新楓之谷經典版練等計算機，輸入目前等級即可試算升級所需經驗值與預估時間，封測資料更新後同步校正。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div class="sky-bg" aria-hidden="true">
+  <div class="cloud cloud-a"></div>
+  <div class="cloud cloud-b"></div>
+  <div class="cloud cloud-c"></div>
+</div>
+
+<header class="site-header">
+  <div class="wrap">
+    <p class="eyebrow">MAPLESTORY · CLASSIC · 7/1 事前登錄</p>
+    <h1 class="title">經典版練等計算機</h1>
+    <p class="subtitle">輸入目前等級，馬上知道升級還差多少經驗、大概要練多久</p>
+  </div>
+</header>
+
+<nav class="wrap nav-tabs-wrap">
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="navCalc" type="button">🍄 練等計算</button>
+    <button class="nav-tab" id="navTimer" type="button">⏱ 計時器 / EXP 測速</button>
+    <button class="nav-tab" id="navCm" type="button">👥 社群經驗資料庫</button>
+  </div>
+</nav>
+
+<main class="wrap" id="pageCalc">
+
+  <section class="notice-banner" id="dataNotice">
+    <span class="notice-icon">🍄</span>
+    <p>目前經驗值為<strong>估算佔位數值</strong>，封測 / 上線後將立即更新為真實數據，計算結果會自動套用最新版本。</p>
+  </section>
+
+  <section class="panel char-panel">
+    <div class="panel-head">
+      <h2>角色</h2>
+      <button class="btn btn-ghost" id="newCharBtn" type="button">+ 新增角色</button>
+    </div>
+    <div class="char-row">
+      <select id="charSelect" class="char-select" aria-label="選擇角色"></select>
+      <button class="btn btn-danger-ghost" id="deleteCharBtn" type="button">刪除</button>
+    </div>
+  </section>
+
+  <section class="panel input-panel">
+    <h2 class="sr-only">輸入等級資訊</h2>
+    <div class="field-grid">
+      <label class="field">
+        <span>目前等級</span>
+        <input type="number" id="currentLevel" min="1" max="300" value="1" inputmode="numeric">
+      </label>
+      <label class="field">
+        <span>目前經驗值（選填）</span>
+        <input type="number" id="currentExp" min="0" value="0" inputmode="numeric">
+      </label>
+      <label class="field">
+        <span>目標等級</span>
+        <input type="number" id="targetLevel" min="1" max="300" value="10" inputmode="numeric">
+      </label>
+      <label class="field">
+        <span>每小時經驗（選填，自填效率）</span>
+        <input type="number" id="expPerHour" min="0" value="" placeholder="例如 50000" inputmode="numeric">
+      </label>
+    </div>
+    <button class="btn btn-primary calc-btn" id="calcBtn" type="button">開始計算</button>
+  </section>
+
+  <section class="panel result-panel" id="resultPanel" hidden>
+    <h2>計算結果</h2>
+
+    <div class="exp-bar-wrap">
+      <div class="exp-bar-track">
+        <div class="exp-bar-fill" id="expBarFill"></div>
+        <span class="exp-bar-label" id="expBarLabel">0%</span>
+      </div>
+      <div class="exp-bar-caps">
+        <span id="capLevelFrom">Lv.1</span>
+        <span id="capLevelTo">Lv.10</span>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <p class="stat-label">還需要經驗值</p>
+        <p class="stat-value" id="statExpNeeded">—</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">還要升幾等</p>
+        <p class="stat-value" id="statLevelsToGo">—</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">預估時間</p>
+        <p class="stat-value" id="statTime">尚無效率資料</p>
+      </div>
+    </div>
+
+    <button class="btn btn-ghost share-btn" id="shareBtn" type="button">🔗 複製分享連結</button>
+    <p class="share-hint" id="shareHint" hidden>已複製連結！貼給朋友就能看到一樣的計算結果</p>
+  </section>
+
+  <section class="panel spots-panel">
+    <div class="panel-head">
+      <h2>建議練功地點</h2>
+      <span class="badge">依目前等級篩選</span>
+    </div>
+    <div class="spots-table-wrap">
+      <table class="spots-table" id="spotsTable">
+        <thead>
+          <tr>
+            <th>地點</th>
+            <th>適合等級</th>
+            <th>每小時預估經驗</th>
+            <th>備註</th>
+          </tr>
+        </thead>
+        <tbody id="spotsBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<main class="wrap" id="pageTimer" hidden>
+
+  <section class="panel timer-panel">
+    <div class="panel-head">
+      <h2>⏱ 倒數計時器</h2>
+      <span class="badge">時間到會響＋跳通知</span>
+    </div>
+    <div class="timer-presets">
+      <button class="btn btn-ghost timer-preset active" data-min="1" type="button">1 分鐘</button>
+      <button class="btn btn-ghost timer-preset" data-min="5" type="button">5 分鐘</button>
+      <button class="btn btn-ghost timer-preset" data-min="10" type="button">10 分鐘</button>
+      <label class="timer-custom-field">
+        <input type="number" id="timerCustomMin" min="1" max="999" placeholder="分">
+        <span>分鐘</span>
+      </label>
+    </div>
+    <div class="timer-display-wrap">
+      <svg class="timer-ring" width="180" height="180" viewBox="0 0 180 180">
+        <circle class="timer-ring-bg" cx="90" cy="90" r="80"/>
+        <circle class="timer-ring-prog" id="timerRing" cx="90" cy="90" r="80" stroke-dasharray="502.65" stroke-dashoffset="0"/>
+      </svg>
+      <div class="timer-display">
+        <div class="timer-time" id="timerDisplay">01:00</div>
+        <div class="timer-label" id="timerLabel">準備開始</div>
+      </div>
+    </div>
+    <div class="timer-controls">
+      <button class="btn btn-primary" id="timerStartBtn" type="button">開始</button>
+      <button class="btn btn-ghost" id="timerResetBtn" type="button">重置</button>
+    </div>
+  </section>
+
+  <section class="panel exp-tracker-panel">
+    <div class="panel-head">
+      <h2>📈 EXP 測速</h2>
+      <button class="btn btn-ghost" id="clearTrackerBtn" type="button">✕ 清除</button>
+    </div>
+    <div class="field-grid two-col">
+      <label class="field">
+        <span>測試前經驗值</span>
+        <input type="text" id="expBefore" placeholder="例：185W 或 1850000" inputmode="decimal">
+      </label>
+      <label class="field">
+        <span>測試後經驗值</span>
+        <input type="text" id="expAfter" placeholder="例：200W 或 2000000" inputmode="decimal">
+      </label>
+    </div>
+    <div class="exp-rate-box" id="expRateBox" hidden>
+      <div class="exp-rate-row"><span>獲得經驗</span><span id="expGained">—</span></div>
+      <div class="exp-rate-row"><span>測試時長</span><span id="expDuration">—</span></div>
+      <div class="exp-rate-row"><span>EXP / 分鐘</span><span id="expPerMinResult">—</span></div>
+      <div class="exp-rate-row hl"><span>EXP / 小時</span><span id="expPerHourResult">—</span></div>
+      <button class="btn btn-primary exp-apply-btn" id="applyExpRateBtn" type="button">↑ 套用到練等計算（每小時經驗）</button>
+      <button class="btn btn-ghost exp-apply-btn" id="applyToCmBtn" type="button">＋ 新增到社群資料庫</button>
+    </div>
+    <p class="exp-rate-hint" id="expRateHint">輸入前後經驗值後自動計算速率（測試時長以倒數計時器經過的時間為準，沒開計時器則用上面設定的分鐘數）</p>
+  </section>
+
+</main>
+
+<main class="wrap" id="pageCm" hidden>
+
+  <section class="panel cm-panel">
+    <div class="panel-head">
+      <h2>👥 社群經驗資料庫</h2>
+      <span class="badge">玩家回報練功效率</span>
+    </div>
+    <p class="cm-disclaimer">遊戲還沒上線，這裡的資料要等玩家實際開始玩之後才會出現。先把功能做好，上線後就能直接用。</p>
+
+    <div class="cm-top">
+      <div class="cm-filter-row">
+        <input class="cm-filter-input" id="cmFilterJob" list="cmJobOptions" placeholder="篩選職業">
+        <input class="cm-filter-input" id="cmFilterMap" placeholder="🔍 篩選地圖">
+        <input class="cm-filter-input cm-filter-lv" id="cmFilterLvMin" type="number" min="1" max="300" placeholder="最低等級">
+        <span class="cm-filter-sep">~</span>
+        <input class="cm-filter-input cm-filter-lv" id="cmFilterLvMax" type="number" min="1" max="300" placeholder="最高等級">
+      </div>
+      <button class="btn btn-primary" id="cmAddBtn" type="button">＋ 新增紀錄</button>
+    </div>
+
+    <datalist id="cmJobOptions">
+      <option value="劍士"></option>
+      <option value="法師"></option>
+      <option value="弓箭手"></option>
+      <option value="盜賊"></option>
+      <option value="海盜"></option>
+    </datalist>
+
+    <div class="cm-form" id="cmForm" hidden>
+      <div class="field-grid three-col">
+        <label class="field">
+          <span>職業 *</span>
+          <input type="text" id="cmJob" list="cmJobOptions" placeholder="例：劍士">
+        </label>
+        <label class="field">
+          <span>地圖名稱（怪物）*</span>
+          <input type="text" id="cmMap" placeholder="例：（待補）楓葉村周邊">
+        </label>
+        <label class="field">
+          <span>角色等級 *</span>
+          <input type="number" id="cmLevel" min="1" max="300" placeholder="例：20">
+        </label>
+      </div>
+      <div class="field-grid two-col">
+        <label class="field">
+          <span>EXP / 小時（未加倍）* 可用 W 代替萬</span>
+          <input type="text" id="cmExpPerHour" placeholder="例：50W 或 500000" inputmode="decimal">
+        </label>
+        <label class="field">
+          <span>備註（選填）</span>
+          <input type="text" id="cmNote" placeholder="例：開技能、有吃藥水等">
+        </label>
+      </div>
+      <div class="cm-form-actions">
+        <button class="btn btn-primary" id="cmSubmitBtn" type="button">送出</button>
+        <button class="btn btn-ghost" id="cmCancelBtn" type="button">取消</button>
+        <span class="cm-msg" id="cmMsg"></span>
+      </div>
+    </div>
+
+    <div id="cmList"><p class="cm-loading">載入中...</p></div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>非官方工具，數值僅供參考，正式數據以遊戲內公告為準。</p>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/calculator.js"></script>
+<script src="js/app.js"></script>
+<script src="js/timer.js"></script>
+<script src="js/community.js"></script>
+<script src="js/nav.js"></script>
+</body>
+</html>

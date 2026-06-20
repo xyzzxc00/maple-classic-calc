@@ -1,0 +1,37 @@
+/**
+ * nav.js — 分頁切換（練等計算 / 計時器 / 社群資料庫）
+ */
+(function () {
+  const STORAGE_KEY = "maple_classic_nav_v1";
+
+  const pages = {
+    calc: document.getElementById("pageCalc"),
+    timer: document.getElementById("pageTimer"),
+    cm: document.getElementById("pageCm"),
+  };
+  const tabs = {
+    calc: document.getElementById("navCalc"),
+    timer: document.getElementById("navTimer"),
+    cm: document.getElementById("navCm"),
+  };
+
+  function switchNav(page) {
+    Object.keys(pages).forEach((key) => {
+      pages[key].hidden = key !== page;
+      tabs[key].classList.toggle("active", key === page);
+    });
+    localStorage.setItem(STORAGE_KEY, page);
+    if (page === "cm" && window.MapleCommunity) {
+      window.MapleCommunity.loadRecords();
+    }
+  }
+
+  tabs.calc.addEventListener("click", () => switchNav("calc"));
+  tabs.timer.addEventListener("click", () => switchNav("timer"));
+  tabs.cm.addEventListener("click", () => switchNav("cm"));
+
+  window.MapleNav = { switchNav };
+
+  const saved = localStorage.getItem(STORAGE_KEY);
+  switchNav(saved && pages[saved] ? saved : "calc");
+})();
