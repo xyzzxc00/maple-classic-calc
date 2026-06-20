@@ -165,6 +165,7 @@
   }
 
   // ---------- EXP 測速 ----------
+  let lastExpPerMin = 0;
   let lastExpPerHour = 0;
 
   function calcExpRate() {
@@ -180,12 +181,12 @@
     const gained = after - before;
     const secs = timerElapsed > 0 ? timerElapsed : timerTotal;
     const mins = secs / 60;
-    const perMin = gained / mins;
-    lastExpPerHour = Math.round(perMin * 60);
+    lastExpPerMin = gained / mins;
+    lastExpPerHour = Math.round(lastExpPerMin * 60);
 
     els.expGained.textContent = formatExp(gained);
     els.expDuration.textContent = formatDuration(mins);
-    els.expPerMinResult.textContent = formatExp(perMin);
+    els.expPerMinResult.textContent = formatExp(lastExpPerMin);
     els.expPerHourResult.textContent = formatExp(lastExpPerHour);
 
     els.expRateBox.hidden = false;
@@ -202,13 +203,13 @@
   });
 
   els.applyExpRateBtn.addEventListener("click", () => {
-    if (!lastExpPerHour) return;
-    const field = document.getElementById("expPerHour");
-    field.value = lastExpPerHour;
-    field.dispatchEvent(new Event("input"));
+    if (!lastExpPerMin) return;
+    document.getElementById("expPer10Min").value = Math.round(lastExpPerMin * 10);
     window.MapleNav.switchNav("calc");
     if (window.MapleApp && window.MapleApp.runCalculation) window.MapleApp.runCalculation();
-    els.applyExpRateBtn.textContent = "↑ 套用到練等計算（每小時經驗）";
+    const originalText = els.applyExpRateBtn.textContent;
+    els.applyExpRateBtn.textContent = "✓ 已套用！";
+    setTimeout(() => (els.applyExpRateBtn.textContent = originalText), 2000);
   });
 
   els.applyToCmBtn.addEventListener("click", () => {

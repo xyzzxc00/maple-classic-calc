@@ -49,26 +49,80 @@ const MapleCalculator = (() => {
   }
 
   /**
-   * 用每小時經驗值預估時間
-   * @param {number} totalExpNeeded
-   * @param {number} expPerHour
-   * @returns {{ hours: number, days: number, displayText: string }}
+   * 解析經驗輸入字串，支援用 W 代替萬（例如 "5W" = 50000）
    */
-  function estimateTime(totalExpNeeded, expPerHour) {
-    if (!expPerHour || expPerHour <= 0) {
-      return { hours: null, days: null, displayText: "尚無效率資料" };
+  function parseExpVal(val) {
+    if (!val || !String(val).trim()) return NaN;
+    const s = String(val).trim().toUpperCase().replace(/[,\s]/g, "");
+    if (s.endsWith("W")) {
+      const n = parseFloat(s.slice(0, -1));
+      return isNaN(n) ? NaN : n * 10000;
     }
-    const hours = totalExpNeeded / expPerHour;
-    const days = hours / 24;
-    let displayText;
-    if (hours < 1) {
-      displayText = `約 ${Math.ceil(hours * 60)} 分鐘`;
-    } else if (hours < 24) {
-      displayText = `約 ${hours.toFixed(1)} 小時`;
-    } else {
-      displayText = `約 ${days.toFixed(1)} 天（以每天練等 ${expPerHour ? "持續" : ""}估算）`;
+    return parseFloat(s);
+  }
+
+  /**
+   * 把分鐘數格式化成「X天 Y小時 Z分」的可讀文字
+   */
+  function formatDuration(minutes) {
+    if (!isFinite(minutes) || minutes <= 0) return null;
+    const m = Math.ceil(minutes);
+    if (m < 60) return m + " 分鐘";
+    const h = Math.floor(m / 60);
+    const rm = m % 60;
+    if (h < 24) return h + " 小時" + (rm ? " " + rm + " 分" : "");
+    const d = Math.floor(h / 24);
+    const rh = h % 24;
+    return d + " 天 " + rh + " 小時" + (rm ? " " + rm + " 分" : "");
+  }
+
+  /**
+   * 用每分鐘經驗值（未加倍）算出不加倍/加倍後所需時間、省下的時間
+   * @param {number} totalExpNeeded
+   * @param {number} expPerMin - 未加倍時每分鐘經驗
+   * @param {number} mult - 加倍倍率
+   */
+  function calcTimes(totalExpNeeded, expPerMin, mult) {
+    if (!expPerMin || expPerMin <= 0) {
+      return { minutesNo: null, minutesMult: null, savedMinutes: null, displayNo: "尚無效率資料", displayMult: "尚無效率資料", displaySaved: "—" };
     }
-    return { hours, days, displayText };
+    const minutesNo = totalExpNeeded / expPerMin;
+    const minutesMult = totalExpNeeded / (expPerMin * mult);
+    const savedMinutes = minutesNo - minutesMult;
+    return {
+      minutesNo,
+      minutesMult,
+      savedMinutes,
+      displayNo: formatDuration(minutesNo) || "已達成",
+      displayMult: formatDuration(minutesMult) || "已達成",
+      displaySaved: formatDuration(savedMinutes) || "—",
+    };
+  }
+
+  /**
+   * 加倍卷計算（每張固定 30 分鐘）
+   */
+  function calcCoupons(minutesMult, mult, ownedCoupons) {
+    if (minutesMult == null || mult <= 1) {
+      return { couponsNeeded: 0, hasOwned: false, enough: false, shortBy: 0 };
+    }
+    const couponsNeeded = Math.ceil(minutesMult / 30);
+    const hasOwned = Number.isFinite(ownedCoupons) && ownedCoupons >= 0;
+    const enough = hasOwned && ownedCoupons >= couponsNeeded;
+    const shortBy = hasOwned && !enough ? couponsNeeded - ownedCoupons : 0;
+    return { couponsNeeded, hasOwned, enough, shortBy };
+  }
+
+  /**
+   * 每天打 X 小時，估算加倍後／不加倍各要幾天練完
+   */
+  function calcDailyDays(minutesNo, minutesMult, dailyHours) {
+    if (!dailyHours || dailyHours <= 0 || minutesNo == null) return null;
+    const dailyMinutes = dailyHours * 60;
+    return {
+      daysNo: Math.ceil(minutesNo / dailyMinutes),
+      daysMult: Math.ceil(minutesMult / dailyMinutes),
+    };
   }
 
   /**
@@ -83,12 +137,15 @@ const MapleCalculator = (() => {
   /**
    * 把目前的查詢條件編碼成可分享的 URL 參數
    */
-  function encodeShareParams({ currentLevel, currentExp, targetLevel, expPerHour }) {
+  function encodeShareParams({ currentLevel, currentExp, targetLevel, expPerMin, mult, dailyHours, ownedCoupons }) {
     const params = new URLSearchParams();
     params.set("cl", currentLevel);
     params.set("ce", currentExp);
     params.set("tl", targetLevel);
-    if (expPerHour) params.set("eph", expPerHour);
+    if (expPerMin) params.set("epm", expPerMin);
+    if (mult) params.set("mult", mult);
+    if (dailyHours) params.set("daily", dailyHours);
+    if (ownedCoupons) params.set("owned", ownedCoupons);
     return params.toString();
   }
 
@@ -97,18 +154,28 @@ const MapleCalculator = (() => {
     const cl = parseInt(params.get("cl"), 10);
     const ce = parseInt(params.get("ce"), 10);
     const tl = parseInt(params.get("tl"), 10);
-    const eph = parseInt(params.get("eph"), 10);
+    const epm = parseFloat(params.get("epm"));
+    const mult = parseFloat(params.get("mult"));
+    const daily = parseFloat(params.get("daily"));
+    const owned = parseInt(params.get("owned"), 10);
     return {
       currentLevel: Number.isFinite(cl) ? cl : null,
       currentExp: Number.isFinite(ce) ? ce : null,
       targetLevel: Number.isFinite(tl) ? tl : null,
-      expPerHour: Number.isFinite(eph) ? eph : null,
+      expPerMin: Number.isFinite(epm) ? epm : null,
+      mult: Number.isFinite(mult) ? mult : null,
+      dailyHours: Number.isFinite(daily) ? daily : null,
+      ownedCoupons: Number.isFinite(owned) ? owned : null,
     };
   }
 
   return {
     calcExpNeeded,
-    estimateTime,
+    parseExpVal,
+    formatDuration,
+    calcTimes,
+    calcCoupons,
+    calcDailyDays,
     findSuitableSpots,
     encodeShareParams,
     decodeShareParams,

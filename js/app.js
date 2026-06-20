@@ -8,16 +8,21 @@
  */
 
 (function () {
-  const STORAGE_KEY = "maple_classic_characters_v1";
+  const STORAGE_KEY = "maple_classic_characters_v2";
 
   const els = {
     charSelect: document.getElementById("charSelect"),
     newCharBtn: document.getElementById("newCharBtn"),
+    renameCharBtn: document.getElementById("renameCharBtn"),
     deleteCharBtn: document.getElementById("deleteCharBtn"),
     currentLevel: document.getElementById("currentLevel"),
     currentExp: document.getElementById("currentExp"),
     targetLevel: document.getElementById("targetLevel"),
-    expPerHour: document.getElementById("expPerHour"),
+    expPer10Min: document.getElementById("expPer10Min"),
+    multBtns: document.querySelectorAll(".mult-btn"),
+    customMult: document.getElementById("customMult"),
+    dailyHours: document.getElementById("dailyHours"),
+    ownedCoupons: document.getElementById("ownedCoupons"),
     calcBtn: document.getElementById("calcBtn"),
     resultPanel: document.getElementById("resultPanel"),
     expBarFill: document.getElementById("expBarFill"),
@@ -26,11 +31,24 @@
     capLevelTo: document.getElementById("capLevelTo"),
     statExpNeeded: document.getElementById("statExpNeeded"),
     statLevelsToGo: document.getElementById("statLevelsToGo"),
-    statTime: document.getElementById("statTime"),
+    multLabel: document.getElementById("multLabel"),
+    timeNo: document.getElementById("timeNo"),
+    timeMult: document.getElementById("timeMult"),
+    couponStatsBox: document.getElementById("couponStatsBox"),
+    timeSaved: document.getElementById("timeSaved"),
+    couponsNeeded: document.getElementById("couponsNeeded"),
+    couponStatusRow: document.getElementById("couponStatusRow"),
+    couponStatus: document.getElementById("couponStatus"),
+    couponShortRow: document.getElementById("couponShortRow"),
+    couponShort: document.getElementById("couponShort"),
+    dailyDaysRow: document.getElementById("dailyDaysRow"),
+    dailyDays: document.getElementById("dailyDays"),
     shareBtn: document.getElementById("shareBtn"),
     shareHint: document.getElementById("shareHint"),
     spotsBody: document.getElementById("spotsBody"),
   };
+
+  let currentMult = 2;
 
   // ---------- 角色資料 (localStorage) ----------
   function loadCharacters() {
@@ -44,7 +62,17 @@
   }
 
   function defaultCharacter() {
-    return { id: "char_default", name: "我的角色", currentLevel: 1, currentExp: 0, targetLevel: 10, expPerHour: 0 };
+    return {
+      id: "char_default",
+      name: "我的角色",
+      currentLevel: "",
+      currentExp: 0,
+      targetLevel: "",
+      expPer10Min: "",
+      mult: 2,
+      dailyHours: "",
+      ownedCoupons: "",
+    };
   }
 
   function saveCharacters(list) {
@@ -59,35 +87,57 @@
     characters.forEach((c) => {
       const opt = document.createElement("option");
       opt.value = c.id;
-      opt.textContent = c.name;
+      opt.textContent = `${c.name} · Lv.${parseInt(c.currentLevel, 10) || 1}`;
       els.charSelect.appendChild(opt);
     });
     els.charSelect.value = activeCharId;
   }
 
+  function setMult(mult) {
+    currentMult = mult;
+    els.customMult.value = mult;
+    els.multBtns.forEach((b) => b.classList.toggle("active", parseFloat(b.dataset.val) === mult));
+  }
+
   function loadCharIntoForm(charId) {
     const c = characters.find((c) => c.id === charId) || characters[0];
-    els.currentLevel.value = c.currentLevel;
+    els.currentLevel.value = c.currentLevel || "";
     els.currentExp.value = c.currentExp;
-    els.targetLevel.value = c.targetLevel;
-    els.expPerHour.value = c.expPerHour || "";
+    els.targetLevel.value = c.targetLevel || "";
+    els.expPer10Min.value = c.expPer10Min || "";
+    els.dailyHours.value = c.dailyHours || "";
+    els.ownedCoupons.value = c.ownedCoupons || "";
+    setMult(c.mult || 2);
   }
 
   function persistFormToActiveChar() {
     const c = characters.find((c) => c.id === activeCharId);
     if (!c) return;
-    c.currentLevel = parseInt(els.currentLevel.value, 10) || 1;
+    c.currentLevel = els.currentLevel.value;
     c.currentExp = parseInt(els.currentExp.value, 10) || 0;
-    c.targetLevel = parseInt(els.targetLevel.value, 10) || 1;
-    c.expPerHour = parseInt(els.expPerHour.value, 10) || 0;
+    c.targetLevel = els.targetLevel.value;
+    c.expPer10Min = els.expPer10Min.value;
+    c.mult = currentMult;
+    c.dailyHours = els.dailyHours.value;
+    c.ownedCoupons = els.ownedCoupons.value;
     saveCharacters(characters);
   }
+
+  els.renameCharBtn.addEventListener("click", () => {
+    const c = characters.find((c) => c.id === activeCharId);
+    if (!c) return;
+    const name = prompt("角色新名稱？", c.name);
+    if (!name || !name.trim()) return;
+    c.name = name.trim();
+    saveCharacters(characters);
+    renderCharSelect();
+  });
 
   els.newCharBtn.addEventListener("click", () => {
     const name = prompt("新角色名稱？", `角色 ${characters.length + 1}`);
     if (!name) return;
     const id = "char_" + Date.now();
-    const newChar = { id, name, currentLevel: 1, currentExp: 0, targetLevel: 10, expPerHour: 0 };
+    const newChar = { ...defaultCharacter(), id, name };
     characters.push(newChar);
     activeCharId = id;
     saveCharacters(characters);
@@ -113,7 +163,24 @@
     loadCharIntoForm(activeCharId);
   });
 
+  // ---------- 加倍倍率 ----------
+  els.multBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setMult(parseFloat(btn.dataset.val));
+      if (!els.resultPanel.hidden) runCalculation();
+    });
+  });
+  els.customMult.addEventListener("input", () => {
+    currentMult = parseFloat(els.customMult.value) || 1;
+    els.multBtns.forEach((b) => b.classList.remove("active"));
+    if (!els.resultPanel.hidden) runCalculation();
+  });
+
   // ---------- 計算與渲染 ----------
+  function getExpPerMin() {
+    return MapleCalculator.parseExpVal(els.expPer10Min.value) / 10;
+  }
+
   function runCalculation() {
     persistFormToActiveChar();
 
@@ -129,8 +196,9 @@
     );
 
     els.resultPanel.hidden = false;
+    els.multLabel.textContent = currentMult + "x";
 
-    // EXP bar：用「目前等級內進度」當作視覺示意（佔位數值下僅供示意）
+    // EXP bar：用「目前等級內進度」當作視覺示意
     const currentLevelNeed = window.MapleData.EXP_TABLE[currentLevel - 1] || 1;
     const pct = Math.min(100, Math.round((currentExp / currentLevelNeed) * 100));
     els.expBarFill.style.width = pct + "%";
@@ -143,18 +211,43 @@
     els.statLevelsToGo.textContent =
       levelsToGo > 0 ? `${levelsToGo} 等` : "已達成";
 
-    // 預估時間：優先用使用者自填的每小時經驗，沒填才 fallback 用練功地點資料
-    const manualExpPerHour = parseInt(els.expPerHour.value, 10) || 0;
-    let effectiveExpPerHour = manualExpPerHour;
-    if (!effectiveExpPerHour) {
-      const spots = MapleCalculator.findSuitableSpots(currentLevel, window.MapleData.GRINDING_SPOTS);
-      const spotWithRate = spots.find((s) => s.expPerHour);
-      effectiveExpPerHour = spotWithRate ? spotWithRate.expPerHour : 0;
+    // 時間 / 加倍卷計算
+    const expPerMin = getExpPerMin();
+    const hasRate = !isNaN(expPerMin) && expPerMin > 0;
+
+    if (!hasRate) {
+      els.timeNo.textContent = "尚無效率資料";
+      els.timeMult.textContent = "尚無效率資料";
+      els.couponStatsBox.hidden = true;
+    } else {
+      const times = MapleCalculator.calcTimes(totalExpNeeded, expPerMin, currentMult);
+      els.timeNo.textContent = times.displayNo;
+      els.timeMult.textContent = times.displayMult;
+      els.timeSaved.textContent = times.displaySaved;
+
+      const ownedCoupons = parseInt(els.ownedCoupons.value, 10);
+      const coupons = MapleCalculator.calcCoupons(times.minutesMult, currentMult, ownedCoupons);
+      els.couponsNeeded.textContent = currentMult <= 1 ? "無需加倍卷" : coupons.couponsNeeded + " 張";
+
+      els.couponStatusRow.hidden = !coupons.hasOwned || currentMult <= 1;
+      els.couponShortRow.hidden = !(coupons.hasOwned && !coupons.enough && currentMult > 1);
+      if (coupons.hasOwned && currentMult > 1) {
+        els.couponStatus.textContent = coupons.enough ? "✅ 足夠" : "❌ 不足";
+        els.couponShort.textContent = coupons.shortBy + " 張";
+      }
+
+      const dailyHours = parseFloat(els.dailyHours.value);
+      const dailyDays = MapleCalculator.calcDailyDays(times.minutesNo, times.minutesMult, dailyHours);
+      els.dailyDaysRow.hidden = !dailyDays;
+      if (dailyDays) {
+        els.dailyDays.textContent = `${dailyDays.daysMult} 天／${dailyDays.daysNo} 天`;
+      }
+
+      els.couponStatsBox.hidden = false;
     }
-    const time = MapleCalculator.estimateTime(totalExpNeeded, effectiveExpPerHour);
-    els.statTime.textContent = time.displayText;
 
     renderSpotsTable(currentLevel);
+    renderCharSelect();
   }
 
   function renderSpotsTable(currentLevel) {
@@ -181,7 +274,10 @@
       currentLevel: parseInt(els.currentLevel.value, 10) || 1,
       currentExp: parseInt(els.currentExp.value, 10) || 0,
       targetLevel: parseInt(els.targetLevel.value, 10) || 1,
-      expPerHour: parseInt(els.expPerHour.value, 10) || 0,
+      expPerMin: getExpPerMin() || 0,
+      mult: currentMult,
+      dailyHours: parseFloat(els.dailyHours.value) || 0,
+      ownedCoupons: parseInt(els.ownedCoupons.value, 10) || 0,
     });
     const url = `${location.origin}${location.pathname}?${params}`;
     try {
@@ -204,7 +300,10 @@
       els.currentLevel.value = shared.currentLevel;
       els.currentExp.value = shared.currentExp || 0;
       els.targetLevel.value = shared.targetLevel;
-      els.expPerHour.value = shared.expPerHour || "";
+      els.expPer10Min.value = shared.expPerMin ? shared.expPerMin * 10 : "";
+      setMult(shared.mult || 2);
+      els.dailyHours.value = shared.dailyHours || "";
+      els.ownedCoupons.value = shared.ownedCoupons || "";
     } else {
       loadCharIntoForm(activeCharId);
     }

@@ -74,6 +74,9 @@ body {
   margin: 0 auto;
   padding: 0 20px;
 }
+@media (max-width: 420px) {
+  .wrap { padding: 0 12px; }
+}
 
 /* ---------- Header ---------- */
 .site-header {
@@ -113,6 +116,9 @@ body {
   box-shadow: var(--shadow-card);
   padding: 24px;
   margin-bottom: 22px;
+}
+@media (max-width: 420px) {
+  .panel { padding: 16px; }
 }
 .panel h2 {
   font-family: 'Noto Sans TC', sans-serif;
@@ -156,6 +162,13 @@ body {
 .char-row {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
+}
+.char-row .char-select {
+  flex: 1 1 160px;
+}
+@media (max-width: 480px) {
+  .char-row .btn-ghost, .char-row .btn-danger-ghost { flex: 1; }
 }
 .char-select {
   flex: 1;
@@ -244,6 +257,7 @@ body {
   cursor: pointer;
 }
 .calc-btn { margin-top: 4px; }
+.input-panel > .field { margin-bottom: 18px; }
 
 /* ---------- EXP bar (signature element) ---------- */
 .exp-bar-wrap { margin-bottom: 24px; }
@@ -299,7 +313,7 @@ body {
 /* ---------- Stat cards ---------- */
 .stat-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   margin-bottom: 18px;
 }
@@ -325,6 +339,74 @@ body {
   font-weight: 800;
   color: var(--mushroom-red-deep);
   margin: 0;
+}
+
+/* ---------- Multiplier buttons ---------- */
+.mult-btns { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 12px; }
+.mult-btn {
+  background: #fff;
+  border: 2px solid var(--line);
+  border-radius: var(--radius-md);
+  color: var(--ink-soft);
+  padding: 8px 16px;
+  cursor: pointer;
+  font-family: 'Baloo 2', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  transition: all 0.15s;
+}
+.mult-btn:hover { border-color: var(--leaf-green); }
+.mult-btn.active { background: var(--leaf-green); border-color: var(--leaf-green); color: #fff; }
+
+/* ---------- Time grid (multiplier comparison) ---------- */
+.time-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+@media (max-width: 560px) {
+  .time-grid { grid-template-columns: 1fr; }
+}
+.time-box {
+  background: #fff;
+  border-radius: var(--radius-md);
+  padding: 14px;
+  text-align: center;
+  border: 2px solid var(--line);
+}
+.time-box.highlight { background: var(--cream-deep); border-color: var(--leaf-green); }
+.time-main {
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0;
+}
+.time-box.highlight .time-main { color: var(--leaf-green); }
+
+/* ---------- Divider stats (coupon calc) ---------- */
+.divider-stats {
+  border-top: 2px solid var(--line);
+  padding-top: 12px;
+  margin-bottom: 16px;
+}
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+.stat-row:last-child { border-bottom: none; }
+.stat-row span:first-child { flex: 1 1 auto; }
+.stat-row span:last-child { flex-shrink: 0; font-weight: 700; color: var(--ink); text-align: right; }
+.stat-row span.hl { color: var(--leaf-green); font-size: 1.05rem; }
+@media (max-width: 420px) {
+  .stat-row { font-size: 13px; }
 }
 
 .share-btn { width: 100%; justify-content: center; }
@@ -384,8 +466,14 @@ body {
 .nav-tab:hover { background: rgba(79,157,110,0.1); }
 .nav-tab.active { background: var(--leaf-green); color: #fff; }
 @media (max-width: 560px) {
-  .nav-tabs { width: 100%; }
-  .nav-tab { flex: 1; padding: 10px 8px; font-size: 12px; }
+  .nav-tabs {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab { flex: 0 0 auto; padding: 10px 14px; font-size: 13px; }
 }
 
 /* ---------- Two/three column field grid ---------- */

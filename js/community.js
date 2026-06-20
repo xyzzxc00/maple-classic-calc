@@ -193,7 +193,8 @@
       "</div>";
   }
 
-  [els.filterJob, els.filterMap, els.filterLvMin, els.filterLvMax].forEach((el) =>
+  els.filterJob.addEventListener("change", renderRecords);
+  [els.filterMap, els.filterLvMin, els.filterLvMax].forEach((el) =>
     el.addEventListener("input", renderRecords)
   );
 
