@@ -40,7 +40,7 @@
 
   <section class="notice-banner" id="dataNotice">
     <span class="notice-icon">🍄</span>
-    <p>目前經驗值為<strong>估算佔位數值</strong>，封測 / 上線後將立即更新為真實數據，計算結果會自動套用最新版本。</p>
+    <p><strong>目前採用版本：</strong>舊楓之谷（pre-Big Bang）經典經驗值表，數值同時參考 PTT 楓之谷板流傳版本與海外「MapleStory Classic Worlds」官方頁面比對 Lv.1~49 一致，<strong>暫支援 Lv.1~200</strong>。這只是接近值，等台版新楓之谷經典版正式公告或封測資料出來後，會立即校正為官方正式數值。</p>
   </section>
 
   <section class="panel char-panel">
@@ -59,7 +59,7 @@
     <div class="field-grid">
       <label class="field">
         <span>目前等級</span>
-        <input type="number" id="currentLevel" min="1" max="300" value="1" inputmode="numeric">
+        <input type="number" id="currentLevel" min="1" max="200" value="1" inputmode="numeric">
       </label>
       <label class="field">
         <span>目前經驗值（選填）</span>
@@ -67,7 +67,7 @@
       </label>
       <label class="field">
         <span>目標等級</span>
-        <input type="number" id="targetLevel" min="1" max="300" value="10" inputmode="numeric">
+        <input type="number" id="targetLevel" min="1" max="200" value="10" inputmode="numeric">
       </label>
       <label class="field">
         <span>每小時經驗（選填，自填效率）</span>
@@ -205,9 +205,9 @@
       <div class="cm-filter-row">
         <input class="cm-filter-input" id="cmFilterJob" list="cmJobOptions" placeholder="篩選職業">
         <input class="cm-filter-input" id="cmFilterMap" placeholder="🔍 篩選地圖">
-        <input class="cm-filter-input cm-filter-lv" id="cmFilterLvMin" type="number" min="1" max="300" placeholder="最低等級">
+        <input class="cm-filter-input cm-filter-lv" id="cmFilterLvMin" type="number" min="1" max="200" placeholder="最低等級">
         <span class="cm-filter-sep">~</span>
-        <input class="cm-filter-input cm-filter-lv" id="cmFilterLvMax" type="number" min="1" max="300" placeholder="最高等級">
+        <input class="cm-filter-input cm-filter-lv" id="cmFilterLvMax" type="number" min="1" max="200" placeholder="最高等級">
       </div>
       <button class="btn btn-primary" id="cmAddBtn" type="button">＋ 新增紀錄</button>
     </div>
@@ -232,7 +232,7 @@
         </label>
         <label class="field">
           <span>角色等級 *</span>
-          <input type="number" id="cmLevel" min="1" max="300" placeholder="例：20">
+          <input type="number" id="cmLevel" min="1" max="200" placeholder="例：20">
         </label>
       </div>
       <div class="field-grid two-col">
