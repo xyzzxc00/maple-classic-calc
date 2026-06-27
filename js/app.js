@@ -121,26 +121,59 @@
     saveCharacters(characters);
   }
 
+  function showModal(title, defaultVal, callback) {
+    const overlay = document.getElementById("modalOverlay");
+    const titleEl = document.getElementById("modalTitle");
+    const input = document.getElementById("modalInput");
+    const confirmBtn = document.getElementById("modalConfirm");
+    const cancelBtn = document.getElementById("modalCancel");
+    titleEl.textContent = title;
+    input.value = defaultVal || "";
+    overlay.hidden = false;
+    setTimeout(() => { input.focus(); input.select(); }, 50);
+    function close(result) {
+      overlay.hidden = true;
+      confirmBtn.removeEventListener("click", onConfirm);
+      cancelBtn.removeEventListener("click", onCancel);
+      overlay.removeEventListener("click", onOverlay);
+      input.removeEventListener("keydown", onKey);
+      callback(result);
+    }
+    function onConfirm() { close(input.value.trim() || null); }
+    function onCancel() { close(null); }
+    function onOverlay(e) { if (e.target === overlay) close(null); }
+    function onKey(e) {
+      if (e.key === "Enter") close(input.value.trim() || null);
+      if (e.key === "Escape") close(null);
+    }
+    confirmBtn.addEventListener("click", onConfirm);
+    cancelBtn.addEventListener("click", onCancel);
+    overlay.addEventListener("click", onOverlay);
+    input.addEventListener("keydown", onKey);
+  }
+
   els.renameCharBtn.addEventListener("click", () => {
     const c = characters.find((c) => c.id === activeCharId);
     if (!c) return;
-    const name = prompt("角色新名稱？", c.name);
-    if (!name || !name.trim()) return;
-    c.name = name.trim();
-    saveCharacters(characters);
-    renderCharSelect();
+    showModal("角色改名", c.name, (name) => {
+      if (!name) return;
+      c.name = name;
+      saveCharacters(characters);
+      renderCharSelect();
+    });
   });
 
   els.newCharBtn.addEventListener("click", () => {
-    const name = prompt("新角色名稱？", `角色 ${characters.length + 1}`);
-    if (!name) return;
-    const id = "char_" + Date.now();
-    const newChar = { ...defaultCharacter(), id, name };
-    characters.push(newChar);
-    activeCharId = id;
-    saveCharacters(characters);
-    renderCharSelect();
-    loadCharIntoForm(id);
+    showModal("新角色名稱", `角色 ${characters.length + 1}`, (name) => {
+      if (!name) return;
+      const id = "char_" + Date.now();
+      const newChar = { ...defaultCharacter(), id, name };
+      characters.push(newChar);
+      activeCharId = id;
+      saveCharacters(characters);
+      renderCharSelect();
+      loadCharIntoForm(id);
+    });
   });
 
   els.deleteCharBtn.addEventListener("click", () => {
@@ -200,9 +233,14 @@
     els.resultPanel.hidden = false;
     els.multLabel.textContent = currentMult + "x";
 
-    // EXP bar：用「目前等級內進度」當作視覺示意
-    const currentLevelNeed = window.MapleData.EXP_TABLE[currentLevel - 1] || 1;
-    const pct = Math.min(100, Math.round((currentExp / currentLevelNeed) * 100));
+    // EXP bar：顯示「起點到目標」全程進度
+    let totalExpForRange = 0;
+    for (let lv = currentLevel; lv < targetLevel; lv++) {
+      totalExpForRange += window.MapleData.EXP_TABLE[lv - 1] || 0;
+    }
+    totalExpForRange = Math.max(totalExpForRange, 1);
+    const expDone = Math.max(0, totalExpForRange - totalExpNeeded);
+    const pct = targetLevel <= currentLevel ? 100 : Math.min(100, Math.round((expDone / totalExpForRange) * 100));
     els.expBarFill.style.width = pct + "%";
     els.expBarLabel.textContent = pct + "%";
     els.capLevelFrom.textContent = `Lv.${currentLevel}`;

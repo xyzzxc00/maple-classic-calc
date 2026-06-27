@@ -692,6 +692,51 @@ body {
   .job-path-note { margin-left: 0; width: 100%; }
 }
 
+/* ---------- Modal ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-box {
+  background: var(--cream);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: var(--shadow-card);
+}
+.modal-title {
+  font-weight: 900;
+  font-size: 17px;
+  margin: 0 0 14px;
+  color: var(--ink);
+}
+.modal-input {
+  width: 100%;
+  font-family: 'Baloo 2', sans-serif;
+  font-size: 18px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  margin-bottom: 16px;
+  box-sizing: border-box;
+}
+.modal-input:focus {
+  outline: 3px solid var(--gold);
+  outline-offset: 1px;
+  border-color: var(--gold-deep);
+}
+.modal-actions { display: flex; gap: 10px; }
+.modal-actions .btn-primary { flex: 1; }
+
 /* ---------- Footer ---------- */
 .site-footer {
   text-align: center;

@@ -8,6 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://xyzzxc00.github.io/maple-classic-calc/">
+<meta property="og:image" content="https://xyzzxc00.github.io/maple-classic-calc/og-image.png">
 <meta property="og:title" content="新楓之谷經典版 練等 × 社群工具">
 <meta property="og:description" content="輸入目前等級，馬上知道升級還差多少經驗、大概要練多久。附加倍卷試算、計時器、社群練功地點資料庫。">
 <meta name="twitter:card" content="summary">
@@ -434,6 +435,17 @@
   </section>
 
 </main>
+
+<div class="modal-overlay" id="modalOverlay" hidden>
+  <div class="modal-box">
+    <p class="modal-title" id="modalTitle"></p>
+    <input type="text" class="modal-input" id="modalInput" maxlength="20">
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="modalConfirm" type="button">確定</button>
+      <button class="btn btn-ghost" id="modalCancel" type="button">取消</button>
+    </div>
+  </div>
+</div>
 
 <footer class="site-footer">
   <p>非官方工具，數值僅供參考，正式數據以遊戲內公告為準。</p>
