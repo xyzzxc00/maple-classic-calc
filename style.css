@@ -703,13 +703,19 @@ body {
 }
 .donate-link {
   display: inline-block;
-  margin-top: 8px;
-  color: var(--ink-soft);
-  opacity: 0.6;
-  font-size: 11px;
+  margin-top: 10px;
+  color: var(--surface);
+  background: var(--gold-deep);
+  font-size: 13px;
+  font-weight: 700;
   text-decoration: none;
+  padding: 8px 18px;
+  border-radius: 999px;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.15);
+  transition: transform 0.1s, box-shadow 0.1s;
 }
-.donate-link:hover { opacity: 1; color: var(--gold-deep); }
+.donate-link:hover { transform: translateY(-1px); box-shadow: 0 5px 0 rgba(0,0,0,0.15); }
+.donate-link:active { transform: translateY(1px); box-shadow: 0 2px 0 rgba(0,0,0,0.15); }
 
 /* ---------- Theme toggle ---------- */
 .theme-toggle {
