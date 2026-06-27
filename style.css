@@ -357,6 +357,10 @@ body {
 
 /* ---------- Multiplier buttons ---------- */
 .mult-btns { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 12px; }
+@media (max-width: 420px) {
+  .mult-btns { gap: 5px; }
+  .mult-btn { flex: 1; padding: 8px 4px; font-size: 13px; }
+}
 .mult-btn {
   background: var(--surface);
   border: 2px solid var(--line);
@@ -480,6 +484,16 @@ body {
 .nav-tab:hover { background: rgba(79,157,110,0.1); }
 .nav-tab.active { background: var(--leaf-green); color: #fff; }
 @media (max-width: 560px) {
+  .nav-tabs-wrap { position: relative; }
+  .nav-tabs-wrap::after {
+    content: "";
+    position: absolute;
+    top: 0; right: 0;
+    width: 36px; height: 100%;
+    background: linear-gradient(to right, transparent, var(--cream-deep));
+    pointer-events: none;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  }
   .nav-tabs {
     width: 100%;
     overflow-x: auto;
@@ -687,6 +701,15 @@ body {
   position: relative;
   z-index: 1;
 }
+.donate-link {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--ink-soft);
+  opacity: 0.6;
+  font-size: 11px;
+  text-decoration: none;
+}
+.donate-link:hover { opacity: 1; color: var(--gold-deep); }
 
 /* ---------- Theme toggle ---------- */
 .theme-toggle {
