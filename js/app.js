@@ -87,7 +87,7 @@
       currentLevel, currentExp, targetLevel, window.MapleData.EXP_TABLE
     );
 
-    els.resultPanel.hidden = false;
+
     els.multLabel.textContent = currentMult + "x";
 
     els.statExpNeeded.textContent = targetLevel <= currentLevel ? "已達成" : totalExpNeeded.toLocaleString();
@@ -143,7 +143,6 @@
     els.ownedCoupons.value = "";
     setMult(2);
     savePrefs();
-    els.resultPanel.hidden = true;
     if (window.MapleSpots) window.MapleSpots.setCurrentLevel(1);
   });
 
