@@ -671,7 +671,23 @@ body.dark .exp-bar-track { background: #111; }
 .cm-stat span:first-child { color: var(--ink-soft); }
 .cm-stat span:last-child { font-weight: 700; }
 .cm-note { font-size: 12px; color: var(--ink-soft); font-style: italic; border-top: 1px solid var(--line); padding-top: 6px; }
-.cm-ts { font-size: 11px; color: var(--ink-soft); margin-top: auto; }
+.cm-card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 6px; }
+.cm-ts { font-size: 11px; color: var(--ink-soft); }
+.cm-helpful-btn {
+  background: transparent;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--ink-soft);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.cm-helpful-btn:hover:not(:disabled) { border-color: var(--leaf-green); color: var(--leaf-green); }
+.cm-helpful-btn.voted { border-color: var(--leaf-green); color: var(--leaf-green); background: rgba(79,157,110,0.1); }
+.cm-helpful-btn:disabled { cursor: default; }
+.cm-load-more { width: 100%; margin-top: 14px; }
 .cm-empty, .cm-loading { color: var(--ink-soft); text-align: center; padding: 32px 0; font-size: 14px; }
 
 /* ---------- Suggested spots ---------- */
@@ -709,54 +725,6 @@ body.dark .exp-bar-track { background: #111; }
 @media (max-width: 560px) {
   .job-path-note { margin-left: 0; width: 100%; }
 }
-
-/* ---------- Modal ---------- */
-.modal-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.45);
-  z-index: 300;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-.modal-overlay:not([hidden]) {
-  display: flex;
-}
-.modal-box {
-  background: var(--cream);
-  border-radius: var(--radius-lg);
-  padding: 28px 24px;
-  width: 100%;
-  max-width: 360px;
-  box-shadow: var(--shadow-card);
-}
-.modal-title {
-  font-weight: 900;
-  font-size: 17px;
-  margin: 0 0 14px;
-  color: var(--ink);
-}
-.modal-input {
-  width: 100%;
-  font-family: 'Baloo 2', sans-serif;
-  font-size: 18px;
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  border: 2px solid var(--line);
-  background: var(--surface);
-  color: var(--ink);
-  margin-bottom: 16px;
-  box-sizing: border-box;
-}
-.modal-input:focus {
-  outline: 3px solid var(--gold);
-  outline-offset: 1px;
-  border-color: var(--gold-deep);
-}
-.modal-actions { display: flex; gap: 10px; }
-.modal-actions .btn-primary { flex: 1; }
 
 /* ---------- Footer ---------- */
 .site-footer {
