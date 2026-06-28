@@ -99,7 +99,7 @@ body {
 .wrap {
   position: relative;
   z-index: 1;
-  max-width: 720px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 0 20px;
 }
@@ -217,7 +217,7 @@ body {
   gap: 14px;
   margin-bottom: 18px;
 }
-@media (max-width: 560px) {
+@media (max-width: 480px) {
   .field-grid { grid-template-columns: 1fr; }
 }
 .field {
