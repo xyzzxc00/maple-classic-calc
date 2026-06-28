@@ -34,6 +34,7 @@
     filterMap: document.getElementById("cmFilterMap"),
     filterLvMin: document.getElementById("cmFilterLvMin"),
     filterLvMax: document.getElementById("cmFilterLvMax"),
+    sort: document.getElementById("cmSort"),
     addBtn: document.getElementById("cmAddBtn"),
     form: document.getElementById("cmForm"),
     job: document.getElementById("cmJob"),
@@ -167,13 +168,22 @@
     const fLvMin = parseInt(els.filterLvMin.value, 10) || 0;
     const fLvMax = parseInt(els.filterLvMax.value, 10) || 999;
 
-    const filtered = allRecords.filter(
-      (r) =>
-        (!fJob || r.job.toLowerCase().includes(fJob)) &&
-        (!fMap || r.map.toLowerCase().includes(fMap)) &&
-        r.level >= fLvMin &&
-        r.level <= fLvMax
-    );
+    const sortBy = els.sort ? els.sort.value : "time";
+
+    const filtered = allRecords
+      .filter(
+        (r) =>
+          (!fJob || r.job.toLowerCase().includes(fJob)) &&
+          (!fMap || r.map.toLowerCase().includes(fMap)) &&
+          r.level >= fLvMin &&
+          r.level <= fLvMax
+      )
+      .sort((a, b) => {
+        if (sortBy === "exp") return b.expPer10Min - a.expPer10Min;
+        const ta = a.ts && a.ts.toDate ? a.ts.toDate() : new Date(0);
+        const tb = b.ts && b.ts.toDate ? b.ts.toDate() : new Date(0);
+        return tb - ta;
+      });
 
     if (!filtered.length) {
       els.list.innerHTML = '<p class="cm-empty">沒有符合條件的紀錄</p>';
@@ -199,6 +209,7 @@
   }
 
   els.filterJob.addEventListener("change", renderRecords);
+  if (els.sort) els.sort.addEventListener("change", renderRecords);
   [els.filterMap, els.filterLvMin, els.filterLvMax].forEach((el) =>
     el.addEventListener("input", renderRecords)
   );

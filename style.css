@@ -283,6 +283,7 @@ body {
   overflow: hidden;
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
 }
+body.dark .exp-bar-track { background: #111; }
 .exp-bar-fill {
   height: 100%;
   width: 0%;
@@ -766,6 +767,11 @@ body {
 .footer-contact { font-size: 12px; margin: 6px 0 0; }
 .footer-contact a { color: var(--ink-soft); text-decoration: underline; }
 .footer-contact a:hover { color: var(--ink); }
+@media (max-width: 480px) {
+  .site-footer { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-bottom: 40px; }
+  .footer-contact { margin: 0; }
+  .donate-link { margin: 0; }
+}
 .donate-link:active { transform: translateY(1px); box-shadow: 0 2px 0 rgba(0,0,0,0.15); }
 
 /* ---------- Theme toggle ---------- */

@@ -28,6 +28,13 @@
     clearTrackerBtn: document.getElementById("clearTrackerBtn"),
   };
 
+  let audioCtx = null;
+  function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    return audioCtx;
+  }
+
   let timerTotal = 60;
   let timerLeft = 60;
   let timerElapsed = 0;
@@ -117,6 +124,7 @@
   }
 
   els.startBtn.addEventListener("click", () => {
+    getAudioCtx(); // 在使用者點擊時初始化，iOS 需要這樣才能播聲音
     if (timerRunning) {
       timerRunning = false;
       clearInterval(timerInterval);
@@ -145,7 +153,7 @@
 
   function timerBeep() {
     try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const ctx = getAudioCtx();
       [0, 0.3, 0.6].forEach((offset) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();

@@ -10,6 +10,7 @@
   const els = {
     list: document.getElementById("spotsList"),
     addBtn: document.getElementById("spotsAddBtn"),
+    filterJob: document.getElementById("spotsFilterJob"),
   };
 
   let currentLevel = 1;
@@ -56,7 +57,9 @@
 
   function render() {
     if (!window.MapleCommunity) return;
-    const records = window.MapleCommunity.getRecords();
+    const fJob = els.filterJob ? els.filterJob.value.trim() : "";
+    const allRecords = window.MapleCommunity.getRecords();
+    const records = fJob ? allRecords.filter((r) => r.job === fJob) : allRecords;
 
     if (!records.length) {
       els.list.innerHTML =
@@ -87,6 +90,8 @@
         .join("") +
       "</div>";
   }
+
+  if (els.filterJob) els.filterJob.addEventListener("change", render);
 
   els.addBtn.addEventListener("click", () => {
     window.MapleNav.switchNav("cm");
