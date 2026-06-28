@@ -738,7 +738,7 @@ body.dark .exp-bar-track { background: #111; }
 .donate-link {
   display: inline-block;
   margin-top: 10px;
-  color: var(--surface);
+  color: var(--ink);
   background: var(--gold-deep);
   font-size: 13px;
   font-weight: 700;
