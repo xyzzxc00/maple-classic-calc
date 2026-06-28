@@ -480,11 +480,11 @@ body.dark .exp-bar-track { background: #111; }
   border-radius: var(--radius-md);
   overflow: hidden;
   border: 2px solid var(--line);
-  width: fit-content;
-  max-width: 100%;
+  width: 100%;
   background: var(--cream);
 }
 .nav-tab {
+  flex: 1;
   background: transparent;
   color: var(--ink-soft);
   font-family: 'Noto Sans TC', sans-serif;
@@ -494,23 +494,13 @@ body.dark .exp-bar-track { background: #111; }
   border: none;
   cursor: pointer;
   white-space: nowrap;
+  text-align: center;
   transition: background 0.15s, color 0.15s;
 }
 .nav-tab:hover { background: rgba(79,157,110,0.1); }
 .nav-tab.active { background: var(--leaf-green); color: #fff; }
 @media (max-width: 560px) {
-  .nav-tabs-wrap { position: relative; }
-  .nav-tabs-wrap::after {
-    content: "";
-    position: absolute;
-    top: 0; right: 0;
-    width: 36px; height: 100%;
-    background: linear-gradient(to right, transparent, var(--cream-deep));
-    pointer-events: none;
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
-  }
   .nav-tabs {
-    width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
