@@ -27,6 +27,20 @@ body.dark {
   --ink-soft: #B3ACA0;
   --line: rgba(240, 237, 230, 0.14);
   --shadow-card: 0 6px 0 rgba(0,0,0,0.3), 0 16px 30px -12px rgba(0,0,0,0.5);
+  /* 暗色模式下提高對比度 */
+  --leaf-green: #5DC98A;
+  --mushroom-red-deep: #F07060;
+}
+/* active 按鈕背景用深綠（#5DC98A 配白字對比不足） */
+body.dark .nav-tab.active,
+body.dark .mult-btn.active,
+body.dark .cm-sort-btn.active {
+  background: #357A52;
+  color: #fff;
+}
+/* 捐款按鈕：暗色模式下金底改用深字 */
+body.dark .donate-link {
+  color: #1A2010;
 }
 body.dark .cloud { opacity: 0.12; }
 
