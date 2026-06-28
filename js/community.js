@@ -34,7 +34,7 @@
     filterMap: document.getElementById("cmFilterMap"),
     filterLvMin: document.getElementById("cmFilterLvMin"),
     filterLvMax: document.getElementById("cmFilterLvMax"),
-    sort: document.getElementById("cmSort"),
+    sortBtns: document.querySelectorAll(".cm-sort-btn"),
     addBtn: document.getElementById("cmAddBtn"),
     form: document.getElementById("cmForm"),
     job: document.getElementById("cmJob"),
@@ -168,7 +168,8 @@
     const fLvMin = parseInt(els.filterLvMin.value, 10) || 0;
     const fLvMax = parseInt(els.filterLvMax.value, 10) || 999;
 
-    const sortBy = els.sort ? els.sort.value : "time";
+    const activeSort = document.querySelector(".cm-sort-btn.active");
+    const sortBy = activeSort ? activeSort.dataset.sort : "time";
 
     const filtered = allRecords
       .filter(
@@ -209,7 +210,13 @@
   }
 
   els.filterJob.addEventListener("change", renderRecords);
-  if (els.sort) els.sort.addEventListener("change", renderRecords);
+  els.sortBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      els.sortBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderRecords();
+    });
+  });
   [els.filterMap, els.filterLvMin, els.filterLvMax].forEach((el) =>
     el.addEventListener("input", renderRecords)
   );

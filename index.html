@@ -367,7 +367,7 @@
     </div>
     <p class="cm-disclaimer">遊戲還沒上線，這裡的資料要等玩家實際開始玩之後才會出現。先把功能做好，上線後就能直接用。</p>
 
-    <div class="cm-top">
+    <div class="cm-toolbar">
       <div class="cm-filter-row">
         <select class="cm-filter-input" id="cmFilterJob">
           <option value="">全部職業</option>
@@ -395,15 +395,17 @@
           </optgroup>
         </select>
         <input class="cm-filter-input" id="cmFilterMap" placeholder="🔍 篩選地圖">
-        <input class="cm-filter-input cm-filter-lv" id="cmFilterLvMin" type="number" min="1" max="200" placeholder="最低等級">
+        <input class="cm-filter-input cm-filter-lv" id="cmFilterLvMin" type="number" min="1" max="200" placeholder="最低等">
         <span class="cm-filter-sep">~</span>
-        <input class="cm-filter-input cm-filter-lv" id="cmFilterLvMax" type="number" min="1" max="200" placeholder="最高等級">
+        <input class="cm-filter-input cm-filter-lv" id="cmFilterLvMax" type="number" min="1" max="200" placeholder="最高等">
       </div>
-      <select class="cm-filter-input cm-sort-select" id="cmSort">
-        <option value="time">最新優先</option>
-        <option value="exp">效率優先</option>
-      </select>
-      <button class="btn btn-primary" id="cmAddBtn" type="button">＋ 新增紀錄</button>
+      <div class="cm-actions">
+        <div class="cm-sort-btns">
+          <button class="cm-sort-btn active" data-sort="time" type="button">最新</button>
+          <button class="cm-sort-btn" data-sort="exp" type="button">效率↓</button>
+        </div>
+        <button class="btn btn-primary" id="cmAddBtn" type="button">＋ 新增紀錄</button>
+      </div>
     </div>
 
     <div class="cm-form" id="cmForm" hidden>

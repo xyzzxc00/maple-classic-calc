@@ -612,8 +612,25 @@ body.dark .exp-bar-track { background: #111; }
   padding: 10px 14px;
   margin-bottom: 16px;
 }
-.cm-top { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
-.cm-filter-row { display: flex; gap: 8px; flex: 1; flex-wrap: wrap; align-items: center; }
+.cm-toolbar { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.cm-filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.cm-actions { display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+.cm-sort-btns { display: flex; border: 2px solid var(--line); border-radius: var(--radius-md); overflow: hidden; }
+.cm-sort-btn {
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.cm-sort-btn + .cm-sort-btn { border-left: 2px solid var(--line); }
+.cm-sort-btn:hover { background: rgba(79,157,110,0.1); }
+.cm-sort-btn.active { background: var(--leaf-green); color: #fff; }
+.cm-actions .btn-primary { flex: 1; }
 .cm-filter-input {
   background: var(--surface);
   border: 2px solid var(--line);
