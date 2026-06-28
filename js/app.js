@@ -14,10 +14,6 @@
     dailyHours: document.getElementById("dailyHours"),
     ownedCoupons: document.getElementById("ownedCoupons"),
     resultPanel: document.getElementById("resultPanel"),
-    expBarFill: document.getElementById("expBarFill"),
-    expBarLabel: document.getElementById("expBarLabel"),
-    capLevelFrom: document.getElementById("capLevelFrom"),
-    capLevelTo: document.getElementById("capLevelTo"),
     statExpNeeded: document.getElementById("statExpNeeded"),
     statLevelsToGo: document.getElementById("statLevelsToGo"),
     multLabel: document.getElementById("multLabel"),
@@ -93,18 +89,6 @@
 
     els.resultPanel.hidden = false;
     els.multLabel.textContent = currentMult + "x";
-
-    let totalExpForRange = 0;
-    for (let lv = currentLevel; lv < targetLevel; lv++) {
-      totalExpForRange += window.MapleData.EXP_TABLE[lv - 1] || 0;
-    }
-    totalExpForRange = Math.max(totalExpForRange, 1);
-    const expDone = Math.max(0, totalExpForRange - totalExpNeeded);
-    const pct = targetLevel <= currentLevel ? 100 : Math.min(100, Math.round((expDone / totalExpForRange) * 100));
-    els.expBarFill.style.width = pct + "%";
-    els.expBarLabel.textContent = pct + "%";
-    els.capLevelFrom.textContent = `Lv.${currentLevel}`;
-    els.capLevelTo.textContent = `Lv.${targetLevel}`;
 
     els.statExpNeeded.textContent = targetLevel <= currentLevel ? "已達成" : totalExpNeeded.toLocaleString();
     els.statLevelsToGo.textContent = levelsToGo > 0 ? `${levelsToGo} 等` : "已達成";
