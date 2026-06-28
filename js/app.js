@@ -150,6 +150,19 @@
     (el) => el.addEventListener("input", runCalculation)
   );
 
+  document.getElementById("clearInputBtn").addEventListener("click", () => {
+    els.currentLevel.value = "";
+    els.currentExp.value = 0;
+    els.targetLevel.value = "";
+    els.expPer10Min.value = "";
+    els.dailyHours.value = "";
+    els.ownedCoupons.value = "";
+    setMult(2);
+    savePrefs();
+    els.resultPanel.hidden = true;
+    if (window.MapleSpots) window.MapleSpots.setCurrentLevel(1);
+  });
+
   els.shareBtn.addEventListener("click", async () => {
     const params = MapleCalculator.encodeShareParams({
       currentLevel: parseInt(els.currentLevel.value, 10) || 1,
