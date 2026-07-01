@@ -138,6 +138,29 @@ body {
   margin: 0;
 }
 
+/* ---------- 事前預約 CTA ---------- */
+.prereg-btn {
+  display: inline-block;
+  margin-top: 20px;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 900;
+  font-size: 17px;
+  text-decoration: none;
+  color: #fff;
+  background: var(--mushroom-red);
+  padding: 14px 34px;
+  border-radius: 999px;
+  box-shadow: 0 5px 0 var(--mushroom-red-deep), 0 12px 22px -8px rgba(232,85,59,0.6);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.prereg-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 0 var(--mushroom-red-deep), 0 16px 26px -8px rgba(232,85,59,0.6); }
+.prereg-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--mushroom-red-deep); }
+.prereg-hint {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin: 10px 0 0;
+}
+
 /* ---------- Panels ---------- */
 .panel {
   background: var(--cream);
