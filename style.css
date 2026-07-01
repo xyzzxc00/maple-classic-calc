@@ -8,6 +8,11 @@
   --ink-soft: #6B6256;
   --mushroom-red: #E8553B;
   --mushroom-red-deep: #A83825;
+  /* 專用於「白字 + 紅底按鈕」，維持 WCAG AA 對比（不隨暗色模式變動，
+     因為 --mushroom-red-deep 在暗色模式會變亮，是為了文字對比而調的，
+     用在按鈕底色反而會不夠深） */
+  --action-red: #A83825;
+  --action-red-shadow: #7E2A1C;
   --leaf-green: #357A52;
   --gold: #F2B705;
   --gold-deep: #D99B00;
@@ -147,14 +152,14 @@ body {
   font-size: 17px;
   text-decoration: none;
   color: #fff;
-  background: var(--mushroom-red);
+  background: var(--action-red);
   padding: 14px 34px;
   border-radius: 999px;
-  box-shadow: 0 5px 0 var(--mushroom-red-deep), 0 12px 22px -8px rgba(232,85,59,0.6);
+  box-shadow: 0 5px 0 var(--action-red-shadow), 0 12px 22px -8px rgba(168,56,37,0.5);
   transition: transform 0.1s, box-shadow 0.1s;
 }
-.prereg-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 0 var(--mushroom-red-deep), 0 16px 26px -8px rgba(232,85,59,0.6); }
-.prereg-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--mushroom-red-deep); }
+.prereg-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 0 var(--action-red-shadow), 0 16px 26px -8px rgba(168,56,37,0.5); }
+.prereg-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--action-red-shadow); }
 .prereg-hint {
   font-size: 13px;
   color: var(--ink-soft);
@@ -307,12 +312,12 @@ body {
 }
 .btn:disabled:active { transform: none; }
 .btn-primary {
-  background: var(--mushroom-red);
+  background: var(--action-red);
   color: #fff;
-  box-shadow: 0 4px 0 var(--mushroom-red-deep);
+  box-shadow: 0 4px 0 var(--action-red-shadow);
   width: 100%;
 }
-.btn-primary:active { box-shadow: 0 2px 0 var(--mushroom-red-deep); }
+.btn-primary:active { box-shadow: 0 2px 0 var(--action-red-shadow); }
 .btn-ghost {
   background: transparent;
   color: var(--leaf-green);
