@@ -209,6 +209,21 @@ body {
 }
 .notice-icon { font-size: 18px; line-height: 1; }
 .notice-banner strong { color: var(--mushroom-red-deep); }
+.notice-body { display: flex; flex-direction: column; gap: 8px; }
+.notice-body p { margin: 0; }
+.notice-prereg {
+  font-size: 14px;
+  color: var(--ink);
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--gold-deep);
+}
+.notice-prereg-link {
+  color: var(--mushroom-red-deep);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.notice-prereg-link:hover { text-decoration: underline; }
 
 /* ---------- Character panel ---------- */
 .char-row {
