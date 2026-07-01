@@ -32,7 +32,7 @@ jobs:
           mkdir dist/js
 
           # Copy static files (firestore.rules 為伺服器端規則，不放進 dist)
-          cp index.html favicon.svg og-image.png robots.txt sitemap.xml \
+          cp index.html favicon.svg icon-192.png icon-512.png og-image.png robots.txt sitemap.xml \
              manifest.webmanifest google4878b2ed0894b6d8.html dist/
 
           # Bundle all JS in load order → single minified file
