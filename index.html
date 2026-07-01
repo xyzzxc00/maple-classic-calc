@@ -2,18 +2,23 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>新楓之谷經典版 練等 × 社群工具｜經驗值試算 / 練功地點 / 職業介紹</title>
 <meta name="description" content="新楓之谷經典版練等計算機，輸入目前等級即可試算升級所需經驗值與預估時間，封測資料更新後同步校正。">
+<meta name="theme-color" content="#5EC4E8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1A2B" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="favicon.svg">
+<link rel="manifest" href="manifest.webmanifest">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://xyzzxc00.github.io/maple-classic-calc/">
 <meta property="og:image" content="https://xyzzxc00.github.io/maple-classic-calc/og-image.png">
 <meta property="og:title" content="新楓之谷經典版 練等 × 社群工具">
 <meta property="og:description" content="輸入目前等級，馬上知道升級還差多少經驗、大概要練多久。附加倍卷試算、計時器、社群練功地點資料庫。">
-<meta name="twitter:card" content="summary">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="新楓之谷經典版 練等 × 社群工具">
 <meta name="twitter:description" content="輸入目前等級，馬上知道升級還差多少經驗、大概要練多久。附加倍卷試算、計時器、社群練功地點資料庫。">
+<meta name="twitter:image" content="https://xyzzxc00.github.io/maple-classic-calc/og-image.png">
 <meta name="author" content="xyzzxc00">
 <meta name="keywords" content="新楓之谷經典版,練等計算機,楓之谷經典版,MapleStory Classic,經驗值計算,升級時間,加倍卷,練功地點,職業介紹,台版楓之谷經典服">
 <link rel="canonical" href="https://xyzzxc00.github.io/maple-classic-calc/">
@@ -89,6 +94,8 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="dns-prefetch" href="https://www.gstatic.com">
+<link rel="dns-prefetch" href="https://firestore.googleapis.com">
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap"></noscript>
@@ -96,9 +103,13 @@
 </head>
 <body>
 <script>
-  if (localStorage.getItem("maple_classic_theme") === "dark") {
-    document.body.classList.add("dark");
-  }
+  (function () {
+    var saved = localStorage.getItem("maple_classic_theme");
+    var isDark = saved
+      ? saved === "dark"
+      : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    if (isDark) document.body.classList.add("dark");
+  })();
 </script>
 
 <button class="theme-toggle" id="themeToggle" type="button">🌙 暗色</button>
@@ -112,18 +123,18 @@
 <header class="site-header">
   <div class="wrap">
     <p class="eyebrow">MAPLESTORY · CLASSIC · 7/1 事前登錄</p>
-    <h1 class="title">練等 × 社群工具</h1>
+    <h1 class="title">新楓之谷經典版 練等 × 社群工具</h1>
     <p class="subtitle">輸入目前等級，馬上知道升級還差多少經驗、大概要練多久</p>
   </div>
 </header>
 
-<nav class="wrap nav-tabs-wrap">
-  <div class="nav-tabs">
-    <button class="nav-tab active" id="navCalc" type="button">🍄 練等計算</button>
-    <button class="nav-tab" id="navSpots" type="button">🗺 建議練功地點</button>
-    <button class="nav-tab" id="navJobs" type="button">⚔ 職業介紹</button>
-    <button class="nav-tab" id="navTimer" type="button">⏱ 計時器 / EXP 測速</button>
-    <button class="nav-tab" id="navCm" type="button">👥 社群經驗資料庫</button>
+<nav class="wrap nav-tabs-wrap" aria-label="工具分頁">
+  <div class="nav-tabs" role="tablist">
+    <button class="nav-tab active" id="navCalc" type="button" role="tab" aria-selected="true" aria-controls="pageCalc">🍄 練等計算</button>
+    <button class="nav-tab" id="navSpots" type="button" role="tab" aria-selected="false" aria-controls="pageSpots">🗺 建議練功地點</button>
+    <button class="nav-tab" id="navJobs" type="button" role="tab" aria-selected="false" aria-controls="pageJobs">⚔ 職業介紹</button>
+    <button class="nav-tab" id="navTimer" type="button" role="tab" aria-selected="false" aria-controls="pageTimer">⏱ 計時器 / EXP 測速</button>
+    <button class="nav-tab" id="navCm" type="button" role="tab" aria-selected="false" aria-controls="pageCm">👥 社群經驗資料庫</button>
   </div>
 </nav>
 
@@ -184,7 +195,7 @@
     </div>
   </section>
 
-  <section class="panel result-panel" id="resultPanel">
+  <section class="panel result-panel" id="resultPanel" aria-live="polite">
     <h2>計算結果</h2>
 
     <div class="stat-grid">
@@ -458,17 +469,16 @@
   <a class="donate-link" href="https://ko-fi.com/xyzzxc00" id="donateLink" target="_blank" rel="noopener">☕ 請站長喝杯飲料</a>
 </footer>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="js/data.js"></script>
-<script src="js/calculator.js"></script>
-<script src="js/spots.js"></script>
-<script src="js/jobsData.js"></script>
-<script src="js/jobs.js"></script>
-<script src="js/app.js"></script>
-<script src="js/timer.js"></script>
-<script src="js/community.js"></script>
-<script src="js/nav.js"></script>
-<script src="js/theme.js"></script>
+<!-- Firebase SDK 改為懶載入：只有切到「社群資料庫／建議地點」分頁時才載入（見 js/community.js） -->
+<script defer src="js/data.js"></script>
+<script defer src="js/calculator.js"></script>
+<script defer src="js/spots.js"></script>
+<script defer src="js/jobsData.js"></script>
+<script defer src="js/jobs.js"></script>
+<script defer src="js/app.js"></script>
+<script defer src="js/timer.js"></script>
+<script defer src="js/community.js"></script>
+<script defer src="js/nav.js"></script>
+<script defer src="js/theme.js"></script>
 </body>
 </html>

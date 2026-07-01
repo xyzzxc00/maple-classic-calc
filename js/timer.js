@@ -125,6 +125,10 @@
 
   els.startBtn.addEventListener("click", () => {
     getAudioCtx(); // 在使用者點擊時初始化，iOS 需要這樣才能播聲音
+    // 通知權限也在使用者手勢中請求（避免一進站就跳權限、被瀏覽器懲罰）
+    if (window.Notification && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
     if (timerRunning) {
       timerRunning = false;
       clearInterval(timerInterval);
@@ -166,10 +170,6 @@
         osc.stop(ctx.currentTime + offset + 0.25);
       });
     } catch {}
-  }
-
-  if (window.Notification && Notification.permission === "default") {
-    Notification.requestPermission();
   }
 
   // ---------- EXP 測速 ----------

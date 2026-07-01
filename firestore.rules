@@ -1,0 +1,62 @@
+rules_version = '2';
+
+// -----------------------------------------------------------------------------
+// Firestore 安全規則 — maple-classic-calc / exp_records（社群經驗資料庫）
+//
+// 部署方式：
+//   1. Firebase Console → Firestore Database → Rules，貼上本檔內容後發布；
+//      或用 CLI： firebase deploy --only firestore:rules
+//   2. 強烈建議一併啟用 App Check（reCAPTCHA v3）擋機器人濫用寫入 / 灌讚。
+//
+// 設計原則（匿名公開資料庫）：
+//   - 任何人可讀。
+//   - 新增紀錄要通過欄位型別 / 範圍 / 長度驗證，擋掉超大 payload 與髒資料。
+//   - 更新只允許「helpful 讚數 +1」，其他欄位一律不可改。
+//   - 不允許刪除、不允許改動既有內容。
+// -----------------------------------------------------------------------------
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /exp_records/{recordId} {
+
+      // 允許的職業（跟前端 <select> 一致）
+      function allowedJobs() {
+        return [
+          '英雄', '聖騎士', '黑騎士',
+          '火毒大魔導士', '冰雷大魔導士', '主教',
+          '箭神', '神射手',
+          '夜使者', '暗影神偷',
+          '拳霸', '槍神'
+        ];
+      }
+
+      function isValidNew(d) {
+        return d.keys().hasAll(['job', 'map', 'level', 'expPer10Min', 'helpful', 'ts'])
+          && d.keys().hasOnly(['job', 'map', 'level', 'expPer10Min', 'helpful', 'note', 'ts'])
+          && d.job is string && allowedJobs().hasAny([d.job])
+          && d.map is string && d.map.size() >= 1 && d.map.size() <= 40
+          && d.level is int && d.level >= 1 && d.level <= 200
+          && d.expPer10Min is int && d.expPer10Min > 0 && d.expPer10Min <= 1000000000
+          && d.helpful == 0
+          && d.ts == request.time
+          && (!('note' in d.keys()) || (d.note is string && d.note.size() <= 60));
+      }
+
+      // 只能改 helpful，且必須是 +1（防止一次灌大量讚 / 竄改其他欄位）
+      function isHelpfulIncrement() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['helpful'])
+          && request.resource.data.helpful == resource.data.helpful + 1;
+      }
+
+      allow read: if true;
+      allow create: if isValidNew(request.resource.data);
+      allow update: if isHelpfulIncrement();
+      allow delete: if false;
+    }
+
+    // 其餘集合預設拒絕
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

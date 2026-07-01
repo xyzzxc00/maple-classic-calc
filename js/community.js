@@ -13,11 +13,53 @@
 
   const PAGE_SIZE = 50;
   const VOTED_KEY = "maple_classic_voted";
+  const FB_VERSION = "10.12.2";
+  // App Check（reCAPTCHA v3）網站金鑰 — 公開的、放前端沒問題
+  const RECAPTCHA_SITE_KEY = "6Ld6qz4tAAAAAEEUb-X6ZGmRWgrwFif0dG76hbBU";
+  const FB_SCRIPTS = [
+    `https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-app-compat.js`,
+    `https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-app-check-compat.js`,
+    `https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-firestore-compat.js`,
+  ];
 
   let db = null;
-  if (firebaseConfig.apiKey && window.firebase) {
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.firestore();
+  let dbPromise = null;
+
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.async = true;
+      s.onload = resolve;
+      s.onerror = () => reject(new Error("load failed: " + src));
+      document.head.appendChild(s);
+    });
+  }
+
+  // 只有真的要用到社群資料庫時才下載 Firebase SDK（純計算的訪客完全不會載）
+  function ensureDb() {
+    if (db) return Promise.resolve(db);
+    if (!firebaseConfig.apiKey) return Promise.resolve(null);
+    if (!dbPromise) {
+      dbPromise = (async () => {
+        if (!window.firebase) {
+          for (const src of FB_SCRIPTS) await loadScript(src);
+        }
+        firebase.initializeApp(firebaseConfig);
+        // App Check 要在使用其他服務(Firestore)前啟用
+        try {
+          firebase.appCheck().activate(RECAPTCHA_SITE_KEY, true);
+        } catch (e) {
+          // 啟用失敗不阻擋讀取；enforcement 未開時仍可運作，開了才會擋
+        }
+        db = firebase.firestore();
+        return db;
+      })().catch((e) => {
+        dbPromise = null; // 讓下次可重試
+        throw e;
+      });
+    }
+    return dbPromise;
   }
 
   const els = {
@@ -107,15 +149,23 @@
       els.msg.className = "cm-msg err";
       return;
     }
-    if (!db) {
-      els.msg.textContent = "社群資料庫尚未設定，遊戲上線前無法送出";
-      els.msg.className = "cm-msg err";
-      return;
-    }
 
     els.submitBtn.disabled = true;
     els.submitBtn.textContent = "送出中...";
     els.msg.textContent = "";
+
+    try {
+      await ensureDb();
+    } catch {
+      // ignore；下方 !db 檢查會處理
+    }
+    if (!db) {
+      els.msg.textContent = "社群資料庫尚未設定，遊戲上線前無法送出";
+      els.msg.className = "cm-msg err";
+      els.submitBtn.disabled = false;
+      els.submitBtn.textContent = "送出";
+      return;
+    }
 
     try {
       await db.collection("exp_records").add({
@@ -144,15 +194,23 @@
   els.submitBtn.addEventListener("click", submitRecord);
 
   async function loadRecords(append = false) {
-    if (!db) {
-      els.list.innerHTML = '<p class="cm-empty">社群資料庫尚未開放（遊戲還沒上線），敬請期待。</p>';
-      if (els.loadMore) els.loadMore.hidden = true;
-      return;
-    }
     if (!append) {
       els.list.innerHTML = '<p class="cm-loading">載入中...</p>';
       allRecords = [];
       lastDoc = null;
+    }
+
+    try {
+      await ensureDb();
+    } catch {
+      els.list.innerHTML = '<p class="cm-empty">連線失敗，請檢查網路後重新整理頁面</p>';
+      if (els.loadMore) els.loadMore.hidden = true;
+      return;
+    }
+    if (!db) {
+      els.list.innerHTML = '<p class="cm-empty">社群資料庫尚未開放（遊戲還沒上線），敬請期待。</p>';
+      if (els.loadMore) els.loadMore.hidden = true;
+      return;
     }
 
     try {
@@ -218,16 +276,12 @@
         </div>`;
       }).join("") +
       "</div>";
-
-    els.list.addEventListener("click", onHelpfulClick, { once: true });
   }
 
+  // 單一委派監聽器（在初始化時綁一次，避免每次 render 疊加）
   function onHelpfulClick(e) {
     const btn = e.target.closest(".cm-helpful-btn");
-    if (!btn || btn.disabled) {
-      els.list.addEventListener("click", onHelpfulClick, { once: true });
-      return;
-    }
+    if (!btn || btn.disabled) return;
     const id = btn.dataset.id;
     if (!db || getVotedSet().has(id)) return;
 
@@ -242,9 +296,8 @@
       const rec = allRecords.find((r) => r.id === id);
       if (rec) rec.helpful = (rec.helpful || 0) + 1;
     }).catch(() => { btn.disabled = false; });
-
-    els.list.addEventListener("click", onHelpfulClick, { once: true });
   }
+  els.list.addEventListener("click", onHelpfulClick);
 
   if (els.loadMore) {
     els.loadMore.addEventListener("click", () => loadRecords(true));

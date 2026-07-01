@@ -31,21 +31,27 @@ jobs:
           mkdir dist
           mkdir dist/js
 
-          # Copy static files
-          cp index.html favicon.svg og-image.png robots.txt sitemap.xml google4878b2ed0894b6d8.html dist/
+          # Copy static files (firestore.rules 為伺服器端規則，不放進 dist)
+          cp index.html favicon.svg og-image.png robots.txt sitemap.xml \
+             manifest.webmanifest google4878b2ed0894b6d8.html dist/
 
           # Bundle all JS in load order → single minified file
           cat js/data.js js/calculator.js js/spots.js js/jobsData.js js/jobs.js \
               js/app.js js/timer.js js/community.js js/nav.js js/theme.js \
               > dist/js/bundle.raw.js
-          npx terser dist/js/bundle.raw.js --compress --mangle --output dist/js/bundle.js
+          terser dist/js/bundle.raw.js --compress --mangle --output dist/js/bundle.js
           rm dist/js/bundle.raw.js
 
           # Minify CSS
-          npx clean-css-cli -o dist/style.css style.css
+          cleancss -o dist/style.css style.css
 
           # Rewrite HTML: replace individual js/ script tags with bundle.js
           python3 patch_html.py
+
+          # 自動把修改日期戳成建置當天，避免 SEO 結構化資料 / sitemap 過期
+          TODAY=$(date -u +%Y-%m-%d)
+          sed -i "s|\"dateModified\": \"[0-9-]*\"|\"dateModified\": \"$TODAY\"|" dist/index.html
+          sed -i "s|<lastmod>[0-9-]*</lastmod>|<lastmod>$TODAY</lastmod>|" dist/sitemap.xml
 
       - uses: actions/configure-pages@v4
 

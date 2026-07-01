@@ -21,8 +21,10 @@
 
   function switchNav(page) {
     Object.keys(pages).forEach((key) => {
-      pages[key].hidden = key !== page;
-      tabs[key].classList.toggle("active", key === page);
+      const isActive = key === page;
+      pages[key].hidden = !isActive;
+      tabs[key].classList.toggle("active", isActive);
+      tabs[key].setAttribute("aria-selected", isActive ? "true" : "false");
     });
     localStorage.setItem(STORAGE_KEY, page);
     if (page === "cm" && window.MapleCommunity) {
