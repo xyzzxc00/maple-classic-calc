@@ -13,6 +13,8 @@
 
   const PAGE_SIZE = 50;
   const VOTED_KEY = "maple_classic_voted";
+  // 遊戲上線後改成 true 即可開放回報（同時記得把 firestore.rules 的 allow create 改回驗證版）
+  const SUBMISSIONS_OPEN = false;
   const FB_VERSION = "10.12.2";
   // App Check（reCAPTCHA v3）網站金鑰 — 公開的、放前端沒問題
   const RECAPTCHA_SITE_KEY = "6Ld6qz4tAAAAAEEUb-X6ZGmRWgrwFif0dG76hbBU";
@@ -125,11 +127,24 @@
   els.cancelBtn.addEventListener("click", toggleForm);
 
   function openForm() {
+    if (!SUBMISSIONS_OPEN) return; // 關閉期間不開表單
     if (!formOpen) toggleForm();
     setTimeout(() => {
       els.form.scrollIntoView({ behavior: "smooth", block: "center" });
       els.job.focus();
     }, 150);
+  }
+
+  // 遊戲上線前：鎖住回報入口（真正的防護在 firestore.rules 的 allow create）
+  if (!SUBMISSIONS_OPEN) {
+    els.addBtn.disabled = true;
+    els.addBtn.textContent = "🔒 遊戲上線後開放回報";
+    els.addBtn.title = "遊戲正式上線後才開放新增紀錄";
+    const spotsAddBtn = document.getElementById("spotsAddBtn");
+    if (spotsAddBtn) {
+      spotsAddBtn.disabled = true;
+      spotsAddBtn.textContent = "🔒 遊戲上線後開放回報";
+    }
   }
 
   function openFormWithExpPer10Min(val) {
@@ -138,6 +153,12 @@
   }
 
   async function submitRecord() {
+    if (!SUBMISSIONS_OPEN) {
+      els.msg.textContent = "遊戲尚未上線，暫不開放回報，敬請期待 🍄";
+      els.msg.className = "cm-msg err";
+      return;
+    }
+
     const job = els.job.value.trim();
     const map = els.map.value.trim();
     const level = parseInt(els.level.value, 10);
