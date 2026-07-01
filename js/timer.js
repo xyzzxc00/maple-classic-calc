@@ -41,15 +41,7 @@
   let timerRunning = false;
   let timerInterval = null;
 
-  function parseExpVal(val) {
-    if (!val || !val.trim()) return NaN;
-    const s = val.trim().toUpperCase().replace(/[,\s]/g, "");
-    if (s.endsWith("W")) {
-      const n = parseFloat(s.slice(0, -1));
-      return isNaN(n) ? NaN : n * 10000;
-    }
-    return parseFloat(s);
-  }
+  const parseExpVal = MapleCalculator.parseExpVal;
 
   function formatExp(n) {
     if (n >= 1e12) return (n / 1e12).toFixed(2) + " 兆";

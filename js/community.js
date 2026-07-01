@@ -97,21 +97,8 @@
     localStorage.setItem(VOTED_KEY, JSON.stringify([...s]));
   }
 
-  function parseExpVal(val) {
-    if (!val || !val.trim()) return NaN;
-    const s = val.trim().toUpperCase().replace(/[,\s]/g, "");
-    if (s.endsWith("W")) {
-      const n = parseFloat(s.slice(0, -1));
-      return isNaN(n) ? NaN : n * 10000;
-    }
-    return parseFloat(s);
-  }
-
-  function escHtml(str) {
-    return String(str)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
+  const parseExpVal = MapleCalculator.parseExpVal;
+  const escHtml = MapleCalculator.escHtml;
 
   function formatTS(date) {
     return date.toLocaleDateString("zh-TW") + " " + date.toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" });

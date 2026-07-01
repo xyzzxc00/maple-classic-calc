@@ -15,13 +15,7 @@
 
   let currentLevel = 1;
 
-  function escHtml(str) {
-    return String(str)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
+  const escHtml = MapleCalculator.escHtml;
 
   function setCurrentLevel(level) {
     currentLevel = level || 1;

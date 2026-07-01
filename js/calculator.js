@@ -126,6 +126,15 @@ const MapleCalculator = (() => {
   }
 
   /**
+   * 轉義字串裡的 HTML 特殊字元，避免使用者輸入內容被當成標籤解析（XSS）
+   */
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  /**
    * 把目前的查詢條件編碼成可分享的 URL 參數
    */
   function encodeShareParams({ currentLevel, currentExp, targetLevel, expPerMin, mult, dailyHours, ownedCoupons }) {
@@ -163,6 +172,7 @@ const MapleCalculator = (() => {
   return {
     calcExpNeeded,
     parseExpVal,
+    escHtml,
     formatDuration,
     calcTimes,
     calcCoupons,
