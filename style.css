@@ -8,6 +8,7 @@
   --border: #E1E5DB;
   --border-strong: #8C9884;
   --accent: #4F6B49;
+  --accent-text: var(--accent);
   --accent-tint: #EEF1EA;
   --accent-border: #A9BC9C;
   --on-accent: #FFFFFF;
@@ -28,6 +29,10 @@ body.dark {
   --border: #33362C;
   --border-strong: #6B7462;
   --accent: #6B8862;
+  /* 深色模式下 --accent 當「按鈕底色」配 --on-accent 沒問題，但直接當文字/連結
+     顏色時對比不夠（在 --accent-tint 上只有 3.3:1，遠低於 WCAG AA 4.5:1）。
+     --accent-text 專門給純文字/連結用，亮一階確保可讀性。 */
+  --accent-text: #8FAE84;
   --accent-tint: #2A3327;
   --accent-border: #4A5C43;
   --on-accent: #14170F;
@@ -72,7 +77,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.08em;
   font-size: 12px;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--accent-tint);
   display: inline-block;
   padding: 6px 14px;
@@ -138,7 +143,7 @@ body {
 .panel-head h2 { margin: 0; }
 .badge {
   font-size: 12px;
-  color: var(--accent);
+  color: var(--accent-text);
   background: var(--accent-tint);
   padding: 4px 10px;
   border-radius: 999px;
@@ -165,7 +170,7 @@ body {
   border-bottom: 1px solid var(--accent-border);
 }
 .notice-prereg-link {
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
@@ -234,8 +239,8 @@ body {
 }
 .btn-ghost {
   background: transparent;
-  color: var(--accent);
-  border: 1px solid var(--accent);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-text);
   padding: 8px 14px;
   font-size: 13px;
 }
@@ -324,7 +329,7 @@ body {
   color: var(--ink);
   margin: 0;
 }
-.time-box.highlight .time-main { color: var(--accent); }
+.time-box.highlight .time-main { color: var(--accent-text); }
 
 /* ---------- Divider stats (coupon calc) ---------- */
 .divider-stats {
@@ -345,13 +350,13 @@ body {
 .stat-row:last-child { border-bottom: none; }
 .stat-row span:first-child { flex: 1 1 auto; }
 .stat-row span:last-child { flex-shrink: 0; font-weight: 700; color: var(--ink); text-align: right; }
-.stat-row span.hl { color: var(--accent); font-size: 1.05rem; }
+.stat-row span.hl { color: var(--accent-text); font-size: 1.05rem; }
 
 .share-btn { width: 100%; justify-content: center; }
 .share-hint {
   text-align: center;
   font-size: 13px;
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 700;
   margin: 10px 0 0;
 }
@@ -380,7 +385,7 @@ body {
   transition: color 0.15s, border-color 0.15s;
 }
 .nav-tab:hover { color: var(--ink); }
-.nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.nav-tab.active { color: var(--accent-text); border-bottom-color: var(--accent-text); }
 @media (max-width: 560px) {
   .nav-tabs {
     overflow-x: auto;
@@ -483,7 +488,7 @@ body {
 .exp-rate-row:last-of-type { border-bottom: none; }
 .exp-rate-row span:first-child { color: var(--ink-soft); }
 .exp-rate-row span:last-child { font-weight: 700; }
-.exp-rate-row.hl span:last-child { color: var(--accent); font-size: 1.05rem; }
+.exp-rate-row.hl span:last-child { color: var(--accent-text); font-size: 1.05rem; }
 .exp-apply-btn { width: 100%; margin-top: 10px; }
 .exp-rate-hint { font-size: 13px; color: var(--ink-soft); margin-top: 12px; }
 
@@ -538,7 +543,7 @@ body {
 }
 .cm-form-actions { display: flex; gap: 10px; align-items: center; margin-top: 4px; }
 .cm-msg { font-size: 13px; }
-.cm-msg.ok { color: var(--accent); font-weight: 700; }
+.cm-msg.ok { color: var(--accent-text); font-weight: 700; }
 .cm-msg.err { color: var(--danger); font-weight: 700; }
 .cm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 @media (max-width: 760px) { .cm-grid { grid-template-columns: 1fr 1fr; } }
@@ -571,8 +576,8 @@ body {
   transition: all 0.15s;
   white-space: nowrap;
 }
-.cm-helpful-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
-.cm-helpful-btn.voted { border-color: var(--accent); color: var(--accent); background: var(--accent-tint); }
+.cm-helpful-btn:hover:not(:disabled) { border-color: var(--accent-text); color: var(--accent-text); }
+.cm-helpful-btn.voted { border-color: var(--accent-text); color: var(--accent-text); background: var(--accent-tint); }
 .cm-helpful-btn:disabled { cursor: default; }
 .cm-load-more { width: 100%; margin-top: 14px; }
 .cm-empty, .cm-loading { color: var(--ink-soft); text-align: center; padding: 32px 0; font-size: 14px; }
@@ -606,7 +611,7 @@ body {
   font-size: 13px;
 }
 .job-path-step { font-weight: 700; color: var(--ink); }
-.job-path-final { color: var(--accent); }
+.job-path-final { color: var(--accent-text); }
 .job-path-arrow { color: var(--ink-soft); }
 .job-path-note { color: var(--ink-soft); font-size: 12px; margin-left: auto; }
 @media (max-width: 560px) {
@@ -623,9 +628,9 @@ body {
 .donate-link {
   display: inline-block;
   margin-top: 10px;
-  color: var(--accent);
+  color: var(--accent-text);
   background: transparent;
-  border: 1px solid var(--accent);
+  border: 1px solid var(--accent-text);
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
@@ -660,7 +665,7 @@ body {
   font-size: 13px;
   transition: all 0.15s;
 }
-.theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+.theme-toggle:hover { border-color: var(--accent-text); color: var(--accent-text); }
 @media (max-width: 480px) {
   .theme-toggle { top: 10px; right: 10px; padding: 7px 12px; font-size: 12px; }
 }
