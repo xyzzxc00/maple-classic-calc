@@ -134,12 +134,12 @@
   // 遊戲上線前：鎖住回報入口（真正的防護在 firestore.rules 的 allow create）
   if (!SUBMISSIONS_OPEN) {
     els.addBtn.disabled = true;
-    els.addBtn.textContent = "🔒 遊戲上線後開放回報";
+    els.addBtn.textContent = "遊戲上線後開放回報";
     els.addBtn.title = "遊戲正式上線後才開放新增紀錄";
     const spotsAddBtn = document.getElementById("spotsAddBtn");
     if (spotsAddBtn) {
       spotsAddBtn.disabled = true;
-      spotsAddBtn.textContent = "🔒 遊戲上線後開放回報";
+      spotsAddBtn.textContent = "遊戲上線後開放回報";
     }
   }
 
@@ -150,7 +150,7 @@
 
   async function submitRecord() {
     if (!SUBMISSIONS_OPEN) {
-      els.msg.textContent = "遊戲尚未上線，暫不開放回報，敬請期待 🍄";
+      els.msg.textContent = "遊戲尚未上線，暫不開放回報，敬請期待";
       els.msg.className = "cm-msg err";
       return;
     }

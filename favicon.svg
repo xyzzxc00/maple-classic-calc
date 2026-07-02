@@ -1,12 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- mushroom cap -->
-  <ellipse cx="32" cy="26" rx="26" ry="18" fill="#E8553B"/>
-  <!-- cap spots -->
-  <circle cx="22" cy="20" r="4" fill="rgba(255,255,255,0.55)"/>
-  <circle cx="34" cy="14" r="3" fill="rgba(255,255,255,0.55)"/>
-  <circle cx="44" cy="22" r="3.5" fill="rgba(255,255,255,0.55)"/>
-  <!-- stem -->
-  <rect x="24" y="40" width="16" height="16" rx="4" fill="#FFF9EE"/>
-  <!-- stem underside arc -->
-  <path d="M8 34 Q32 48 56 34" fill="#FFF9EE"/>
+  <!-- 楓葉葉片剪影，改用新版鼠尾草綠主色，取代舊版蘑菇圖案 -->
+  <path d="M16 48 C16 30 30 16 48 16 C48 34 34 48 16 48 Z" fill="#4F6B49"/>
+  <path d="M16 48 L10 54" stroke="#4F6B49" stroke-width="4" stroke-linecap="round" fill="none"/>
 </svg>
