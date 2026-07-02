@@ -84,9 +84,18 @@
     loadMore: document.getElementById("cmLoadMore"),
   };
 
+  // 職業選單改由 jobsData.js 的單一資料來源動態產生，避免 HTML 裡多份清單各自維護
+  if (window.MapleJobOptionsHtml) {
+    els.filterJob.insertAdjacentHTML("beforeend", window.MapleJobOptionsHtml);
+    els.job.insertAdjacentHTML("beforeend", window.MapleJobOptionsHtml);
+  }
+
   let allRecords = [];
   let lastDoc = null;
   let formOpen = false;
+  let lastLoadedAt = 0;
+  // 60 秒內重複進入分頁直接用快取，避免來回切分頁每次都重打 Firestore（一次 50 筆讀取）
+  const CACHE_MS = 60000;
 
   function getVotedSet() {
     try { return new Set(JSON.parse(localStorage.getItem(VOTED_KEY)) || []); } catch { return new Set(); }
@@ -203,6 +212,10 @@
 
   async function loadRecords(append = false) {
     if (!append) {
+      if (allRecords.length && Date.now() - lastLoadedAt < CACHE_MS) {
+        renderRecords();
+        return;
+      }
       els.list.innerHTML = '<p class="cm-loading">載入中...</p>';
       allRecords = [];
       lastDoc = null;
@@ -229,6 +242,7 @@
       const newRecords = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       lastDoc = snap.docs[snap.docs.length - 1] || null;
       allRecords = append ? [...allRecords, ...newRecords] : newRecords;
+      lastLoadedAt = Date.now();
 
       if (els.loadMore) els.loadMore.hidden = snap.docs.length < PAGE_SIZE;
       renderRecords();

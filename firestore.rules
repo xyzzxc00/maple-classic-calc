@@ -19,7 +19,10 @@ service cloud.firestore {
 
     match /exp_records/{recordId} {
 
-      // 允許的職業（跟前端 <select> 一致）
+      // 允許的職業，須跟前端 js/jobsData.js 的 JOBS_DATA[].paths[].fourth 保持一致
+      // （前端 3 個 <select> 的選項都是從那份資料動態產生的單一來源）。
+      // Firestore 規則沒辦法讀取前端 JS，所以改 jobsData.js 的職業名稱時，
+      // 一定要手動同步更新這裡，否則使用者選到的職業會被下面 create 規則擋掉。
       function allowedJobs() {
         return [
           '英雄', '聖騎士', '黑騎士',

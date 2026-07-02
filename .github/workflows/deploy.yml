@@ -36,7 +36,7 @@ jobs:
              manifest.webmanifest google4878b2ed0894b6d8.html dist/
 
           # Bundle all JS in load order → single minified file
-          cat js/data.js js/calculator.js js/spots.js js/jobsData.js js/jobs.js \
+          cat js/data.js js/calculator.js js/jobsData.js js/spots.js js/jobs.js \
               js/app.js js/timer.js js/community.js js/nav.js js/theme.js \
               > dist/js/bundle.raw.js
           terser dist/js/bundle.raw.js --compress --mangle --output dist/js/bundle.js

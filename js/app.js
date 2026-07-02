@@ -176,7 +176,11 @@
       setMult(shared.mult || 2);
       els.dailyHours.value = shared.dailyHours || "";
       els.ownedCoupons.value = shared.ownedCoupons || "";
-      calcAndRender();
+      // 用 runCalculation（含 savePrefs）讓分享值寫進 localStorage，
+      // 這樣下面把參數從網址列清掉後，重新整理也不會掉回舊資料
+      runCalculation();
+      // 分享參數套用完就從網址列清掉，避免使用者改完數字直接複製網址時帶到舊參數
+      history.replaceState(null, "", location.pathname);
     } else {
       const prefs = loadPrefs();
       els.currentLevel.value = prefs.currentLevel || "";

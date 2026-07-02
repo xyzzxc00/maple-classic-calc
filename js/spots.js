@@ -13,6 +13,11 @@
     filterJob: document.getElementById("spotsFilterJob"),
   };
 
+  // 職業選單改由 jobsData.js 的單一資料來源動態產生，避免 HTML 裡多份清單各自維護
+  if (window.MapleJobOptionsHtml && els.filterJob) {
+    els.filterJob.insertAdjacentHTML("beforeend", window.MapleJobOptionsHtml);
+  }
+
   let currentLevel = 1;
 
   const escHtml = MapleCalculator.escHtml;
@@ -51,6 +56,9 @@
 
   function render() {
     if (!window.MapleCommunity) return;
+    // 分頁隱藏時不用重繪（計算機每次輸入都會呼叫 setCurrentLevel → render）；
+    // 切回本分頁時 nav.js 會再觸發一次 render，不會漏更新
+    if (document.getElementById("pageSpots").hidden) return;
     const fJob = els.filterJob ? els.filterJob.value.trim() : "";
     const allRecords = window.MapleCommunity.getRecords();
     const records = fJob ? allRecords.filter((r) => r.job === fJob) : allRecords;

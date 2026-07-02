@@ -11,40 +11,37 @@
 const MapleCalculator = (() => {
   /**
    * 計算從目前等級(含目前經驗)升到目標等級，總共還需要多少經驗值
+   * 目前等級/目標等級會被夾在 [1, expTable.length + 1] 範圍內，避免超出資料表
+   * 範圍時 expTable[i] 讀到 undefined、被 ?? 0 吃掉，靜默算出偏低的錯誤結果。
    * @param {number} currentLevel
    * @param {number} currentExp - 目前等級內已累積的經驗
    * @param {number} targetLevel
    * @param {number[]} expTable - index 0 = Lv.1 升 Lv.2 所需經驗
-   * @returns {{ totalExpNeeded: number, levelsToGo: number, breakdown: Array }}
+   * @returns {{ totalExpNeeded: number, levelsToGo: number }}
    */
   function calcExpNeeded(currentLevel, currentExp, targetLevel, expTable) {
+    const maxLevel = expTable.length + 1;
+    currentLevel = Math.min(Math.max(currentLevel, 1), maxLevel);
+    targetLevel = Math.min(Math.max(targetLevel, 1), maxLevel);
+
     if (targetLevel <= currentLevel) {
-      return { totalExpNeeded: 0, levelsToGo: 0, breakdown: [] };
+      return { totalExpNeeded: 0, levelsToGo: 0 };
     }
 
     let total = 0;
-    const breakdown = [];
 
     // 目前等級還缺的經驗
     const currentLevelNeed = expTable[currentLevel - 1] ?? 0;
-    const remainForCurrentLevel = Math.max(currentLevelNeed - currentExp, 0);
-    total += remainForCurrentLevel;
-    breakdown.push({
-      level: currentLevel,
-      expNeeded: remainForCurrentLevel,
-    });
+    total += Math.max(currentLevelNeed - currentExp, 0);
 
     // 中間每一等所需經驗
     for (let lv = currentLevel + 1; lv < targetLevel; lv++) {
-      const need = expTable[lv - 1] ?? 0;
-      total += need;
-      breakdown.push({ level: lv, expNeeded: need });
+      total += expTable[lv - 1] ?? 0;
     }
 
     return {
       totalExpNeeded: total,
       levelsToGo: targetLevel - currentLevel,
-      breakdown,
     };
   }
 

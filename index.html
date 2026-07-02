@@ -142,7 +142,8 @@
   </div>
 </nav>
 
-<main class="wrap" id="pageCalc">
+<main>
+<div class="wrap" id="pageCalc" role="tabpanel" aria-labelledby="navCalc">
 
   <section class="notice-banner" id="dataNotice">
     <span class="notice-icon">🍄</span>
@@ -240,9 +241,9 @@
   </section>
 
 
-</main>
+</div>
 
-<main class="wrap" id="pageSpots" hidden>
+<div class="wrap" id="pageSpots" role="tabpanel" aria-labelledby="navSpots" hidden>
 
   <section class="panel spots-panel">
     <div class="panel-head">
@@ -252,28 +253,6 @@
     <div class="cm-filter-row" style="margin-bottom:14px">
       <select class="cm-filter-input" id="spotsFilterJob">
         <option value="">全部職業</option>
-        <optgroup label="劍士系">
-          <option value="英雄">英雄</option>
-          <option value="聖騎士">聖騎士</option>
-          <option value="黑騎士">黑騎士</option>
-        </optgroup>
-        <optgroup label="法師系">
-          <option value="火毒大魔導士">火毒大魔導士</option>
-          <option value="冰雷大魔導士">冰雷大魔導士</option>
-          <option value="主教">主教</option>
-        </optgroup>
-        <optgroup label="弓箭手系">
-          <option value="箭神">箭神</option>
-          <option value="神射手">神射手</option>
-        </optgroup>
-        <optgroup label="盜賊系">
-          <option value="夜使者">夜使者</option>
-          <option value="暗影神偷">暗影神偷</option>
-        </optgroup>
-        <optgroup label="海盜系">
-          <option value="拳霸">拳霸</option>
-          <option value="槍神">槍神</option>
-        </optgroup>
       </select>
     </div>
     <p class="cm-disclaimer">這裡的地點是玩家在「社群經驗資料庫」回報的真實效率自動整理出來的，不是官方資料。遊戲上線後，回報的人越多，建議就越準。</p>
@@ -281,9 +260,9 @@
     <button class="btn btn-ghost spots-add-btn" id="spotsAddBtn" type="button">＋ 我也要回報練功地點</button>
   </section>
 
-</main>
+</div>
 
-<main class="wrap" id="pageJobs" hidden>
+<div class="wrap" id="pageJobs" role="tabpanel" aria-labelledby="navJobs" hidden>
 
   <section class="panel jobs-panel">
     <div class="panel-head">
@@ -294,9 +273,9 @@
     <div id="jobsList"></div>
   </section>
 
-</main>
+</div>
 
-<main class="wrap" id="pageTimer" hidden>
+<div class="wrap" id="pageTimer" role="tabpanel" aria-labelledby="navTimer" hidden>
 
   <section class="panel timer-panel">
     <div class="panel-head">
@@ -354,9 +333,9 @@
     <p class="exp-rate-hint" id="expRateHint">輸入前後經驗值後自動計算速率（測試時長以倒數計時器經過的時間為準，沒開計時器則用上面設定的分鐘數）</p>
   </section>
 
-</main>
+</div>
 
-<main class="wrap" id="pageCm" hidden>
+<div class="wrap" id="pageCm" role="tabpanel" aria-labelledby="navCm" hidden>
 
   <section class="panel cm-panel">
     <div class="panel-head">
@@ -369,28 +348,6 @@
       <div class="cm-filter-row">
         <select class="cm-filter-input" id="cmFilterJob">
           <option value="">全部職業</option>
-          <optgroup label="劍士系">
-            <option value="英雄">英雄</option>
-            <option value="聖騎士">聖騎士</option>
-            <option value="黑騎士">黑騎士</option>
-          </optgroup>
-          <optgroup label="法師系">
-            <option value="火毒大魔導士">火毒大魔導士</option>
-            <option value="冰雷大魔導士">冰雷大魔導士</option>
-            <option value="主教">主教</option>
-          </optgroup>
-          <optgroup label="弓箭手系">
-            <option value="箭神">箭神</option>
-            <option value="神射手">神射手</option>
-          </optgroup>
-          <optgroup label="盜賊系">
-            <option value="夜使者">夜使者</option>
-            <option value="暗影神偷">暗影神偷</option>
-          </optgroup>
-          <optgroup label="海盜系">
-            <option value="拳霸">拳霸</option>
-            <option value="槍神">槍神</option>
-          </optgroup>
         </select>
         <input class="cm-filter-input" id="cmFilterMap" placeholder="🔍 篩選地圖">
         <div class="cm-filter-lv-group">
@@ -414,33 +371,11 @@
           <span>職業 *</span>
           <select id="cmJob">
             <option value="" disabled selected>請選擇職業</option>
-            <optgroup label="劍士系">
-              <option value="英雄">英雄</option>
-              <option value="聖騎士">聖騎士</option>
-              <option value="黑騎士">黑騎士</option>
-            </optgroup>
-            <optgroup label="法師系">
-              <option value="火毒大魔導士">火毒大魔導士</option>
-              <option value="冰雷大魔導士">冰雷大魔導士</option>
-              <option value="主教">主教</option>
-            </optgroup>
-            <optgroup label="弓箭手系">
-              <option value="箭神">箭神</option>
-              <option value="神射手">神射手</option>
-            </optgroup>
-            <optgroup label="盜賊系">
-              <option value="夜使者">夜使者</option>
-              <option value="暗影神偷">暗影神偷</option>
-            </optgroup>
-            <optgroup label="海盜系">
-              <option value="拳霸">拳霸</option>
-              <option value="槍神">槍神</option>
-            </optgroup>
           </select>
         </label>
         <label class="field">
           <span>地圖名稱（怪物）*</span>
-          <input type="text" id="cmMap" placeholder="例：（待補）楓葉村周邊">
+          <input type="text" id="cmMap" maxlength="40" placeholder="例：（待補）楓葉村周邊">
         </label>
         <label class="field">
           <span>角色等級 *</span>
@@ -454,7 +389,7 @@
         </label>
         <label class="field">
           <span>備註（選填）</span>
-          <input type="text" id="cmNote" placeholder="例：開技能、有吃藥水等">
+          <input type="text" id="cmNote" maxlength="60" placeholder="例：開技能、有吃藥水等">
         </label>
       </div>
       <div class="cm-form-actions">
@@ -468,6 +403,7 @@
     <button class="btn btn-ghost cm-load-more" id="cmLoadMore" hidden type="button">載入更多</button>
   </section>
 
+</div>
 </main>
 
 <footer class="site-footer">
@@ -479,8 +415,8 @@
 <!-- Firebase SDK 改為懶載入：只有切到「社群資料庫／建議地點」分頁時才載入（見 js/community.js） -->
 <script defer src="js/data.js"></script>
 <script defer src="js/calculator.js"></script>
-<script defer src="js/spots.js"></script>
 <script defer src="js/jobsData.js"></script>
+<script defer src="js/spots.js"></script>
 <script defer src="js/jobs.js"></script>
 <script defer src="js/app.js"></script>
 <script defer src="js/timer.js"></script>

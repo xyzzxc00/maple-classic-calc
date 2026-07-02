@@ -40,6 +40,7 @@
   let timerElapsed = 0;
   let timerRunning = false;
   let timerInterval = null;
+  let timerEndAt = 0; // 執行中的預計結束時間戳（ms）
 
   const parseExpVal = MapleCalculator.parseExpVal;
 
@@ -97,9 +98,14 @@
     if (val && val >= 1) setTimerLength(val);
   });
 
+  // 剩餘秒數用「結束時間戳 - 現在」回推，而不是每秒 -1：
+  // 背景分頁的 setInterval 會被瀏覽器節流（最慢一分鐘才跑一次），
+  // 用計數的話掛在背景打怪時會越走越慢，測速的經過時間也會跟著錯。
   function timerTick() {
-    timerLeft--;
-    timerElapsed++;
+    const left = Math.max(0, Math.round((timerEndAt - Date.now()) / 1000));
+    if (left === timerLeft) return;
+    timerLeft = left;
+    timerElapsed = timerTotal - timerLeft;
     renderTimer();
     calcExpRate();
     if (timerLeft <= 0) {
@@ -124,6 +130,9 @@
     if (timerRunning) {
       timerRunning = false;
       clearInterval(timerInterval);
+      // 暫停時先跟時間戳對齊一次，避免顯示停在半秒前的狀態
+      timerLeft = Math.max(0, Math.round((timerEndAt - Date.now()) / 1000));
+      timerElapsed = timerTotal - timerLeft;
       els.startBtn.textContent = "繼續";
       els.label.textContent = "已暫停";
     } else {
@@ -132,9 +141,15 @@
         timerElapsed = 0;
       }
       timerRunning = true;
+      timerEndAt = Date.now() + timerLeft * 1000;
       els.startBtn.textContent = "暫停";
-      timerInterval = setInterval(timerTick, 1000);
+      timerInterval = setInterval(timerTick, 500);
     }
+  });
+
+  // 從背景分頁切回來時立刻對時，不用等下一次被節流的 tick
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && timerRunning) timerTick();
   });
 
   els.resetBtn.addEventListener("click", () => {

@@ -67,4 +67,17 @@ const JOBS_DATA = [
   },
 ];
 
+// 職業 <select> 的 optgroup/option HTML，直接從 JOBS_DATA 的轉職路線衍生，
+// 是「職業清單」的單一資料來源（cmJob / cmFilterJob / spotsFilterJob 共用）。
+// 注意：firestore.rules 的 allowedJobs() 白名單是獨立維護的伺服器端規則，
+// 沒辦法直接讀這裡的 JS，因此改動職業名稱時「一定要」手動同步過去，
+// 否則使用者選到的職業會被 Firestore 規則擋掉，送出時只會看到「送出失敗」。
+const JOB_OPTIONS_HTML = JOBS_DATA.map(
+  (job) =>
+    `<optgroup label="${job.branch}">` +
+    job.paths.map((p) => `<option value="${p.fourth}">${p.fourth}</option>`).join("") +
+    `</optgroup>`
+).join("");
+
 window.MapleJobsData = JOBS_DATA;
+window.MapleJobOptionsHtml = JOB_OPTIONS_HTML;
