@@ -14,30 +14,9 @@
  */
 const LEGACY_SPOTS = [
   {
-    levelRange: "1～3",
-    entries: [
-      { level: "1", monster: "嫩寶", locations: "維多利亞港郊外、海岸草叢I" },
-      { level: "2", monster: "菇菇仔", locations: "菇菇山、弓箭手訓練場I、弓箭手村東部小山" },
-      { level: "2", monster: "藍寶", locations: "海岸草叢I～III、弓箭手訓練場I、弓箭手村東部小山、勇士之村東入口" },
-    ],
-    note: "Lv.1～10 大致上照著新手村（維多利亞港、弓箭手村、勇士之村等）的任務走就能練到，不太需要特地找地方打指定的怪，以下地點僅供想額外練功的人參考。",
-  },
-  {
-    levelRange: "4～7",
-    entries: [
-      { level: "4", monster: "紅寶", locations: "海岸草叢I～III、魔法森林北郊、大木林I、弓箭手村西部小山、勇士之村西/東入口、東石岩石山I、墮落城市南方工地/北入口" },
-      { level: "4", monster: "木妖", locations: "魔法森林南郊、勇士之村西入口/西部/東入口/東部、東石岩石山I&II、岩石路I&II" },
-      { level: "6", monster: "綠水靈", locations: "魔法森林南北部訓練場、智慧森林、大木林I&II、弓箭手村西部森林/小山、歷恩森林I、墮落城市南北方工地/北入口、青蛇濕地" },
-      { level: "7", monster: "肥肥", locations: "三叉路、海岸狩獵場、肥肥海岸、弓箭手村西部森林/小山、弓箭手訓練場I&II、歷恩森林I" },
-    ],
-  },
-  {
-    levelRange: "8～10",
-    entries: [
-      { level: "8", monster: "菇菇寶貝", locations: "三叉路、弓箭手村西部森林、菇菇山、弓箭手訓練場II&III、歷恩森林I～III、墮落城市南北方工地/北入口" },
-      { level: "10", monster: "黑木妖", locations: "魔法森林南部、北部森林訓練場II、大木林II&III、勇士之村西入口/西部/東部、東石岩石山III、岩石路I～III" },
-      { level: "10", monster: "緞帶肥肥", locations: "海岸狩獵場、肥肥海岸、弓箭手訓練場II&III、弓箭手村東部森林、歷恩森林II&III、墮落城市森林I" },
-    ],
+    levelRange: "1～10",
+    entries: [],
+    note: "這個區間大致上照著新手村的任務走就能練到，不太需要特地找地方打指定的怪，所以這裡不逐一列怪物/地點了。",
   },
   {
     levelRange: "12～17",
