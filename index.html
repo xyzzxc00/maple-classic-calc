@@ -145,6 +145,7 @@
     <button class="nav-tab" id="navJobs" type="button" role="tab" aria-selected="false" aria-controls="pageJobs">職業介紹</button>
     <button class="nav-tab" id="navTimer" type="button" role="tab" aria-selected="false" aria-controls="pageTimer">計時器 / EXP 測速</button>
     <button class="nav-tab" id="navCm" type="button" role="tab" aria-selected="false" aria-controls="pageCm">社群經驗資料庫</button>
+    <button class="nav-tab" id="navLegacy" type="button" role="tab" aria-selected="false" aria-controls="pageLegacy">舊版練功地點</button>
   </div>
 </nav>
 
@@ -453,6 +454,19 @@
   </section>
 
 </div>
+
+<div class="wrap" id="pageLegacy" role="tabpanel" aria-labelledby="navLegacy" hidden>
+
+  <section class="panel legacy-spots-panel">
+    <div class="panel-head">
+      <h2>舊版練功地點</h2>
+      <span class="badge">過往版本資料，僅供參考</span>
+    </div>
+    <p class="cm-disclaimer">這裡整理的是 Big Bang 大改版之前舊版楓之谷的練功地點，不是台版經典版的即時回報——正式上線後真正的練功地點請看「建議練功地點」分頁，那邊讀的是玩家在社群資料庫回報的真實效率。Lv.1~115 對照的是巴哈姆特新楓之谷精華區整理的怪物分布地區，同一隻怪常常在好幾張地圖都能打到，這裡盡量列出多個選擇；Lv.135 以後是另一批私服攻略站交叉比對的資料，可選地圖本來就比較少。這份資料沒有特別區分職業效率，等級門檻/地圖如果跟正式版有出入，會再校正。</p>
+    <div id="legacySpotsList"></div>
+  </section>
+
+</div>
 </main>
 
 <footer class="site-footer">
@@ -468,6 +482,8 @@
 <script defer src="js/jobsData.js"></script>
 <script defer src="js/spots.js"></script>
 <script defer src="js/jobs.js"></script>
+<script defer src="js/legacySpotsData.js"></script>
+<script defer src="js/legacySpots.js"></script>
 <script defer src="js/app.js"></script>
 <script defer src="js/timer.js"></script>
 <script defer src="js/community.js"></script>

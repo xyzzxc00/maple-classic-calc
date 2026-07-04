@@ -625,6 +625,31 @@ body {
 .cm-card.spot-fit { border-color: var(--accent-border); background: var(--accent-tint); }
 .spots-add-btn { width: 100%; margin-top: 16px; }
 
+/* ---------- Legacy spots (舊版練功地點參考) ---------- */
+#legacySpotsList { display: flex; flex-direction: column; gap: 10px; }
+.legacy-spot-card {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+}
+.legacy-spot-level {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--accent-text);
+  background: var(--accent-tint);
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 6px;
+}
+.legacy-entry { padding: 8px 0; border-bottom: 1px solid var(--border); }
+.legacy-entry:last-of-type { border-bottom: none; }
+.legacy-entry-level { font-weight: 700; color: var(--accent-text); font-size: 12px; margin-right: 6px; }
+.legacy-entry-monster { font-weight: 700; color: var(--ink); font-size: 14px; }
+.legacy-entry-locations { font-size: 13px; color: var(--ink-soft); margin-top: 2px; line-height: 1.6; }
+.legacy-spot-note { font-size: 12px; color: var(--ink-soft); font-style: italic; margin-top: 8px; }
+
 /* ---------- Jobs intro ---------- */
 .job-card {
   background: var(--surface);
