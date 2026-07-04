@@ -6,8 +6,8 @@
  * 庫回報的真實效率）。Lv.1~115 的怪物/地點資料是對照巴哈姆特新楓之谷
  * 精華區的「怪物分布地區」整理文核對的，同一隻怪常常會出現在好幾張
  * 地圖，這裡盡量把查得到的地圖都列出來，讓玩家多一些選擇，不是只給
- * 一個地方。Lv.135 以後的資料點是私服攻略站交叉比對的（跟 Lv.1~115
- * 不同來源），這個區間本身也是以王級怪物為主，可選地圖本來就比較少。
+ * 一個地方。這裡是給人練等用的參考名單，故意不收王級頭目——打王要組隊、
+ * 前置任務、道具，練功效率跟一般練等地點不是同一回事，收進來只會誤導。
  * 職業別的效率差異來源沒有特別標注，所以這裡故意不寫「這裡適合哪個
  * 職業」，避免比等級/地圖本身更容易出錯的猜測。
  * -----------------------------------------------------------------
@@ -115,39 +115,25 @@ const LEGACY_SPOTS = [
       { level: "58", monster: "黑曜石巨人", locations: "石人寺院I～III、迷宮森林IV&V、巨人之林" },
       { level: "59", monster: "混種石巨人", locations: "石人寺院III&IV、巨人之林" },
       { level: "60", monster: "赤龍", locations: "冰獨眼獸洞穴II、龍穴" },
-      { level: "60（王）", monster: "蘑菇王", locations: "鋼之肥肥公園III" },
     ],
   },
   {
-    levelRange: "62～70",
+    levelRange: "62～68",
     entries: [
       { level: "62", monster: "魔龍", locations: "龍穴、魔龍領土" },
       { level: "63", monster: "骷髏士官", locations: "遺跡之墓IV、遺跡之峭壁、第一～三軍營" },
       { level: "64", monster: "冰龍", locations: "龍族之地、冰冷的搖籃、龍族之巢" },
       { level: "65", monster: "沼澤巨鱷", locations: "鱷魚潭I&II" },
-      { level: "65（王）", monster: "殭屍菇菇王", locations: "蘑菇王之墓" },
       { level: "68", monster: "黑龍", locations: "冰冷的搖籃、龍族之巢" },
-      { level: "70（王）", monster: "月牙牛魔王", locations: "寺院通道I～IV" },
     ],
   },
   {
-    levelRange: "73～115",
+    levelRange: "73～113",
     entries: [
       { level: "73", monster: "骷髏指揮官", locations: "遺跡之峭壁" },
-      { level: "75（王）", monster: "長槍牛魔王", locations: "寺院通道III&IV" },
-      { level: "80（王）", monster: "巴洛古", locations: "被詛咒的寺廟" },
-      { level: "100（王）", monster: "地獄巴洛古", locations: "魔法森林往天空之城的船" },
-      { level: "115（王）", monster: "惡靈13", locations: "威廉古堡第5階段" },
+      { level: "110", monster: "化石龍", locations: "神木村、被遺留的龍之巢穴" },
+      { level: "113", monster: "化石龍長老", locations: "被遺留的龍之巢穴" },
     ],
-  },
-  {
-    levelRange: "135～200",
-    entries: [
-      { level: "135～200", monster: "骨龍、生化戰士、時間神殿怪物", locations: "冰原雪域周邊" },
-      { level: "135～200", monster: "殘暴炎魔、樹王", locations: "冰原雪域高階區域" },
-      { level: "155以上（王）", monster: "闇黑龍王", locations: "冰原雪域高階區域" },
-    ],
-    note: "這個區間資料來源跟前面不同（私服攻略站交叉比對），可選地圖本來就比較少，通常需要組隊挑戰。",
   },
 ];
 

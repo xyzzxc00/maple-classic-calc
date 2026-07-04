@@ -1,5 +1,5 @@
 /**
- * nav.js — 分頁切換（練等計算 / 建議練功地點 / 計時器 / 社群資料庫）
+ * nav.js — 分頁切換（練等計算 / 建議練功地點 / 社群資料庫）
  */
 (function () {
   const STORAGE_KEY = "maple_classic_nav_v1";
@@ -8,7 +8,6 @@
     calc: document.getElementById("pageCalc"),
     spots: document.getElementById("pageSpots"),
     jobs: document.getElementById("pageJobs"),
-    timer: document.getElementById("pageTimer"),
     cm: document.getElementById("pageCm"),
     legacy: document.getElementById("pageLegacy"),
   };
@@ -16,7 +15,6 @@
     calc: document.getElementById("navCalc"),
     spots: document.getElementById("navSpots"),
     jobs: document.getElementById("navJobs"),
-    timer: document.getElementById("navTimer"),
     cm: document.getElementById("navCm"),
     legacy: document.getElementById("navLegacy"),
   };
@@ -42,7 +40,6 @@
   tabs.calc.addEventListener("click", () => switchNav("calc"));
   tabs.spots.addEventListener("click", () => switchNav("spots"));
   tabs.jobs.addEventListener("click", () => switchNav("jobs"));
-  tabs.timer.addEventListener("click", () => switchNav("timer"));
   tabs.cm.addEventListener("click", () => switchNav("cm"));
   tabs.legacy.addEventListener("click", () => switchNav("legacy"));
 

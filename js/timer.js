@@ -242,16 +242,16 @@
 
   els.applyExpRateBtn.addEventListener("click", () => {
     if (!lastExpPerMin) return;
-    document.getElementById("expPer10Min").value = Math.round(lastExpPerMin * 10);
-    // 先讓「✓ 已套用！」在計時器分頁上閃一下再切走，不然分頁一切換這個
-    // 按鈕就被 nav.js 隱藏了，使用者永遠看不到這個確認訊息
+    const expInput = document.getElementById("expPer10Min");
+    expInput.value = Math.round(lastExpPerMin * 10);
+    if (window.MapleApp && window.MapleApp.runCalculation) window.MapleApp.runCalculation();
+    expInput.scrollIntoView({ behavior: "smooth", block: "center" });
+    expInput.focus();
     const originalText = els.applyExpRateBtn.textContent;
     els.applyExpRateBtn.textContent = "✓ 已套用！";
     setTimeout(() => {
-      window.MapleNav.switchNav("calc");
-      if (window.MapleApp && window.MapleApp.runCalculation) window.MapleApp.runCalculation();
       els.applyExpRateBtn.textContent = originalText;
-    }, 500);
+    }, 1200);
   });
 
   els.applyToCmBtn.addEventListener("click", () => {

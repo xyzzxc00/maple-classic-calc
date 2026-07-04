@@ -141,9 +141,8 @@
 <nav class="wrap nav-tabs-wrap" aria-label="工具分頁">
   <div class="nav-tabs" role="tablist">
     <button class="nav-tab active" id="navCalc" type="button" role="tab" aria-selected="true" aria-controls="pageCalc">練等計算</button>
-    <button class="nav-tab" id="navSpots" type="button" role="tab" aria-selected="false" aria-controls="pageSpots">建議練功地點</button>
     <button class="nav-tab" id="navJobs" type="button" role="tab" aria-selected="false" aria-controls="pageJobs">職業介紹</button>
-    <button class="nav-tab" id="navTimer" type="button" role="tab" aria-selected="false" aria-controls="pageTimer">計時器 / EXP 測速</button>
+    <button class="nav-tab" id="navSpots" type="button" role="tab" aria-selected="false" aria-controls="pageSpots">建議練功地點</button>
     <button class="nav-tab" id="navCm" type="button" role="tab" aria-selected="false" aria-controls="pageCm">社群經驗資料庫</button>
     <button class="nav-tab" id="navLegacy" type="button" role="tab" aria-selected="false" aria-controls="pageLegacy">舊版練功地點</button>
   </div>
@@ -250,6 +249,61 @@
     <p class="share-hint" id="shareHint" hidden>已複製連結！貼給朋友就能看到一樣的計算結果</p>
   </section>
 
+  <section class="panel timer-panel">
+    <div class="panel-head">
+      <h2>倒數計時器</h2>
+      <span class="badge">時間到會響＋跳通知</span>
+    </div>
+    <div class="timer-presets">
+      <button class="btn btn-ghost timer-preset active" data-min="1" type="button">1 分鐘</button>
+      <button class="btn btn-ghost timer-preset" data-min="5" type="button">5 分鐘</button>
+      <button class="btn btn-ghost timer-preset" data-min="10" type="button">10 分鐘</button>
+      <label class="timer-custom-field">
+        <input type="number" id="timerCustomMin" min="1" max="999" placeholder="分">
+        <span>分鐘</span>
+      </label>
+    </div>
+    <div class="timer-display-wrap">
+      <svg class="timer-ring" width="180" height="180" viewBox="0 0 180 180">
+        <circle class="timer-ring-bg" cx="90" cy="90" r="80"/>
+        <circle class="timer-ring-prog" id="timerRing" cx="90" cy="90" r="80" stroke-dasharray="502.65" stroke-dashoffset="0"/>
+      </svg>
+      <div class="timer-display">
+        <div class="timer-time" id="timerDisplay">01:00</div>
+        <div class="timer-label" id="timerLabel">準備開始</div>
+      </div>
+    </div>
+    <div class="timer-controls">
+      <button class="btn btn-primary" id="timerStartBtn" type="button">開始</button>
+      <button class="btn btn-ghost" id="timerResetBtn" type="button">重置</button>
+    </div>
+  </section>
+
+  <section class="panel exp-tracker-panel">
+    <div class="panel-head">
+      <h2>EXP 測速</h2>
+      <button class="btn btn-ghost" id="clearTrackerBtn" type="button">✕ 清除</button>
+    </div>
+    <div class="field-grid two-col">
+      <label class="field">
+        <span>測試前經驗值</span>
+        <input type="text" id="expBefore" placeholder="例：185W 或 1850000" inputmode="decimal">
+      </label>
+      <label class="field">
+        <span>測試後經驗值</span>
+        <input type="text" id="expAfter" placeholder="例：200W 或 2000000" inputmode="decimal">
+      </label>
+    </div>
+    <div class="exp-rate-box" id="expRateBox" hidden>
+      <div class="exp-rate-row"><span>獲得經驗</span><span id="expGained">—</span></div>
+      <div class="exp-rate-row"><span>測試時長</span><span id="expDuration">—</span></div>
+      <div class="exp-rate-row"><span>EXP / 分鐘</span><span id="expPerMinResult">—</span></div>
+      <div class="exp-rate-row hl"><span>EXP / 小時</span><span id="expPerHourResult">—</span></div>
+      <button class="btn btn-primary exp-apply-btn" id="applyExpRateBtn" type="button">↑ 套用到上面的每10分鐘經驗</button>
+      <button class="btn btn-ghost exp-apply-btn" id="applyToCmBtn" type="button">＋ 新增到社群資料庫</button>
+    </div>
+    <p class="exp-rate-hint" id="expRateHint">輸入前後經驗值後自動計算速率（測試時長以倒數計時器經過的時間為準，沒開計時器則用上面設定的分鐘數）</p>
+  </section>
 
 </div>
 
@@ -319,68 +373,8 @@
       <h2>職業介紹</h2>
       <span class="badge">轉職路線總覽</span>
     </div>
-    <p class="cm-disclaimer">這裡只列出經典版沿用多年的基礎轉職路線跟職業特色，不是技能配點或裝備攻略——技能數值要等正式上線/封測資料出來才能確定，避免先寫錯誤的資訊誤導大家。一轉任務的地點/NPC 已對照海外經典服資料核對過，但中文譯名還沒對照台版正式翻譯；二轉／三轉／四轉展開後看到的等級門檻也查證過，但關卡描述是全職業共用的概略流程，職業專屬的 NPC／道具名稱還沒核對，正式上線後會補齊校正。</p>
+    <p class="cm-disclaimer">這裡整理的是 Big Bang 大改版之前舊版楓之谷沿用多年的基礎轉職路線跟職業特色，照過往的舊資料給大家先參考用，不是技能配點或裝備攻略——技能數值要等正式上線/封測資料出來才能確定，避免先寫錯誤的資訊誤導大家。一轉任務的地點/NPC 已對照海外經典服資料核對過，但中文譯名還沒對照台版正式翻譯；二轉／三轉／四轉展開後看到的等級門檻也查證過，但關卡描述是全職業共用的概略流程，職業專屬的 NPC／道具名稱還沒核對。實際內容還是要以之後正式開放的經典版為準，正式上線後會盡快依照官方資料補齊校正。</p>
     <div id="jobsList"></div>
-  </section>
-
-</div>
-
-<div class="wrap" id="pageTimer" role="tabpanel" aria-labelledby="navTimer" hidden>
-
-  <section class="panel timer-panel">
-    <div class="panel-head">
-      <h2>倒數計時器</h2>
-      <span class="badge">時間到會響＋跳通知</span>
-    </div>
-    <div class="timer-presets">
-      <button class="btn btn-ghost timer-preset active" data-min="1" type="button">1 分鐘</button>
-      <button class="btn btn-ghost timer-preset" data-min="5" type="button">5 分鐘</button>
-      <button class="btn btn-ghost timer-preset" data-min="10" type="button">10 分鐘</button>
-      <label class="timer-custom-field">
-        <input type="number" id="timerCustomMin" min="1" max="999" placeholder="分">
-        <span>分鐘</span>
-      </label>
-    </div>
-    <div class="timer-display-wrap">
-      <svg class="timer-ring" width="180" height="180" viewBox="0 0 180 180">
-        <circle class="timer-ring-bg" cx="90" cy="90" r="80"/>
-        <circle class="timer-ring-prog" id="timerRing" cx="90" cy="90" r="80" stroke-dasharray="502.65" stroke-dashoffset="0"/>
-      </svg>
-      <div class="timer-display">
-        <div class="timer-time" id="timerDisplay">01:00</div>
-        <div class="timer-label" id="timerLabel">準備開始</div>
-      </div>
-    </div>
-    <div class="timer-controls">
-      <button class="btn btn-primary" id="timerStartBtn" type="button">開始</button>
-      <button class="btn btn-ghost" id="timerResetBtn" type="button">重置</button>
-    </div>
-  </section>
-
-  <section class="panel exp-tracker-panel">
-    <div class="panel-head">
-      <h2>EXP 測速</h2>
-      <button class="btn btn-ghost" id="clearTrackerBtn" type="button">✕ 清除</button>
-    </div>
-    <div class="field-grid two-col">
-      <label class="field">
-        <span>測試前經驗值</span>
-        <input type="text" id="expBefore" placeholder="例：185W 或 1850000" inputmode="decimal">
-      </label>
-      <label class="field">
-        <span>測試後經驗值</span>
-        <input type="text" id="expAfter" placeholder="例：200W 或 2000000" inputmode="decimal">
-      </label>
-    </div>
-    <div class="exp-rate-box" id="expRateBox" hidden>
-      <div class="exp-rate-row"><span>獲得經驗</span><span id="expGained">—</span></div>
-      <div class="exp-rate-row"><span>測試時長</span><span id="expDuration">—</span></div>
-      <div class="exp-rate-row"><span>EXP / 分鐘</span><span id="expPerMinResult">—</span></div>
-      <div class="exp-rate-row hl"><span>EXP / 小時</span><span id="expPerHourResult">—</span></div>
-      <button class="btn btn-primary exp-apply-btn" id="applyExpRateBtn" type="button">↑ 套用到練等計算（每10分鐘經驗）</button>
-      <button class="btn btn-ghost exp-apply-btn" id="applyToCmBtn" type="button">＋ 新增到社群資料庫</button>
-    </div>
-    <p class="exp-rate-hint" id="expRateHint">輸入前後經驗值後自動計算速率（測試時長以倒數計時器經過的時間為準，沒開計時器則用上面設定的分鐘數）</p>
   </section>
 
 </div>
@@ -462,7 +456,7 @@
       <h2>舊版練功地點</h2>
       <span class="badge">過往版本資料，僅供參考</span>
     </div>
-    <p class="cm-disclaimer">這裡整理的是 Big Bang 大改版之前舊版楓之谷的練功地點，不是台版經典版的即時回報——正式上線後真正的練功地點請看「建議練功地點」分頁，那邊讀的是玩家在社群資料庫回報的真實效率。Lv.1~115 對照的是巴哈姆特新楓之谷精華區整理的怪物分布地區，同一隻怪常常在好幾張地圖都能打到，這裡盡量列出多個選擇；Lv.135 以後是另一批私服攻略站交叉比對的資料，可選地圖本來就比較少。這份資料沒有特別區分職業效率，等級門檻/地圖如果跟正式版有出入，會再校正。</p>
+    <p class="cm-disclaimer">這裡整理的是 Big Bang 大改版之前舊版楓之谷的練功地點，不是台版經典版的即時回報——正式上線後真正的練功地點請看「建議練功地點」分頁，那邊讀的是玩家在社群資料庫回報的真實效率。Lv.1~115 對照的是巴哈姆特新楓之谷精華區整理的怪物分布地區，同一隻怪常常在好幾張地圖都能打到，這裡盡量列出多個選擇。這裡故意不收王級頭目——這裡是給人練等用的參考名單，打王要組隊、前置任務、道具，跟一般練等地點不是同一回事。這份資料沒有特別區分職業效率，等級門檻/地圖如果跟正式版有出入，會再校正。</p>
     <div id="legacySpotsList"></div>
   </section>
 
@@ -471,8 +465,11 @@
 
 <footer class="site-footer">
   <p>非官方工具，數值僅供參考，正式數據以遊戲內公告為準。</p>
-  <p class="footer-contact">問題回報或建議：<a href="https://www.threads.net/@corey.0_" target="_blank" rel="noopener">Threads</a>　·　Discord：xoyk00</p>
-  <a class="donate-link" href="https://ko-fi.com/xyzzxc00" id="donateLink" target="_blank" rel="noopener">請站長喝杯飲料</a>
+  <div class="footer-cta-row">
+    <a class="feedback-link" href="https://forms.gle/VnQnL6o9V4nNqshk6" target="_blank" rel="noopener">💬 意見回饋 / 錯誤回報</a>
+    <a class="donate-link" href="https://ko-fi.com/xyzzxc00" id="donateLink" target="_blank" rel="noopener">請站長喝杯飲料</a>
+  </div>
+  <p class="footer-contact">也可以透過 <a href="https://www.threads.net/@corey.0_" target="_blank" rel="noopener">Threads</a>　·　Discord：xoyk00 聯絡我</p>
 </footer>
 
 <!-- Firebase SDK 改為懶載入：只有切到「社群資料庫／建議地點」分頁時才載入（見 js/community.js） -->
