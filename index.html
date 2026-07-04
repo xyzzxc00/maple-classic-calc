@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PC7RFW707Y"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-PC7RFW707Y');
+</script>
 <title>新楓之谷經典版 練等 × 社群工具｜經驗值試算 / 練功地點 / 職業介紹</title>
 <meta name="description" content="新楓之谷經典版練等計算機，輸入目前等級即可試算升級所需經驗值與預估時間，封測資料更新後同步校正。">
 <meta name="theme-color" content="#F7F8F4" media="(prefers-color-scheme: light)">
@@ -123,6 +131,10 @@
     <p class="subtitle">輸入目前等級，馬上知道升級還差多少經驗、大概要練多久</p>
     <a class="prereg-btn" href="https://maplestoryclassic-event.beanfun.com/Event/E20260701/Index" target="_blank" rel="noopener">前往官方事前預約</a>
     <p class="prereg-hint">事前預約已開放！點上方按鈕前往 beanfun 官方活動頁登錄</p>
+    <div class="prereg-countdown" id="preregCountdown" aria-live="polite">
+      <span class="countdown-label">距離事前預約截止（2026/07/28 23:59）還有</span>
+      <span class="countdown-time" id="countdownTime">計算中...</span>
+    </div>
   </div>
 </header>
 
@@ -229,7 +241,11 @@
       <div class="stat-row" id="dailyDaysRow" hidden><span>幾天能練完（加倍／不加倍）</span><span id="dailyDays">—</span></div>
     </div>
 
-    <button class="btn btn-ghost share-btn" id="shareBtn" type="button">複製分享連結</button>
+    <div class="share-row">
+      <button class="btn btn-ghost share-btn" id="shareBtn" type="button">複製分享連結</button>
+      <button class="btn btn-ghost share-btn share-icon-btn" id="shareThreadsBtn" type="button" title="分享到 Threads">Threads</button>
+      <button class="btn btn-ghost share-btn share-icon-btn" id="shareLineBtn" type="button" title="分享到 LINE">LINE</button>
+    </div>
     <p class="share-hint" id="shareHint" hidden>已複製連結！貼給朋友就能看到一樣的計算結果</p>
   </section>
 
@@ -257,12 +273,52 @@
 
 <div class="wrap" id="pageJobs" role="tabpanel" aria-labelledby="navJobs" hidden>
 
+  <section class="panel version-diff-panel">
+    <div class="panel-head">
+      <h2>經典版 vs 現行版，差在哪？</h2>
+      <span class="badge">新舊玩家必看</span>
+    </div>
+    <p class="cm-disclaimer">這裡比較的是「Big Bang 大改版（2010年）之前的舊楓之谷」跟「現在還在營運的楓之谷」，抓大方向給新舊玩家一個底，實際內容以官方公告為準。</p>
+    <div class="diff-table">
+      <div class="diff-row diff-head">
+        <div class="diff-cell diff-label"></div>
+        <div class="diff-cell">經典版（本工具對象）</div>
+        <div class="diff-cell">現行版</div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-cell diff-label">職業系統</div>
+        <div class="diff-cell">只有 5 大冒險家職業（劍士／法師／弓箭手／盜賊／海盜），走原始轉職路線</div>
+        <div class="diff-cell">新增騎士團、反抗軍等大量職業系統，玩法差異很大</div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-cell diff-label">經驗值曲線</div>
+        <div class="diff-cell">沿用舊制經驗值表，升等節奏較慢、扎實</div>
+        <div class="diff-cell">歷年調整＋大量活動加速，升等速度快很多</div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-cell diff-label">強化系統</div>
+        <div class="diff-cell">沒有星力、潛在能力這類疊加系統，裝備養成較單純</div>
+        <div class="diff-cell">星力、潛在能力、附加潛能等系統疊加，養成深度高但也更複雜</div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-cell diff-label">技能與戰鬥</div>
+        <div class="diff-cell">舊版技能樹，沒有高階覺醒技能</div>
+        <div class="diff-cell">技能樹經多次改版，加入高階覺醒技能與連段機制</div>
+      </div>
+      <div class="diff-row">
+        <div class="diff-cell diff-label">遊戲節奏</div>
+        <div class="diff-cell">手動練功為主，節奏較慢、社群互動感強</div>
+        <div class="diff-cell">自動戰鬥輔助多、活動導向，節奏明顯更快</div>
+      </div>
+    </div>
+  </section>
+
   <section class="panel jobs-panel">
     <div class="panel-head">
       <h2>職業介紹</h2>
       <span class="badge">轉職路線總覽</span>
     </div>
-    <p class="cm-disclaimer">這裡只列出經典版沿用多年的基礎轉職路線跟職業特色，不是技能配點或裝備攻略——技能數值要等正式上線/封測資料出來才能確定，避免先寫錯誤的資訊誤導大家。</p>
+    <p class="cm-disclaimer">這裡只列出經典版沿用多年的基礎轉職路線跟職業特色，不是技能配點或裝備攻略——技能數值要等正式上線/封測資料出來才能確定，避免先寫錯誤的資訊誤導大家。一轉任務的 NPC 名稱是海外經典服的通用譯名，還沒對照台版正式翻譯，正式上線後會校正。</p>
     <div id="jobsList"></div>
   </section>
 
@@ -407,6 +463,7 @@
 
 <!-- Firebase SDK 改為懶載入：只有切到「社群資料庫／建議地點」分頁時才載入（見 js/community.js） -->
 <script defer src="js/data.js"></script>
+<script defer src="js/countdown.js"></script>
 <script defer src="js/calculator.js"></script>
 <script defer src="js/jobsData.js"></script>
 <script defer src="js/spots.js"></script>

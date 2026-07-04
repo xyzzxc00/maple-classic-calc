@@ -120,6 +120,28 @@ body {
   color: var(--ink-soft);
   margin: 10px 0 0;
 }
+.prereg-countdown {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 16px;
+  padding: 10px 20px;
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-md);
+}
+.countdown-label { font-size: 12px; color: var(--ink-soft); }
+.countdown-time {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--accent-text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+@media (max-width: 480px) {
+  .countdown-time { font-size: 17px; }
+}
 
 /* ---------- Panels ---------- */
 .panel {
@@ -353,7 +375,10 @@ body {
 .stat-row span:last-child { flex-shrink: 0; font-weight: 700; color: var(--ink); text-align: right; }
 .stat-row span.hl { color: var(--accent-text); font-size: 1.05rem; }
 
+.share-row { display: flex; gap: 8px; margin-top: 4px; }
 .share-btn { width: 100%; justify-content: center; }
+.share-row .share-btn { width: auto; flex: 1; }
+.share-icon-btn { white-space: nowrap; }
 .share-hint {
   text-align: center;
   font-size: 13px;
@@ -613,6 +638,16 @@ body {
 .job-branch { font-weight: 700; font-size: 15px; color: var(--ink); }
 .job-first { font-size: 12px; color: var(--ink-soft); }
 .job-desc { font-size: 14px; color: var(--ink-soft); margin: 0 0 12px; line-height: 1.6; }
+.job-first-quest {
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--surface-tint);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+.job-quest-label { font-weight: 700; color: var(--accent-text); margin-right: 4px; }
 .job-paths { display: flex; flex-direction: column; gap: 8px; }
 .job-path {
   display: flex;
@@ -630,6 +665,27 @@ body {
 .job-path-note { color: var(--ink-soft); font-size: 12px; margin-left: auto; }
 @media (max-width: 560px) {
   .job-path-note { margin-left: 0; width: 100%; }
+}
+
+/* ---------- 經典版 vs 現行版 差異對照 ---------- */
+.diff-table {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.diff-row { display: grid; grid-template-columns: 120px 1fr 1fr; gap: 1px; }
+.diff-cell { background: var(--surface); padding: 10px 12px; font-size: 13px; color: var(--ink-soft); line-height: 1.6; }
+.diff-head .diff-cell { font-weight: 700; color: var(--ink); background: var(--surface-tint); }
+.diff-label { font-weight: 700; color: var(--ink); background: var(--surface-tint); }
+@media (max-width: 640px) {
+  .diff-row { grid-template-columns: 1fr; }
+  .diff-head { display: none; }
+  .diff-cell:nth-child(2)::before { content: "經典版："; font-weight: 700; color: var(--accent-text); display: block; margin-bottom: 2px; }
+  .diff-cell:nth-child(3)::before { content: "現行版："; font-weight: 700; color: var(--ink-soft); display: block; margin-bottom: 2px; }
 }
 
 /* ---------- Footer ---------- */

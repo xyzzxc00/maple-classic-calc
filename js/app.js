@@ -32,6 +32,8 @@
     dailyDaysRow: document.getElementById("dailyDaysRow"),
     dailyDays: document.getElementById("dailyDays"),
     shareBtn: document.getElementById("shareBtn"),
+    shareThreadsBtn: document.getElementById("shareThreadsBtn"),
+    shareLineBtn: document.getElementById("shareLineBtn"),
     shareHint: document.getElementById("shareHint"),
   };
 
@@ -166,7 +168,7 @@
     runCalculation();
   });
 
-  els.shareBtn.addEventListener("click", async () => {
+  function buildShareUrl() {
     const params = MapleCalculator.encodeShareParams({
       currentLevel: parseInt(els.currentLevel.value, 10) || 1,
       currentExp: parseInt(els.currentExp.value, 10) || 0,
@@ -176,7 +178,11 @@
       dailyHours: parseFloat(els.dailyHours.value) || 0,
       ownedCoupons: parseInt(els.ownedCoupons.value, 10) || 0,
     });
-    const url = `${location.origin}${location.pathname}?${params}`;
+    return `${location.origin}${location.pathname}?${params}`;
+  }
+
+  els.shareBtn.addEventListener("click", async () => {
+    const url = buildShareUrl();
     try {
       await navigator.clipboard.writeText(url);
     } catch {
@@ -184,6 +190,17 @@
     }
     els.shareHint.hidden = false;
     setTimeout(() => (els.shareHint.hidden = true), 3000);
+  });
+
+  // Threads/LINE 只是打開對方的分享對話框讓使用者自己送出，
+  // 不會幫使用者自動發文，降低分享阻力但不是自動代發
+  els.shareThreadsBtn.addEventListener("click", () => {
+    const text = `我用新楓之谷經典版練等計算機算出來的結果，一起來試算你的升級時間吧！ ${buildShareUrl()}`;
+    window.open(`https://www.threads.net/intent/post?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+  });
+
+  els.shareLineBtn.addEventListener("click", () => {
+    window.open(`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(buildShareUrl())}`, "_blank", "noopener");
   });
 
   function init() {

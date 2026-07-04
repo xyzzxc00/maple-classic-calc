@@ -16,6 +16,14 @@
       </div>`;
   }
 
+  function renderFirstQuest(q) {
+    if (!q) return "";
+    return `<div class="job-first-quest">
+      <span class="job-quest-label">🗨 一轉任務</span>
+      Lv.${q.level}＋${q.stat} → 到「${q.city}」找 ${q.npc} 完成考驗
+    </div>`;
+  }
+
   function render() {
     list.innerHTML = window.MapleJobsData.map(
       (job) => `
@@ -28,6 +36,7 @@
           </div>
         </div>
         <p class="job-desc">${job.desc}</p>
+        ${renderFirstQuest(job.firstQuest)}
         <div class="job-paths">${job.paths.map(renderPath).join("")}</div>
       </div>`
     ).join("");

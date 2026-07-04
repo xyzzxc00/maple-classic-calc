@@ -14,6 +14,7 @@ const JOBS_DATA = [
     branch: "劍士系",
     firstJob: "劍士",
     desc: "近戰肉盾，血量高、防禦強，可以站著跟怪物對打，前期練等比較不怕被秒殺，是新手最容易上手的系統。",
+    firstQuest: { level: 10, stat: "力量(STR) 35", city: "佩里恩", npc: "「羅伊」（舞著巴洛克的男人）" },
     paths: [
       { second: "戰士", third: "十字軍", fourth: "英雄", note: "輸出最直接，雙手武器高傷害" },
       { second: "見習騎士", third: "騎士", fourth: "聖騎士", note: "兼顧防禦與支援，後期可控場" },
@@ -26,6 +27,7 @@ const JOBS_DATA = [
     branch: "法師系",
     firstJob: "法師",
     desc: "遠程魔法輸出，技能範圍廣、爆發高，但血量薄、防禦低，需要小心控制怪物距離，較適合喜歡站樁輸出的玩家。",
+    firstQuest: { level: 8, stat: "智力(INT) 20", city: "艾麗妮亞", npc: "「葛倫戴爾老爹」" },
     paths: [
       { second: "火毒法師", third: "火毒魔導士", fourth: "火毒大魔導士", note: "持續灼燒、中毒傷害，清怪穩定" },
       { second: "冰雷法師", third: "冰雷魔導士", fourth: "冰雷大魔導士", note: "冰凍控場 + 雷屬性爆發" },
@@ -38,6 +40,7 @@ const JOBS_DATA = [
     branch: "弓箭手系",
     firstJob: "弓箭手",
     desc: "遠程物理輸出，攻速快、機動性好，前期比較依賴裝備跟箭矢補給，操作熟練後輸出效率很高。",
+    firstQuest: { level: 10, stat: "敏捷(DEX) 25", city: "亨利西斯", npc: "「雅典娜・皮爾斯」" },
     paths: [
       { second: "獵人", third: "遊俠", fourth: "箭神", note: "弓類武器，單體爆發力強" },
       { second: "弩弓手", third: "神弓手", fourth: "神射手", note: "弩類武器，攻速更快、範圍技能多" },
@@ -49,6 +52,7 @@ const JOBS_DATA = [
     branch: "盜賊系",
     firstJob: "盜賊",
     desc: "敏捷型近戰，攻速快、有專屬的迴避機制，操作上比較靈活，適合喜歡近身游擊戰的玩家。",
+    firstQuest: { level: 10, stat: "幸運(LUK) 20", city: "克盧尼城", npc: "「黑暗君主」" },
     paths: [
       { second: "刺客", third: "暗殺者", fourth: "夜使者", note: "拳套武器，飛鏢類遠距奇襲" },
       { second: "俠盜", third: "神偷", fourth: "暗影神偷", note: "短劍武器，近身連續斬擊" },
@@ -60,6 +64,7 @@ const JOBS_DATA = [
     branch: "海盜系",
     firstJob: "海盜",
     desc: "後期才加入的系統，近戰跟遠程武器都能選，技能機制比較特殊（例如能量條、轉換姿態），上手難度稍高但後期很強勢。",
+    firstQuest: { level: 10, stat: "力量+敏捷(STR+DEX) 25", city: "諾特勒斯號（船艙內）", npc: "船上的船長 NPC" },
     paths: [
       { second: "拳師", third: "格鬥家", fourth: "拳霸", note: "徒手近戰，搭配能量條爆發輸出" },
       { second: "槍手", third: "神槍手", fourth: "槍神", note: "手槍類遠程，機動性與輸出兼具" },
