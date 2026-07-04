@@ -24,6 +24,14 @@
     </div>`;
   }
 
+  function renderStage(s) {
+    return `<div class="job-stage">
+      <span class="job-stage-tier">${s.tier}</span>
+      <span class="job-stage-level">Lv.${s.level}</span>
+      <p class="job-stage-note">${s.note}</p>
+    </div>`;
+  }
+
   function render() {
     list.innerHTML = window.MapleJobsData.map(
       (job) => `
@@ -38,9 +46,23 @@
         <p class="job-desc">${job.desc}</p>
         ${renderFirstQuest(job.firstQuest)}
         <div class="job-paths">${job.paths.map(renderPath).join("")}</div>
+        <button class="job-expand-btn" data-job="${job.id}" type="button" aria-expanded="false">看二轉／三轉／四轉關卡 ▾</button>
+        <div class="job-later-stages" id="laterStages-${job.id}" hidden>${(job.laterQuests || []).map(renderStage).join("")}</div>
       </div>`
     ).join("");
   }
+
+  // 委派監聽器，展開/收合每個職業卡片的後續轉職關卡
+  list.addEventListener("click", (e) => {
+    const btn = e.target.closest(".job-expand-btn");
+    if (!btn) return;
+    const panel = document.getElementById(`laterStages-${btn.dataset.job}`);
+    if (!panel) return;
+    const expanded = !panel.hidden;
+    panel.hidden = expanded;
+    btn.setAttribute("aria-expanded", String(!expanded));
+    btn.textContent = expanded ? "看二轉／三轉／四轉關卡 ▾" : "收起 ▴";
+  });
 
   render();
 })();

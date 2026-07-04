@@ -666,6 +666,34 @@ body {
 @media (max-width: 560px) {
   .job-path-note { margin-left: 0; width: 100%; }
 }
+.job-expand-btn {
+  background: transparent;
+  border: none;
+  color: var(--accent-text);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 8px 0 0;
+  cursor: pointer;
+}
+.job-expand-btn:hover { text-decoration: underline; }
+.job-later-stages {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.job-later-stages[hidden] { display: none; }
+.job-stage {
+  background: var(--surface-tint);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+}
+.job-stage-tier { font-weight: 700; color: var(--ink); margin-right: 6px; }
+.job-stage-level { font-size: 12px; color: var(--accent-text); font-weight: 700; }
+.job-stage-note { font-size: 12px; color: var(--ink-soft); margin: 4px 0 0; line-height: 1.6; }
 
 /* ---------- 經典版 vs 現行版 差異對照 ---------- */
 .diff-table {
