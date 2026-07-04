@@ -3,6 +3,9 @@
  */
 (function () {
   const STORAGE_KEY = "maple_classic_v3";
+  // 跟 index.html 裡 #shareHint 的預設文字一致，壞掉的分享連結會暫時借用
+  // 這個元素顯示錯誤訊息，用完要能還原成原本「已複製連結」的文字
+  const SHARE_HINT_DEFAULT = "已複製連結！貼給朋友就能看到一樣的計算結果";
 
   const els = {
     currentLevel: document.getElementById("currentLevel"),
@@ -79,6 +82,19 @@
   }
 
   function calcAndRender() {
+    // 兩個等級欄位都還沒填時，直接跑計算會用預設值 1/1 算出「已達成」，
+    // 讓第一次來的使用者誤以為工具壞了。這裡先顯示中性的空狀態。
+    if (!els.currentLevel.value.trim() && !els.targetLevel.value.trim()) {
+      els.multLabel.textContent = currentMult + "x";
+      els.statExpNeeded.textContent = "—";
+      els.statLevelsToGo.textContent = "—";
+      els.timeNo.textContent = "尚無效率資料";
+      els.timeMult.textContent = "尚無效率資料";
+      els.couponStatsBox.hidden = true;
+      if (window.MapleSpots) window.MapleSpots.setCurrentLevel(1);
+      return;
+    }
+
     const currentLevel = parseInt(els.currentLevel.value, 10) || 1;
     const currentExp = parseInt(els.currentExp.value, 10) || 0;
     const targetLevel = parseInt(els.targetLevel.value, 10) || 1;
@@ -142,8 +158,8 @@
     els.dailyHours.value = "";
     els.ownedCoupons.value = "";
     setMult(2);
-    savePrefs();
-    if (window.MapleSpots) window.MapleSpots.setCurrentLevel(1);
+    // 清除後要重新算一次（回到空狀態），不然結果面板會停在清除前的舊數字
+    runCalculation();
   });
 
   els.shareBtn.addEventListener("click", async () => {
@@ -167,6 +183,9 @@
   });
 
   function init() {
+    // 記下網址列本來就有查詢參數，等一下用來判斷「這是壞掉的分享連結」
+    // 還是「本來就沒帶參數」，兩者都會落到 else 分支，但只有前者該提示使用者
+    const hadShareParams = location.search.length > 1;
     const shared = MapleCalculator.decodeShareParams(location.search);
     if (shared.currentLevel && shared.targetLevel) {
       els.currentLevel.value = shared.currentLevel;
@@ -182,6 +201,17 @@
       // 分享參數套用完就從網址列清掉，避免使用者改完數字直接複製網址時帶到舊參數
       history.replaceState(null, "", location.pathname);
     } else {
+      if (hadShareParams) {
+        // 有帶參數但解不出可用的等級資料 → 分享連結壞了，不要默默改用舊資料，
+        // 不然朋友傳的連結打不開卻看起來像正常運作，會看到自己一堆舊數字
+        els.shareHint.textContent = "分享連結解析失敗，已顯示你上次的紀錄";
+        els.shareHint.hidden = false;
+        setTimeout(() => {
+          els.shareHint.hidden = true;
+          els.shareHint.textContent = SHARE_HINT_DEFAULT;
+        }, 4000);
+        history.replaceState(null, "", location.pathname);
+      }
       const prefs = loadPrefs();
       els.currentLevel.value = prefs.currentLevel || "";
       els.currentExp.value = prefs.currentExp || 0;

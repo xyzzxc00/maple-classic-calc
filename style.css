@@ -25,7 +25,11 @@ body.dark {
   --surface-tint: #2A3327;
   --ink: #ECEEE6;
   --ink-soft: #9BA293;
-  --ink-faint: #626A5C;
+  /* --ink-faint 本來是比 --ink-soft 更淡的第三層文字色，但在這個深色底上
+     再淡一階就會跌破 4.5:1（在 --accent-tint 上只有 2.33:1）。這個深色調
+     色盤沒有空間再放一層更淡的、還能通過 AA 的顏色，所以直接跟 --ink-soft
+     共用同一個值，犧牲第三層層次換正確性。 */
+  --ink-faint: #9BA293;
   --border: #33362C;
   --border-strong: #6B7462;
   --accent: #6B8862;
@@ -36,7 +40,9 @@ body.dark {
   --accent-tint: #2A3327;
   --accent-border: #4A5C43;
   --on-accent: #14170F;
-  --danger: #E0796F;
+  /* --danger 同樣道理：在 --surface-tint 上原本只有 4.46:1，壓線沒過，
+     調亮一階到 4.89:1。 */
+  --danger: #E68278;
   --danger-tint: #3A2420;
 }
 
@@ -245,16 +251,6 @@ body {
   font-size: 13px;
 }
 .btn-ghost:hover { background: var(--accent-tint); }
-.btn-danger-ghost {
-  background: transparent;
-  color: var(--danger);
-  border: 1px solid var(--danger);
-  border-radius: var(--radius-md);
-  padding: 8px 14px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
 .input-panel > .field { margin-bottom: 18px; }
 
 /* ---------- Stat cards ---------- */

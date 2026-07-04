@@ -64,8 +64,11 @@
     const records = fJob ? allRecords.filter((r) => r.job === fJob) : allRecords;
 
     if (!records.length) {
-      els.list.innerHTML =
-        '<p class="cm-empty">目前還沒有玩家回報練功地點。遊戲上線後，去「社群經驗資料庫」分頁回報，這裡就會自動整理出建議。</p>';
+      // 讀取真的失敗（網路/App Check 問題）跟「還沒人回報」是兩回事，
+      // 不然使用者遇到問題時只會看到「還沒人回報」，以為是正常狀態
+      els.list.innerHTML = window.MapleCommunity.hasLoadFailed()
+        ? '<p class="cm-empty">載入失敗，請重新整理頁面</p>'
+        : '<p class="cm-empty">目前還沒有玩家回報練功地點。遊戲上線後，去「社群經驗資料庫」分頁回報，這裡就會自動整理出建議。</p>';
       return;
     }
 

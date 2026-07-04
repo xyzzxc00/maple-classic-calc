@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
 
+# 避免短時間內連續 push 觸發重疊的部署互相卡住（GitHub Pages 同時間只能跑一個部署）
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -21,10 +26,10 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Install minification tools
-        run: npm install -g terser clean-css-cli
+        run: npm install -g terser@5.48.0 clean-css-cli@5.6.3
 
       - name: Build dist
         run: |

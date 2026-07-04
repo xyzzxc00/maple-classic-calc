@@ -15,6 +15,8 @@
   const VOTED_KEY = "maple_classic_voted";
   // 遊戲上線後改成 true 即可開放回報（同時記得把 firestore.rules 的 allow create 改回驗證版）
   const SUBMISSIONS_OPEN = false;
+  // 「回報還沒開放」統一用這句，避免同一件事在不同地方各自寫一種措辭
+  const SUBMISSIONS_CLOSED_MSG = "遊戲尚未上線，暫不開放回報，敬請期待";
   const FB_VERSION = "10.12.2";
   // App Check（reCAPTCHA v3）網站金鑰 — 公開的、放前端沒問題
   const RECAPTCHA_SITE_KEY = "6Ld6qz4tAAAAAEEUb-X6ZGmRWgrwFif0dG76hbBU";
@@ -94,6 +96,10 @@
   let lastDoc = null;
   let formOpen = false;
   let lastLoadedAt = 0;
+  // spots.js 只看 getRecords() 的長度來判斷「還沒人回報」，沒辦法分辨這跟
+  // 「這次真的讀取失敗」的差別；曝露這個旗標讓它能顯示對的訊息，而不是
+  // 把讀取失敗誤判成單純的空狀態。
+  let lastLoadFailed = false;
   // 60 秒內重複進入分頁直接用快取，避免來回切分頁每次都重打 Firestore（一次 50 筆讀取）
   const CACHE_MS = 60000;
 
@@ -150,7 +156,7 @@
 
   async function submitRecord() {
     if (!SUBMISSIONS_OPEN) {
-      els.msg.textContent = "遊戲尚未上線，暫不開放回報，敬請期待";
+      els.msg.textContent = SUBMISSIONS_CLOSED_MSG;
       els.msg.className = "cm-msg err";
       return;
     }
@@ -161,8 +167,16 @@
     const expPer10Min = parseExpVal(els.expPer10Min.value);
     const note = els.note.value.trim();
 
-    if (!job || !map || isNaN(level) || level < 1 || isNaN(expPer10Min) || expPer10Min <= 0) {
-      els.msg.textContent = "請填寫所有必填欄位（*）";
+    // 逐欄檢查、給對應訊息，不要把 4 種不同的錯誤都壓成同一句「請填寫所有必填欄位」——
+    // 那樣即使只有一欄有問題，使用者也會以為自己整份表單都沒填
+    let fieldError = "";
+    if (!job) fieldError = "請選擇職業";
+    else if (!map) fieldError = "請輸入地圖名稱";
+    else if (isNaN(level) || level < 1) fieldError = "請輸入有效的角色等級";
+    else if (isNaN(expPer10Min) || expPer10Min <= 0) fieldError = "請輸入有效的 EXP / 10分鐘數值";
+
+    if (fieldError) {
+      els.msg.textContent = fieldError;
       els.msg.className = "cm-msg err";
       return;
     }
@@ -220,10 +234,12 @@
       allRecords = [];
       lastDoc = null;
     }
+    lastLoadFailed = false;
 
     try {
       await ensureDb();
     } catch {
+      lastLoadFailed = true;
       els.list.innerHTML = '<p class="cm-empty">連線失敗，請檢查網路後重新整理頁面</p>';
       if (els.loadMore) els.loadMore.hidden = true;
       return;
@@ -247,6 +263,7 @@
       if (els.loadMore) els.loadMore.hidden = snap.docs.length < PAGE_SIZE;
       renderRecords();
     } catch (e) {
+      lastLoadFailed = true;
       els.list.innerHTML = '<p class="cm-empty">載入失敗，請重新整理頁面</p>';
     }
   }
@@ -307,6 +324,7 @@
     const id = btn.dataset.id;
     if (!db || getVotedSet().has(id)) return;
 
+    const originalHtml = btn.innerHTML;
     btn.disabled = true;
     db.collection("exp_records").doc(id).update({
       helpful: firebase.firestore.FieldValue.increment(1),
@@ -317,7 +335,15 @@
       if (countEl) countEl.textContent = parseInt(countEl.textContent || "0") + 1;
       const rec = allRecords.find((r) => r.id === id);
       if (rec) rec.helpful = (rec.helpful || 0) + 1;
-    }).catch(() => { btn.disabled = false; });
+    }).catch(() => {
+      // 靜默失敗會讓使用者以為自己按過了；短暫顯示失敗訊息再恢復原狀，
+      // 這樣使用者知道剛剛那次沒算數，可以再按一次
+      btn.textContent = "送出失敗，再試一次";
+      setTimeout(() => {
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+      }, 2000);
+    });
   }
   els.list.addEventListener("click", onHelpfulClick);
 
@@ -342,5 +368,8 @@
     openForm,
     openFormWithExpPer10Min,
     getRecords: () => allRecords,
+    hasLoadFailed: () => lastLoadFailed,
+    isSubmissionsOpen: () => SUBMISSIONS_OPEN,
+    submissionsClosedMsg: SUBMISSIONS_CLOSED_MSG,
   };
 })();

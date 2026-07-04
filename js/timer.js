@@ -220,15 +220,30 @@
   els.applyExpRateBtn.addEventListener("click", () => {
     if (!lastExpPerMin) return;
     document.getElementById("expPer10Min").value = Math.round(lastExpPerMin * 10);
-    window.MapleNav.switchNav("calc");
-    if (window.MapleApp && window.MapleApp.runCalculation) window.MapleApp.runCalculation();
+    // 先讓「✓ 已套用！」在計時器分頁上閃一下再切走，不然分頁一切換這個
+    // 按鈕就被 nav.js 隱藏了，使用者永遠看不到這個確認訊息
     const originalText = els.applyExpRateBtn.textContent;
     els.applyExpRateBtn.textContent = "✓ 已套用！";
-    setTimeout(() => (els.applyExpRateBtn.textContent = originalText), 2000);
+    setTimeout(() => {
+      window.MapleNav.switchNav("calc");
+      if (window.MapleApp && window.MapleApp.runCalculation) window.MapleApp.runCalculation();
+      els.applyExpRateBtn.textContent = originalText;
+    }, 500);
   });
 
   els.applyToCmBtn.addEventListener("click", () => {
     if (!lastExpPerMin) return;
+    // 回報還沒開放時，表單不會打開，這裡先給訊息再切分頁，
+    // 不然使用者點了按鈕、切過去卻什麼事都沒發生，會以為壞了
+    if (window.MapleCommunity && !window.MapleCommunity.isSubmissionsOpen()) {
+      window.MapleNav.switchNav("cm");
+      const msgEl = document.getElementById("cmMsg");
+      if (msgEl) {
+        msgEl.textContent = window.MapleCommunity.submissionsClosedMsg;
+        msgEl.className = "cm-msg err";
+      }
+      return;
+    }
     window.MapleNav.switchNav("cm");
     if (window.MapleCommunity) window.MapleCommunity.openFormWithExpPer10Min(Math.round(lastExpPerMin * 10));
   });
