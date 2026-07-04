@@ -146,6 +146,7 @@
     if (spotsAddBtn) {
       spotsAddBtn.disabled = true;
       spotsAddBtn.textContent = "遊戲上線後開放回報";
+      spotsAddBtn.title = "遊戲正式上線後才開放新增紀錄";
     }
   }
 
@@ -172,7 +173,7 @@
     let fieldError = "";
     if (!job) fieldError = "請選擇職業";
     else if (!map) fieldError = "請輸入地圖名稱";
-    else if (isNaN(level) || level < 1) fieldError = "請輸入有效的角色等級";
+    else if (isNaN(level) || level < 1 || level > 200) fieldError = "請輸入有效的角色等級（1~200）";
     else if (isNaN(expPer10Min) || expPer10Min <= 0) fieldError = "請輸入有效的 EXP / 10分鐘數值";
 
     if (fieldError) {
@@ -337,8 +338,11 @@
       if (rec) rec.helpful = (rec.helpful || 0) + 1;
     }).catch(() => {
       // 靜默失敗會讓使用者以為自己按過了；短暫顯示失敗訊息再恢復原狀，
-      // 這樣使用者知道剛剛那次沒算數，可以再按一次
-      btn.textContent = "送出失敗，再試一次";
+      // 這樣使用者知道剛剛那次沒算數，可以再按一次。原本整個 innerHTML 被換掉
+      // 會連讚數一起消失 2 秒，這裡改成只換文字、讚數維持顯示
+      const countEl = btn.querySelector(".cm-helpful-count");
+      const count = countEl ? countEl.textContent : "0";
+      btn.innerHTML = `✕ 送出失敗，再試一次 <span class="cm-helpful-count">${count}</span>`;
       setTimeout(() => {
         btn.innerHTML = originalHtml;
         btn.disabled = false;

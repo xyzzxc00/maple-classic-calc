@@ -14,6 +14,7 @@
   --on-accent: #FFFFFF;
   --danger: #B3261E;
   --danger-tint: #FBEAE8;
+  --warning: #8A6400;
   --radius-lg: 14px;
   --radius-md: 8px;
   --radius-sm: 6px;
@@ -44,6 +45,9 @@ body.dark {
      調亮一階到 4.89:1。 */
   --danger: #E68278;
   --danger-tint: #3A2420;
+  /* #B98900 本身在深色底上沒問題（4.84~5.32:1），但淺色模式下同一個值只有
+     2.96~3.16:1，跌破 4.5:1，所以拆成 --warning token 讓兩個模式各用各的。 */
+  --warning: #B98900;
 }
 
 * { box-sizing: border-box; }
@@ -55,13 +59,6 @@ body {
   background: var(--bg-page);
   min-height: 100vh;
   transition: background 0.2s, color 0.2s;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px; height: 1px;
-  overflow: hidden;
-  clip: rect(0,0,0,0);
 }
 
 /* ---------- 版面容器 ---------- */
@@ -221,6 +218,14 @@ body {
   outline-offset: 1px;
   border-color: var(--accent);
 }
+/* 自訂倍率生效時要有跟 mult-btn.active 一致的視覺語言，
+   不然打了自訂數字之後五個預設按鈕全部變回未選取，看起來像沒生效 */
+#customMult.mult-custom-active {
+  border-color: var(--accent);
+  background: var(--accent-tint);
+  color: var(--accent-text);
+  font-weight: 700;
+}
 
 /* ---------- Buttons ---------- */
 .btn {
@@ -286,14 +291,14 @@ body {
 .mult-btns { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0 12px; }
 @media (max-width: 420px) {
   .mult-btns { gap: 5px; }
-  .mult-btn { flex: 1; padding: 8px 4px; font-size: 13px; }
+  .mult-btn { flex: 1; padding: 12px 4px; font-size: 13px; }
 }
 .mult-btn {
   background: var(--surface);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   color: var(--ink-soft);
-  padding: 8px 16px;
+  padding: 12px 16px;
   cursor: pointer;
   font-weight: 700;
   font-size: 13px;
@@ -383,6 +388,7 @@ body {
 .nav-tab:hover { color: var(--ink); }
 .nav-tab.active { color: var(--accent-text); border-bottom-color: var(--accent-text); }
 @media (max-width: 560px) {
+  .nav-tabs-wrap { position: relative; }
   .nav-tabs {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -390,6 +396,18 @@ body {
   }
   .nav-tabs::-webkit-scrollbar { display: none; }
   .nav-tab { flex: 0 0 auto; padding: 10px 14px; font-size: 13px; }
+  /* 分頁列在窄螢幕會橫向溢出，加一個淡出提示讓人知道還能往右滑，
+     不然計時器／社群資料庫兩個分頁很容易被漏掉沒發現 */
+  .nav-tabs-wrap::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 1px;
+    width: 28px;
+    background: linear-gradient(to right, transparent, var(--bg-page));
+    pointer-events: none;
+  }
 }
 
 /* ---------- Two/three column field grid ---------- */
@@ -401,7 +419,7 @@ body {
 
 /* ---------- Timer ---------- */
 .timer-presets { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
-.timer-preset { font-size: 13px; padding: 8px 16px; }
+.timer-preset { font-size: 13px; padding: 12px 16px; }
 .timer-custom-field {
   display: flex;
   align-items: center;
@@ -435,7 +453,7 @@ body {
   stroke-linecap: round;
   transition: stroke-dashoffset 1s linear, stroke 0.3s;
 }
-.timer-ring-prog.warning { stroke: #B98900; }
+.timer-ring-prog.warning { stroke: var(--warning); }
 .timer-ring-prog.danger { stroke: var(--danger); }
 .timer-display {
   position: absolute;
@@ -452,7 +470,7 @@ body {
   letter-spacing: 1px;
   font-variant-numeric: tabular-nums;
 }
-.timer-time.warning { color: #B98900; }
+.timer-time.warning { color: var(--warning); }
 .timer-time.danger { color: var(--danger); }
 .timer-label {
   font-size: 12px;
@@ -506,7 +524,7 @@ body {
 .cm-sort-btn {
   background: transparent;
   border: none;
-  padding: 8px 16px;
+  padding: 12px 16px;
   font-family: 'Noto Sans TC', sans-serif;
   font-weight: 700;
   font-size: 13px;
@@ -522,7 +540,7 @@ body {
   background: var(--surface);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
-  padding: 9px 12px;
+  padding: 11px 12px;
   font-size: 14px;
   color: var(--ink);
   min-width: 110px;
@@ -663,5 +681,5 @@ body {
 }
 .theme-toggle:hover { border-color: var(--accent-text); color: var(--accent-text); }
 @media (max-width: 480px) {
-  .theme-toggle { top: 10px; right: 10px; padding: 7px 12px; font-size: 12px; }
+  .theme-toggle { top: 10px; right: 10px; padding: 12px 14px; font-size: 12px; }
 }

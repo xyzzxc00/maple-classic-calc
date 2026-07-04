@@ -182,13 +182,35 @@
   // ---------- EXP 測速 ----------
   let lastExpPerMin = 0;
   let lastExpPerHour = 0;
+  // 跟 index.html 裡 #expRateHint 的預設文字一致，輸入有問題時會暫時借用
+  // 這個位置顯示原因，講完要能還原成原本的說明文字
+  const EXP_RATE_HINT_DEFAULT = "輸入前後經驗值後自動計算速率（測試時長以倒數計時器經過的時間為準，沒開計時器則用上面設定的分鐘數）";
 
   function calcExpRate() {
-    const before = parseExpVal(els.expBefore.value);
-    const after = parseExpVal(els.expAfter.value);
+    const beforeRaw = els.expBefore.value.trim();
+    const afterRaw = els.expAfter.value.trim();
 
-    if (isNaN(before) || isNaN(after) || after <= before) {
+    // 三種「還沒有結果」的情況給不同訊息，不然使用者打錯字或前後填反了，
+    // 只看到跟「完全沒填」一樣的說明文字，不知道自己的輸入被拒絕了
+    if (!beforeRaw || !afterRaw) {
       els.expRateBox.hidden = true;
+      els.expRateHint.textContent = EXP_RATE_HINT_DEFAULT;
+      els.expRateHint.hidden = false;
+      return;
+    }
+
+    const before = parseExpVal(beforeRaw);
+    const after = parseExpVal(afterRaw);
+
+    if (isNaN(before) || isNaN(after)) {
+      els.expRateBox.hidden = true;
+      els.expRateHint.textContent = "看不懂這個數值，請輸入數字或用 W 代表萬（例如 5W 或 50000）";
+      els.expRateHint.hidden = false;
+      return;
+    }
+    if (after <= before) {
+      els.expRateBox.hidden = true;
+      els.expRateHint.textContent = "測試後經驗值要比測試前大，才能算出速率";
       els.expRateHint.hidden = false;
       return;
     }
@@ -214,6 +236,7 @@
     els.expBefore.value = "";
     els.expAfter.value = "";
     els.expRateBox.hidden = true;
+    els.expRateHint.textContent = EXP_RATE_HINT_DEFAULT;
     els.expRateHint.hidden = false;
   });
 

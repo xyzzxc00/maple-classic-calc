@@ -57,6 +57,8 @@
     currentMult = mult;
     els.customMult.value = mult;
     els.multBtns.forEach((b) => b.classList.toggle("active", parseFloat(b.dataset.val) === mult));
+    // 選了預設按鈕就不算自訂值，拿掉自訂輸入框的「生效中」樣式
+    els.customMult.classList.remove("mult-custom-active");
   }
 
   els.multBtns.forEach((btn) => {
@@ -69,6 +71,8 @@
   els.customMult.addEventListener("input", () => {
     currentMult = parseFloat(els.customMult.value) || 1;
     els.multBtns.forEach((b) => b.classList.remove("active"));
+    // 五個預設按鈕都沒被選中時，靠這個樣式告訴使用者「目前生效的是這個自訂值」
+    els.customMult.classList.add("mult-custom-active");
     runCalculation();
   });
 
