@@ -265,7 +265,17 @@
       renderRecords();
     } catch (e) {
       lastLoadFailed = true;
-      els.list.innerHTML = '<p class="cm-empty">載入失敗，請重新整理頁面</p>';
+      // 網路離線、資料庫拒絕存取（規則/App Check）、其他錯誤這裡分開講，
+      // 不然使用者跟站長都只看到同一句「載入失敗」，猜不出是哪一種狀況
+      let msg = "載入失敗，請重新整理頁面";
+      if (typeof navigator !== "undefined" && navigator.onLine === false) {
+        msg = "目前似乎沒有網路連線，請檢查後重新整理頁面";
+      } else if (e && e.code === "permission-denied") {
+        msg = "資料庫拒絕了這次讀取，請重新整理頁面再試一次";
+      } else if (e && e.code === "unavailable") {
+        msg = "連不上資料庫伺服器，請稍後重新整理頁面";
+      }
+      els.list.innerHTML = `<p class="cm-empty">${msg}</p>`;
     }
   }
 

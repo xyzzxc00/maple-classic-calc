@@ -31,6 +31,7 @@
     couponShort: document.getElementById("couponShort"),
     dailyDaysRow: document.getElementById("dailyDaysRow"),
     dailyDays: document.getElementById("dailyDays"),
+    inputWarningHint: document.getElementById("inputWarningHint"),
     shareBtn: document.getElementById("shareBtn"),
     shareThreadsBtn: document.getElementById("shareThreadsBtn"),
     shareLineBtn: document.getElementById("shareLineBtn"),
@@ -71,7 +72,10 @@
   });
 
   els.customMult.addEventListener("input", () => {
-    currentMult = parseFloat(els.customMult.value) || 1;
+    const parsed = parseFloat(els.customMult.value);
+    // 0 或負值直接當倍率會讓後面的時間計算變成 0 或負數，所以跟「打不出數字」
+    // 一樣退回預設值 1，而不是讓 "0 || 1" 這種寫法意外放行負數
+    currentMult = (!isNaN(parsed) && parsed > 0) ? parsed : 1;
     els.multBtns.forEach((b) => b.classList.remove("active"));
     // 五個預設按鈕都沒被選中時，靠這個樣式告訴使用者「目前生效的是這個自訂值」
     els.customMult.classList.add("mult-custom-active");
@@ -97,6 +101,7 @@
       els.timeNo.textContent = "尚無效率資料";
       els.timeMult.textContent = "尚無效率資料";
       els.couponStatsBox.hidden = true;
+      els.inputWarningHint.hidden = true;
       if (window.MapleSpots) window.MapleSpots.setCurrentLevel(1);
       return;
     }
@@ -104,6 +109,21 @@
     const currentLevel = parseInt(els.currentLevel.value, 10) || 1;
     const currentExp = parseInt(els.currentExp.value, 10) || 0;
     const targetLevel = parseInt(els.targetLevel.value, 10) || 1;
+
+    // 超出範圍的等級/倍率之前是直接靜默夾在合法值內去算，使用者不會知道自己
+    // 打的數字沒被採用，這裡把原因講出來，計算結果本身還是照樣算給他看
+    const warnings = [];
+    if (els.currentLevel.value.trim() && (currentLevel < 1 || currentLevel > 200)) {
+      warnings.push("目前等級請輸入 1～200 之間的整數");
+    }
+    if (els.targetLevel.value.trim() && (targetLevel < 1 || targetLevel > 200)) {
+      warnings.push("目標等級請輸入 1～200 之間的整數");
+    }
+    if (els.customMult.value.trim() && parseFloat(els.customMult.value) <= 0) {
+      warnings.push("自訂倍率需大於 0，已暫時以 1x 計算");
+    }
+    els.inputWarningHint.hidden = warnings.length === 0;
+    els.inputWarningHint.textContent = warnings.join("；");
 
     const { totalExpNeeded, levelsToGo } = MapleCalculator.calcExpNeeded(
       currentLevel, currentExp, targetLevel, window.MapleData.EXP_TABLE

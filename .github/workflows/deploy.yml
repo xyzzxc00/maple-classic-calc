@@ -19,7 +19,7 @@ jobs:
 
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment-retry.outputs.page_url }}
 
     steps:
       - uses: actions/checkout@v4
@@ -28,8 +28,20 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Cache global npm tools
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm-global
+          key: npm-tools-terser-5.48.0-cleancss-5.6.3
+
       - name: Install minification tools
-        run: npm install -g terser@5.48.0 clean-css-cli@5.6.3
+        run: |
+          mkdir -p ~/.npm-global
+          npm config set prefix "$HOME/.npm-global"
+          echo "$HOME/.npm-global/bin" >> "$GITHUB_PATH"
+          if [ ! -x "$HOME/.npm-global/bin/terser" ] || [ ! -x "$HOME/.npm-global/bin/cleancss" ]; then
+            npm install -g terser@5.48.0 clean-css-cli@5.6.3
+          fi
 
       - name: Build dist
         run: |
@@ -69,5 +81,18 @@ jobs:
         with:
           path: dist/
 
-      - uses: actions/deploy-pages@v4
+      - name: Deploy to GitHub Pages
         id: deployment
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      # 這個月遇過兩次 deploy-pages 的暫時性 API 失敗，都是重新觸發就過，
+      # 加這個自動重試一次，省得每次都要手動重推一個空 commit
+      - name: Retry deploy (transient GitHub Pages API failures happen occasionally)
+        if: steps.deployment.outcome == 'failure'
+        id: deployment-retry
+        uses: actions/deploy-pages@v4
+
+      - name: Fail job if both deploy attempts failed
+        if: steps.deployment.outcome == 'failure' && steps.deployment-retry.outcome == 'failure'
+        run: exit 1
