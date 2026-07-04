@@ -11,7 +11,7 @@
     btn.textContent = isDark ? "亮色" : "暗色";
     // 兩個 theme-color meta 原本靠 media 跟 OS 深淺色連動；手動切換主題後
     // 直接覆蓋 content，讓手機瀏覽器上緣顏色跟頁面實際主題一致
-    themeMetas.forEach((m) => m.setAttribute("content", isDark ? "#1C1E19" : "#F7F8F4"));
+    themeMetas.forEach((m) => m.setAttribute("content", isDark ? "#1C1D19" : "#F6F5F1"));
   }
 
   btn.addEventListener("click", () => {
