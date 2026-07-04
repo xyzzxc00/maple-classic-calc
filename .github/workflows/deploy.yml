@@ -40,10 +40,15 @@ jobs:
           cp index.html favicon.svg icon-192.png icon-512.png og-image.png robots.txt sitemap.xml \
              manifest.webmanifest google4878b2ed0894b6d8.html dist/
 
-          # Bundle all JS in load order → single minified file
-          cat js/data.js js/countdown.js js/calculator.js js/jobsData.js js/spots.js js/jobs.js \
-              js/app.js js/timer.js js/community.js js/nav.js js/theme.js \
-              > dist/js/bundle.raw.js
+          # Bundle all JS in load order → single minified file.
+          # 檔案清單直接從 index.html 現有的 <script defer src="js/...">
+          # 標籤解析出來，不再手動維護一份清單——新增 js 檔案只要記得在
+          # index.html 加一行 script tag，打包就一定跟得上，不會像
+          # countdown.js 那次漏加到清單裡卻沒有任何錯誤訊息。
+          mapfile -t JS_FILES < <(grep -oE 'src="js/[^"]+\.js"' index.html | sed -E 's/^src="(.*)"$/\1/')
+          echo "Bundling JS files in this order:"
+          printf '  %s\n' "${JS_FILES[@]}"
+          cat "${JS_FILES[@]}" > dist/js/bundle.raw.js
           terser dist/js/bundle.raw.js --compress --mangle --output dist/js/bundle.js
           rm dist/js/bundle.raw.js
 
