@@ -144,9 +144,8 @@
     <!-- 攻擊力計算：資料還在核對，先不對外顯示，見 js/attack.js 開發紀錄 -->
     <button class="nav-tab" id="navAttack" type="button" role="tab" aria-selected="false" aria-controls="pageAttack" hidden>攻擊力計算</button>
     <button class="nav-tab" id="navJobs" type="button" role="tab" aria-selected="false" aria-controls="pageJobs">職業介紹</button>
-    <button class="nav-tab" id="navSpots" type="button" role="tab" aria-selected="false" aria-controls="pageSpots">建議練功地點</button>
-    <button class="nav-tab" id="navCm" type="button" role="tab" aria-selected="false" aria-controls="pageCm">社群經驗資料庫</button>
-    <button class="nav-tab" id="navLegacy" type="button" role="tab" aria-selected="false" aria-controls="pageLegacy">舊版練功地點</button>
+    <button class="nav-tab" id="navCm" type="button" role="tab" aria-selected="false" aria-controls="pageCm">社群資料庫</button>
+    <button class="nav-tab" id="navLegacy" type="button" role="tab" aria-selected="false" aria-controls="pageLegacy">過往資料參考</button>
   </div>
 </nav>
 
@@ -395,25 +394,6 @@
 
 </div>
 
-<div class="wrap" id="pageSpots" role="tabpanel" aria-labelledby="navSpots" hidden>
-
-  <section class="panel spots-panel">
-    <div class="panel-head">
-      <h2>建議練功地點</h2>
-      <span class="badge">依目前等級排序</span>
-    </div>
-    <div class="cm-filter-row" style="margin-bottom:14px">
-      <select class="cm-filter-input" id="spotsFilterJob">
-        <option value="">全部職業</option>
-      </select>
-    </div>
-    <p class="cm-disclaimer">這裡的地點是玩家在「社群經驗資料庫」回報的真實效率自動整理出來的，不是官方資料。遊戲上線後，回報的人越多，建議就越準。</p>
-    <div id="spotsList"><p class="cm-loading">載入中...</p></div>
-    <button class="btn btn-ghost spots-add-btn" id="spotsAddBtn" type="button">＋ 我也要回報練功地點</button>
-  </section>
-
-</div>
-
 <div class="wrap" id="pageJobs" role="tabpanel" aria-labelledby="navJobs" hidden>
 
   <section class="panel version-diff-panel">
@@ -471,68 +451,87 @@
 
   <section class="panel cm-panel">
     <div class="panel-head">
-      <h2>社群經驗資料庫</h2>
+      <h2>社群資料庫</h2>
       <span class="badge">玩家回報練功效率</span>
     </div>
-    <p class="cm-disclaimer">遊戲還沒上線，這裡的資料要等玩家實際開始玩之後才會出現。先把功能做好，上線後就能直接用。</p>
 
-    <div class="cm-toolbar">
-      <div class="cm-filter-row">
-        <select class="cm-filter-input" id="cmFilterJob">
+    <div class="subtabs" role="tablist">
+      <button class="subtab active" id="cmSubSuggest" type="button" role="tab" aria-selected="true" aria-controls="cmSuggestView">建議練功地點</button>
+      <button class="subtab" id="cmSubRecords" type="button" role="tab" aria-selected="false" aria-controls="cmRecordsView">回報紀錄</button>
+    </div>
+
+    <div id="cmSuggestView" role="tabpanel" aria-labelledby="cmSubSuggest">
+      <div class="cm-filter-row" style="margin-bottom:14px">
+        <select class="cm-filter-input" id="spotsFilterJob">
           <option value="">全部職業</option>
         </select>
-        <input class="cm-filter-input" id="cmFilterMap" placeholder="篩選地圖">
-        <div class="cm-filter-lv-group">
-          <input class="cm-filter-input cm-filter-lv" id="cmFilterLvMin" type="number" min="1" max="200" placeholder="最低等">
-          <span class="cm-filter-sep">~</span>
-          <input class="cm-filter-input cm-filter-lv" id="cmFilterLvMax" type="number" min="1" max="200" placeholder="最高等">
-        </div>
       </div>
-      <div class="cm-actions">
-        <div class="cm-sort-btns">
-          <button class="cm-sort-btn active" data-sort="time" type="button">最新</button>
-          <button class="cm-sort-btn" data-sort="exp" type="button">效率↓</button>
-        </div>
-        <button class="btn btn-primary" id="cmAddBtn" type="button">＋ 新增紀錄</button>
-      </div>
+      <p class="cm-disclaimer">這裡的地點是玩家在「回報紀錄」子分頁回報的真實效率自動整理出來的，不是官方資料。遊戲上線後，回報的人越多，建議就越準。</p>
+      <div id="spotsList"><p class="cm-loading">載入中...</p></div>
+      <button class="btn btn-ghost spots-add-btn" id="spotsAddBtn" type="button">＋ 我也要回報練功地點</button>
     </div>
 
-    <div class="cm-form" id="cmForm" hidden>
-      <div class="field-grid three-col">
-        <label class="field">
-          <span>職業 *</span>
-          <select id="cmJob">
-            <option value="" disabled selected>請選擇職業</option>
+    <div id="cmRecordsView" role="tabpanel" aria-labelledby="cmSubRecords" hidden>
+      <p class="cm-disclaimer">遊戲還沒上線，這裡的資料要等玩家實際開始玩之後才會出現。先把功能做好，上線後就能直接用。</p>
+
+      <div class="cm-toolbar">
+        <div class="cm-filter-row">
+          <select class="cm-filter-input" id="cmFilterJob">
+            <option value="">全部職業</option>
           </select>
-        </label>
-        <label class="field">
-          <span>地圖名稱（怪物）*</span>
-          <input type="text" id="cmMap" maxlength="40" placeholder="例：（待補）楓葉村周邊">
-        </label>
-        <label class="field">
-          <span>角色等級 *</span>
-          <input type="number" id="cmLevel" min="1" max="200" placeholder="例：20">
-        </label>
+          <input class="cm-filter-input" id="cmFilterMap" placeholder="篩選地圖">
+          <div class="cm-filter-lv-group">
+            <input class="cm-filter-input cm-filter-lv" id="cmFilterLvMin" type="number" min="1" max="200" placeholder="最低等">
+            <span class="cm-filter-sep">~</span>
+            <input class="cm-filter-input cm-filter-lv" id="cmFilterLvMax" type="number" min="1" max="200" placeholder="最高等">
+          </div>
+        </div>
+        <div class="cm-actions">
+          <div class="cm-sort-btns">
+            <button class="cm-sort-btn active" data-sort="time" type="button">最新</button>
+            <button class="cm-sort-btn" data-sort="exp" type="button">效率↓</button>
+          </div>
+          <button class="btn btn-primary" id="cmAddBtn" type="button">＋ 新增紀錄</button>
+        </div>
       </div>
-      <div class="field-grid two-col">
-        <label class="field">
-          <span>EXP / 10分鐘（未加倍）* 可用 W 代替萬</span>
-          <input type="text" id="cmExpPer10Min" placeholder="例：5W 或 50000" inputmode="decimal">
-        </label>
-        <label class="field">
-          <span>備註（選填）</span>
-          <input type="text" id="cmNote" maxlength="60" placeholder="例：開技能、有吃藥水等">
-        </label>
-      </div>
-      <div class="cm-form-actions">
-        <button class="btn btn-primary" id="cmSubmitBtn" type="button">送出</button>
-        <button class="btn btn-ghost" id="cmCancelBtn" type="button">取消</button>
-        <span class="cm-msg" id="cmMsg"></span>
-      </div>
-    </div>
 
-    <div id="cmList"><p class="cm-loading">載入中...</p></div>
-    <button class="btn btn-ghost cm-load-more" id="cmLoadMore" hidden type="button">載入更多</button>
+      <div class="cm-form" id="cmForm" hidden>
+        <div class="field-grid three-col">
+          <label class="field">
+            <span>職業 *</span>
+            <select id="cmJob">
+              <option value="" disabled selected>請選擇職業</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>地圖名稱（怪物）*</span>
+            <input type="text" id="cmMap" maxlength="40" placeholder="例：（待補）楓葉村周邊">
+          </label>
+          <label class="field">
+            <span>角色等級 *</span>
+            <input type="number" id="cmLevel" min="1" max="200" placeholder="例：20">
+          </label>
+        </div>
+        <div class="field-grid two-col">
+          <label class="field">
+            <span>EXP / 10分鐘（未加倍）* 可用 W 代替萬</span>
+            <input type="text" id="cmExpPer10Min" placeholder="例：5W 或 50000" inputmode="decimal">
+          </label>
+          <label class="field">
+            <span>備註（選填）</span>
+            <input type="text" id="cmNote" maxlength="60" placeholder="例：開技能、有吃藥水等">
+          </label>
+        </div>
+        <div class="cm-form-actions">
+          <button class="btn btn-primary" id="cmSubmitBtn" type="button">送出</button>
+          <button class="btn btn-ghost" id="cmCancelBtn" type="button">取消</button>
+          <span class="cm-msg" id="cmMsg"></span>
+        </div>
+      </div>
+
+      <div id="cmList"><p class="cm-loading">載入中...</p></div>
+      <button class="btn btn-ghost cm-load-more" id="cmLoadMore" hidden type="button">載入更多</button>
+    </div>
   </section>
 
 </div>
@@ -541,11 +540,24 @@
 
   <section class="panel legacy-spots-panel">
     <div class="panel-head">
-      <h2>舊版練功地點</h2>
+      <h2>過往資料參考</h2>
       <span class="badge">過往版本資料，僅供參考</span>
     </div>
-    <p class="cm-disclaimer">這裡整理的是 Big Bang 大改版之前舊版楓之谷的練功地點，不是台版經典版的即時回報——正式上線後真正的練功地點請看「建議練功地點」分頁，那邊讀的是玩家在社群資料庫回報的真實效率。Lv.1~115 對照的是巴哈姆特新楓之谷精華區整理的怪物分布地區，同一隻怪常常在好幾張地圖都能打到，這裡盡量列出多個選擇。這裡故意不收王級頭目——這裡是給人練等用的參考名單，打王要組隊、前置任務、道具，跟一般練等地點不是同一回事。這份資料沒有特別區分職業效率，等級門檻/地圖如果跟正式版有出入，會再校正。</p>
-    <div id="legacySpotsList"></div>
+
+    <div class="subtabs" role="tablist">
+      <button class="subtab active" id="legacySubSpots" type="button" role="tab" aria-selected="true" aria-controls="legacySpotsView">練功地點</button>
+      <button class="subtab" id="legacySubBosses" type="button" role="tab" aria-selected="false" aria-controls="legacyBossView">野王出沒地點</button>
+    </div>
+
+    <div id="legacySpotsView" role="tabpanel" aria-labelledby="legacySubSpots">
+      <p class="cm-disclaimer">這裡整理的是 Big Bang 大改版之前舊版楓之谷的練功地點，不是台版經典版的即時回報——正式上線後真正的練功地點請看「社群資料庫」分頁裡的「建議練功地點」子分頁，那邊讀的是玩家回報的真實效率。Lv.1~115 對照的是巴哈姆特新楓之谷精華區整理的怪物分布地區，同一隻怪常常在好幾張地圖都能打到，這裡盡量列出多個選擇。這裡故意不收王級頭目——這裡是給人練等用的參考名單，打王要組隊、前置任務、道具，跟一般練等地點不是同一回事。這份資料沒有特別區分職業效率，等級門檻/地圖如果跟正式版有出入，會再校正。</p>
+      <div id="legacySpotsList"></div>
+    </div>
+
+    <div id="legacyBossView" role="tabpanel" aria-labelledby="legacySubBosses" hidden>
+      <p class="cm-disclaimer">這裡整理的是「Big Bang 大改版之前」（約 2007～2009 年）舊版楓之谷的野王出沒地點與重生時間，不是台版新楓之谷經典版的正式資料——經典版正式上線／封測後，會用官方資料重新整理這份清單。地點/等級主要對照巴哈姆特新楓之谷精華區的怪物分布整理，重生時間優先採用 2009 年前後的玩家記錄；找不到當年記錄的幾隻（樹妖王、殭屍猴王、巨居蟹）只查得到近年的整理資料，可能跟原始舊版數字有落差，已在各自的重生時間後面註明。</p>
+      <div id="legacyBossList"></div>
+    </div>
   </section>
 
 </div>
@@ -560,7 +572,7 @@
   <p class="footer-note">這是我業餘維護的小工具，目前以練等計算為主，其他功能會依時間與資料完整度慢慢加，不一定每個建議都能做到，還請見諒。</p>
   <p class="footer-note">贊助僅用於支持本站開發與維運，與遊戲開發商、代理商無任何關係。</p>
   <p class="footer-contact">也可以透過 <a href="https://www.threads.net/@corey.0_" target="_blank" rel="noopener">Threads</a>　·　Discord：xoyk00 聯絡我</p>
-  <p class="footer-note">本站使用 Google Analytics 做匿名流量分析；社群經驗資料庫的回報內容（職業／地點／等級／效率）為使用者自願填寫並公開顯示，不作其他用途。</p>
+  <p class="footer-note">本站使用 Google Analytics 做匿名流量分析；社群資料庫的回報內容（職業／地點／等級／效率）為使用者自願填寫並公開顯示，不作其他用途。</p>
 </footer>
 
 <!-- Firebase SDK 改為懶載入：只有切到「社群資料庫／建議地點」分頁時才載入（見 js/community.js） -->

@@ -1,5 +1,5 @@
 /**
- * community.js — 社群經驗資料庫（Firebase Firestore）
+ * community.js — 社群資料庫（Firebase Firestore）
  */
 (function () {
   const firebaseConfig = {
@@ -377,6 +377,39 @@
     el.addEventListener("input", renderRecords)
   );
 
+  // 「建議練功地點」/「回報紀錄」子分頁切換，記住使用者上次選的分頁
+  const CM_SUBTAB_KEY = "maple_classic_cm_subtab";
+  const subSuggestBtn = document.getElementById("cmSubSuggest");
+  const subRecordsBtn = document.getElementById("cmSubRecords");
+  const suggestView = document.getElementById("cmSuggestView");
+  const recordsView = document.getElementById("cmRecordsView");
+
+  function showSuggestTab(skipSave) {
+    suggestView.hidden = false;
+    recordsView.hidden = true;
+    subSuggestBtn.classList.add("active");
+    subRecordsBtn.classList.remove("active");
+    subSuggestBtn.setAttribute("aria-selected", "true");
+    subRecordsBtn.setAttribute("aria-selected", "false");
+    if (!skipSave) localStorage.setItem(CM_SUBTAB_KEY, "suggest");
+    if (window.MapleSpots) window.MapleSpots.render();
+  }
+
+  function showRecordsTab(skipSave) {
+    suggestView.hidden = true;
+    recordsView.hidden = false;
+    subSuggestBtn.classList.remove("active");
+    subRecordsBtn.classList.add("active");
+    subSuggestBtn.setAttribute("aria-selected", "false");
+    subRecordsBtn.setAttribute("aria-selected", "true");
+    if (!skipSave) localStorage.setItem(CM_SUBTAB_KEY, "records");
+  }
+
+  subSuggestBtn.addEventListener("click", () => showSuggestTab());
+  subRecordsBtn.addEventListener("click", () => showRecordsTab());
+
+  if (localStorage.getItem(CM_SUBTAB_KEY) === "records") showRecordsTab(true);
+
   window.MapleCommunity = {
     loadRecords,
     openForm,
@@ -385,5 +418,6 @@
     hasLoadFailed: () => lastLoadFailed,
     isSubmissionsOpen: () => SUBMISSIONS_OPEN,
     submissionsClosedMsg: SUBMISSIONS_CLOSED_MSG,
+    showRecordsTab,
   };
 })();

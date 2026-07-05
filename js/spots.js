@@ -1,7 +1,7 @@
 /**
  * spots.js — 建議練功地點
  * -----------------------------------------------------------------
- * 不再用猜的佔位資料，改成把「社群經驗資料庫」(community.js / Firestore
+ * 不再用猜的佔位資料，改成把「社群資料庫」(community.js / Firestore
  * exp_records) 裡玩家回報的紀錄，依地圖分組算平均效率，依目前等級排序，
  * 整理成「現在最適合去哪裡練」的建議列表。
  * -----------------------------------------------------------------
@@ -57,8 +57,8 @@
   function render() {
     if (!window.MapleCommunity) return;
     // 分頁隱藏時不用重繪（計算機每次輸入都會呼叫 setCurrentLevel → render）；
-    // 切回本分頁時 nav.js 會再觸發一次 render，不會漏更新
-    if (document.getElementById("pageSpots").hidden) return;
+    // 切回本分頁／子分頁時會再觸發一次 render，不會漏更新
+    if (document.getElementById("pageCm").hidden || document.getElementById("cmSuggestView").hidden) return;
     const fJob = els.filterJob ? els.filterJob.value.trim() : "";
     const allRecords = window.MapleCommunity.getRecords();
     const records = fJob ? allRecords.filter((r) => r.job === fJob) : allRecords;
@@ -68,7 +68,7 @@
       // 不然使用者遇到問題時只會看到「還沒人回報」，以為是正常狀態
       els.list.innerHTML = window.MapleCommunity.hasLoadFailed()
         ? '<p class="cm-empty">載入失敗，請重新整理頁面</p>'
-        : '<p class="cm-empty">目前還沒有玩家回報練功地點。遊戲上線後，去「社群經驗資料庫」分頁回報，這裡就會自動整理出建議。</p>';
+        : '<p class="cm-empty">目前還沒有玩家回報練功地點。遊戲上線後，去「回報紀錄」子分頁回報，這裡就會自動整理出建議。</p>';
       return;
     }
 
@@ -99,8 +99,10 @@
   if (els.filterJob) els.filterJob.addEventListener("change", render);
 
   els.addBtn.addEventListener("click", () => {
-    window.MapleNav.switchNav("cm");
-    if (window.MapleCommunity) window.MapleCommunity.openForm();
+    if (window.MapleCommunity) {
+      window.MapleCommunity.showRecordsTab();
+      window.MapleCommunity.openForm();
+    }
   });
 
   window.MapleSpots = { setCurrentLevel, render };

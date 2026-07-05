@@ -1,7 +1,7 @@
 rules_version = '2';
 
 // -----------------------------------------------------------------------------
-// Firestore 安全規則 — maple-classic-calc / exp_records（社群經驗資料庫）
+// Firestore 安全規則 — maple-classic-calc / exp_records（社群資料庫）
 //
 // 部署方式：
 //   1. Firebase Console → Firestore Database → Rules，貼上本檔內容後發布；
