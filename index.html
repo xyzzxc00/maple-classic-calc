@@ -141,6 +141,7 @@
 <nav class="wrap nav-tabs-wrap" aria-label="工具分頁">
   <div class="nav-tabs" role="tablist">
     <button class="nav-tab active" id="navCalc" type="button" role="tab" aria-selected="true" aria-controls="pageCalc">練等計算</button>
+    <button class="nav-tab" id="navAttack" type="button" role="tab" aria-selected="false" aria-controls="pageAttack">攻擊力計算</button>
     <button class="nav-tab" id="navJobs" type="button" role="tab" aria-selected="false" aria-controls="pageJobs">職業介紹</button>
     <button class="nav-tab" id="navSpots" type="button" role="tab" aria-selected="false" aria-controls="pageSpots">建議練功地點</button>
     <button class="nav-tab" id="navCm" type="button" role="tab" aria-selected="false" aria-controls="pageCm">社群經驗資料庫</button>
@@ -304,6 +305,61 @@
       <button class="btn btn-ghost exp-apply-btn" id="applyToCmBtn" type="button">＋ 新增到社群資料庫</button>
     </div>
     <p class="exp-rate-hint" id="expRateHint">輸入前後經驗值後自動計算速率（測試時長以倒數計時器經過的時間為準，沒開計時器則用上面設定的分鐘數）</p>
+  </section>
+
+</div>
+
+<div class="wrap" id="pageAttack" role="tabpanel" aria-labelledby="navAttack" hidden>
+
+  <section class="panel attack-panel">
+    <div class="panel-head">
+      <h2>攻擊力計算</h2>
+      <button class="btn btn-ghost" id="clearAttackBtn" type="button">✕ 清除</button>
+    </div>
+    <p class="cm-disclaimer">這裡算的是舊楓之谷（Big Bang 大改版前）角色資訊視窗「攻擊力」欄位的舊制公式，物理攻擊（劍士／弓箭手／盜賊／海盜系）的公式跟武器係數已對照巴哈姆特舊制討論串、PTT 楓之谷板等多個獨立來源交叉核對，數字一致。法師的魔法攻擊力比較特殊，查到的公式版本彼此有衝突，這裡只算魔攻基礎值，沒有套用範圍公式，數字僅供參考，等封測資料出來後再校正。</p>
+
+    <div class="field-grid two-col">
+      <label class="field">
+        <span>職業／武器</span>
+        <select id="attackWeaponType"></select>
+      </label>
+      <label class="field">
+        <span id="attackWeaponAtkLabel">武器攻擊力</span>
+        <input type="number" id="attackWeaponAtk" min="0" placeholder="例：50">
+      </label>
+
+      <label class="field">
+        <span>力量 STR</span>
+        <input type="number" id="attackStr" min="4" value="4">
+      </label>
+      <label class="field">
+        <span>敏捷 DEX</span>
+        <input type="number" id="attackDex" min="4" value="4">
+      </label>
+
+      <label class="field">
+        <span>智力 INT</span>
+        <input type="number" id="attackInt" min="4" value="4">
+      </label>
+      <label class="field">
+        <span>幸運 LUK</span>
+        <input type="number" id="attackLuk" min="4" value="4">
+      </label>
+
+      <label class="field" id="attackMasteryField">
+        <span>熟練度 %（技能視窗顯示的數字，直接輸入）</span>
+        <input type="number" id="attackMastery" min="0" max="100" value="10">
+      </label>
+    </div>
+    <p class="exp-rate-hint" id="attackMasteryHint">1轉熟練技能基礎 10%，滿級（Lv.20）約 60%；4轉「達人」系技能可以再往上加，實際數字請照自己技能視窗顯示的熟練度輸入。</p>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <p class="stat-label" id="attackResultLabel">攻擊力範圍</p>
+        <p class="stat-value" id="attackResult">—</p>
+      </div>
+    </div>
+    <p class="input-warning-hint" id="attackWarningHint" hidden></p>
   </section>
 
 </div>
@@ -477,6 +533,8 @@
 <script defer src="js/data.js"></script>
 <script defer src="js/countdown.js"></script>
 <script defer src="js/calculator.js"></script>
+<script defer src="js/attackData.js"></script>
+<script defer src="js/attack.js"></script>
 <script defer src="js/jobsData.js"></script>
 <script defer src="js/spots.js"></script>
 <script defer src="js/jobs.js"></script>

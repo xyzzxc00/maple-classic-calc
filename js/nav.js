@@ -6,6 +6,7 @@
 
   const pages = {
     calc: document.getElementById("pageCalc"),
+    attack: document.getElementById("pageAttack"),
     spots: document.getElementById("pageSpots"),
     jobs: document.getElementById("pageJobs"),
     cm: document.getElementById("pageCm"),
@@ -13,6 +14,7 @@
   };
   const tabs = {
     calc: document.getElementById("navCalc"),
+    attack: document.getElementById("navAttack"),
     spots: document.getElementById("navSpots"),
     jobs: document.getElementById("navJobs"),
     cm: document.getElementById("navCm"),
@@ -38,6 +40,7 @@
   }
 
   tabs.calc.addEventListener("click", () => switchNav("calc"));
+  tabs.attack.addEventListener("click", () => switchNav("attack"));
   tabs.spots.addEventListener("click", () => switchNav("spots"));
   tabs.jobs.addEventListener("click", () => switchNav("jobs"));
   tabs.cm.addEventListener("click", () => switchNav("cm"));
