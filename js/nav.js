@@ -48,6 +48,9 @@
 
   window.MapleNav = { switchNav };
 
+  // tabs[saved] 可能因為分頁暫時關閉（例如攻擊力計算加了 hidden）而點不到，
+  // 這種情況下不要照 localStorage 的舊紀錄切過去，不然畫面會停在一個
+  // 使用者找不到分頁按鈕能切走的地方
   const saved = localStorage.getItem(STORAGE_KEY);
-  switchNav(saved && pages[saved] ? saved : "calc");
+  switchNav(saved && pages[saved] && !tabs[saved].hidden ? saved : "calc");
 })();
