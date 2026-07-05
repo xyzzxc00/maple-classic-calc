@@ -92,11 +92,11 @@
         .map((s) => {
           const fit = isSuitable(s);
           return `<div class="cm-card${fit ? " spot-fit" : ""}">
-        <div class="cm-job">${escHtml(s.map)}${fit ? " ⭐" : ""}</div>
+        <div class="cm-job">${escHtml(s.map)}</div>
         <div class="cm-map">回報過的角色等級 Lv.${s.levelMin} - ${s.levelMax}</div>
         <div class="cm-stat"><span>平均 EXP / 10分鐘</span><span>${s.avgExpPer10Min.toLocaleString()}</span></div>
         <div class="cm-stat"><span>回報職業</span><span>${escHtml(s.jobs.join("、"))}</span></div>
-        <div class="cm-note">💬 ${s.count} 筆回報</div>
+        <div class="cm-note">${s.count} 筆回報</div>
       </div>`;
         })
         .join("") +

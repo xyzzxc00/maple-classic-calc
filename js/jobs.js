@@ -19,7 +19,7 @@
   function renderFirstQuest(q) {
     if (!q) return "";
     return `<div class="job-first-quest">
-      <span class="job-quest-label">🗨 一轉任務</span>
+      <span class="job-quest-label">一轉任務</span>
       Lv.${q.level}＋${q.stat} → 到「${q.city}」找 ${q.npc} 完成考驗
     </div>`;
   }

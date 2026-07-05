@@ -336,6 +336,7 @@ body {
   border-radius: var(--radius-md);
   padding: 14px;
   border: 1px solid var(--border-strong);
+  text-align: center;
 }
 .stat-label {
   font-size: 12px;
@@ -391,6 +392,7 @@ body {
   border-radius: var(--radius-md);
   padding: 14px;
   border: 1px solid var(--border-strong);
+  text-align: center;
 }
 .time-box.highlight { background: var(--accent-tint); border-color: var(--accent); }
 .time-main {
@@ -401,12 +403,11 @@ body {
 }
 .time-box.highlight .time-main { color: var(--accent-text); }
 
-/* 「計算結果」每個項目都改成單欄、滿版寬度堆疊（不是 2x2 網格），
-   格子自然變長形，並加大間距/內距讓整欄高度跟旁邊倒數計時器／EXP 測速那欄更平衡 */
-.result-panel .stat-grid,
-.result-panel .time-grid { grid-template-columns: 1fr; gap: 16px; margin-bottom: 20px; }
 .result-panel .stat-card,
-.result-panel .time-box { padding: 20px; }
+.result-panel .time-box { padding: 22px 16px; }
+.result-panel .stat-label { font-size: 13px; margin-bottom: 8px; }
+.result-panel .stat-value { font-size: 22px; }
+.result-panel .time-main { font-size: 19px; }
 .result-panel .share-row { flex-direction: column; gap: 12px; }
 .result-panel .share-row .share-btn { flex: none; padding: 16px; }
 
@@ -426,6 +427,7 @@ body {
   font-size: 13px;
   color: var(--ink-soft);
 }
+.stat-row[hidden] { display: none; }
 .stat-row:last-child { border-bottom: none; }
 .stat-row span:first-child { flex: 1 1 auto; }
 .stat-row span:last-child { flex-shrink: 0; font-weight: 700; color: var(--ink); text-align: right; }
@@ -493,7 +495,7 @@ body {
 }
 
 /* ---------- Timer ---------- */
-.timer-presets { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
+.timer-presets { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: center; margin-bottom: 20px; }
 .timer-preset { font-size: 13px; padding: 12px 16px; width: 64px; }
 .timer-preset.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .timer-custom-field {
@@ -591,6 +593,9 @@ body {
   padding-top: 16px;
 }
 .scroll-sub-head h3 { margin: 0; font-size: 15px; color: var(--ink-soft); }
+@media (max-width: 560px) {
+  .scroll-sub-head #scrollResetSimBtn { width: 100%; }
+}
 .scroll-sim-status {
   font-size: 14px;
   margin: 10px 0;
@@ -598,6 +603,10 @@ body {
 .scroll-sim-status strong { color: var(--accent-text); }
 .scroll-sim-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
 .scroll-sim-controls .btn { flex: 1 1 140px; }
+@media (max-width: 560px) {
+  .scroll-sim-controls { flex-direction: column; }
+  .scroll-sim-controls .btn { flex: none; width: 100%; }
+}
 .scroll-sim-result {
   font-weight: 700;
   margin-top: 12px;

@@ -342,14 +342,14 @@
         const hasVoted = voted.has(r.id);
         return `<div class="cm-card">
           <div class="cm-job">${escHtml(r.job)}</div>
-          <div class="cm-map">📍 ${escHtml(r.map)}</div>
+          <div class="cm-map">${escHtml(r.map)}</div>
           <div class="cm-stat"><span>角色等級</span><span>Lv.${r.level}</span></div>
           <div class="cm-stat"><span>EXP / 10分鐘</span><span>${r.expPer10Min.toLocaleString()}</span></div>
-          ${r.note ? `<div class="cm-note">💬 ${escHtml(r.note)}</div>` : ""}
+          ${r.note ? `<div class="cm-note">${escHtml(r.note)}</div>` : ""}
           <div class="cm-card-footer">
             <span class="cm-ts">${tsText}</span>
             <button class="cm-helpful-btn${hasVoted ? " voted" : ""}" data-id="${r.id}" ${hasVoted ? "disabled" : ""} type="button">
-              👍 <span class="cm-helpful-count">${r.helpful || 0}</span>
+              有幫助 <span class="cm-helpful-count">${r.helpful || 0}</span>
             </button>
           </div>
         </div>`;

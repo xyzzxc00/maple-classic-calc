@@ -181,13 +181,22 @@
         <input type="number" id="currentLevel" min="1" max="200" placeholder="例：1" inputmode="numeric">
       </label>
       <label class="field">
-        <span>每10分鐘經驗（選填，自填效率）</span>
-        <input type="text" id="expPer10Min" placeholder="例：5W 或 50000" inputmode="decimal">
+        <span>加倍卷排程（選填）每天打幾小時</span>
+        <input type="number" id="dailyHours" min="0.5" max="24" step="0.5" placeholder="例：3">
       </label>
 
       <label class="field">
         <span>目標等級</span>
         <input type="number" id="targetLevel" min="1" max="200" placeholder="例：30" inputmode="numeric">
+      </label>
+      <label class="field">
+        <span>手上持有幾張加倍卷（每張30分）</span>
+        <input type="number" id="ownedCoupons" min="0" step="1" placeholder="例：10">
+      </label>
+
+      <label class="field">
+        <span>目前經驗值（選填）</span>
+        <input type="number" id="currentExp" min="0" value="0" inputmode="numeric">
       </label>
       <div class="field">
         <span>加倍設定</span>
@@ -201,21 +210,12 @@
       </div>
 
       <label class="field">
-        <span>目前經驗值（選填）</span>
-        <input type="number" id="currentExp" min="0" value="0" inputmode="numeric">
+        <span>每10分鐘經驗（選填，自填效率）</span>
+        <input type="text" id="expPer10Min" placeholder="例：5W 或 50000" inputmode="decimal">
       </label>
       <label class="field">
         <span>自訂倍率</span>
         <input type="number" id="customMult" value="2" min="1" step="0.5">
-      </label>
-
-      <label class="field">
-        <span>加倍卷排程（選填）每天打幾小時</span>
-        <input type="number" id="dailyHours" min="0.5" max="24" step="0.5" placeholder="例：3">
-      </label>
-      <label class="field">
-        <span>手上持有幾張加倍卷（每張30分）</span>
-        <input type="number" id="ownedCoupons" min="0" step="1" placeholder="例：10">
       </label>
     </div>
     <p class="input-warning-hint" id="inputWarningHint" hidden></p>
@@ -247,12 +247,12 @@
       </div>
     </div>
 
-    <div class="divider-stats" id="couponStatsBox" hidden>
+    <div class="divider-stats" id="couponStatsBox">
       <div class="stat-row"><span>加倍省下時間</span><span id="timeSaved">—</span></div>
       <div class="stat-row"><span>全程加倍需要幾張加倍卷</span><span id="couponsNeeded" class="hl">—</span></div>
-      <div class="stat-row" id="couponStatusRow" hidden><span>持有卷是否足夠</span><span id="couponStatus">—</span></div>
-      <div class="stat-row" id="couponShortRow" hidden><span>還需要再幾張</span><span id="couponShort">—</span></div>
-      <div class="stat-row" id="dailyDaysRow" hidden><span>幾天能練完（加倍／不加倍）</span><span id="dailyDays">—</span></div>
+      <div class="stat-row" id="couponStatusRow"><span>持有卷是否足夠</span><span id="couponStatus">—</span></div>
+      <div class="stat-row" id="couponShortRow"><span>還需要再幾張</span><span id="couponShort">—</span></div>
+      <div class="stat-row" id="dailyDaysRow"><span>幾天能練完（加倍／不加倍）</span><span id="dailyDays">—</span></div>
     </div>
 
     <div class="share-row">
@@ -559,7 +559,7 @@
     </div>
 
     <div id="cmSuggestView" role="tabpanel" aria-labelledby="cmSubSuggest">
-      <p class="cm-disclaimer">這裡的地點是玩家在「回報紀錄」子分頁回報的真實效率自動整理出來的，不是官方資料。遊戲上線後，回報的人越多，建議就越準。帶 ⭐ 的地點代表跟你在「練等計算」填的目前等級相近（±5 等），會排在前面。</p>
+      <p class="cm-disclaimer">這裡的地點是玩家在「回報紀錄」子分頁回報的真實效率自動整理出來的，不是官方資料。遊戲上線後，回報的人越多，建議就越準。底色特別標示的地點代表跟你在「練等計算」填的目前等級相近（±5 等），會排在前面。</p>
       <div class="cm-filter-row" style="margin-bottom:14px">
         <select class="cm-filter-input" id="spotsFilterJob">
           <option value="">全部職業</option>
@@ -665,7 +665,7 @@
 <footer class="site-footer">
   <p>非官方工具，數值僅供參考，正式數據以遊戲內公告為準。</p>
   <div class="footer-cta-row">
-    <a class="feedback-link" href="https://forms.gle/VnQnL6o9V4nNqshk6" target="_blank" rel="noopener">💬 意見回饋 / 錯誤回報</a>
+    <a class="feedback-link" href="https://forms.gle/VnQnL6o9V4nNqshk6" target="_blank" rel="noopener">意見回饋 / 錯誤回報</a>
     <a class="donate-link" href="https://portaly.cc/xyzzxc00/support" id="donateLink" target="_blank" rel="noopener">請站長喝杯飲料</a>
   </div>
   <p class="footer-note">這是我業餘維護的小工具，目前以練等計算為主，其他功能會依時間與資料完整度慢慢加，不一定每個建議都能做到，還請見諒。</p>

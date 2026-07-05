@@ -25,11 +25,8 @@
     couponStatsBox: document.getElementById("couponStatsBox"),
     timeSaved: document.getElementById("timeSaved"),
     couponsNeeded: document.getElementById("couponsNeeded"),
-    couponStatusRow: document.getElementById("couponStatusRow"),
     couponStatus: document.getElementById("couponStatus"),
-    couponShortRow: document.getElementById("couponShortRow"),
     couponShort: document.getElementById("couponShort"),
-    dailyDaysRow: document.getElementById("dailyDaysRow"),
     dailyDays: document.getElementById("dailyDays"),
     inputWarningHint: document.getElementById("inputWarningHint"),
     shareBtn: document.getElementById("shareBtn"),
@@ -100,7 +97,11 @@
       els.statLevelsToGo.textContent = "—";
       els.timeNo.textContent = "尚無效率資料";
       els.timeMult.textContent = "尚無效率資料";
-      els.couponStatsBox.hidden = true;
+      els.timeSaved.textContent = "—";
+      els.couponsNeeded.textContent = "—";
+      els.couponStatus.textContent = "—";
+      els.couponShort.textContent = "—";
+      els.dailyDays.textContent = "—";
       els.inputWarningHint.hidden = true;
       if (window.MapleSpots) window.MapleSpots.setCurrentLevel(1);
       return;
@@ -146,7 +147,11 @@
     if (!hasRate) {
       els.timeNo.textContent = "尚無效率資料";
       els.timeMult.textContent = "尚無效率資料";
-      els.couponStatsBox.hidden = true;
+      els.timeSaved.textContent = "—";
+      els.couponsNeeded.textContent = "—";
+      els.couponStatus.textContent = "—";
+      els.couponShort.textContent = "—";
+      els.dailyDays.textContent = "—";
     } else {
       const times = MapleCalculator.calcTimes(totalExpNeeded, expPerMin, currentMult);
       els.timeNo.textContent = times.displayNo;
@@ -157,21 +162,17 @@
       const coupons = MapleCalculator.calcCoupons(times.minutesMult, currentMult, ownedCoupons);
       els.couponsNeeded.textContent = currentMult <= 1 ? "無需加倍卷" : coupons.couponsNeeded + " 張";
 
-      els.couponStatusRow.hidden = !coupons.hasOwned || currentMult <= 1;
-      els.couponShortRow.hidden = !(coupons.hasOwned && !coupons.enough && currentMult > 1);
       if (coupons.hasOwned && currentMult > 1) {
-        els.couponStatus.textContent = coupons.enough ? "✅ 足夠" : "❌ 不足";
-        els.couponShort.textContent = coupons.shortBy + " 張";
+        els.couponStatus.textContent = coupons.enough ? "足夠" : "不足";
+        els.couponShort.textContent = coupons.enough ? "0 張" : coupons.shortBy + " 張";
+      } else {
+        els.couponStatus.textContent = "—";
+        els.couponShort.textContent = "—";
       }
 
       const dailyHours = parseFloat(els.dailyHours.value);
       const dailyDays = MapleCalculator.calcDailyDays(times.minutesNo, times.minutesMult, dailyHours);
-      els.dailyDaysRow.hidden = !dailyDays;
-      if (dailyDays) {
-        els.dailyDays.textContent = `${dailyDays.daysMult} 天／${dailyDays.daysNo} 天`;
-      }
-
-      els.couponStatsBox.hidden = false;
+      els.dailyDays.textContent = dailyDays ? `${dailyDays.daysMult} 天／${dailyDays.daysNo} 天` : "—";
     }
 
     if (window.MapleSpots) window.MapleSpots.setCurrentLevel(currentLevel);
