@@ -9,6 +9,7 @@
 (function () {
   const els = {
     list: document.getElementById("spotsList"),
+    pagination: document.getElementById("spotsPagination"),
     addBtn: document.getElementById("spotsAddBtn"),
     filterJob: document.getElementById("spotsFilterJob"),
   };
@@ -19,6 +20,7 @@
   }
 
   let currentLevel = 1;
+  let currentPage = 1;
 
   const escHtml = MapleCalculator.escHtml;
 
@@ -69,6 +71,7 @@
       els.list.innerHTML = window.MapleCommunity.hasLoadFailed()
         ? '<p class="cm-empty">載入失敗，請重新整理頁面</p>'
         : '<p class="cm-empty">目前還沒有玩家回報練功地點。遊戲上線後，去「回報紀錄」子分頁回報，這裡就會自動整理出建議。</p>';
+      els.pagination.innerHTML = "";
       return;
     }
 
@@ -79,9 +82,13 @@
       return b.avgExpPer10Min - a.avgExpPer10Min;
     });
 
+    const totalPages = Math.max(1, Math.ceil(spots.length / MaplePagination.PAGE_SIZE));
+    if (currentPage > totalPages) currentPage = totalPages;
+    const pageSpots = MaplePagination.slice(spots, currentPage);
+
     els.list.innerHTML =
       '<div class="cm-grid">' +
-      spots
+      pageSpots
         .map((s) => {
           const fit = isSuitable(s);
           return `<div class="cm-card${fit ? " spot-fit" : ""}">
@@ -94,9 +101,15 @@
         })
         .join("") +
       "</div>";
+
+    MaplePagination.render(els.pagination, {
+      total: spots.length,
+      page: currentPage,
+      onChange: (p) => { currentPage = p; render(); },
+    });
   }
 
-  if (els.filterJob) els.filterJob.addEventListener("change", render);
+  if (els.filterJob) els.filterJob.addEventListener("change", () => { currentPage = 1; render(); });
 
   els.addBtn.addEventListener("click", () => {
     if (window.MapleCommunity) {

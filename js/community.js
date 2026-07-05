@@ -83,7 +83,7 @@
     cancelBtn: document.getElementById("cmCancelBtn"),
     msg: document.getElementById("cmMsg"),
     list: document.getElementById("cmList"),
-    loadMore: document.getElementById("cmLoadMore"),
+    pagination: document.getElementById("cmPagination"),
   };
 
   // 職業選單改由 jobsData.js 的單一資料來源動態產生，避免 HTML 裡多份清單各自維護
@@ -102,6 +102,9 @@
   let lastLoadFailed = false;
   // 60 秒內重複進入分頁直接用快取，避免來回切分頁每次都重打 Firestore（一次 50 筆讀取）
   const CACHE_MS = 60000;
+  // Firestore 端是否還有下一批（50 筆一批）還沒抓進 allRecords
+  let hasMoreFromServer = false;
+  let currentPage = 1;
 
   function getVotedSet() {
     try { return new Set(JSON.parse(localStorage.getItem(VOTED_KEY)) || []); } catch { return new Set(); }
@@ -242,12 +245,12 @@
     } catch {
       lastLoadFailed = true;
       els.list.innerHTML = '<p class="cm-empty">連線失敗，請檢查網路後重新整理頁面</p>';
-      if (els.loadMore) els.loadMore.hidden = true;
+      hasMoreFromServer = false;
       return;
     }
     if (!db) {
       els.list.innerHTML = '<p class="cm-empty">社群資料庫尚未開放（遊戲還沒上線），敬請期待。</p>';
-      if (els.loadMore) els.loadMore.hidden = true;
+      hasMoreFromServer = false;
       return;
     }
 
@@ -261,7 +264,7 @@
       allRecords = append ? [...allRecords, ...newRecords] : newRecords;
       lastLoadedAt = Date.now();
 
-      if (els.loadMore) els.loadMore.hidden = snap.docs.length < PAGE_SIZE;
+      hasMoreFromServer = snap.docs.length >= PAGE_SIZE;
       renderRecords();
     } catch (e) {
       lastLoadFailed = true;
@@ -302,13 +305,23 @@
 
     if (!filtered.length) {
       els.list.innerHTML = '<p class="cm-empty">沒有符合條件的紀錄</p>';
+      els.pagination.innerHTML = "";
       return;
     }
+
+    const totalPages = Math.max(1, Math.ceil(filtered.length / MaplePagination.PAGE_SIZE));
+    // 篩選/排序後已載入的資料不夠撐滿目前頁碼，但 Firestore 那邊還有更多，先補抓再重繪
+    if (currentPage > totalPages && hasMoreFromServer) {
+      loadRecords(true);
+      return;
+    }
+    if (currentPage > totalPages) currentPage = totalPages;
+    const pageRecords = MaplePagination.slice(filtered, currentPage);
 
     const voted = getVotedSet();
     els.list.innerHTML =
       '<div class="cm-grid">' +
-      filtered.map((r) => {
+      pageRecords.map((r) => {
         const tsText = r.ts && r.ts.toDate ? formatTS(r.ts.toDate()) : "—";
         const hasVoted = voted.has(r.id);
         return `<div class="cm-card">
@@ -326,6 +339,12 @@
         </div>`;
       }).join("") +
       "</div>";
+
+    MaplePagination.render(els.pagination, {
+      total: filtered.length,
+      page: currentPage,
+      onChange: (p) => { currentPage = p; renderRecords(); },
+    });
   }
 
   // 單一委派監聽器（在初始化時綁一次，避免每次 render 疊加）
@@ -361,20 +380,21 @@
   }
   els.list.addEventListener("click", onHelpfulClick);
 
-  if (els.loadMore) {
-    els.loadMore.addEventListener("click", () => loadRecords(true));
+  function renderRecordsFromStart() {
+    currentPage = 1;
+    renderRecords();
   }
 
-  els.filterJob.addEventListener("change", renderRecords);
+  els.filterJob.addEventListener("change", renderRecordsFromStart);
   els.sortBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       els.sortBtns.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
-      renderRecords();
+      renderRecordsFromStart();
     });
   });
   [els.filterMap, els.filterLvMin, els.filterLvMax].forEach((el) =>
-    el.addEventListener("input", renderRecords)
+    el.addEventListener("input", renderRecordsFromStart)
   );
 
   // 「建議練功地點」/「回報紀錄」子分頁切換，記住使用者上次選的分頁

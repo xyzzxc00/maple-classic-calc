@@ -633,8 +633,24 @@ body {
 .cm-helpful-btn:hover:not(:disabled) { border-color: var(--accent-text); color: var(--accent-text); }
 .cm-helpful-btn.voted { border-color: var(--accent-text); color: var(--accent-text); background: var(--accent-tint); }
 .cm-helpful-btn:disabled { cursor: default; }
-.cm-load-more { width: 100%; margin-top: 14px; }
 .cm-empty, .cm-loading { color: var(--ink-soft); text-align: center; padding: 32px 0; font-size: 14px; }
+.cm-pagination { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 16px; flex-wrap: wrap; }
+.cm-page-btn {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  min-width: 34px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.cm-page-btn:hover:not(:disabled) { border-color: var(--accent-text); color: var(--accent-text); }
+.cm-page-btn.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); cursor: default; }
+.cm-page-btn:disabled { opacity: 0.4; cursor: default; }
+.cm-page-ellipsis { color: var(--ink-faint); padding: 0 2px; }
 
 /* ---------- Suggested spots ---------- */
 .cm-card.spot-fit { border-color: var(--accent-border); background: var(--accent-tint); }
