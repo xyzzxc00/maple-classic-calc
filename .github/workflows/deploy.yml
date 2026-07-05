@@ -28,6 +28,16 @@ jobs:
         with:
           node-version: '24'
 
+      # firestore.rules 跟著同一次 push 一起發布,避免規則檔改了卻忘記手動部署
+      # （GitHub Secret FIRESTORE_SERVICE_ACCOUNT 需自行在 Firebase/GCP Console
+      # 建立 service account key 後貼進 repo Settings → Secrets）
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIRESTORE_SERVICE_ACCOUNT }}
+
+      - name: Deploy Firestore rules
+        run: npx firebase-tools@14 deploy --only firestore:rules --project maple-classic-calc
+
       - name: Cache global npm tools
         uses: actions/cache@v4
         with:
