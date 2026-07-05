@@ -37,7 +37,6 @@
       (job) => `
       <div class="job-card">
         <div class="job-card-head">
-          <span class="job-icon">${job.icon}</span>
           <div>
             <div class="job-branch">${job.branch}</div>
             <div class="job-first">一轉：${job.firstJob}</div>

@@ -674,7 +674,6 @@ body {
   margin-bottom: 14px;
 }
 .job-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-.job-icon { font-size: 24px; line-height: 1; }
 .job-branch { font-weight: 700; font-size: 15px; color: var(--ink); }
 .job-first { font-size: 12px; color: var(--ink-soft); }
 .job-desc { font-size: 14px; color: var(--ink-soft); margin: 0 0 12px; line-height: 1.6; }
@@ -735,7 +734,7 @@ body {
 .job-stage-level { font-size: 12px; color: var(--accent-text); font-weight: 700; }
 .job-stage-note { font-size: 12px; color: var(--ink-soft); margin: 4px 0 0; line-height: 1.6; }
 
-/* ---------- 經典版 vs 現行版 差異對照 ---------- */
+/* ---------- 經典版 vs 新楓之谷 差異對照 ---------- */
 .diff-table {
   display: flex;
   flex-direction: column;
@@ -753,7 +752,7 @@ body {
   .diff-row { grid-template-columns: 1fr; }
   .diff-head { display: none; }
   .diff-cell:nth-child(2)::before { content: "經典版："; font-weight: 700; color: var(--accent-text); display: block; margin-bottom: 2px; }
-  .diff-cell:nth-child(3)::before { content: "現行版："; font-weight: 700; color: var(--ink-soft); display: block; margin-bottom: 2px; }
+  .diff-cell:nth-child(3)::before { content: "新楓之谷："; font-weight: 700; color: var(--ink-soft); display: block; margin-bottom: 2px; }
 }
 
 /* ---------- Footer ---------- */
@@ -787,6 +786,7 @@ body {
 .footer-contact { font-size: 12px; margin: 6px 0 0; }
 .footer-contact a { color: var(--ink-soft); text-decoration: underline; }
 .footer-contact a:hover { color: var(--ink); }
+.footer-note { font-size: 12px; margin: 6px auto 0; max-width: 480px; }
 @media (max-width: 480px) {
   .site-footer { display: flex; flex-direction: column; align-items: center; gap: 10px; padding-bottom: 40px; }
   .footer-contact { margin: 0; }

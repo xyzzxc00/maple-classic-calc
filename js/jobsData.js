@@ -17,7 +17,6 @@
 const JOBS_DATA = [
   {
     id: "warrior",
-    icon: "⚔",
     branch: "劍士系",
     firstJob: "劍士",
     desc: "近戰肉盾，血量高、防禦強，可以站著跟怪物對打，前期練等比較不怕被秒殺，是新手最容易上手的系統。",
@@ -35,7 +34,6 @@ const JOBS_DATA = [
   },
   {
     id: "magician",
-    icon: "🔮",
     branch: "法師系",
     firstJob: "法師",
     desc: "遠程魔法輸出，技能範圍廣、爆發高，但血量薄、防禦低，需要小心控制怪物距離，較適合喜歡站樁輸出的玩家。",
@@ -53,7 +51,6 @@ const JOBS_DATA = [
   },
   {
     id: "archer",
-    icon: "🏹",
     branch: "弓箭手系",
     firstJob: "弓箭手",
     desc: "遠程物理輸出，攻速快、機動性好，前期比較依賴裝備跟箭矢補給，操作熟練後輸出效率很高。",
@@ -70,7 +67,6 @@ const JOBS_DATA = [
   },
   {
     id: "thief",
-    icon: "🗡",
     branch: "盜賊系",
     firstJob: "盜賊",
     desc: "敏捷型近戰，攻速快、有專屬的迴避機制，操作上比較靈活，適合喜歡近身游擊戰的玩家。",
@@ -87,7 +83,6 @@ const JOBS_DATA = [
   },
   {
     id: "pirate",
-    icon: "🦑",
     branch: "海盜系",
     firstJob: "海盜",
     desc: "後期才加入的系統，近戰跟遠程武器都能選，技能機制比較特殊（例如能量條、轉換姿態），上手難度稍高但後期很強勢。",
