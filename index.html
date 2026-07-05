@@ -141,11 +141,9 @@
 <nav class="wrap nav-tabs-wrap" aria-label="工具分頁">
   <div class="nav-tabs" role="tablist">
     <button class="nav-tab active" id="navCalc" type="button" role="tab" aria-selected="true" aria-controls="pageCalc">計算工具</button>
-    <!-- 攻擊力計算：資料還在核對，先不對外顯示，見 js/attack.js 開發紀錄 -->
-    <button class="nav-tab" id="navAttack" type="button" role="tab" aria-selected="false" aria-controls="pageAttack" hidden>攻擊力計算</button>
-    <button class="nav-tab" id="navJobs" type="button" role="tab" aria-selected="false" aria-controls="pageJobs">職業介紹</button>
     <button class="nav-tab" id="navCm" type="button" role="tab" aria-selected="false" aria-controls="pageCm">社群資料</button>
     <button class="nav-tab" id="navLegacy" type="button" role="tab" aria-selected="false" aria-controls="pageLegacy">過往資料</button>
+    <button class="nav-tab" id="navJobs" type="button" role="tab" aria-selected="false" aria-controls="pageJobs">職業介紹</button>
   </div>
 </nav>
 
@@ -160,6 +158,8 @@
 
     <div class="subtabs" role="tablist">
       <button class="subtab active" id="calcSubExp" type="button" role="tab" aria-selected="true" aria-controls="calcExpView">練等計算</button>
+      <!-- 攻擊力計算：資料還在核對，先不對外顯示，見 js/attack.js 開發紀錄 -->
+      <button class="subtab" id="calcSubAttack" type="button" role="tab" aria-selected="false" aria-controls="calcAttackView" hidden>攻擊力計算</button>
     </div>
 
     <div id="calcExpView" role="tabpanel" aria-labelledby="calcSubExp">
@@ -317,11 +317,8 @@
   </section>
 
     </div>
-  </section>
 
-</div>
-
-<div class="wrap" id="pageAttack" role="tabpanel" aria-labelledby="navAttack" hidden>
+    <div id="calcAttackView" role="tabpanel" aria-labelledby="calcSubAttack" hidden>
 
   <section class="panel attack-panel">
     <div class="panel-head">
@@ -402,6 +399,10 @@
       </div>
     </div>
     <p class="input-warning-hint" id="attackWarningHint" hidden></p>
+  </section>
+
+    </div>
+
   </section>
 
 </div>
