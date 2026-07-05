@@ -52,9 +52,7 @@ service cloud.firestore {
       }
 
       allow read: if true;
-      // 遊戲上線前暫時鎖住回報，防止亂填。上線後改回下面這行開放：
-      //   allow create: if isValidNew(request.resource.data);
-      allow create: if false;
+      allow create: if isValidNew(request.resource.data);
       allow update: if isHelpfulIncrement();
       allow delete: if false;
     }
