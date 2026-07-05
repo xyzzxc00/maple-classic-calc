@@ -544,6 +544,43 @@ body {
 .exp-rate-hint { font-size: 13px; color: var(--ink-soft); margin-top: 12px; }
 .input-warning-hint { font-size: 13px; color: var(--warning); font-weight: 700; margin: 12px 0 0; }
 
+/* ---------- Scroll enhancement simulator ---------- */
+.scroll-sub-head {
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+  padding-top: 16px;
+}
+.scroll-sub-head h3 { margin: 0; font-size: 15px; color: var(--ink-soft); }
+.scroll-sim-status {
+  font-size: 14px;
+  margin: 10px 0;
+}
+.scroll-sim-status strong { color: var(--accent-text); }
+.scroll-sim-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+.scroll-sim-controls .btn { flex: 1 1 140px; }
+.scroll-sim-result {
+  font-weight: 700;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-border);
+}
+.scroll-sim-dist { margin-top: 14px; }
+.scroll-sim-dist-title { font-size: 13px; color: var(--ink-soft); margin-bottom: 8px; }
+.scroll-sim-dist-row { display: flex; align-items: center; gap: 10px; font-size: 13px; padding: 4px 0; }
+.scroll-sim-dist-label { flex: 0 0 56px; color: var(--ink-soft); }
+.scroll-sim-dist-bar-track {
+  flex: 0 1 120px;
+  min-width: 40px;
+  background: var(--border);
+  border-radius: 6px;
+  height: 10px;
+  overflow: hidden;
+}
+.scroll-sim-dist-bar-fill { height: 100%; background: var(--accent); border-radius: 6px; }
+.scroll-sim-dist-count { flex: 1 1 auto; text-align: right; font-weight: 700; white-space: nowrap; }
+
 /* ---------- Community DB ---------- */
 .cm-disclaimer {
   font-size: 13px;

@@ -44,37 +44,28 @@
   const saved = localStorage.getItem(STORAGE_KEY);
   switchNav(saved && pages[saved] && !tabs[saved].hidden ? saved : "calc");
 
-  // 「練等計算」/「攻擊力計算」子分頁切換（攻擊力計算資料還在核對，先隱藏）
+  // 「練等計算」/「攻擊力計算」/「卷軸強化模擬」子分頁切換
+  // （攻擊力計算資料還在核對，先隱藏，見 index.html 上的 hidden 屬性）
   const CALC_SUBTAB_KEY = "maple_classic_calc_subtab";
-  const subExpBtn = document.getElementById("calcSubExp");
-  const subAttackBtn = document.getElementById("calcSubAttack");
-  const expView = document.getElementById("calcExpView");
-  const attackView = document.getElementById("calcAttackView");
+  const calcSubtabs = [
+    { key: "exp", btn: document.getElementById("calcSubExp"), view: document.getElementById("calcExpView") },
+    { key: "attack", btn: document.getElementById("calcSubAttack"), view: document.getElementById("calcAttackView") },
+    { key: "scroll", btn: document.getElementById("calcSubScroll"), view: document.getElementById("calcScrollView") },
+  ];
 
-  function showExpSubtab(skipSave) {
-    expView.hidden = false;
-    attackView.hidden = true;
-    subExpBtn.classList.add("active");
-    subAttackBtn.classList.remove("active");
-    subExpBtn.setAttribute("aria-selected", "true");
-    subAttackBtn.setAttribute("aria-selected", "false");
-    if (!skipSave) localStorage.setItem(CALC_SUBTAB_KEY, "exp");
+  function showCalcSubtab(key, skipSave) {
+    calcSubtabs.forEach((tab) => {
+      const isActive = tab.key === key;
+      tab.view.hidden = !isActive;
+      tab.btn.classList.toggle("active", isActive);
+      tab.btn.setAttribute("aria-selected", isActive ? "true" : "false");
+    });
+    if (!skipSave) localStorage.setItem(CALC_SUBTAB_KEY, key);
   }
 
-  function showAttackSubtab(skipSave) {
-    expView.hidden = true;
-    attackView.hidden = false;
-    subExpBtn.classList.remove("active");
-    subAttackBtn.classList.add("active");
-    subExpBtn.setAttribute("aria-selected", "false");
-    subAttackBtn.setAttribute("aria-selected", "true");
-    if (!skipSave) localStorage.setItem(CALC_SUBTAB_KEY, "attack");
-  }
+  calcSubtabs.forEach((tab) => tab.btn.addEventListener("click", () => showCalcSubtab(tab.key)));
 
-  subExpBtn.addEventListener("click", () => showExpSubtab());
-  subAttackBtn.addEventListener("click", () => showAttackSubtab());
-
-  if (localStorage.getItem(CALC_SUBTAB_KEY) === "attack" && !subAttackBtn.hidden) {
-    showAttackSubtab(true);
-  }
+  // 存下來的子分頁如果暫時關閉（例如攻擊力計算還隱藏），就不要照舊紀錄切過去
+  const savedCalcSubtab = calcSubtabs.find((t) => t.key === localStorage.getItem(CALC_SUBTAB_KEY));
+  if (savedCalcSubtab && !savedCalcSubtab.btn.hidden) showCalcSubtab(savedCalcSubtab.key, true);
 })();

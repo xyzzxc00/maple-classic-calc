@@ -160,6 +160,7 @@
       <button class="subtab active" id="calcSubExp" type="button" role="tab" aria-selected="true" aria-controls="calcExpView">練等計算</button>
       <!-- 攻擊力計算：資料還在核對，先不對外顯示，見 js/attack.js 開發紀錄 -->
       <button class="subtab" id="calcSubAttack" type="button" role="tab" aria-selected="false" aria-controls="calcAttackView" hidden>攻擊力計算</button>
+      <button class="subtab" id="calcSubScroll" type="button" role="tab" aria-selected="false" aria-controls="calcScrollView">卷軸強化模擬</button>
     </div>
 
     <div id="calcExpView" role="tabpanel" aria-labelledby="calcSubExp">
@@ -403,6 +404,86 @@
 
     </div>
 
+    <div id="calcScrollView" role="tabpanel" aria-labelledby="calcSubScroll" hidden>
+
+  <section class="panel scroll-panel">
+    <div class="panel-head">
+      <h2>卷軸強化模擬</h2>
+      <button class="btn btn-ghost" id="clearScrollBtn" type="button">✕ 全部重置</button>
+    </div>
+    <p class="cm-disclaimer">「失敗報廢張數」＝一件新裝備開局後，如果最前面連續 X 張全部失敗（中途只要捲到 1 張成功就不會放棄），就當這件報廢、直接換新裝備重來；預設等於裝備衝捲數（等於不主動放棄）。不含裝備爆炸機制（有搭配保護卷軸的話，把保護卷的成本自己加進卷軸單價裡就好）。實際成功率請照自己遊戲內卷軸說明為準。</p>
+
+    <div class="field-grid two-col">
+      <label class="field">
+        <span>卷軸成功率（%）</span>
+        <input type="number" id="scrollRate" min="1" max="100" value="60" inputmode="numeric">
+      </label>
+      <label class="field">
+        <span>裝備衝捲數</span>
+        <input type="number" id="scrollSlots" min="1" max="20" value="5" inputmode="numeric">
+      </label>
+
+      <label class="field">
+        <span>目標成功張數</span>
+        <input type="number" id="scrollTarget" min="1" value="5" inputmode="numeric">
+      </label>
+      <label class="field">
+        <span>失敗報廢張數</span>
+        <input type="number" id="scrollGiveup" min="1" value="5" inputmode="numeric">
+      </label>
+
+      <label class="field">
+        <span>裝備價格（楓幣，選填）</span>
+        <input type="text" id="scrollEquipPrice" placeholder="例：1W 或 10000" inputmode="decimal">
+      </label>
+      <label class="field">
+        <span>卷軸單價（楓幣，選填）</span>
+        <input type="text" id="scrollPrice" placeholder="例：5W 或 50000" inputmode="decimal">
+      </label>
+    </div>
+    <p class="input-warning-hint" id="scrollWarningHint" hidden></p>
+
+    <div class="panel-head scroll-sub-head">
+      <h3>理論值（不考慮提早放棄，單件裝備捲滿所有次數）</h3>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <p class="stat-label">單件裝備達標機率</p>
+        <p class="stat-value" id="scrollTheoryChance">—</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-label">平均需要裝備數</p>
+        <p class="stat-value" id="scrollTheoryCopies">—</p>
+      </div>
+    </div>
+    <div class="exp-rate-box" id="scrollTheoryCostBox" hidden>
+      <div class="exp-rate-row"><span>平均需要卷軸張數</span><span id="scrollTheoryScrolls">—</span></div>
+      <div class="exp-rate-row hl"><span>預期花費</span><span id="scrollTheoryCost">—</span></div>
+    </div>
+
+    <div class="panel-head scroll-sub-head">
+      <h3>衝卷模擬（會套用上面的報廢策略，實際花費通常比理論值省）</h3>
+      <button class="btn btn-ghost" id="scrollResetSimBtn" type="button">重置模擬數據</button>
+    </div>
+    <div class="scroll-sim-status">
+      <span>目前這件：已衝 <strong id="scrollCurAttempts">0</strong> / <strong id="scrollCurSlots">5</strong>，成功 <strong id="scrollCurSuccess">0</strong></span>
+    </div>
+    <div class="scroll-sim-controls">
+      <button class="btn btn-primary" id="scrollAttackBtn" type="button">衝一張</button>
+      <button class="btn btn-primary" id="scrollAutoBtn" type="button">連續衝到目標</button>
+      <button class="btn btn-ghost" id="scrollSwapBtn" type="button">換裝備</button>
+    </div>
+    <div class="exp-rate-box" id="scrollSimStatsBox">
+      <div class="exp-rate-row"><span>累計裝備數</span><span id="scrollSimCopies">0</span></div>
+      <div class="exp-rate-row hl" id="scrollSimCostRow" hidden><span>累計成本</span><span id="scrollSimCost">—</span></div>
+    </div>
+    <p class="scroll-sim-result" id="scrollSimResult" hidden></p>
+
+    <div class="scroll-sim-dist" id="scrollSimDist" hidden></div>
+  </section>
+
+    </div>
+
   </section>
 
 </div>
@@ -595,6 +676,7 @@
 <script defer src="js/calculator.js"></script>
 <script defer src="js/attackData.js"></script>
 <script defer src="js/attack.js"></script>
+<script defer src="js/scroll.js"></script>
 <script defer src="js/jobsData.js"></script>
 <script defer src="js/pagination.js"></script>
 <script defer src="js/spots.js"></script>
