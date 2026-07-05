@@ -144,8 +144,8 @@
     <!-- 攻擊力計算：資料還在核對，先不對外顯示，見 js/attack.js 開發紀錄 -->
     <button class="nav-tab" id="navAttack" type="button" role="tab" aria-selected="false" aria-controls="pageAttack" hidden>攻擊力計算</button>
     <button class="nav-tab" id="navJobs" type="button" role="tab" aria-selected="false" aria-controls="pageJobs">職業介紹</button>
-    <button class="nav-tab" id="navCm" type="button" role="tab" aria-selected="false" aria-controls="pageCm">社群資料庫</button>
-    <button class="nav-tab" id="navLegacy" type="button" role="tab" aria-selected="false" aria-controls="pageLegacy">過往資料參考</button>
+    <button class="nav-tab" id="navCm" type="button" role="tab" aria-selected="false" aria-controls="pageCm">社群資料</button>
+    <button class="nav-tab" id="navLegacy" type="button" role="tab" aria-selected="false" aria-controls="pageLegacy">過往資料</button>
   </div>
 </nav>
 
@@ -267,12 +267,11 @@
       <span class="badge">時間到會響＋跳通知</span>
     </div>
     <div class="timer-presets">
-      <button class="btn btn-ghost timer-preset active" data-min="1" type="button">1 分鐘</button>
-      <button class="btn btn-ghost timer-preset" data-min="5" type="button">5 分鐘</button>
-      <button class="btn btn-ghost timer-preset" data-min="10" type="button">10 分鐘</button>
+      <button class="btn btn-ghost timer-preset active" data-min="1" type="button">1分</button>
+      <button class="btn btn-ghost timer-preset" data-min="5" type="button">5分</button>
+      <button class="btn btn-ghost timer-preset" data-min="10" type="button">10分</button>
       <label class="timer-custom-field">
         <input type="number" id="timerCustomMin" min="1" max="999" placeholder="分">
-        <span>分鐘</span>
       </label>
     </div>
     <div class="timer-display-wrap">
@@ -411,7 +410,7 @@
 
   <section class="panel version-diff-panel">
     <div class="panel-head">
-      <h2>經典版 vs 新楓之谷，差在哪？</h2>
+      <h2>經典版 vs 新楓之谷</h2>
       <span class="badge">新舊玩家必看</span>
     </div>
     <p class="cm-disclaimer">這裡比較的是「Big Bang 大改版（2010年）之前的舊楓之谷」跟「現在還在營運的楓之谷」，抓大方向給新舊玩家一個底，實際內容以官方公告為準。</p>
@@ -454,7 +453,7 @@
       <h2>職業介紹</h2>
       <span class="badge">轉職路線總覽</span>
     </div>
-    <p class="cm-disclaimer">這裡整理的是 Big Bang 大改版之前舊版楓之谷沿用多年的基礎轉職路線跟職業特色，照過往的舊資料給大家先參考用，不是技能配點或裝備攻略——技能數值要等正式上線/封測資料出來才能確定，避免先寫錯誤的資訊誤導大家。一轉任務的地點/NPC 已對照海外經典服資料核對過，但中文譯名還沒對照台版正式翻譯；二轉／三轉／四轉展開後看到的等級門檻也查證過，但關卡描述是全職業共用的概略流程，職業專屬的 NPC／道具名稱還沒核對。實際內容還是要以之後正式開放的經典版為準，正式上線後會盡快依照官方資料補齊校正。</p>
+    <p class="cm-disclaimer">這裡整理的是 Big Bang 大改版前舊版楓之谷的基礎轉職路線與職業特色，先給大家參考，不是技能配點或裝備攻略。地點/NPC 中文譯名還沒對照台版正式翻譯，實際內容以正式上線的經典版為準，屆時會依官方資料補齊校正。</p>
     <div id="jobsList"></div>
   </section>
 
@@ -564,12 +563,12 @@
     </div>
 
     <div id="legacySpotsView" role="tabpanel" aria-labelledby="legacySubSpots">
-      <p class="cm-disclaimer">這裡整理的是 Big Bang 大改版之前舊版楓之谷的練功地點，不是台版經典版的即時回報——正式上線後真正的練功地點請看「社群資料庫」分頁裡的「建議練功地點」子分頁，那邊讀的是玩家回報的真實效率。Lv.1~115 對照的是巴哈姆特新楓之谷精華區整理的怪物分布地區，同一隻怪常常在好幾張地圖都能打到，這裡盡量列出多個選擇。這裡故意不收王級頭目——這裡是給人練等用的參考名單，打王要組隊、前置任務、道具，跟一般練等地點不是同一回事。這份資料沒有特別區分職業效率，等級門檻/地圖如果跟正式版有出入，會再校正。</p>
+      <p class="cm-disclaimer">這裡整理的是 Big Bang 大改版前舊版楓之谷的練功地點，僅供參考，不是台版經典版的即時回報（正式回報請看「社群資料庫」的「建議練功地點」）。不含王級頭目，等級門檻/地圖如與正式版有出入會再校正。</p>
       <div id="legacySpotsList"></div>
     </div>
 
     <div id="legacyBossView" role="tabpanel" aria-labelledby="legacySubBosses" hidden>
-      <p class="cm-disclaimer">這裡整理的是「Big Bang 大改版之前」（約 2007～2009 年）舊版楓之谷的野王出沒地點與重生時間，不是台版新楓之谷經典版的正式資料——經典版正式上線／封測後，會用官方資料重新整理這份清單。地點/等級主要對照巴哈姆特新楓之谷精華區的怪物分布整理，重生時間優先採用 2009 年前後的玩家記錄；找不到當年記錄的幾隻（樹妖王、殭屍猴王、巨居蟹）只查得到近年的整理資料，可能跟原始舊版數字有落差，已在各自的重生時間後面註明。</p>
+      <p class="cm-disclaimer">這裡整理的是 2007～2009 年舊版楓之谷的野王出沒地點與重生時間，僅供參考，不是台版經典版的正式資料，正式上線／封測後會用官方資料重新整理。部分重生時間為近年整理資料，可能與原始舊版有落差，已個別註明。</p>
       <div id="legacyBossList"></div>
     </div>
   </section>

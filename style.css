@@ -62,7 +62,7 @@ body {
 
 /* ---------- 版面容器 ---------- */
 .wrap {
-  max-width: 1040px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 24px;
 }
@@ -172,6 +172,13 @@ body {
   padding: 4px 10px;
   border-radius: 999px;
   font-weight: 700;
+  white-space: nowrap;
+}
+@media (max-width: 480px) {
+  /* 標題較長時（例如「經典版 vs 新楓之谷，差在哪？」）跟 badge 擠在同一行，
+     badge 會被壓縮到文字自己換行、變成兩層的藥丸形狀；窄螢幕改成標題跟
+     badge 各自佔一行 */
+  .panel-head { flex-wrap: wrap; row-gap: 8px; }
 }
 
 /* 「計算工具」卡片內部的分段：跟獨立 .panel 卡片不同，這裡用分隔線接在一起，不再各自開一張卡片 */
@@ -380,10 +387,15 @@ body {
 .stat-row span:last-child { flex-shrink: 0; font-weight: 700; color: var(--ink); text-align: right; }
 .stat-row span.hl { color: var(--accent-text); font-size: 1.05rem; }
 
-.share-row { display: flex; gap: 8px; margin-top: 4px; }
+.share-row { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
 .share-btn { width: 100%; justify-content: center; }
 .share-row .share-btn { width: auto; flex: 1; }
 .share-icon-btn { white-space: nowrap; }
+@media (max-width: 400px) {
+  /* 「複製分享連結」字比 Threads / LINE 長，三顆等寬擠在一行會被壓到自己換行、
+     變成參差不齊的兩層按鈕；窄螢幕讓它自己獨占一行，圖示按鈕留在下一行 */
+  .share-row .share-btn:not(.share-icon-btn) { flex: 1 1 100%; }
+}
 .share-hint {
   text-align: center;
   font-size: 13px;
@@ -418,26 +430,13 @@ body {
 .nav-tab:hover { color: var(--ink); }
 .nav-tab.active { color: var(--accent-text); border-bottom-color: var(--accent-text); }
 @media (max-width: 560px) {
-  .nav-tabs-wrap { position: relative; }
-  .nav-tabs {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .nav-tabs::-webkit-scrollbar { display: none; }
-  .nav-tab { flex: 0 0 auto; padding: 10px 14px; font-size: 13px; }
-  /* 分頁列在窄螢幕會橫向溢出，加一個淡出提示讓人知道還能往右滑，
-     不然計時器／社群資料庫兩個分頁很容易被漏掉沒發現 */
-  .nav-tabs-wrap::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 1px;
-    width: 28px;
-    background: linear-gradient(to right, transparent, var(--bg-page));
-    pointer-events: none;
-  }
+  /* 4 個分頁維持等寬（flex:1），只縮小內距跟字級讓最長的「過往資料參考」
+     也能在自己的欄位裡完整顯示，不用切成不等寬、也不用橫向滑動 */
+  .nav-tab { padding: 10px 8px; font-size: 12.5px; }
+}
+@media (max-width: 420px) {
+  .nav-tabs { gap: 2px; }
+  .nav-tab { padding: 10px 4px; font-size: 11.5px; }
 }
 
 /* ---------- Two/three column field grid ---------- */
@@ -449,7 +448,7 @@ body {
 
 /* ---------- Timer ---------- */
 .timer-presets { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
-.timer-preset { font-size: 13px; padding: 12px 16px; }
+.timer-preset { font-size: 13px; padding: 12px 16px; width: 64px; }
 .timer-custom-field {
   display: flex;
   align-items: center;
@@ -460,6 +459,7 @@ body {
 }
 .timer-custom-field input {
   width: 64px;
+  height: 45px;
   padding: 7px 10px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-strong);
@@ -839,8 +839,16 @@ body {
 }
 .theme-toggle:hover { border-color: var(--accent-text); color: var(--accent-text); }
 @media (max-width: 480px) {
-  .theme-toggle { top: 10px; right: 10px; padding: 12px 14px; font-size: 12px; }
-  /* 手機上 .panel-head 的按鈕（如「✕ 清除」）靠右對齊，滾動到特定位置時
-     會被固定在右上角的主題切換鈕蓋住、點不到，留右邊界避開這個區域。 */
-  .panel-head { padding-right: 56px; }
+  /* 手機版內容幾乎頂滿螢幕寬度，固定在右上角的暗色切換鈕會跟往下捲動的
+     panel-head（badge、「✕ 清除」等按鈕）在同一個位置打架，之前用 padding-right
+     硬留白反而讓 badge 貼右對齊時看起來空一大塊。改成跟著頁首一起捲走，
+     這樣往下捲動後所有 panel-head 都能正常貼右對齊，不用再特別留白。 */
+  .site-header { position: relative; }
+  .theme-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 12px 14px;
+    font-size: 12px;
+  }
 }
