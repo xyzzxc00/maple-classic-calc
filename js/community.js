@@ -218,7 +218,12 @@
       await loadRecords();
       if (window.MapleSpots) window.MapleSpots.render();
     } catch (e) {
-      els.msg.textContent = "送出失敗，請稍後再試";
+      // permission-denied 通常代表 firestore.rules 還沒同步成驗證版（或規則本身有問題），
+      // 跟一般網路錯誤混在同一句「請稍後再試」的話，這種情況會一直重試一直失敗、
+      // 使用者跟站長都看不出真正原因
+      els.msg.textContent = (e && e.code === "permission-denied")
+        ? "送出被資料庫拒絕，可能是設定尚未同步，請稍後再試或回報給站長"
+        : "送出失敗，請稍後再試";
       els.msg.className = "cm-msg err";
     } finally {
       els.submitBtn.disabled = false;
@@ -304,7 +309,18 @@
       });
 
     if (!filtered.length) {
-      els.list.innerHTML = '<p class="cm-empty">沒有符合條件的紀錄</p>';
+      // 已載入的前 50/100/... 筆裡沒有符合條件的紀錄，不代表伺服器上真的沒有——
+      // 篩選只在前端做，資料變多後很可能符合條件的紀錄還沒被抓進來，
+      // 這裡沒抓過就先別下「沒有符合條件的紀錄」的結論
+      if (hasMoreFromServer) {
+        loadRecords(true);
+        return;
+      }
+      // 空資料庫（從沒人回報過）跟「篩選後沒有符合的」是兩種不同狀況，
+      // 用同一句「沒有符合條件的紀錄」會讓開服初期的空資料庫看起來像篩選出了問題
+      els.list.innerHTML = allRecords.length
+        ? '<p class="cm-empty">沒有符合條件的紀錄</p>'
+        : '<p class="cm-empty">目前還沒有玩家回報紀錄，遊戲上線後歡迎來分享你的練功效率！</p>';
       els.pagination.innerHTML = "";
       return;
     }

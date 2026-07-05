@@ -94,8 +94,13 @@
 
   els.customMin.addEventListener("input", () => {
     const val = parseInt(els.customMin.value, 10);
-    els.presets.forEach((b) => b.classList.remove("active"));
-    if (val && val >= 1) setTimerLength(val);
+    // 打 0、負數或清空之前是直接把所有 preset 按鈕的 active 拿掉、但不改變計時長度，
+    // 使用者會看到全部按鈕都沒選取、卻不知道目前實際是幾分鐘。無效值時保持原本
+    // 的選取狀態不變，只有真的輸入有效分鐘數才切換掉 preset 的 active
+    if (val && val >= 1) {
+      els.presets.forEach((b) => b.classList.remove("active"));
+      setTimerLength(val);
+    }
   });
 
   // 剩餘秒數用「結束時間戳 - 現在」回推，而不是每秒 -1：

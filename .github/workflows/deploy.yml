@@ -87,12 +87,13 @@ jobs:
         continue-on-error: true
 
       # 這個月遇過兩次 deploy-pages 的暫時性 API 失敗，都是重新觸發就過，
-      # 加這個自動重試一次，省得每次都要手動重推一個空 commit
+      # 加這個自動重試一次，省得每次都要手動重推一個空 commit。曾經立即重試
+      # 撞上同一個故障窗口仍失敗（要手動重推兩次才過），先等一下再重試
+      - name: Wait before retry
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 30
+
       - name: Retry deploy (transient GitHub Pages API failures happen occasionally)
         if: steps.deployment.outcome == 'failure'
         id: deployment-retry
         uses: actions/deploy-pages@v4
-
-      - name: Fail job if both deploy attempts failed
-        if: steps.deployment.outcome == 'failure' && steps.deployment-retry.outcome == 'failure'
-        run: exit 1

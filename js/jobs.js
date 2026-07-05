@@ -33,6 +33,10 @@
   }
 
   function render() {
+    if (!window.MapleJobsData) {
+      list.innerHTML = '<p class="cm-empty">職業資料載入失敗，請重新整理頁面</p>';
+      return;
+    }
     list.innerHTML = window.MapleJobsData.map(
       (job) => `
       <div class="job-card">

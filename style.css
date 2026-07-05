@@ -3,6 +3,8 @@
      「淡綠」，讓文字跟背景的區隔靠明暗落差撐起來，不要整頁靠同一個色相
      的深淺變化，那樣即使算出來過了 WCAG AA，人眼感知的對比還是偏弱
      （深色模式尤其明顯，這正是這次重新選色的起因）。 */
+  /* 這個值也手動複製在 index.html 的 <meta name="theme-color"> 跟 js/theme.js
+     （meta/JS 都不能讀 CSS 變數）——改這裡記得同步改那兩處 */
   --bg-page: #F6F5F1;
   --surface: #FFFFFF;
   --surface-tint: #EFEDE4;
@@ -10,20 +12,20 @@
   --ink-soft: #626358;
   --ink-faint: #626358;
   --border: #E3E1D7;
-  --border-strong: #96937F;
+  --border-strong: #78765F;
   --accent: #5C6640;
   --accent-text: var(--accent);
   --accent-tint: #ECEEE1;
   --accent-border: #A8AD90;
   --on-accent: #FFFFFF;
   --danger: #B3261E;
-  --danger-tint: #FBEAE8;
   --warning: #8A6400;
   --radius-lg: 14px;
   --radius-md: 8px;
 }
 
 body.dark {
+  /* 同上，跟 index.html 的 <meta name="theme-color"> 與 js/theme.js 手動同步 */
   --bg-page: #1C1D19;
   --surface: #242521;
   --surface-tint: #2A2B25;
@@ -33,7 +35,7 @@ body.dark {
      一層更淡、還能過 AA 的第三層文字色，寧可少一層層次也不要犧牲正確性。 */
   --ink-faint: #A3A69B;
   --border: #34362E;
-  --border-strong: #6E7062;
+  --border-strong: #7D8070;
   --accent: #7C8D5C;
   /* 深色模式下 --accent 當「按鈕底色」配 --on-accent 沒問題，但直接當文字/連結
      顏色時對比不夠，--accent-text 專門給純文字/連結用，亮一階確保可讀性
@@ -43,7 +45,6 @@ body.dark {
   --accent-border: #4A5138;
   --on-accent: #14150F;
   --danger: #E68278;
-  --danger-tint: #3A2420;
   /* 警示色刻意跟品牌重點色用不同色相（琥珀黃 vs 橄欖綠），避免「這是警告」
      跟「這是主題色」混在一起看不出來。 */
   --warning: #B98900;
@@ -290,6 +291,10 @@ body {
   font-size: 13px;
 }
 .btn-ghost:hover { background: var(--accent-tint); }
+@media (max-width: 480px) {
+  /* 觸控目標高度撐到 Apple HIG 建議的 ≥44px（原本 37px 偏小） */
+  .btn-ghost { min-height: 44px; padding: 10px 14px; }
+}
 .input-panel > .field { margin-bottom: 18px; }
 
 /* ---------- Stat cards ---------- */
@@ -431,12 +436,13 @@ body {
 .nav-tab.active { color: var(--accent-text); border-bottom-color: var(--accent-text); }
 @media (max-width: 560px) {
   /* 4 個分頁維持等寬（flex:1），只縮小內距跟字級讓最長的「過往資料參考」
-     也能在自己的欄位裡完整顯示，不用切成不等寬、也不用橫向滑動 */
-  .nav-tab { padding: 10px 8px; font-size: 12.5px; }
+     也能在自己的欄位裡完整顯示，不用切成不等寬、也不用橫向滑動；
+     min-height 撐住觸控目標高度（Apple HIG 建議 ≥44px） */
+  .nav-tab { padding: 10px 8px; font-size: 12.5px; min-height: 44px; }
 }
 @media (max-width: 420px) {
   .nav-tabs { gap: 2px; }
-  .nav-tab { padding: 10px 4px; font-size: 11.5px; }
+  .nav-tab { padding: 10px 4px; font-size: 11.5px; min-height: 44px; }
 }
 
 /* ---------- Two/three column field grid ---------- */
@@ -449,6 +455,7 @@ body {
 /* ---------- Timer ---------- */
 .timer-presets { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
 .timer-preset { font-size: 13px; padding: 12px 16px; width: 64px; }
+.timer-preset.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .timer-custom-field {
   display: flex;
   align-items: center;
@@ -586,8 +593,10 @@ body {
   padding: 20px;
   margin-bottom: 20px;
 }
-.cm-form-actions { display: flex; gap: 10px; align-items: center; margin-top: 4px; }
+.cm-form-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
+#cmCancelBtn { white-space: nowrap; flex-shrink: 0; }
 .cm-msg { font-size: 13px; }
+.cm-msg:not(:empty) { flex-basis: 100%; }
 .cm-msg.ok { color: var(--accent-text); font-weight: 700; }
 .cm-msg.err { color: var(--danger); font-weight: 700; }
 .cm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }

@@ -114,13 +114,18 @@
     // 打的數字沒被採用，這裡把原因講出來，計算結果本身還是照樣算給他看
     const warnings = [];
     if (els.currentLevel.value.trim() && (currentLevel < 1 || currentLevel > 200)) {
-      warnings.push("目前等級請輸入 1～200 之間的整數");
+      warnings.push("目前等級請輸入 1~200 之間的整數");
     }
     if (els.targetLevel.value.trim() && (targetLevel < 1 || targetLevel > 200)) {
-      warnings.push("目標等級請輸入 1～200 之間的整數");
+      warnings.push("目標等級請輸入 1~200 之間的整數");
     }
     if (els.customMult.value.trim() && parseFloat(els.customMult.value) <= 0) {
       warnings.push("自訂倍率需大於 0，已暫時以 1x 計算");
+    }
+    // 打錯字（例如打了看不懂的字元）跟「沒填」原本都會落到同一個「尚無效率資料」，
+    // 使用者不知道自己的輸入被拒絕了；這裡跟 EXP 測速一樣明講出來
+    if (els.expPer10Min.value.trim() && isNaN(MapleCalculator.parseExpVal(els.expPer10Min.value))) {
+      warnings.push("看不懂「每10分鐘經驗」這個數值，請輸入數字或用 W 代表萬（例如 5W 或 50000）");
     }
     els.inputWarningHint.hidden = warnings.length === 0;
     els.inputWarningHint.textContent = warnings.join("；");
@@ -203,13 +208,22 @@
 
   els.shareBtn.addEventListener("click", async () => {
     const url = buildShareUrl();
+    let copied = true;
     try {
       await navigator.clipboard.writeText(url);
     } catch {
+      // clipboard API 失敗時退回 prompt 讓使用者手動複製；這種情況下連結
+      // 不是自動被複製的，不能沿用「已複製連結！」那句文字，不然使用者
+      // 以為已經複製好了，直接貼出去會是空白
+      copied = false;
       prompt("複製這個連結分享給朋友：", url);
     }
+    els.shareHint.textContent = copied ? SHARE_HINT_DEFAULT : "請從跳出視窗手動複製連結";
     els.shareHint.hidden = false;
-    setTimeout(() => (els.shareHint.hidden = true), 3000);
+    setTimeout(() => {
+      els.shareHint.hidden = true;
+      els.shareHint.textContent = SHARE_HINT_DEFAULT;
+    }, 3000);
   });
 
   // Threads/LINE 只是打開對方的分享對話框讓使用者自己送出，
