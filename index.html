@@ -316,7 +316,7 @@
       <h2>攻擊力計算</h2>
       <button class="btn btn-ghost" id="clearAttackBtn" type="button">✕ 清除</button>
     </div>
-    <p class="cm-disclaimer">這裡算的是舊楓之谷（Big Bang 大改版前）角色資訊視窗「攻擊力」欄位的舊制公式，物理攻擊（劍士／弓箭手／盜賊／海盜系）的公式跟武器係數已對照巴哈姆特舊制討論串、PTT 楓之谷板等多個獨立來源交叉核對，數字一致。法師的魔法攻擊力比較特殊，查到的公式版本彼此有衝突，這裡只算魔攻基礎值，沒有套用範圍公式，數字僅供參考，等封測資料出來後再校正。</p>
+    <p class="cm-disclaimer">這裡算的是舊楓之谷（Big Bang 大改版前）角色資訊視窗「攻擊力」欄位的舊制公式。物理攻擊（劍士／弓箭手／盜賊／海盜系）的公式跟武器係數已對照巴哈姆特舊制討論串、PTT 楓之谷板等多個獨立來源交叉核對，數字一致。法師的魔法攻擊力採用巴哈姆特新楓之谷哈啦板 2008 年（大改版前）文章公佈的公式，同樣是台版舊制資料。</p>
 
     <div class="field-grid two-col">
       <label class="field">
@@ -347,10 +347,40 @@
       </label>
 
       <label class="field" id="attackMasteryField">
-        <span>熟練度 %（技能視窗顯示的數字，直接輸入）</span>
+        <span id="attackMasteryLabel">熟練度 %（技能視窗顯示的數字，直接輸入）</span>
         <input type="number" id="attackMastery" min="0" max="100" value="10">
       </label>
+
+      <label class="field" id="attackSkillPctField" hidden>
+        <span>技能攻擊力 %（技能說明上的數字，例如暴風雪滿級 520）</span>
+        <input type="number" id="attackSkillPct" min="0" placeholder="例：520">
+      </label>
+      <label class="field" id="attackMonsterMdefField" hidden>
+        <span>怪物魔防（沒有特定目標可留空，當 0 算）</span>
+        <input type="number" id="attackMonsterMdef" min="0" placeholder="例：550">
+      </label>
     </div>
+
+    <div class="field-grid three-col" id="attackMagicBonusRow" hidden>
+      <label class="field-inline">
+        <input type="checkbox" id="attackElemBonus">
+        <span>屬性相剋加成（150%）</span>
+      </label>
+      <label class="field-inline">
+        <input type="checkbox" id="attackManaBoost">
+        <span>魔力激發（135%）</span>
+      </label>
+      <label class="field">
+        <span>屬性杖加成</span>
+        <select id="attackStaffMatch">
+          <option value="1">無</option>
+          <option value="1.25">屬性全符合（125%）</option>
+          <option value="1.1">屬性部分符合（110%）</option>
+          <option value="0.75">屬性不符合（75%）</option>
+        </select>
+      </label>
+    </div>
+
     <p class="exp-rate-hint" id="attackMasteryHint">1轉熟練技能基礎 10%，滿級（Lv.20）約 60%；4轉「達人」系技能可以再往上加，實際數字請照自己技能視窗顯示的熟練度輸入。</p>
 
     <div class="stat-grid">

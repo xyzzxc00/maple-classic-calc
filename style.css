@@ -239,6 +239,21 @@ body {
   outline-offset: 1px;
   border-color: var(--accent);
 }
+.field-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-weight: 500;
+  cursor: pointer;
+}
+.field-inline input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
 /* 自訂倍率生效時要有跟 mult-btn.active 一致的視覺語言，
    不然打了自訂數字之後五個預設按鈕全部變回未選取，看起來像沒生效 */
 #customMult.mult-custom-active {
