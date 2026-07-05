@@ -153,7 +153,7 @@
   <section class="panel calc-panel">
     <div class="panel-head">
       <h2>計算工具</h2>
-      <span class="badge">經驗值試算</span>
+      <span class="badge">練等／卷軸試算</span>
     </div>
 
     <div class="subtabs" role="tablist">
@@ -221,6 +221,7 @@
     <p class="input-warning-hint" id="inputWarningHint" hidden></p>
   </section>
 
+  <div class="calc-row-2col">
   <section class="calc-section result-panel" id="resultPanel" aria-live="polite">
     <h2>計算結果</h2>
 
@@ -262,6 +263,7 @@
     <p class="share-hint" id="shareHint" hidden>已複製連結！貼給朋友就能看到一樣的計算結果</p>
   </section>
 
+  <div class="calc-col-stack">
   <section class="calc-section timer-panel">
     <div class="panel-head">
       <h2>倒數計時器</h2>
@@ -296,7 +298,7 @@
       <h2>EXP 測速</h2>
       <button class="btn btn-ghost" id="clearTrackerBtn" type="button">✕ 清除</button>
     </div>
-    <div class="field-grid two-col">
+    <div class="field-grid one-col">
       <label class="field">
         <span>測試前經驗值</span>
         <input type="text" id="expBefore" placeholder="例：185W 或 1850000" inputmode="decimal">
@@ -316,6 +318,8 @@
     </div>
     <p class="exp-rate-hint" id="expRateHint">輸入前後經驗值後自動計算速率（測試時長以倒數計時器經過的時間為準，沒開計時器則用上面設定的分鐘數）</p>
   </section>
+  </div>
+  </div>
 
     </div>
 
