@@ -743,7 +743,7 @@ body {
 .spots-add-btn { width: 100%; margin-top: 16px; }
 
 /* ---------- Legacy spots (舊版資料參考) ---------- */
-#legacySpotsList { display: flex; flex-direction: column; gap: 10px; }
+#legacySpotsList, #legacyBossPrequestList { display: flex; flex-direction: column; gap: 10px; }
 .legacy-spot-card {
   background: var(--surface);
   border: 1px solid var(--border-strong);
@@ -767,6 +767,37 @@ body {
 .legacy-entry-locations { font-size: 13px; color: var(--ink-soft); margin-top: 2px; line-height: 1.6; }
 .legacy-entry-respawn { font-size: 12px; color: var(--accent-text); margin-top: 4px; }
 .legacy-spot-note { font-size: 12px; color: var(--ink-soft); margin-top: 8px; }
+
+/* ---------- Boss prequests (BOSS前置) ---------- */
+.boss-prequest-level { font-size: 13px; color: var(--ink-soft); font-weight: 500; margin-bottom: 10px; }
+.boss-prequest-steps { list-style: none; margin: 0; padding: 0; counter-reset: boss-prequest-step; }
+.boss-prequest-step {
+  counter-increment: boss-prequest-step;
+  padding: 10px 0 10px 28px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.boss-prequest-step:last-child { border-bottom: none; padding-bottom: 0; }
+.boss-prequest-step:first-child { padding-top: 0; }
+.boss-prequest-step::before {
+  content: counter(boss-prequest-step);
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent-tint);
+  color: var(--accent-text);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.boss-prequest-step:first-child::before { top: 0; }
+.boss-prequest-step-title { font-weight: 700; color: var(--ink); font-size: 14px; }
+.boss-prequest-step-desc { font-size: 13px; color: var(--ink-soft); margin-top: 4px; line-height: 1.6; }
 
 .subtabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
 .subtab {

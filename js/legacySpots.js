@@ -29,36 +29,57 @@
     bossList.innerHTML = `<div class="legacy-spot-card">${(window.MapleLegacyBosses || []).map(renderEntry).join("")}</div>`;
   }
 
+  function renderPrequest(p) {
+    return `<div class="legacy-spot-card">
+      <div class="legacy-spot-level">${p.boss}</div>
+      <div class="boss-prequest-level">${p.levelReq}</div>
+      <ol class="boss-prequest-steps">
+        ${p.steps
+          .map(
+            (s) => `<li class="boss-prequest-step">
+              <div class="boss-prequest-step-title">${s.title}</div>
+              <div class="boss-prequest-step-desc">${s.desc}</div>
+            </li>`
+          )
+          .join("")}
+      </ol>
+      ${p.note ? `<div class="legacy-spot-note">${p.note}</div>` : ""}
+    </div>`;
+  }
+
+  const bossPrequestList = document.getElementById("legacyBossPrequestList");
+  if (bossPrequestList) {
+    bossPrequestList.innerHTML = (window.MapleLegacyBossPrequests || []).map(renderPrequest).join("");
+  }
+
   const subSpotsBtn = document.getElementById("legacySubSpots");
   const subBossesBtn = document.getElementById("legacySubBosses");
+  const subBossPrequestsBtn = document.getElementById("legacySubBossPrequests");
   const spotsView = document.getElementById("legacySpotsView");
   const bossView = document.getElementById("legacyBossView");
-  if (!subSpotsBtn || !subBossesBtn || !spotsView || !bossView) return;
+  const bossPrequestView = document.getElementById("legacyBossPrequestView");
+  if (!subSpotsBtn || !subBossesBtn || !subBossPrequestsBtn || !spotsView || !bossView || !bossPrequestView) return;
 
   const STORAGE_KEY = "maple_classic_legacy_subtab";
 
-  function showSpots(skipSave) {
-    spotsView.hidden = false;
-    bossView.hidden = true;
-    subSpotsBtn.classList.add("active");
-    subBossesBtn.classList.remove("active");
-    subSpotsBtn.setAttribute("aria-selected", "true");
-    subBossesBtn.setAttribute("aria-selected", "false");
-    if (!skipSave) localStorage.setItem(STORAGE_KEY, "spots");
+  const tabs = [
+    { btn: subSpotsBtn, view: spotsView, key: "spots" },
+    { btn: subBossesBtn, view: bossView, key: "bosses" },
+    { btn: subBossPrequestsBtn, view: bossPrequestView, key: "bossPrequests" },
+  ];
+
+  function showTab(key, skipSave) {
+    tabs.forEach((t) => {
+      const active = t.key === key;
+      t.view.hidden = !active;
+      t.btn.classList.toggle("active", active);
+      t.btn.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    if (!skipSave) localStorage.setItem(STORAGE_KEY, key);
   }
 
-  function showBosses(skipSave) {
-    spotsView.hidden = true;
-    bossView.hidden = false;
-    subSpotsBtn.classList.remove("active");
-    subBossesBtn.classList.add("active");
-    subSpotsBtn.setAttribute("aria-selected", "false");
-    subBossesBtn.setAttribute("aria-selected", "true");
-    if (!skipSave) localStorage.setItem(STORAGE_KEY, "bosses");
-  }
+  tabs.forEach((t) => t.btn.addEventListener("click", () => showTab(t.key)));
 
-  subSpotsBtn.addEventListener("click", () => showSpots());
-  subBossesBtn.addEventListener("click", () => showBosses());
-
-  if (localStorage.getItem(STORAGE_KEY) === "bosses") showBosses(true);
+  const savedTab = localStorage.getItem(STORAGE_KEY);
+  if (tabs.some((t) => t.key === savedTab)) showTab(savedTab, true);
 })();
