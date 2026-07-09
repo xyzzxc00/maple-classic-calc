@@ -66,11 +66,14 @@
     const records = fJob ? allRecords.filter((r) => r.job === fJob) : allRecords;
 
     if (!records.length) {
-      // 讀取真的失敗（網路/App Check 問題）跟「還沒人回報」是兩回事，
-      // 不然使用者遇到問題時只會看到「還沒人回報」，以為是正常狀態
+      // 三種空狀態要分開講：讀取失敗（網路/App Check 問題）、選了職業但該職業
+      // 沒人回報過（allRecords 有資料）、整個資料庫真的是空的。混成同一句
+      // 「還沒人回報」的話，前兩種情況使用者會誤以為整個資料庫是空的
       els.list.innerHTML = window.MapleCommunity.hasLoadFailed()
         ? '<p class="cm-empty">載入失敗，請重新整理頁面</p>'
-        : '<p class="cm-empty">目前還沒有玩家回報練功地點。遊戲上線後，去「回報紀錄」子分頁回報，這裡就會自動整理出建議。</p>';
+        : allRecords.length
+          ? '<p class="cm-empty">這個職業目前還沒有練功地點回報，可以切換其他職業看看，或到「回報紀錄」子分頁貢獻第一筆！</p>'
+          : '<p class="cm-empty">目前還沒有玩家回報練功地點。遊戲上線後，去「回報紀錄」子分頁回報，這裡就會自動整理出建議。</p>';
       els.pagination.innerHTML = "";
       return;
     }

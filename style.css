@@ -14,6 +14,9 @@
   --border: #E3E1D7;
   --border-strong: #78765F;
   --accent: #5C6640;
+  /* hover/active 的按壓態用「深一階實色」而不是整顆按鈕降 opacity：
+     opacity 會把文字對比一起稀釋到 AA 以下（實算 #FFF on hover 態 7.75:1）。 */
+  --accent-hover: #4E5636;
   --accent-text: var(--accent);
   --accent-tint: #ECEEE1;
   --accent-border: #A8AD90;
@@ -37,6 +40,9 @@ body.dark {
   --border: #34362E;
   --border-strong: #7D8070;
   --accent: #7C8D5C;
+  /* 深色的 hover 態要「亮」一階（深色文字 --on-accent 對亮底才有更多對比，
+     實算 #14150F on hover 態 6.10:1）。 */
+  --accent-hover: #8A9B6A;
   /* 深色模式下 --accent 當「按鈕底色」配 --on-accent 沒問題，但直接當文字/連結
      顏色時對比不夠，--accent-text 專門給純文字/連結用，亮一階確保可讀性
      （在 --accent-tint 上約 6.8:1）。 */
@@ -111,10 +117,10 @@ body {
   background: var(--accent);
   padding: 13px 30px;
   border-radius: var(--radius-md);
-  transition: opacity 0.15s;
+  transition: background 0.15s;
 }
-.prereg-btn:hover { opacity: 0.88; }
-.prereg-btn:active { opacity: 0.75; }
+.prereg-btn:hover,
+.prereg-btn:active { background: var(--accent-hover); }
 .prereg-hint {
   font-size: 13px;
   color: var(--ink-soft);
@@ -297,7 +303,8 @@ body {
   padding: 11px 18px;
   transition: opacity 0.15s, background 0.15s;
 }
-.btn:active { opacity: 0.8; }
+.btn-primary:active { background: var(--accent-hover); }
+.btn-ghost:active { background: var(--accent-tint); }
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -927,9 +934,10 @@ body {
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
-  padding: 7px 16px;
+  /* 觸控目標 ≥40px 高（原 7px padding 只有 35px，手機易誤觸） */
+  padding: 11px 18px;
   border-radius: 999px;
-  transition: background 0.15s, opacity 0.15s;
+  transition: background 0.15s;
 }
 .donate-link:hover { background: var(--accent-tint); }
 .feedback-link {
@@ -937,9 +945,19 @@ body {
   background: var(--accent);
   border-color: var(--accent);
 }
-.feedback-link:hover { opacity: 0.85; }
+.feedback-link:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
 .footer-contact { font-size: 12px; margin: 0; }
-.footer-contact a { color: var(--ink-soft); text-decoration: underline; }
+/* 內文連結用 padding + 負 margin 把觸控範圍撐到 ≥40px 高，版面行距不變 */
+.footer-contact a {
+  color: var(--ink-soft);
+  text-decoration: underline;
+  display: inline-block;
+  padding: 12px 6px;
+  margin: -11px -4px;
+}
 .footer-contact a:hover { color: var(--ink); }
 .footer-note { font-size: 12px; line-height: 1.6; margin: 0 auto; max-width: 480px; }
 @media (max-width: 480px) {

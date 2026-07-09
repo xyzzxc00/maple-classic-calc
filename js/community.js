@@ -13,7 +13,8 @@
 
   const PAGE_SIZE = 50;
   const VOTED_KEY = "maple_classic_voted";
-  // 遊戲上線後改成 true 即可開放回報（同時記得把 firestore.rules 的 allow create 改回驗證版）
+  // 回報功能開關（2026-07 已開放）。改成 false 可暫時關閉回報：入口按鈕會鎖住、
+  // submit 會被擋；真正的防線是 firestore.rules 的 allow create，兩邊要一起改
   const SUBMISSIONS_OPEN = true;
   // 「回報還沒開放」統一用這句，避免同一件事在不同地方各自寫一種措辭
   const SUBMISSIONS_CLOSED_MSG = "遊戲尚未上線，暫不開放回報，敬請期待";
@@ -105,6 +106,11 @@
   // Firestore 端是否還有下一批（50 筆一批）還沒抓進 allRecords
   let hasMoreFromServer = false;
   let currentPage = 1;
+  // 篩選在前端做，篩空時會自動往伺服器補抓下一批；不設上限的話，輸入一個
+  // 不存在的地圖名就等於把整個 collection 抓完（讀取量隨資料成長無上限）。
+  // 上限 10 批 = 最多自動搜最近 500 筆，超過就停下來明講搜了多少
+  const MAX_AUTO_FETCH_ROUNDS = 10;
+  let autoFetchRounds = 0;
 
   function getVotedSet() {
     try { return new Set(JSON.parse(localStorage.getItem(VOTED_KEY)) || []); } catch { return new Set(); }
@@ -283,6 +289,15 @@
       } else if (e && e.code === "unavailable") {
         msg = "連不上資料庫伺服器，請稍後重新整理頁面";
       }
+      // 補抓失敗時別把已經顯示的紀錄整片換成錯誤訊息——保留清單、
+      // 把錯誤放在分頁區；同時關掉 hasMoreFromServer 避免 renderRecords
+      // 又觸發補抓、失敗、再補抓的迴圈
+      if (append && allRecords.length) {
+        hasMoreFromServer = false;
+        renderRecords();
+        els.pagination.innerHTML = `<p class="cm-empty">${msg}</p>`;
+        return;
+      }
       els.list.innerHTML = `<p class="cm-empty">${msg}</p>`;
     }
   }
@@ -312,22 +327,30 @@
       // 已載入的前 50/100/... 筆裡沒有符合條件的紀錄，不代表伺服器上真的沒有——
       // 篩選只在前端做，資料變多後很可能符合條件的紀錄還沒被抓進來，
       // 這裡沒抓過就先別下「沒有符合條件的紀錄」的結論
-      if (hasMoreFromServer) {
+      if (hasMoreFromServer && autoFetchRounds < MAX_AUTO_FETCH_ROUNDS) {
+        autoFetchRounds++;
+        // 補抓期間畫面別停在舊清單或空白，明講正在往更早的紀錄搜
+        els.list.innerHTML = '<p class="cm-loading">在更早的紀錄中搜尋...</p>';
+        els.pagination.innerHTML = "";
         loadRecords(true);
         return;
       }
       // 空資料庫（從沒人回報過）跟「篩選後沒有符合的」是兩種不同狀況，
       // 用同一句「沒有符合條件的紀錄」會讓開服初期的空資料庫看起來像篩選出了問題
-      els.list.innerHTML = allRecords.length
-        ? '<p class="cm-empty">沒有符合條件的紀錄</p>'
-        : '<p class="cm-empty">目前還沒有玩家回報紀錄，遊戲上線後歡迎來分享你的練功效率！</p>';
+      els.list.innerHTML = !allRecords.length
+        ? '<p class="cm-empty">目前還沒有玩家回報紀錄，遊戲上線後歡迎來分享你的練功效率！</p>'
+        : hasMoreFromServer
+          ? `<p class="cm-empty">最近 ${allRecords.length} 筆紀錄中沒有符合條件的，可以放寬條件再試</p>`
+          : '<p class="cm-empty">沒有符合條件的紀錄</p>';
       els.pagination.innerHTML = "";
       return;
     }
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / MaplePagination.PAGE_SIZE));
     // 篩選/排序後已載入的資料不夠撐滿目前頁碼，但 Firestore 那邊還有更多，先補抓再重繪
-    if (currentPage > totalPages && hasMoreFromServer) {
+    if (currentPage > totalPages && hasMoreFromServer && autoFetchRounds < MAX_AUTO_FETCH_ROUNDS) {
+      autoFetchRounds++;
+      els.pagination.innerHTML = '<p class="cm-loading">載入更多紀錄中...</p>';
       loadRecords(true);
       return;
     }
@@ -361,6 +384,8 @@
       page: currentPage,
       onChange: (p) => { currentPage = p; renderRecords(); },
     });
+    // 成功渲染出結果 = 這一輪補抓鏈結束，下一次篩空可以重新往下搜
+    autoFetchRounds = 0;
   }
 
   // 單一委派監聽器（在初始化時綁一次，避免每次 render 疊加）
@@ -398,6 +423,7 @@
 
   function renderRecordsFromStart() {
     currentPage = 1;
+    autoFetchRounds = 0;
     renderRecords();
   }
 
@@ -409,8 +435,15 @@
       renderRecordsFromStart();
     });
   });
+  // 文字/數字欄位打一個字就重繪一次的話，篩空時每個按鍵都可能觸發一輪
+  // 50 筆的 Firestore 補抓（打「不存在的地圖名」的過程中會連抓好幾輪）；
+  // 停手 300ms 再算，中途按鍵只是重設計時
+  let filterDebounce = null;
   [els.filterMap, els.filterLvMin, els.filterLvMax].forEach((el) =>
-    el.addEventListener("input", renderRecordsFromStart)
+    el.addEventListener("input", () => {
+      clearTimeout(filterDebounce);
+      filterDebounce = setTimeout(renderRecordsFromStart, 300);
+    })
   );
 
   // 「建議練功地點」/「回報紀錄」子分頁切換，記住使用者上次選的分頁

@@ -83,6 +83,14 @@
     renderTimer();
   }
 
+  // 計時中 setTimerLength 會直接 return，但按鈕的 active 樣式以前照樣切換，
+  // 使用者會以為改成功了；乾脆在計時中把整組時長控制項 disable，
+  // 視覺（.btn:disabled 變淡）跟行為一致
+  function setLengthControlsEnabled(enabled) {
+    els.presets.forEach((b) => (b.disabled = !enabled));
+    els.customMin.disabled = !enabled;
+  }
+
   els.presets.forEach((btn) => {
     btn.addEventListener("click", () => {
       els.presets.forEach((b) => b.classList.remove("active"));
@@ -116,6 +124,7 @@
     if (timerLeft <= 0) {
       timerRunning = false;
       clearInterval(timerInterval);
+      setLengthControlsEnabled(true);
       els.startBtn.textContent = "重新開始";
       els.label.textContent = "時間到！";
       els.display.classList.add("timer-done-flash");
@@ -138,6 +147,7 @@
       // 暫停時先跟時間戳對齊一次，避免顯示停在半秒前的狀態
       timerLeft = Math.max(0, Math.round((timerEndAt - Date.now()) / 1000));
       timerElapsed = timerTotal - timerLeft;
+      setLengthControlsEnabled(true);
       els.startBtn.textContent = "繼續";
       els.label.textContent = "已暫停";
     } else {
@@ -147,6 +157,7 @@
       }
       timerRunning = true;
       timerEndAt = Date.now() + timerLeft * 1000;
+      setLengthControlsEnabled(false);
       els.startBtn.textContent = "暫停";
       timerInterval = setInterval(timerTick, 500);
     }
@@ -160,6 +171,7 @@
   els.resetBtn.addEventListener("click", () => {
     timerRunning = false;
     clearInterval(timerInterval);
+    setLengthControlsEnabled(true);
     timerLeft = timerTotal;
     timerElapsed = 0;
     els.startBtn.textContent = "開始";
@@ -261,19 +273,20 @@
 
   els.applyToCmBtn.addEventListener("click", () => {
     if (!lastExpPerMin) return;
-    // 回報還沒開放時，表單不會打開，這裡先給訊息再切分頁，
-    // 不然使用者點了按鈕、切過去卻什麼事都沒發生，會以為壞了
-    if (window.MapleCommunity && !window.MapleCommunity.isSubmissionsOpen()) {
-      window.MapleNav.switchNav("cm");
-      const msgEl = document.getElementById("cmMsg");
-      if (msgEl) {
-        msgEl.textContent = window.MapleCommunity.submissionsClosedMsg;
-        msgEl.className = "cm-msg err";
-      }
+    window.MapleNav.switchNav("cm");
+    if (!window.MapleCommunity) return;
+    // 社群分頁可能停在「建議練功地點」子分頁，表單在隱藏的「回報紀錄」裡；
+    // 不先切子分頁的話 openForm 的 scrollIntoView/focus 都對隱藏元素無效，
+    // 使用者按了按鈕會以為壞了（spots.js 的回報按鈕就是這樣做的）
+    window.MapleCommunity.showRecordsTab();
+    // 回報還沒開放時表單（連同 #cmMsg）是隱藏的，訊息寫進去也看不到；
+    // 改成捲到寫著「遊戲上線後開放回報」的入口按鈕，讓使用者看得到原因
+    if (!window.MapleCommunity.isSubmissionsOpen()) {
+      const addBtn = document.getElementById("cmAddBtn");
+      if (addBtn) addBtn.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-    window.MapleNav.switchNav("cm");
-    if (window.MapleCommunity) window.MapleCommunity.openFormWithExpPer10Min(Math.round(lastExpPerMin * 10));
+    window.MapleCommunity.openFormWithExpPer10Min(Math.round(lastExpPerMin * 10));
   });
 
   renderTimer();
