@@ -19,7 +19,9 @@
   --accent-hover: #4E5636;
   --accent-text: var(--accent);
   --accent-tint: #ECEEE1;
-  --accent-border: #A8AD90;
+  /* 原本 #A8AD90 在 --accent-tint 上只有 1.98:1，強調框（.notice-banner 等）
+     看起來不夠明顯；加深一階到 3.42:1，維持同色相不改變視覺調性 */
+  --accent-border: #7C8262;
   --on-accent: #FFFFFF;
   --danger: #B3261E;
   --warning: #8A6400;
@@ -48,7 +50,8 @@ body.dark {
      （在 --accent-tint 上約 6.8:1）。 */
   --accent-text: #A8BB82;
   --accent-tint: #2B2E22;
-  --accent-border: #4A5138;
+  /* 同上，原本 #4A5138 在 --accent-tint 上只有 1.67:1，加亮到 3.31:1 */
+  --accent-border: #758061;
   --on-accent: #14150F;
   --danger: #E68278;
   /* 警示色刻意跟品牌重點色用不同色相（琥珀黃 vs 橄欖綠），避免「這是警告」
@@ -455,6 +458,23 @@ body {
   color: var(--accent-text);
   font-weight: 700;
   margin: 10px 0 0;
+}
+
+/* 分享連結複製失敗時的手動複製退路：取代原生 prompt()，用可選取的文字框
+   取代跳出視窗，風格才能跟其他狀態提示（.cm-msg 等）一致 */
+.share-url-fallback {
+  display: block;
+  margin-top: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 400;
+  font-size: 12px;
+  word-break: break-all;
+  user-select: all;
+  -webkit-user-select: all;
 }
 
 /* ---------- Nav tabs ---------- */

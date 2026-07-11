@@ -26,6 +26,7 @@
     applyExpRateBtn: document.getElementById("applyExpRateBtn"),
     applyToCmBtn: document.getElementById("applyToCmBtn"),
     clearTrackerBtn: document.getElementById("clearTrackerBtn"),
+    notifyHint: document.getElementById("timerNotifyHint"),
   };
 
   let audioCtx = null;
@@ -139,7 +140,14 @@
     getAudioCtx(); // 在使用者點擊時初始化，iOS 需要這樣才能播聲音
     // 通知權限也在使用者手勢中請求（避免一進站就跳權限、被瀏覽器懲罰）
     if (window.Notification && Notification.permission === "default") {
-      Notification.requestPermission();
+      Notification.requestPermission().then((result) => {
+        // 使用者剛拒絕：明確告知「時間到」還是有用，但只剩頁內閃爍/音效這條路，
+        // 不然使用者會以為通知會照樣跳出來，切分頁切太遠時完全不知道時間到了
+        if (result === "denied") els.notifyHint.hidden = false;
+      });
+    } else if (window.Notification && Notification.permission === "denied") {
+      // 之前就已經拒絕過（例如上次來訪時），同樣要提醒，不是只有剛拒絕的當下才提示
+      els.notifyHint.hidden = false;
     }
     if (timerRunning) {
       timerRunning = false;

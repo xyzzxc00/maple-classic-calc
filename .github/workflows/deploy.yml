@@ -36,7 +36,17 @@ jobs:
           credentials_json: ${{ secrets.FIRESTORE_SERVICE_ACCOUNT }}
 
       - name: Deploy Firestore rules
+        id: rules-deploy
         run: npx firebase-tools@14 deploy --only firestore:rules --project maple-classic-calc
+        continue-on-error: true
+
+      # firebase-tools 部署規則偶爾也會遇到瞬斷，跟下面 Pages 部署一樣的重試模式：
+      # 失敗不要讓整個 run 掛掉（規則沒變的話網站其實還是能正常部署），先重試一次再說
+      - name: Retry deploy Firestore rules
+        if: steps.rules-deploy.outcome == 'failure'
+        run: |
+          sleep 15
+          npx firebase-tools@14 deploy --only firestore:rules --project maple-classic-calc
 
       - name: Cache global npm tools
         uses: actions/cache@v4

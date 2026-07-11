@@ -11,7 +11,7 @@
   gtag('js', new Date());
   gtag('config', 'G-PC7RFW707Y');
 </script>
-<title>新楓之谷經典版 練等 × 社群工具｜經驗值試算 / 練功地點 / 職業介紹</title>
+<title>新楓之谷經典版 練等 × 社群工具｜經驗值試算 / 練功地點</title>
 <meta name="description" content="新楓之谷經典版練等計算機，事前預約開跑中！輸入目前等級試算升級所需經驗值與時間，內附加倍卷試算、計時器、EXP測速、社群練功地點資料庫。">
 <meta name="theme-color" content="#F6F5F1" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1C1D19" media="(prefers-color-scheme: dark)">
@@ -20,7 +20,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://xyzzxc00.github.io/maple-classic-calc/">
-<meta property="og:image" content="https://xyzzxc00.github.io/maple-classic-calc/og-image.png?v=6">
+<meta property="og:image" content="https://xyzzxc00.github.io/maple-classic-calc/og-image.png?v=7">
 <meta property="og:image:width" content="2400">
 <meta property="og:image:height" content="1260">
 <meta property="og:title" content="新楓之谷經典版 練等 × 社群工具">
@@ -28,7 +28,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="新楓之谷經典版 練等 × 社群工具">
 <meta name="twitter:description" content="事前預約開跑中！輸入目前等級，馬上知道升級還差多少經驗、大概要練多久。附加倍卷試算、計時器、社群練功地點資料庫。">
-<meta name="twitter:image" content="https://xyzzxc00.github.io/maple-classic-calc/og-image.png?v=6">
+<meta name="twitter:image" content="https://xyzzxc00.github.io/maple-classic-calc/og-image.png?v=7">
 <meta name="author" content="xyzzxc00">
 <meta name="keywords" content="新楓之谷經典版,練等計算機,楓之谷經典版,MapleStory Classic,經驗值計算,升級時間,加倍卷,練功地點,職業介紹,台版楓之谷經典服">
 <link rel="canonical" href="https://xyzzxc00.github.io/maple-classic-calc/">
@@ -291,6 +291,7 @@
       <button class="btn btn-primary" id="timerStartBtn" type="button">開始</button>
       <button class="btn btn-ghost" id="timerResetBtn" type="button">重置</button>
     </div>
+    <p class="input-warning-hint" id="timerNotifyHint" hidden>瀏覽器通知權限被拒絕，時間到只會用頁內閃爍和音效提醒，記得別把分頁切太遠</p>
   </section>
 
   <section class="calc-section exp-tracker-panel">
@@ -413,7 +414,7 @@
   <section class="panel scroll-panel">
     <div class="panel-head">
       <h2>卷軸強化模擬</h2>
-      <button class="btn btn-ghost" id="clearScrollBtn" type="button">✕ 全部重置</button>
+      <button class="btn btn-ghost" id="clearScrollBtn" type="button">✕ 清除</button>
     </div>
     <p class="cm-disclaimer">「失敗報廢張數」＝一件新裝備開局後，如果最前面連續 X 張全部失敗（中途只要捲到 1 張成功就不會放棄），就當這件報廢、直接換新裝備重來；預設等於裝備衝捲數（等於不主動放棄）。不含裝備爆炸機制（有搭配保護卷軸的話，把保護卷的成本自己加進卷軸單價裡就好）。實際成功率請照自己遊戲內卷軸說明為準。</p>
 

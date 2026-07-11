@@ -213,18 +213,36 @@
     try {
       await navigator.clipboard.writeText(url);
     } catch {
-      // clipboard API 失敗時退回 prompt 讓使用者手動複製；這種情況下連結
-      // 不是自動被複製的，不能沿用「已複製連結！」那句文字，不然使用者
-      // 以為已經複製好了，直接貼出去會是空白
       copied = false;
-      prompt("複製這個連結分享給朋友：", url);
     }
-    els.shareHint.textContent = copied ? SHARE_HINT_DEFAULT : "請從跳出視窗手動複製連結";
-    els.shareHint.hidden = false;
-    setTimeout(() => {
-      els.shareHint.hidden = true;
+
+    if (copied) {
+      // 成功複製：沿用原本「已複製連結！」，3 秒後自動收起
       els.shareHint.textContent = SHARE_HINT_DEFAULT;
-    }, 3000);
+      els.shareHint.hidden = false;
+      setTimeout(() => {
+        els.shareHint.hidden = true;
+        els.shareHint.textContent = SHARE_HINT_DEFAULT;
+      }, 3000);
+      return;
+    }
+
+    // clipboard API 失敗時，不用原生 prompt()（跟站內其他狀態提示風格不一致），
+    // 改成站內樣式的可選取文字框，並自動選取整段連結，使用者按 Ctrl/Cmd+C 就好。
+    // 這種情況連結不是自動被複製的，所以不能沿用「已複製連結！」文案，也不能
+    // 3 秒後自動收起，不然使用者根本還沒來得及複製就消失了。
+    els.shareHint.textContent = "請手動複製下面的連結：";
+    els.shareHint.hidden = false;
+    const fallback = document.createElement("span");
+    fallback.className = "share-url-fallback";
+    fallback.textContent = url;
+    els.shareHint.appendChild(fallback);
+
+    const range = document.createRange();
+    range.selectNodeContents(fallback);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
   });
 
   // Threads/LINE 只是打開對方的分享對話框讓使用者自己送出，

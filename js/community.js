@@ -18,7 +18,7 @@
   const SUBMISSIONS_OPEN = true;
   // 「回報還沒開放」統一用這句，避免同一件事在不同地方各自寫一種措辭
   const SUBMISSIONS_CLOSED_MSG = "遊戲尚未上線，暫不開放回報，敬請期待";
-  const FB_VERSION = "10.12.2";
+  const FB_VERSION = "10.14.1";
   // App Check（reCAPTCHA v3）網站金鑰 — 公開的、放前端沒問題
   const RECAPTCHA_SITE_KEY = "6Ld6qz4tAAAAAEEUb-X6ZGmRWgrwFif0dG76hbBU";
   const FB_SCRIPTS = [
