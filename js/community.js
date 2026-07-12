@@ -19,8 +19,11 @@
   // 「回報還沒開放」統一用這句，避免同一件事在不同地方各自寫一種措辭
   const SUBMISSIONS_CLOSED_MSG = "遊戲尚未上線，暫不開放回報，敬請期待";
   const FB_VERSION = "10.14.1";
-  // App Check（reCAPTCHA v3）網站金鑰 — 公開的、放前端沒問題
-  const RECAPTCHA_SITE_KEY = "6Lfls08tAAAAAGh03aZlrZqjIBxNJ4ZWz7FGwpxR";
+  // App Check（reCAPTCHA Enterprise）金鑰 — 公開的、放前端沒問題。
+  // 原本用 classic reCAPTCHA v3 一直出現「Invalid reCAPTCHA configuration」
+  // 400 錯誤（換新金鑰、重新綁定專案都沒用），改用 Enterprise 這個 provider，
+  // 因為這個 GCP 專案已經啟用了 reCAPTCHA Enterprise API。
+  const RECAPTCHA_ENTERPRISE_SITE_KEY = "6Lc4bE8tAAAAAGGl0UWtEMePt27pi2FD17L5cPCN";
   const FB_SCRIPTS = [
     `https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-app-compat.js`,
     `https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-app-check-compat.js`,
@@ -51,9 +54,13 @@
           for (const src of FB_SCRIPTS) await loadScript(src);
         }
         firebase.initializeApp(firebaseConfig);
-        // App Check 要在使用其他服務(Firestore)前啟用
+        // App Check 要在使用其他服務(Firestore)前啟用。Enterprise provider
+        // 要包成 ReCaptchaEnterpriseProvider 物件，不能像 v3 那樣直接傳金鑰字串
         try {
-          firebase.appCheck().activate(RECAPTCHA_SITE_KEY, true);
+          firebase.appCheck().activate(
+            new firebase.appCheck.ReCaptchaEnterpriseProvider(RECAPTCHA_ENTERPRISE_SITE_KEY),
+            true
+          );
         } catch (e) {
           // 啟用失敗不阻擋讀取；enforcement 未開時仍可運作，開了才會擋
         }
