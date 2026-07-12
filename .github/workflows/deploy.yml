@@ -22,7 +22,13 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url || steps.deployment-retry.outputs.page_url }}
 
     steps:
+      # fetch-depth: 0（完整歷史）是為了讓下面幫 guides/ 文章戳 dateModified
+      # 那段能用 git log 查到每篇文章「真正」最後一次被改動的日期，而不是
+      # 每次部署都不分青紅皂白蓋成當天——repo 目前才 4.4MB，完整拉取成本
+      # 可忽略不計
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -103,6 +109,17 @@ jobs:
           TODAY=$(date -u +%Y-%m-%d)
           sed -i "s|\"dateModified\": \"[0-9-]*\"|\"dateModified\": \"$TODAY\"|" dist/index.html
           sed -i "s|<lastmod>[0-9-]*</lastmod>|<lastmod>$TODAY</lastmod>|" dist/sitemap.xml
+
+          # guides/ 底下每篇文章各自戳「這篇真正最後一次被 git 改動的日期」，
+          # 不能比照 index.html 整批蓋成當天——那樣沒被這次部署動到的舊文章
+          # 也會被寫成「今天更新」，對 SEO/GEO 反而是誤導的新鮮度訊號
+          for f in guides/*.html; do
+            base=$(basename "$f")
+            last_mod=$(git log -1 --format=%cd --date=short -- "$f")
+            if [ -n "$last_mod" ]; then
+              sed -i "s|\"dateModified\": \"[0-9-]*\"|\"dateModified\": \"$last_mod\"|" "dist/guides/$base"
+            fi
+          done
 
       - uses: actions/configure-pages@v4
 
