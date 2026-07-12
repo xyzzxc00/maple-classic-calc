@@ -42,7 +42,16 @@
   // tabs[saved] 可能因為分頁暫時關閉而點不到，這種情況下不要照 localStorage
   // 的舊紀錄切過去，不然畫面會停在一個使用者找不到分頁按鈕能切走的地方
   const saved = localStorage.getItem(STORAGE_KEY);
-  switchNav(saved && pages[saved] && !tabs[saved].hidden ? saved : "calc");
+  // 網址錨點（例如 guides/ 文章連回來的 index.html#jobs）優先於 localStorage
+  // 的舊紀錄，這樣外部連結才能準確跳到指定分頁，而不是停在使用者上次逛到的地方
+  const hashPage = location.hash.slice(1);
+  const initialPage =
+    hashPage && pages[hashPage] && !tabs[hashPage].hidden
+      ? hashPage
+      : saved && pages[saved] && !tabs[saved].hidden
+      ? saved
+      : "calc";
+  switchNav(initialPage);
 
   // 「練等計算」/「攻擊力計算」/「卷軸強化模擬」子分頁切換
   // （攻擊力計算資料還在核對，先隱藏，見 index.html 上的 hidden 屬性）
