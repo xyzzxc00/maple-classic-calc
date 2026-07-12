@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PC7RFW707Y"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-PC7RFW707Y');
+</script>
+<title>卷軸強化期望值怎麼算？新楓之谷經典版卷軸解析｜練等 × 社群工具</title>
+<meta name="description" content="新楓之谷經典版卷軸強化期望值怎麼算？為什麼提早放棄報廢裝備反而更省錢？這篇用實際數字拆解二項分布計算邏輯，搭配卷軸強化模擬器一起看更清楚。">
+<meta name="theme-color" content="#F6F5F1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1C1D19" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="apple-touch-icon" href="../icon-192.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://xyzzxc00.github.io/maple-classic-calc/guides/scroll-expected-value-guide.html">
+<meta property="og:image" content="https://xyzzxc00.github.io/maple-classic-calc/og-image.png?v=7">
+<meta property="og:title" content="卷軸強化期望值怎麼算？新楓之谷經典版卷軸解析">
+<meta property="og:description" content="為什麼提早放棄報廢裝備反而更省錢？用實際數字拆解卷軸強化的期望值計算邏輯。">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="卷軸強化期望值怎麼算？新楓之谷經典版卷軸解析">
+<meta name="twitter:description" content="為什麼提早放棄報廢裝備反而更省錢？用實際數字拆解卷軸強化的期望值計算邏輯。">
+<meta name="twitter:image" content="https://xyzzxc00.github.io/maple-classic-calc/og-image.png?v=7">
+<meta name="author" content="xyzzxc00">
+<meta name="keywords" content="新楓之谷經典版,卷軸強化,期望值,卷軸機率,強化模擬,MapleStory Classic">
+<link rel="canonical" href="https://xyzzxc00.github.io/maple-classic-calc/guides/scroll-expected-value-guide.html">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "卷軸強化期望值怎麼算？新楓之谷經典版卷軸解析",
+  "description": "為什麼提早放棄報廢裝備反而更省錢？用實際數字拆解卷軸強化的期望值計算邏輯，搭配卷軸強化模擬器一起看更清楚。",
+  "url": "https://xyzzxc00.github.io/maple-classic-calc/guides/scroll-expected-value-guide.html",
+  "inLanguage": "zh-TW",
+  "author": { "@type": "Person", "name": "xyzzxc00" },
+  "publisher": { "@type": "Person", "name": "xyzzxc00" },
+  "datePublished": "2026-07-12",
+  "dateModified": "2026-07-12",
+  "about": {
+    "@type": "Game",
+    "name": "新楓之谷經典版",
+    "description": "由橘子遊戲代理的台版楓之谷經典服，版本以 2007～2008 年 pre-Big Bang 為主，2026 年 7 月起開放事前預約。"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "卷軸強化的成功機率跟裝備的達標機率是同一件事嗎？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "不是。卷軸成功率是「捲一次」成功的機率；裝備達標機率是「捲滿所有衝捲數時，至少成功達到目標次數」的機率，兩者要透過二項分布計算，達標機率通常會比單次成功率低很多。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "為什麼提早放棄報廢的裝備，反而比每次都捲到底更省錢？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "如果前面已經連續失敗太多次，導致剩下的捲數已經不可能達到目標成功次數，繼續捲下去的卷軸錢注定是浪費的。提早報廢、直接換一件新裝備重新開始，統計上能省下這些注定失敗的卷軸支出，長期平均花費會比理論值（完全不放棄）低。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "調低目標成功張數，對機率影響真的有這麼大嗎？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "影響非常大。因為每一次捲軸都是獨立事件，要求「全部命中」跟「大部分命中」的機率差距是指數級的，只要放寬一次容錯，達標機率跟平均需要的裝備數就可能差好幾倍，值得先用計算機試算後再決定要不要衝到全滿。"
+      }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap"></noscript>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<script>
+  (function () {
+    var saved = localStorage.getItem("maple_classic_theme");
+    var isDark = saved
+      ? saved === "dark"
+      : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    if (isDark) document.body.classList.add("dark");
+  })();
+</script>
+
+<button class="theme-toggle" id="themeToggle" type="button">暗色</button>
+
+<header class="site-header">
+  <div class="wrap">
+    <p class="eyebrow">MAPLESTORY · CLASSIC · 攻略文章</p>
+    <p class="title" style="font-size: clamp(22px, 4vw, 32px);">卷軸期望值解析</p>
+    <p class="subtitle">為什麼提早放棄報廢反而更省錢，用數字講給你聽</p>
+  </div>
+</header>
+
+<main>
+<div class="article-wrap">
+  <p class="article-breadcrumb"><a href="../index.html">首頁</a> ／ <a href="index.html">攻略文章</a> ／ 卷軸期望值解析</p>
+
+  <h1 class="article-title">卷軸強化期望值怎麼算？新楓之谷經典版卷軸解析</h1>
+  <p class="article-meta">最後更新：2026/07/12</p>
+
+  <p class="article-lead">卷軸強化是楓幣的無底洞，但「這件裝備到底要準備多少預算」其實可以算出來。這篇拆解<a href="../index.html">卷軸強化模擬</a>工具背後的數學邏輯，包括為什麼提早放棄失敗機率太高的裝備、換一件新的重來，長期反而比硬捲到底更省錢。</p>
+
+  <div class="article-body">
+    <h2>三個關鍵參數</h2>
+    <ul>
+      <li><strong>卷軸成功率</strong>——每捲一次卷軸，成功的機率（例如 60%）</li>
+      <li><strong>裝備衝捲數</strong>——這件裝備總共有幾格可以捲，捲過就不能重捲同一格</li>
+      <li><strong>目標成功張數</strong>——這件裝備至少要成功幾次才算「達標」，可以小於等於衝捲數（不用每格都成功）</li>
+    </ul>
+
+    <h2>達標機率怎麼算：二項分布</h2>
+    <p>每一次捲卷軸都是獨立事件，只有成功或失敗兩種結果，這種「捲 N 次、每次成功機率固定、算至少成功幾次的機率」就是機率課本裡的二項分布。白話來說：把「捲滿所有格數、至少成功達到目標次數」的每一種可能組合的機率都加起來，就是這件裝備的達標機率。</p>
+    <p>舉個例子：卷軸成功率 60%、裝備衝捲數 5 格、目標要求全部 5 格都成功：</p>
+    <div class="article-table-wrap">
+      <table class="article-table">
+        <thead>
+          <tr><th>條件</th><th>算式</th><th>結果</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>5 格全部成功的機率</td><td>0.6⁵</td><td>約 7.8%</td></tr>
+          <tr><td>平均需要幾件裝備才能衝出一件達標</td><td>1 ÷ 7.8%</td><td>約 12.8 件</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>同樣條件下，如果把目標從「5 格全成功」放寬成「5 格裡有 4 格成功就好」，達標機率會跳到約 <strong>33.7%</strong>，平均只要約 <strong>3 件</strong>裝備就衝得出來——差距接近 4 倍。這就是為什麼很多玩家會刻意把目標設得比衝捲數低一點，不強求全滿。</p>
+
+    <h2>為什麼「失敗報廢張數」策略能省錢</h2>
+    <p>假設你設定「如果最前面連續失敗到第 3 張都還沒成功一次，就直接放棄這件、換新的重來」。原因很直覺：如果前面已經連續失敗太多次，導致剩下的格數已經不可能湊到目標成功次數，繼續捲下去的卷軸錢注定是打水漂——不如提早認賠、換一件新裝備，把還沒花的卷軸錢省下來投資在下一件更有機會的裝備上。</p>
+    <p>這也是為什麼<a href="../index.html#calc-scroll">卷軸強化模擬</a>工具會分成「理論值」跟「衝卷模擬」兩部分：</p>
+    <ul>
+      <li><strong>理論值</strong>——假設完全不放棄、每件裝備都捲滿所有格數，算出來的基準參考</li>
+      <li><strong>衝卷模擬</strong>——真的套用你設定的報廢策略跑隨機模擬，因為提早放棄能省下不少卷軸錢，實際花費通常會比理論值低</li>
+    </ul>
+
+    <h2>怎麼用這個邏輯規劃預算</h2>
+    <p>實際規劃的時候，可以照這個順序想：</p>
+    <ol>
+      <li>先設定裝備的衝捲數，跟你能接受的成功率（照卷軸實際標示）</li>
+      <li>試著把「目標成功張數」從全滿慢慢往下調，看達標機率跳升的幅度，抓一個機率跟需求之間你能接受的平衡點</li>
+      <li>設定一個合理的「失敗報廢張數」（不用等到捲滿才放棄，太早的連續失敗通常代表這件裝備氣數已盡）</li>
+      <li>填入裝備價格跟卷軸單價，看預期花費，跟自己的預算對照</li>
+    </ol>
+    <p>把這些數字都填進<a href="../index.html#calc-scroll">卷軸強化模擬</a>工具，理論值可以先抓一個心理準備，衝卷模擬則可以實際跑幾百幾千次看分布，比單純憑感覺猜要準確很多。</p>
+
+    <p class="cm-disclaimer">這篇解說的是卷軸強化背後通用的機率數學（二項分布），跟卷軸機制本身如何設計無關，適用邏輯不會因為版本而改變。實際卷軸成功率、售價等數值仍以遊戲內公告與市場行情為準。</p>
+  </div>
+
+  <div class="article-cta-row">
+    <a class="btn btn-ghost" href="../index.html#calc-scroll">用卷軸強化模擬試算 →</a>
+    <a class="btn btn-ghost" href="index.html">看更多攻略文章 →</a>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <p>非官方工具，數值僅供參考，正式數據以遊戲內公告為準。</p>
+  <div class="footer-cta-row">
+    <a class="guides-link" href="index.html">更多攻略文章</a>
+    <a class="feedback-link" href="https://forms.gle/VnQnL6o9V4nNqshk6" target="_blank" rel="noopener">意見回饋 / 錯誤回報</a>
+    <a class="donate-link" href="https://portaly.cc/xyzzxc00/support" target="_blank" rel="noopener">請站長喝杯飲料</a>
+  </div>
+</footer>
+
+<script defer src="../js/theme.js"></script>
+</body>
+</html>

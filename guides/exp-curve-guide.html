@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-PC7RFW707Y"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-PC7RFW707Y');
+</script>
+<title>經驗值表為什麼後期這麼陡？新楓之谷經典版｜練等 × 社群工具</title>
+<meta name="description" content="新楓之谷經典版 Lv.199 升 200 要 20 億經驗值，為什麼後期經驗值需求感覺呈指數成長？用實際經驗值表數字拆解 50 級後每級穩定成長 5.5% 的複利效果。">
+<meta name="theme-color" content="#F6F5F1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1C1D19" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="apple-touch-icon" href="../icon-192.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://xyzzxc00.github.io/maple-classic-calc/guides/exp-curve-guide.html">
+<meta property="og:image" content="https://xyzzxc00.github.io/maple-classic-calc/og-image.png?v=7">
+<meta property="og:title" content="經驗值表為什麼後期這麼陡？新楓之谷經典版">
+<meta property="og:description" content="Lv.199 升 200 要 20 億經驗值，用實際數字拆解 50 級後每級穩定成長 5.5% 的複利效果。">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="經驗值表為什麼後期這麼陡？新楓之谷經典版">
+<meta name="twitter:description" content="Lv.199 升 200 要 20 億經驗值，用實際數字拆解 50 級後每級穩定成長 5.5% 的複利效果。">
+<meta name="twitter:image" content="https://xyzzxc00.github.io/maple-classic-calc/og-image.png?v=7">
+<meta name="author" content="xyzzxc00">
+<meta name="keywords" content="新楓之谷經典版,經驗值表,經驗曲線,pre-Big Bang,升級所需經驗,MapleStory Classic">
+<link rel="canonical" href="https://xyzzxc00.github.io/maple-classic-calc/guides/exp-curve-guide.html">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "經驗值表為什麼後期這麼陡？新楓之谷經典版",
+  "description": "Lv.199 升 200 要 20 億經驗值，用實際經驗值表數字拆解 50 級後每級穩定成長 5.5% 的複利效果。",
+  "url": "https://xyzzxc00.github.io/maple-classic-calc/guides/exp-curve-guide.html",
+  "inLanguage": "zh-TW",
+  "author": { "@type": "Person", "name": "xyzzxc00" },
+  "publisher": { "@type": "Person", "name": "xyzzxc00" },
+  "datePublished": "2026-07-12",
+  "dateModified": "2026-07-12",
+  "about": {
+    "@type": "Game",
+    "name": "新楓之谷經典版",
+    "description": "由橘子遊戲代理的台版楓之谷經典服，版本以 2007～2008 年 pre-Big Bang 為主，2026 年 7 月起開放事前預約。"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "新楓之谷經典版 Lv.199 升 Lv.200 要多少經驗值？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "依本站採用的舊版楓之谷經驗值表，Lv.199 升 Lv.200 需要約 20.1 億經驗值，是 Lv.1 升 Lv.2 所需經驗值（15 點）的一億倍以上。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "為什麼經驗值需求後期感覺是指數成長？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "從約 Lv.50 開始，每一級所需經驗值幾乎都固定是前一級的 1.055 倍左右（也就是每級多 5.5%）。這個比例本身不大，但 5.5% 的成長率複利延續超過 100 個等級，會產生跟本金翻了非常多倍一樣的效果，所以絕對數字才會在後期看起來像是暴增。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "前期（Lv.1~50）的經驗值成長也是固定比例嗎？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "不是。前期的經驗值需求比較不規則，每級的成長比例落差較大（例如 Lv.10 附近成長比例明顯高於 Lv.30 附近），比較像是為了新手體驗手動調整過的曲線，直到約 Lv.50 之後才穩定收斂成固定比例的複利成長。"
+      }
+    }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap"></noscript>
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+<script>
+  (function () {
+    var saved = localStorage.getItem("maple_classic_theme");
+    var isDark = saved
+      ? saved === "dark"
+      : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    if (isDark) document.body.classList.add("dark");
+  })();
+</script>
+
+<button class="theme-toggle" id="themeToggle" type="button">暗色</button>
+
+<header class="site-header">
+  <div class="wrap">
+    <p class="eyebrow">MAPLESTORY · CLASSIC · 攻略文章</p>
+    <p class="title" style="font-size: clamp(22px, 4vw, 32px);">經驗值曲線解析</p>
+    <p class="subtitle">20 億經驗值不是編出來的，是複利效果</p>
+  </div>
+</header>
+
+<main>
+<div class="article-wrap">
+  <p class="article-breadcrumb"><a href="../index.html">首頁</a> ／ <a href="index.html">攻略文章</a> ／ 經驗值曲線解析</p>
+
+  <h1 class="article-title">經驗值表為什麼後期這麼陡？新楓之谷經典版</h1>
+  <p class="article-meta">最後更新：2026/07/12</p>
+
+  <p class="article-lead">把目前等級跟目標等級填進<a href="../index.html">練等計算機</a>，很多人第一次看到 Lv.199 升 Lv.200 要將近 20 億經驗值都會愣一下——這不是打錯數字，而是舊版楓之谷經驗值表本身的設計。這篇用實際的經驗值表數字，拆解這條曲線後期為什麼長這樣。</p>
+
+  <div class="article-body">
+    <h2>先看實際數字</h2>
+    <p>下面是本站經驗值表裡幾個等級「升下一級」所需的經驗值，取自舊楓之谷（pre-Big Bang）流傳已久的版本：</p>
+    <div class="article-table-wrap">
+      <table class="article-table">
+        <thead>
+          <tr><th>等級</th><th>升下一級所需經驗值</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Lv.1 → 2</td><td>15</td></tr>
+          <tr><td>Lv.10 → 11</td><td>1,716</td></tr>
+          <tr><td>Lv.30 → 31</td><td>95,700（9.6 萬）</td></tr>
+          <tr><td>Lv.50 → 51</td><td>709,716（71 萬）</td></tr>
+          <tr><td>Lv.100 → 101</td><td>10,223,168（1022 萬）</td></tr>
+          <tr><td>Lv.150 → 151</td><td>147,262,175（1.47 億）</td></tr>
+          <tr><td>Lv.199 → 200</td><td>2,011,069,705（20.11 億）</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>從 15 點到 20 億，中間差了超過一億倍。但如果只看「每一級比前一級多要求多少百分比」，會發現完全不同的畫面。</p>
+
+    <h2>關鍵：50 級之後，每級都固定多 5.5%</h2>
+    <p>把每一級所需經驗值拿來跟前一級比，算出成長比例：</p>
+    <div class="article-table-wrap">
+      <table class="article-table">
+        <thead>
+          <tr><th>等級</th><th>比前一級多要求</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Lv.9 → 10</td><td>多 38.2%</td></tr>
+          <tr><td>Lv.29 → 30</td><td>多 14.3%</td></tr>
+          <tr><td>Lv.49 → 50</td><td>多 8.3%</td></tr>
+          <tr><td>Lv.69 → 70</td><td>多 5.5%</td></tr>
+          <tr><td>Lv.99 → 100</td><td>多 5.5%</td></tr>
+          <tr><td>Lv.119 → 120</td><td>多 5.5%</td></tr>
+          <tr><td>Lv.149 → 150</td><td>多 5.5%</td></tr>
+          <tr><td>Lv.198 → 199</td><td>多 5.5%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>從約 Lv.50 開始，這個成長比例幾乎精準鎖定在 <strong>5.5%</strong>，一路維持到 Lv.200 都沒有明顯變化。單看 5.5% 感覺不大，但這是「複利」——每一級都是在前一級已經放大過的基礎上再乘上 1.055，連續乘 100 多次之後，數字會被滾雪球式地推得非常大。這跟銀行定存利率算複利是同一個數學原理，只是這裡的「利率」高很多、「年數」也多很多。</p>
+
+    <h2>前期（Lv.1~50）反而不規則</h2>
+    <p>從上面的表可以看到，Lv.9→10 是多 38.2%，Lv.29→30 掉到 14.3%，Lv.49→50 又降到 8.3%——前期的成長比例並不是固定的，一路在下降、直到 Lv.50 附近才收斂成穩定的 5.5%。這比較像是遊戲設計者刻意調整過新手階段的節奏（早期升級快、有成就感），而不是套一個公式硬算出來的，後期則交給一個穩定的複利公式接手。</p>
+
+    <h2>對規劃練等有什麼幫助</h2>
+    <ul>
+      <li>50 級之前經驗值需求的成長沒有規律，練等節奏會忽快忽慢，不用太在意「怎麼這幾級特別快/特別慢」。</li>
+      <li>50 級之後每級穩定多 5.5%，代表越到後期，同樣的加倍卷或效率提升，省下的「絕對經驗值」越可觀——這也是為什麼多數玩家會把加倍卷留到練等後期再集中使用。</li>
+      <li>規劃長期練等進度時，與其死記每一級的數字，不如記住「50 級後大約每級多 5.5%」這個規律，抓大概的量級就好，實際數字直接交給<a href="../index.html">練等計算機</a>算。</li>
+    </ul>
+
+    <p class="cm-disclaimer">本文數字取自本站採用的舊版楓之谷（pre-Big Bang）經驗值表，跟海外「MapleStory Classic Worlds」官方頁面比對 Lv.1~49 一致，但台版新楓之谷經典版尚未正式上線，實際數值仍可能與官方公告或封測結果有些微差異，正式資料出來後會校正並同步更新這篇文章的數字。</p>
+  </div>
+
+  <div class="article-cta-row">
+    <a class="btn btn-ghost" href="../index.html">用練等計算機試算 →</a>
+    <a class="btn btn-ghost" href="index.html">看更多攻略文章 →</a>
+  </div>
+</div>
+</main>
+
+<footer class="site-footer">
+  <p>非官方工具，數值僅供參考，正式數據以遊戲內公告為準。</p>
+  <div class="footer-cta-row">
+    <a class="guides-link" href="index.html">更多攻略文章</a>
+    <a class="feedback-link" href="https://forms.gle/VnQnL6o9V4nNqshk6" target="_blank" rel="noopener">意見回饋 / 錯誤回報</a>
+    <a class="donate-link" href="https://portaly.cc/xyzzxc00/support" target="_blank" rel="noopener">請站長喝杯飲料</a>
+  </div>
+</footer>
+
+<script defer src="../js/theme.js"></script>
+</body>
+</html>

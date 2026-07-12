@@ -42,12 +42,13 @@
   // tabs[saved] 可能因為分頁暫時關閉而點不到，這種情況下不要照 localStorage
   // 的舊紀錄切過去，不然畫面會停在一個使用者找不到分頁按鈕能切走的地方
   const saved = localStorage.getItem(STORAGE_KEY);
-  // 網址錨點（例如 guides/ 文章連回來的 index.html#jobs）優先於 localStorage
-  // 的舊紀錄，這樣外部連結才能準確跳到指定分頁，而不是停在使用者上次逛到的地方
-  const hashPage = location.hash.slice(1);
+  // 網址錨點（例如 guides/ 文章連回來的 index.html#jobs，或 #calc-scroll
+  // 這種「主分頁-子分頁」格式）優先於 localStorage 的舊紀錄，這樣外部連結
+  // 才能準確跳到指定分頁，而不是停在使用者上次逛到的地方
+  const [hashMain, hashSub] = location.hash.slice(1).split("-");
   const initialPage =
-    hashPage && pages[hashPage] && !tabs[hashPage].hidden
-      ? hashPage
+    hashMain && pages[hashMain] && !tabs[hashMain].hidden
+      ? hashMain
       : saved && pages[saved] && !tabs[saved].hidden
       ? saved
       : "calc";
@@ -77,4 +78,11 @@
   // 存下來的子分頁如果暫時關閉（例如攻擊力計算還隱藏），就不要照舊紀錄切過去
   const savedCalcSubtab = calcSubtabs.find((t) => t.key === localStorage.getItem(CALC_SUBTAB_KEY));
   if (savedCalcSubtab && !savedCalcSubtab.btn.hidden) showCalcSubtab(savedCalcSubtab.key, true);
+
+  // 網址錨點指定子分頁（例如 guides/ 文章連的 #calc-scroll）比 localStorage
+  // 的舊紀錄優先，確保外部連結精準跳到指定子分頁
+  if (hashMain === "calc" && hashSub) {
+    const hashCalcSubtab = calcSubtabs.find((t) => t.key === hashSub && !t.btn.hidden);
+    if (hashCalcSubtab) showCalcSubtab(hashCalcSubtab.key, true);
+  }
 })();
