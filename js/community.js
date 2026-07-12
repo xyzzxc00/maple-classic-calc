@@ -20,7 +20,7 @@
   const SUBMISSIONS_CLOSED_MSG = "遊戲尚未上線，暫不開放回報，敬請期待";
   const FB_VERSION = "10.14.1";
   // App Check（reCAPTCHA v3）網站金鑰 — 公開的、放前端沒問題
-  const RECAPTCHA_SITE_KEY = "6Ld6qz4tAAAAAEEUb-X6ZGmRWgrwFif0dG76hbBU";
+  const RECAPTCHA_SITE_KEY = "6Lfls08tAAAAAGh03aZlrZqjIBxNJ4ZWz7FGwpxR";
   const FB_SCRIPTS = [
     `https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-app-compat.js`,
     `https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-app-check-compat.js`,
