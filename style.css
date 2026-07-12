@@ -70,6 +70,13 @@ body {
   transition: background 0.2s, color 0.2s;
 }
 
+/* 沒特別套 class 的行內連結（例如 .notice-body/.article-body/.subtitle
+   裡的文字連結）預設用瀏覽器藍色，暗色模式下完全不像同一個網站的東西。
+   這裡設一個保底樣式，比較特定的連結（.btn、.nav-tab、.footer-contact a
+   等）class selector 優先權更高，不會被這條蓋掉 */
+a { color: var(--accent-text); }
+a:hover { text-decoration-color: var(--accent-hover); }
+
 /* ---------- 版面容器 ---------- */
 .wrap {
   max-width: 1200px;
