@@ -73,15 +73,16 @@ jobs:
         run: |
           mkdir dist
           mkdir dist/js
-          mkdir dist/guides
 
           # Copy static files (firestore.rules 為伺服器端規則，不放進 dist)
           cp index.html favicon.svg icon-192.png icon-512.png og-image.png robots.txt sitemap.xml \
              manifest.webmanifest google4878b2ed0894b6d8.html dist/
 
           # guides/ 下的攻略文章是獨立靜態頁（各自要有自己的網址才能被搜尋引擎
-          # 個別索引），不像主站分頁走 SPA 切換，所以整批直接複製過去
-          cp guides/*.html dist/guides/
+          # 個別索引），不像主站分頁走 SPA 切換。每篇文章各自一個資料夾＋
+          # index.html（例如 guides/job-selection-guide/index.html），
+          # 這樣網址列才不會出現 .html，整個資料夾樹直接遞迴複製過去
+          cp -r guides dist/
 
           # Bundle all JS in load order → single minified file.
           # 檔案清單直接從 index.html 現有的 <script defer src="js/...">
@@ -112,14 +113,16 @@ jobs:
 
           # guides/ 底下每篇文章各自戳「這篇真正最後一次被 git 改動的日期」，
           # 不能比照 index.html 整批蓋成當天——那樣沒被這次部署動到的舊文章
-          # 也會被寫成「今天更新」，對 SEO/GEO 反而是誤導的新鮮度訊號
-          for f in guides/*.html; do
-            base=$(basename "$f")
+          # 也會被寫成「今天更新」，對 SEO/GEO 反而是誤導的新鮮度訊號。用
+          # find 找出任何深度的 html（現在文章都在各自子資料夾的 index.html
+          # 裡），保留相對路徑才能對應回 dist/guides/ 底下正確的檔案
+          while IFS= read -r f; do
+            rel="${f#guides/}"
             last_mod=$(git log -1 --format=%cd --date=short -- "$f")
             if [ -n "$last_mod" ]; then
-              sed -i "s|\"dateModified\": \"[0-9-]*\"|\"dateModified\": \"$last_mod\"|" "dist/guides/$base"
+              sed -i "s|\"dateModified\": \"[0-9-]*\"|\"dateModified\": \"$last_mod\"|" "dist/guides/$rel"
             fi
-          done
+          done < <(find guides -name "*.html")
 
       - uses: actions/configure-pages@v4
 
