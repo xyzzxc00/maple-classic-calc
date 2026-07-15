@@ -117,15 +117,11 @@ a:hover { text-decoration-color: var(--accent-hover); }
 }
 
 .launch-confirmed {
-  display: inline-block;
-  margin: 14px 0 0;
+  display: block;
+  margin: 10px 0 0;
   font-weight: 700;
-  font-size: 15px;
+  font-size: 16px;
   color: var(--accent-text);
-  background: var(--accent-tint);
-  border: 1px solid var(--accent-border);
-  padding: 8px 18px;
-  border-radius: var(--radius-md);
 }
 
 /* ---------- 事前預約 CTA ---------- */
