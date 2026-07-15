@@ -59,7 +59,7 @@ service cloud.firestore {
       }
 
       // list 要求帶 limit（且不超過 100），擋掉直接打 API 整包撈走整個集合；
-      // 前端目前分頁大小是 50（js/community.js PAGE_SIZE），100 留一點餘裕。
+      // 前端目前分頁大小是 20（js/community.js PAGE_SIZE），100 留一點餘裕。
       allow get: if true;
       allow list: if request.query.limit <= 100;
       allow create: if isValidNew(request.resource.data);

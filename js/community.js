@@ -11,7 +11,9 @@
     appId: "1:468368517060:web:d9c9deb8390d32089f2691",
   };
 
-  const PAGE_SIZE = 50;
+  // 免費額度用完前先降用量：一批抓少一點，翻頁/自動補抓時就會多打幾次
+  // Firestore，但每次讀取量變小，尖峰期比較不容易一口氣衝到單日配額上限
+  const PAGE_SIZE = 20;
   const VOTED_KEY = "maple_classic_voted";
   // 回報功能開關（2026-07 已開放）。改成 false 可暫時關閉回報：入口按鈕會鎖住、
   // submit 會被擋；真正的防線是 firestore.rules 的 allow create，兩邊要一起改
@@ -112,9 +114,12 @@
   // 靠這個分辨「載入中」跟「真的沒資料」——沒有它，切分頁的瞬間會先閃出
   // 「還沒人回報」的錯誤結論，等載入完成才被蓋掉
   let loadsInFlight = 0;
-  // 60 秒內重複進入分頁直接用快取，避免來回切分頁每次都重打 Firestore（一次 50 筆讀取）
-  const CACHE_MS = 60000;
-  // Firestore 端是否還有下一批（50 筆一批）還沒抓進 allRecords
+  // 5 分鐘內重複進入分頁直接用快取，避免來回切分頁每次都重打 Firestore。
+  // 拉長是為了降低免費額度用完的風險（原本 60 秒），代價是這幾分鐘內剛好有人
+  // 送出新回報的話，其他使用者要多等一下才看得到——社群練功地點資料本來就
+  // 不是即時性很重要的內容，可以接受
+  const CACHE_MS = 5 * 60 * 1000;
+  // Firestore 端是否還有下一批（PAGE_SIZE 筆一批）還沒抓進 allRecords
   let hasMoreFromServer = false;
   let currentPage = 1;
   // 篩選在前端做，篩空時會自動往伺服器補抓下一批；不設上限的話，輸入一個
@@ -472,7 +477,7 @@
     });
   });
   // 文字/數字欄位打一個字就重繪一次的話，篩空時每個按鍵都可能觸發一輪
-  // 50 筆的 Firestore 補抓（打「不存在的地圖名」的過程中會連抓好幾輪）；
+  // PAGE_SIZE 筆的 Firestore 補抓（打「不存在的地圖名」的過程中會連抓好幾輪）；
   // 停手 300ms 再算，中途按鍵只是重設計時
   let filterDebounce = null;
   [els.filterMap, els.filterLvMin, els.filterLvMax].forEach((el) =>
