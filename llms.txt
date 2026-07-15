@@ -1,0 +1,23 @@
+# 新楓之谷經典版 練等 × 社群工具
+
+> 台版新楓之谷經典版（橘子遊戲 beanfun 代理，2026 年 7 月 29 日正式上線）的非官方玩家工具站。提供練等經驗值計算機、加倍卷試算、卷軸強化模擬器、社群練功地點回報資料庫，以及開服前攻略文章。遊戲版本以 2007～2008 年 pre-Big Bang 舊楓之谷為準。
+
+重要事實：
+
+- 台版新楓之谷經典版由橘子遊戲（beanfun）代理，確定於 2026 年 7 月 29 日正式上線
+- 事前預約活動期間：2026/07/01 ～ 2026/07/28 23:59，官方活動頁在 beanfun
+- 經驗值表採用 pre-Big Bang 舊版數值（Lv.1 升 Lv.2 需 15 EXP，Lv.199 升 Lv.200 約 20 億 EXP），支援 Lv.1~200，官方正式數值公布後會校正
+- 開服提供五大冒險家職業：劍士系（英雄／聖騎士／黑騎士）、法師系（火毒／冰雷大魔導士／主教）、弓箭手系（箭神／神射手）、盜賊系（夜使者／暗影神偷）、海盜系（拳霸／槍神）
+- 加倍卷每張持續 30 分鐘，倍率有 1.5x／2x／3x／4x，同款不可疊加更高倍率
+- 本站為非官方工具，數值僅供參考，正式數據以遊戲內公告為準
+
+## 工具
+
+- [練等計算機（首頁）](https://xyzzxc00.github.io/maple-classic-calc/): 輸入目前等級與目標等級，自動計算所需經驗值、預估練功時間、加倍卷用量，附倒數計時器、EXP 測速、卷軸強化模擬器、社群練功地點回報
+
+## 攻略文章
+
+- [選職業指南](https://xyzzxc00.github.io/maple-classic-calc/guides/job-selection-guide/): 從戰鬥距離、前期容錯率、上手難度、團隊定位幫新手選擇五大職業
+- [加倍卷解析](https://xyzzxc00.github.io/maple-classic-calc/guides/coupon-stacking-guide/): 加倍卷疊加規則、常見誤解與最划算的使用方式
+- [經驗值曲線解析](https://xyzzxc00.github.io/maple-classic-calc/guides/exp-curve-guide/): 用實際數字拆解為什麼後期經驗值需求成長這麼快
+- [卷軸強化期望值](https://xyzzxc00.github.io/maple-classic-calc/guides/scroll-expected-value-guide/): 卷軸強化的期望值計算邏輯，為什麼提早停損反而省錢
