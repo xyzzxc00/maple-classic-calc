@@ -4,15 +4,22 @@ rules_version = '2';
 // Firestore 安全規則 — maple-classic-calc / exp_records（社群資料庫）
 //
 // 部署方式：
-//   1. Firebase Console → Firestore Database → Rules，貼上本檔內容後發布；
-//      或用 CLI： firebase deploy --only firestore:rules
-//   2. 強烈建議一併啟用 App Check（reCAPTCHA v3）擋機器人濫用寫入 / 灌讚。
+//   1. 推上 main 就會由 .github/workflows/deploy.yml 自動部署；
+//      手動部署用 CLI： firebase deploy --only firestore:rules
+//   2. App Check 已啟用且為強制執行（reCAPTCHA Enterprise provider，
+//      2026-07 由 classic v3 換過來），擋機器人濫用寫入 / 灌讚。
 //
 // 設計原則（匿名公開資料庫）：
 //   - 任何人可讀。
 //   - 新增紀錄要通過欄位型別 / 範圍 / 長度驗證，擋掉超大 payload 與髒資料。
 //   - 更新只允許「helpful 讚數 +1」，其他欄位一律不可改。
 //   - 不允許刪除、不允許改動既有內容。
+//
+// 濫用滅火開關（規則擋得住格式不合法的資料，擋不住真瀏覽器灌「格式合法」
+// 的垃圾回報——上線初期建議每天看一眼資料量）。發現灌水時一個 commit 關閉回報：
+//   1. 下面的 allow create 改成 `allow create: if false;`
+//   2. js/community.js 的 SUBMISSIONS_OPEN 改成 false（入口按鈕會鎖住）
+//   兩邊要一起改，推上 main 就會同時部署規則與前端。
 // -----------------------------------------------------------------------------
 service cloud.firestore {
   match /databases/{database}/documents {

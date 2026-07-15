@@ -26,18 +26,20 @@ jobs:
       # 那段能用 git log 查到每篇文章「真正」最後一次被改動的日期，而不是
       # 每次部署都不分青紅皂白蓋成當天——repo 目前才 4.4MB，完整拉取成本
       # 可忽略不計
-      - uses: actions/checkout@v4
+      # actions 版本對應 Node 24 runtime（v4/v2 世代 target Node 20，每次 run
+      # 都會長一條棄用警告；注意 configure-pages 的 v5 仍是 Node 20，要跳 v6）
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '24'
 
       # firestore.rules 跟著同一次 push 一起發布,避免規則檔改了卻忘記手動部署
       # （GitHub Secret FIRESTORE_SERVICE_ACCOUNT 需自行在 Firebase/GCP Console
       # 建立 service account key 後貼進 repo Settings → Secrets）
-      - uses: google-github-actions/auth@v2
+      - uses: google-github-actions/auth@v3
         with:
           credentials_json: ${{ secrets.FIRESTORE_SERVICE_ACCOUNT }}
 
@@ -55,7 +57,7 @@ jobs:
           npx firebase-tools@14 deploy --only firestore:rules --project maple-classic-calc
 
       - name: Cache global npm tools
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.npm-global
           key: npm-tools-terser-5.48.0-cleancss-5.6.3
@@ -92,6 +94,13 @@ jobs:
           mapfile -t JS_FILES < <(grep -oE 'src="js/[^"]+\.js"' index.html | sed -E 's/^src="(.*)"$/\1/')
           echo "Bundling JS files in this order:"
           printf '  %s\n' "${JS_FILES[@]}"
+          # 保險：script tag 格式哪天漂移（換單引號、加 ?v=、改 type=module），
+          # grep 會默默抓不到 → 空清單的 cat 產出空 bundle、照樣過 terser 照樣
+          # 部署，整站 JS 全壞但 CI 全綠。目前實際有 17 個檔，門檻 10 留成長空間
+          if [ "${#JS_FILES[@]}" -lt 10 ]; then
+            echo "::error::JS 打包清單只抓到 ${#JS_FILES[@]} 個檔案，index.html 的 script tag 格式可能漂移了"
+            exit 1
+          fi
           cat "${JS_FILES[@]}" > dist/js/bundle.raw.js
           terser dist/js/bundle.raw.js --compress --mangle --output dist/js/bundle.js
           rm dist/js/bundle.raw.js
@@ -106,10 +115,26 @@ jobs:
           # Rewrite HTML: replace individual js/ script tags with bundle.js
           python3 patch_html.py
 
-          # 自動把修改日期戳成建置當天，避免 SEO 結構化資料 / sitemap 過期
+          # 自動把首頁的修改日期戳成建置當天，避免 SEO 結構化資料過期
           TODAY=$(date -u +%Y-%m-%d)
           sed -i "s|\"dateModified\": \"[0-9-]*\"|\"dateModified\": \"$TODAY\"|" dist/index.html
-          sed -i "s|<lastmod>[0-9-]*</lastmod>|<lastmod>$TODAY</lastmod>|" dist/sitemap.xml
+          # 保險：這種 sed 是「沒匹配到就默默不動」型，哪天 JSON-LD 格式漂移
+          # （冒號後空格數變了、值帶上時間戳），網站會帶著過期日期上線且 CI 全綠
+          if ! grep -q "\"dateModified\": \"$TODAY\"" dist/index.html; then
+            echo "::error::index.html 的 dateModified 替換沒生效，JSON-LD 格式可能漂移了"
+            exit 1
+          fi
+
+          # sitemap 的 <lastmod> 逐條戳：首頁條目用今天，guides 各條目用該頁
+          # 真實的 git 修改日期（跟下面 dateModified 的邏輯一致）。之前是整份
+          # sitemap 全蓋成今天——跟 guides 頁面裡的真實日期自相矛盾，等於每次
+          # 部署都謊報「全站今天更新」，Google 對長期不準的 lastmod 會降低信任
+          BASE="https://xyzzxc00.github.io/maple-classic-calc"
+          stamp_lastmod() {
+            # $1 = 完整 <loc> URL，$2 = 日期；只改該 <url> 區塊內的 <lastmod>
+            sed -i "\#<loc>$1</loc>#,\#</url># s|<lastmod>[0-9-]*</lastmod>|<lastmod>$2</lastmod>|" dist/sitemap.xml
+          }
+          stamp_lastmod "$BASE/" "$TODAY"
 
           # guides/ 底下每篇文章各自戳「這篇真正最後一次被 git 改動的日期」，
           # 不能比照 index.html 整批蓋成當天——那樣沒被這次部署動到的舊文章
@@ -121,18 +146,28 @@ jobs:
             last_mod=$(git log -1 --format=%cd --date=short -- "$f")
             if [ -n "$last_mod" ]; then
               sed -i "s|\"dateModified\": \"[0-9-]*\"|\"dateModified\": \"$last_mod\"|" "dist/guides/$rel"
+              # sitemap 對應條目一起用真實日期（rel 去掉結尾 index.html 就是資料夾路徑；
+              # guides/index.html 會變成空字串 → 對應 guides/ 列表頁那條）
+              dir="${rel%index.html}"
+              stamp_lastmod "$BASE/guides/$dir" "$last_mod"
             fi
           done < <(find guides -name "*.html")
 
-      - uses: actions/configure-pages@v4
+          # 保險：至少首頁那條 lastmod 要是今天，否則代表 sitemap 格式漂移、替換全部落空
+          if ! grep -q "<lastmod>$TODAY</lastmod>" dist/sitemap.xml; then
+            echo "::error::sitemap.xml 的 lastmod 替換沒生效，格式可能漂移了"
+            exit 1
+          fi
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: dist/
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
         continue-on-error: true
 
       # 這個月遇過兩次 deploy-pages 的暫時性 API 失敗，都是重新觸發就過，
@@ -145,4 +180,4 @@ jobs:
       - name: Retry deploy (transient GitHub Pages API failures happen occasionally)
         if: steps.deployment.outcome == 'failure'
         id: deployment-retry
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
