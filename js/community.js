@@ -108,6 +108,10 @@
   // 「這次真的讀取失敗」的差別；曝露這個旗標讓它能顯示對的訊息，而不是
   // 把讀取失敗誤判成單純的空狀態。
   let lastLoadFailed = false;
+  // 進行中的載入數（自動補抓可能跟初次載入重疊，用計數不用布林）。spots.js
+  // 靠這個分辨「載入中」跟「真的沒資料」——沒有它，切分頁的瞬間會先閃出
+  // 「還沒人回報」的錯誤結論，等載入完成才被蓋掉
+  let loadsInFlight = 0;
   // 60 秒內重複進入分頁直接用快取，避免來回切分頁每次都重打 Firestore（一次 50 筆讀取）
   const CACHE_MS = 60000;
   // Firestore 端是否還有下一批（50 筆一批）還沒抓進 allRecords
@@ -202,13 +206,19 @@
     els.submitBtn.textContent = "送出中...";
     els.msg.textContent = "";
 
+    // SDK 載入失敗（網路問題）跟「資料庫根本沒設定」是兩回事：前者重試就好，
+    // 後者重試也沒用。之前混在同一句「尚未設定、上線前無法送出」，網路不穩的
+    // 使用者會以為功能沒開直接放棄，而不是再試一次
+    let sdkLoadFailed = false;
     try {
       await ensureDb();
     } catch {
-      // ignore；下方 !db 檢查會處理
+      sdkLoadFailed = true;
     }
     if (!db) {
-      els.msg.textContent = "社群資料庫尚未設定，遊戲上線前無法送出";
+      els.msg.textContent = sdkLoadFailed
+        ? "連不上社群資料庫，請檢查網路後再按一次送出"
+        : "社群資料庫尚未設定，暫時無法送出";
       els.msg.className = "cm-msg err";
       els.submitBtn.disabled = false;
       els.submitBtn.textContent = "送出";
@@ -257,7 +267,15 @@
       lastDoc = null;
     }
     lastLoadFailed = false;
+    loadsInFlight++;
+    try {
+      await loadRecordsInner(append);
+    } finally {
+      loadsInFlight--;
+    }
+  }
 
+  async function loadRecordsInner(append) {
     try {
       await ensureDb();
     } catch {
@@ -389,8 +407,19 @@
     MaplePagination.render(els.pagination, {
       total: filtered.length,
       page: currentPage,
+      // Firestore 還有更早的資料時，讓最後一頁的「›」保持可按——按下去
+      // currentPage 會超過 totalPages，走上面既有的補抓路徑載入下一批
+      hasMore: hasMoreFromServer,
       onChange: (p) => { currentPage = p; renderRecords(); },
     });
+    // 排序/篩選都只在已載入的資料內做，資料還沒抓完時如果不講，「效率↓」
+    // 看起來像全站排行榜、篩選結果看起來像完整結果，其實都只涵蓋最近幾批
+    if (hasMoreFromServer) {
+      els.pagination.insertAdjacentHTML(
+        "beforeend",
+        `<p class="cm-range-hint">排序與篩選目前涵蓋最近 ${allRecords.length} 筆回報，按「›」可繼續載入更早的紀錄</p>`
+      );
+    }
     // 成功渲染出結果 = 這一輪補抓鏈結束，下一次篩空可以重新往下搜
     autoFetchRounds = 0;
   }
@@ -492,6 +521,7 @@
     openFormWithExpPer10Min,
     getRecords: () => allRecords,
     hasLoadFailed: () => lastLoadFailed,
+    isLoading: () => loadsInFlight > 0,
     isSubmissionsOpen: () => SUBMISSIONS_OPEN,
     submissionsClosedMsg: SUBMISSIONS_CLOSED_MSG,
     showRecordsTab,

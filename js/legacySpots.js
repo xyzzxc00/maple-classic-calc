@@ -19,14 +19,22 @@
     </div>`;
   }
 
+  // 資料檔（legacySpotsData.js）沒載入成功時，`|| []` 會渲染出整片空白、只剩
+  // 免責聲明孤零零掛著。跟 jobs.js 的兜底比照辦理，明講載入失敗
+  const DATA_MISSING_MSG = '<p class="cm-empty">資料載入失敗，請重新整理頁面</p>';
+
   const spotsList = document.getElementById("legacySpotsList");
   if (spotsList) {
-    spotsList.innerHTML = (window.MapleLegacySpots || []).map(renderTier).join("");
+    const tiers = window.MapleLegacySpots || [];
+    spotsList.innerHTML = tiers.length ? tiers.map(renderTier).join("") : DATA_MISSING_MSG;
   }
 
   const bossList = document.getElementById("legacyBossList");
   if (bossList) {
-    bossList.innerHTML = `<div class="legacy-spot-card">${(window.MapleLegacyBosses || []).map(renderEntry).join("")}</div>`;
+    const bosses = window.MapleLegacyBosses || [];
+    bossList.innerHTML = bosses.length
+      ? `<div class="legacy-spot-card">${bosses.map(renderEntry).join("")}</div>`
+      : DATA_MISSING_MSG;
   }
 
   function renderPrequest(p) {
@@ -49,7 +57,8 @@
 
   const bossPrequestList = document.getElementById("legacyBossPrequestList");
   if (bossPrequestList) {
-    bossPrequestList.innerHTML = (window.MapleLegacyBossPrequests || []).map(renderPrequest).join("");
+    const prequests = window.MapleLegacyBossPrequests || [];
+    bossPrequestList.innerHTML = prequests.length ? prequests.map(renderPrequest).join("") : DATA_MISSING_MSG;
   }
 
   const subSpotsBtn = document.getElementById("legacySubSpots");

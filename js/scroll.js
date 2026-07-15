@@ -81,15 +81,18 @@
   }
 
   function readConfig() {
-    const rate = Math.min(Math.max(parseFloat(els.rate.value) || 0, 0), 100) / 100;
+    // raw* 保留夾值前的原始輸入給 renderWarning 用——warning 要比對「使用者
+    // 填了什麼」，夾過的值永遠在範圍內，拿它判斷警告就變成死程式碼
+    const rawRate = parseFloat(els.rate.value) || 0;
+    const rawTarget = Math.max(parseInt(els.target.value, 10) || 0, 1);
+    const rawGiveup = Math.max(parseInt(els.giveup.value, 10) || 0, 1);
+    const rate = Math.min(Math.max(rawRate, 0), 100) / 100;
     const slots = Math.max(parseInt(els.slots.value, 10) || 0, 1);
-    let target = Math.max(parseInt(els.target.value, 10) || 0, 1);
-    let giveup = Math.max(parseInt(els.giveup.value, 10) || 0, 1);
-    target = Math.min(target, slots);
-    giveup = Math.min(giveup, slots);
+    const target = Math.min(rawTarget, slots);
+    const giveup = Math.min(rawGiveup, slots);
     const equipPrice = parseExpVal(els.equipPrice.value);
     const price = parseExpVal(els.price.value);
-    return { rate, slots, target, giveup, equipPrice, price };
+    return { rate, slots, target, giveup, equipPrice, price, rawRate, rawTarget, rawGiveup };
   }
 
   function renderTheory(cfg) {
@@ -126,12 +129,18 @@
   }
 
   function renderWarning(cfg) {
-    if (cfg.target > cfg.slots) {
-      els.warningHint.hidden = false;
-      els.warningHint.textContent = "目標成功張數不能超過裝備衝捲數，已自動夾在範圍內。";
-    } else {
-      els.warningHint.hidden = true;
+    const msgs = [];
+    if (cfg.rawTarget > cfg.slots) {
+      msgs.push(`目標成功張數不能超過裝備衝捲數，已改用 ${cfg.slots} 張計算。`);
     }
+    if (cfg.rawGiveup > cfg.slots) {
+      msgs.push(`失敗報廢張數不能超過裝備衝捲數，已改用 ${cfg.slots} 張計算。`);
+    }
+    if (cfg.rawRate > 100) {
+      msgs.push("成功率最高 100%，已改用 100% 計算。");
+    }
+    els.warningHint.hidden = msgs.length === 0;
+    els.warningHint.textContent = msgs.join(" ");
   }
 
   // ---------- 衝卷模擬（會套用報廢策略的真隨機模擬） ----------
@@ -236,7 +245,12 @@
   // 自動連續衝到達標為止（會自動換裝備），防止極端低機率跑到卡死畫面設個上限
   function autoRun() {
     const cfg = readConfig();
-    if (!cfg.rate) return;
+    if (!cfg.rate) {
+      // 靜默 return 會讓按鈕看起來像壞掉，講清楚為什麼沒反應
+      els.simResult.hidden = false;
+      els.simResult.textContent = "成功率目前是 0%，先在上面填卷軸成功率再開始模擬。";
+      return;
+    }
     const MAX_ROLLS = 200000;
     let rolls = 0;
 

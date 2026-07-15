@@ -56,7 +56,12 @@
   function setMult(mult) {
     currentMult = mult;
     els.customMult.value = mult;
-    els.multBtns.forEach((b) => b.classList.toggle("active", parseFloat(b.dataset.val) === mult));
+    els.multBtns.forEach((b) => {
+      const on = parseFloat(b.dataset.val) === mult;
+      b.classList.toggle("active", on);
+      // .active 只有視覺，螢幕報讀器聽不出目前選了哪個倍率，aria-pressed 要跟著同步
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
     // 選了預設按鈕就不算自訂值，拿掉自訂輸入框的「生效中」樣式
     els.customMult.classList.remove("mult-custom-active");
   }
@@ -73,7 +78,10 @@
     // 0 或負值直接當倍率會讓後面的時間計算變成 0 或負數，所以跟「打不出數字」
     // 一樣退回預設值 1，而不是讓 "0 || 1" 這種寫法意外放行負數
     currentMult = (!isNaN(parsed) && parsed > 0) ? parsed : 1;
-    els.multBtns.forEach((b) => b.classList.remove("active"));
+    els.multBtns.forEach((b) => {
+      b.classList.remove("active");
+      b.setAttribute("aria-pressed", "false");
+    });
     // 五個預設按鈕都沒被選中時，靠這個樣式告訴使用者「目前生效的是這個自訂值」
     els.customMult.classList.add("mult-custom-active");
     runCalculation();
@@ -108,7 +116,7 @@
     }
 
     const currentLevel = parseInt(els.currentLevel.value, 10) || 1;
-    const currentExp = parseInt(els.currentExp.value, 10) || 0;
+    let currentExp = parseInt(els.currentExp.value, 10) || 0;
     const targetLevel = parseInt(els.targetLevel.value, 10) || 1;
 
     // 超出範圍的等級/倍率之前是直接靜默夾在合法值內去算，使用者不會知道自己
@@ -120,6 +128,20 @@
     if (els.targetLevel.value.trim() && (targetLevel < 1 || targetLevel > 200)) {
       warnings.push("目標等級請輸入 1~200 之間的整數");
     }
+    // 目前經驗值之前是唯一沒驗證的欄位：負值會被公式當成「還缺更多」讓結果
+    // 憑空膨脹；填成累積總經驗（超過該等升級所需）則會出現「還需 0 但還要
+    // 升 1 等」的矛盾畫面，使用者不會知道是欄位意義填錯了
+    if (els.currentExp.value.trim()) {
+      if (currentExp < 0) {
+        warnings.push("目前經驗值不能是負數，已暫時以 0 計算");
+        currentExp = 0;
+      } else {
+        const curNeed = window.MapleData.EXP_TABLE[currentLevel - 1];
+        if (curNeed && currentExp >= curNeed && targetLevel > currentLevel) {
+          warnings.push(`目前經驗值已達這一等升級所需（${curNeed.toLocaleString()}），這欄要填「目前等級內」的經驗，不是累積總經驗`);
+        }
+      }
+    }
     if (els.customMult.value.trim() && parseFloat(els.customMult.value) <= 0) {
       warnings.push("自訂倍率需大於 0，已暫時以 1x 計算");
     }
@@ -127,6 +149,8 @@
     // 使用者不知道自己的輸入被拒絕了；這裡跟 EXP 測速一樣明講出來
     if (els.expPer10Min.value.trim() && isNaN(MapleCalculator.parseExpVal(els.expPer10Min.value))) {
       warnings.push("看不懂「每10分鐘經驗」這個數值，請輸入數字或用 W 代表萬（例如 5W 或 50000）");
+    } else if (els.expPer10Min.value.trim() && MapleCalculator.parseExpVal(els.expPer10Min.value) <= 0) {
+      warnings.push("「每10分鐘經驗」需大於 0 才能估算時間");
     }
     els.inputWarningHint.hidden = warnings.length === 0;
     els.inputWarningHint.textContent = warnings.join("；");

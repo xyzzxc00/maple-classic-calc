@@ -27,6 +27,10 @@
   --warning: #8A6400;
   --radius-lg: 14px;
   --radius-md: 8px;
+  /* 告訴瀏覽器目前的明暗模式，讓原生控件（下拉選單、捲軸、number 增減鈕、
+     placeholder 預設色）跟著主題走——沒有這行，深色模式下這些原生元件
+     全部維持亮色系外觀，而且預設 placeholder 灰在深底上只有 3.35:1。 */
+  color-scheme: light;
 }
 
 body.dark {
@@ -57,6 +61,15 @@ body.dark {
   /* 警示色刻意跟品牌重點色用不同色相（琥珀黃 vs 橄欖綠），避免「這是警告」
      跟「這是主題色」混在一起看不出來。 */
   --warning: #B98900;
+  color-scheme: dark;
+}
+
+/* placeholder 不吃 color-scheme 的預設灰（Chrome 亮色 #757575 on #FFF 只有
+   4.61:1 壓線、各家瀏覽器演算法又不一致），直接指定 --ink-soft 兩種模式
+   都 ≥5.1:1。Firefox 預設會再疊 opacity，一併關掉。 */
+::placeholder {
+  color: var(--ink-soft);
+  opacity: 1;
 }
 
 * { box-sizing: border-box; }
@@ -109,6 +122,11 @@ a:hover { text-decoration-color: var(--accent-hover); }
   margin: 0 0 10px;
   color: var(--ink);
   letter-spacing: -0.01em;
+}
+/* guides/ 文章頁頁首的站名比首頁小一號（h1 讓給文章標題），原本這段字級
+   以行內樣式複製在每篇文章裡，收成 class 統一維護 */
+.title-sub {
+  font-size: clamp(22px, 4vw, 32px);
 }
 .subtitle {
   font-size: 15px;
@@ -665,8 +683,12 @@ a:hover { text-decoration-color: var(--accent-hover); }
   flex: 0 1 120px;
   min-width: 40px;
   background: var(--border);
+  /* --border 對面板底只有約 1.3:1，空軌道幾乎隱形，「佔比多少」的視覺意義
+     就沒了；加一圈 3:1 以上的邊框把軌道範圍框出來（數字有文字備援，這裡
+     補的是視覺可讀性） */
+  border: 1px solid var(--border-strong);
   border-radius: 6px;
-  height: 10px;
+  height: 12px;
   overflow: hidden;
 }
 .scroll-sim-dist-bar-fill { height: 100%; background: var(--accent); border-radius: 6px; }
@@ -779,6 +801,8 @@ a:hover { text-decoration-color: var(--accent-hover); }
 .cm-page-btn.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); cursor: default; }
 .cm-page-btn:disabled { opacity: 0.4; cursor: default; }
 .cm-page-ellipsis { color: var(--ink-faint); padding: 0 2px; }
+/* 資料還沒從伺服器抓完時，提示排序/篩選只涵蓋已載入範圍（佔滿一行，跟頁碼分開） */
+.cm-range-hint { flex-basis: 100%; text-align: center; font-size: 12px; color: var(--ink-soft); margin: 4px 0 0; }
 
 /* ---------- Suggested spots ---------- */
 .cm-card.spot-fit { border-color: var(--accent-border); background: var(--accent-tint); }
@@ -905,7 +929,8 @@ a:hover { text-decoration-color: var(--accent-hover); }
   font-family: 'Noto Sans TC', sans-serif;
   font-weight: 700;
   font-size: 13px;
-  padding: 8px 0 0;
+  /* 上下墊到 ~40px 高：原本 27px 的點擊目標在手機上容易誤觸旁邊文字 */
+  padding: 12px 12px 10px 0;
   cursor: pointer;
 }
 .job-expand-btn:hover { text-decoration: underline; }
@@ -1024,8 +1049,11 @@ a:hover { text-decoration-color: var(--accent-hover); }
 /* 用比 1200px 的 .wrap 更窄的容器裝長文字，一行太長反而不好讀 */
 .article-wrap { max-width: 720px; margin: 0 auto; padding: 0 24px 60px; }
 .article-breadcrumb { font-size: 13px; margin: 28px 0 20px; color: var(--ink-soft); }
-.article-breadcrumb a { color: var(--accent-text); text-decoration: none; font-weight: 700; }
+/* 行內連結加垂直 padding 擴大點擊目標（原本只有 ~19px 高）：inline 元素的
+   垂直 padding 只擴大可點範圍、不會推開行距，排版完全不動 */
+.article-breadcrumb a { color: var(--accent-text); text-decoration: none; font-weight: 700; padding: 10px 0; }
 .article-breadcrumb a:hover { text-decoration: underline; }
+.notice-body a { padding: 10px 0; }
 .article-title { font-size: clamp(24px, 4vw, 32px); font-weight: 900; margin: 0 0 12px; color: var(--ink); letter-spacing: -0.01em; }
 .article-meta { font-size: 13px; color: var(--ink-soft); margin: 0 0 24px; }
 .article-lead { font-size: 16px; color: var(--ink-soft); line-height: 1.75; margin: 0 0 28px; }

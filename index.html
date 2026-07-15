@@ -151,7 +151,9 @@
     <p class="launch-confirmed">🎉 官方確認：經典版將於 <strong>2026/07/29</strong> 正式上線！</p>
     <a class="prereg-btn" href="https://maplestoryclassic-event.beanfun.com/Event/E20260701/Index" target="_blank" rel="noopener">前往官方事前預約</a>
     <p class="prereg-hint">事前預約已開放！點上方按鈕前往 beanfun 官方活動頁登錄</p>
-    <div class="prereg-countdown" id="preregCountdown" aria-live="polite">
+    <!-- 不掛 aria-live：倒數每秒改字，live region 會讓螢幕報讀器每秒重唸一次，
+         整頁其他內容都聽不了。報讀器使用者聚焦到這裡時仍讀得到目前值。 -->
+    <div class="prereg-countdown" id="preregCountdown">
       <span class="countdown-label">距離事前預約截止（2026/07/28 23:59）還有</span>
       <span class="countdown-time" id="countdownTime">計算中...</span>
     </div>
@@ -222,11 +224,11 @@
       <div class="field">
         <span>加倍設定</span>
         <div class="mult-btns">
-          <button class="mult-btn" data-val="1" type="button">1x</button>
-          <button class="mult-btn" data-val="1.5" type="button">1.5x</button>
-          <button class="mult-btn active" data-val="2" type="button">2x</button>
-          <button class="mult-btn" data-val="3" type="button">3x</button>
-          <button class="mult-btn" data-val="4" type="button">4x</button>
+          <button class="mult-btn" data-val="1" type="button" aria-pressed="false">1x</button>
+          <button class="mult-btn" data-val="1.5" type="button" aria-pressed="false">1.5x</button>
+          <button class="mult-btn active" data-val="2" type="button" aria-pressed="true">2x</button>
+          <button class="mult-btn" data-val="3" type="button" aria-pressed="false">3x</button>
+          <button class="mult-btn" data-val="4" type="button" aria-pressed="false">4x</button>
         </div>
       </div>
 
