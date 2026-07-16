@@ -1045,6 +1045,39 @@ a:hover { text-decoration-color: var(--accent-hover); }
 }
 .theme-toggle:hover { border-color: var(--accent-text); color: var(--accent-text); }
 
+/* ---------- 回到最上面（右下角浮動按鈕，js/backToTop.js 動態插入） ---------- */
+.back-to-top {
+  position: fixed;
+  /* viewport-fit=cover 下要避開 iPhone 的圓角/手勢列安全區 */
+  right: calc(16px + env(safe-area-inset-right, 0px));
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  z-index: 200;
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+  /* 預設隱藏：捲過門檻由 JS 加 .visible。visibility 一起切，隱藏時
+     不吃點擊也不會被鍵盤 Tab 到 */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s, visibility 0.2s, background 0.15s;
+}
+.back-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.back-to-top:hover,
+.back-to-top:active { background: var(--accent-hover); }
+
 /* ---------- 攻略文章（guides/） ---------- */
 /* 用比 1200px 的 .wrap 更窄的容器裝長文字，一行太長反而不好讀 */
 .article-wrap { max-width: 720px; margin: 0 auto; padding: 0 24px 60px; }

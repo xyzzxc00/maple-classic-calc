@@ -106,8 +106,9 @@ jobs:
           rm dist/js/bundle.raw.js
 
           # guides/ 頁面不吃主站的 bundle.js（元素 id 對不上），只需要主題
-          # 切換這個小功能，單獨複製壓縮一份給它們用
+          # 切換跟回到頂端這兩個小功能，單獨壓縮給它們用
           terser js/theme.js --compress --mangle --output dist/js/theme.js
+          terser js/backToTop.js --compress --mangle --output dist/js/backToTop.js
 
           # Minify CSS
           cleancss -o dist/style.css style.css
