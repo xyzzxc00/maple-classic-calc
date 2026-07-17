@@ -17,6 +17,8 @@
 
 ## 攻略文章
 
+- [開服練功路線](https://xyzzxc00.github.io/maple-classic-calc/guides/launch-leveling-guide/): 7/29 開服日 Lv.1~30 的練等框架與人潮應對思路
+- [經驗值表完整版](https://xyzzxc00.github.io/maple-classic-calc/guides/exp-table/): Lv.1~200 每一級升級所需經驗與累積總量（滿等共約 387 億 EXP）
 - [選職業指南](https://xyzzxc00.github.io/maple-classic-calc/guides/job-selection-guide/): 從戰鬥距離、前期容錯率、上手難度、團隊定位幫新手選擇五大職業
 - [加倍卷解析](https://xyzzxc00.github.io/maple-classic-calc/guides/coupon-stacking-guide/): 加倍卷疊加規則、常見誤解與最划算的使用方式
 - [經驗值曲線解析](https://xyzzxc00.github.io/maple-classic-calc/guides/exp-curve-guide/): 用實際數字拆解為什麼後期經驗值需求成長這麼快

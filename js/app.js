@@ -87,6 +87,15 @@
     runCalculation();
   });
 
+  // 還原記憶值/分享值時用：跟 setMult 一樣設定倍率，但若不是五顆預設鈕之一
+  // （使用者上次填的是自訂倍率），要補上自訂輸入框的「生效中」樣式——
+  // setMult 只處理「按了預設鈕」的情境，會把這個樣式拿掉
+  function applyMult(mult) {
+    setMult(mult);
+    const isPreset = [...els.multBtns].some((b) => parseFloat(b.dataset.val) === mult);
+    if (!isPreset) els.customMult.classList.add("mult-custom-active");
+  }
+
   function getExpPerMin() {
     return MapleCalculator.parseExpVal(els.expPer10Min.value) / 10;
   }
@@ -290,7 +299,7 @@
       els.currentExp.value = shared.currentExp || 0;
       els.targetLevel.value = shared.targetLevel;
       els.expPer10Min.value = shared.expPerMin ? shared.expPerMin * 10 : "";
-      setMult(shared.mult || 2);
+      applyMult(shared.mult || 2);
       els.dailyHours.value = shared.dailyHours || "";
       els.ownedCoupons.value = shared.ownedCoupons || "";
       // 用 runCalculation（含 savePrefs）讓分享值寫進 localStorage，
@@ -317,7 +326,7 @@
       els.expPer10Min.value = prefs.expPer10Min || "";
       els.dailyHours.value = prefs.dailyHours || "";
       els.ownedCoupons.value = prefs.ownedCoupons || "";
-      setMult(prefs.mult || 2);
+      applyMult(prefs.mult || 2);
       runCalculation();
     }
   }
