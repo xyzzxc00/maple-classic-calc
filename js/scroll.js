@@ -82,17 +82,34 @@
 
   function readConfig() {
     // raw* 保留夾值前的原始輸入給 renderWarning 用——warning 要比對「使用者
-    // 填了什麼」，夾過的值永遠在範圍內，拿它判斷警告就變成死程式碼
+    // 填了什麼」，夾過的值永遠在範圍內，拿它判斷警告就變成死程式碼。
+    // 之前 target/giveup 在存成 raw 前就先 Math.max(...,1) 夾過一次，等於
+    // 把「填負數/0」跟「本來就填 1」混成同一種 raw 值，下限警告永遠不出現；
+    // slots 更是完全沒有 raw 版本。這裡四個欄位都先原封不動存字串再轉數字，
+    // *Filled 用來分辨「使用者真的填了無效值」跟「欄位是空的」，避免空欄位
+    // 也跳出「已改用 1 計算」的警告
+    const rawRateStr = els.rate.value.trim();
     const rawRate = parseFloat(els.rate.value) || 0;
-    const rawTarget = Math.max(parseInt(els.target.value, 10) || 0, 1);
-    const rawGiveup = Math.max(parseInt(els.giveup.value, 10) || 0, 1);
+    const rawSlotsStr = els.slots.value.trim();
+    const rawSlots = parseInt(els.slots.value, 10) || 0;
+    const rawTargetStr = els.target.value.trim();
+    const rawTarget = parseInt(els.target.value, 10) || 0;
+    const rawGiveupStr = els.giveup.value.trim();
+    const rawGiveup = parseInt(els.giveup.value, 10) || 0;
+
     const rate = Math.min(Math.max(rawRate, 0), 100) / 100;
-    const slots = Math.max(parseInt(els.slots.value, 10) || 0, 1);
-    const target = Math.min(rawTarget, slots);
-    const giveup = Math.min(rawGiveup, slots);
+    const slots = Math.max(rawSlots, 1);
+    const target = Math.min(Math.max(rawTarget, 1), slots);
+    const giveup = Math.min(Math.max(rawGiveup, 1), slots);
     const equipPrice = parseExpVal(els.equipPrice.value);
     const price = parseExpVal(els.price.value);
-    return { rate, slots, target, giveup, equipPrice, price, rawRate, rawTarget, rawGiveup };
+    return {
+      rate, slots, target, giveup, equipPrice, price,
+      rawRate, rawRateFilled: !!rawRateStr,
+      rawSlots, rawSlotsFilled: !!rawSlotsStr,
+      rawTarget, rawTargetFilled: !!rawTargetStr,
+      rawGiveup, rawGiveupFilled: !!rawGiveupStr,
+    };
   }
 
   function renderTheory(cfg) {
@@ -130,13 +147,22 @@
 
   function renderWarning(cfg) {
     const msgs = [];
-    if (cfg.rawTarget > cfg.slots) {
+    if (cfg.rawSlotsFilled && cfg.rawSlots < 1) {
+      msgs.push("裝備衝捲數至少要 1 格，已改用 1 格計算。");
+    }
+    if (cfg.rawTargetFilled && cfg.rawTarget < 1) {
+      msgs.push("目標成功張數至少要 1 張，已改用 1 張計算。");
+    } else if (cfg.rawTarget > cfg.slots) {
       msgs.push(`目標成功張數不能超過裝備衝捲數，已改用 ${cfg.slots} 張計算。`);
     }
-    if (cfg.rawGiveup > cfg.slots) {
+    if (cfg.rawGiveupFilled && cfg.rawGiveup < 1) {
+      msgs.push("失敗報廢張數至少要 1 張，已改用 1 張計算。");
+    } else if (cfg.rawGiveup > cfg.slots) {
       msgs.push(`失敗報廢張數不能超過裝備衝捲數，已改用 ${cfg.slots} 張計算。`);
     }
-    if (cfg.rawRate > 100) {
+    if (cfg.rawRateFilled && cfg.rawRate < 0) {
+      msgs.push("成功率不能是負數，已改用 0% 計算。");
+    } else if (cfg.rawRate > 100) {
       msgs.push("成功率最高 100%，已改用 100% 計算。");
     }
     els.warningHint.hidden = msgs.length === 0;

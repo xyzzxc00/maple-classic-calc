@@ -296,16 +296,22 @@
     }
 
     try {
-      let query = db.collection("exp_records").orderBy("ts", "desc").limit(PAGE_SIZE);
+      // 多抓 1 筆只用來判斷「後面還有沒有資料」，不會顯示出來——單純抓
+      // PAGE_SIZE 筆的話，「剛好抓滿」跟「後面還有更多」拿到的筆數一模一樣
+      // 分不出來，總筆數剛好是 PAGE_SIZE 整數倍時會誤判成 hasMore=true，
+      // 使用者按下一頁會多打一次空手而回的請求（會自動修正，但浪費一次讀取）
+      let query = db.collection("exp_records").orderBy("ts", "desc").limit(PAGE_SIZE + 1);
       if (append && lastDoc) query = query.startAfter(lastDoc);
 
       const snap = await query.get();
-      const newRecords = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      lastDoc = snap.docs[snap.docs.length - 1] || null;
+      const hasExtra = snap.docs.length > PAGE_SIZE;
+      const pageDocs = hasExtra ? snap.docs.slice(0, PAGE_SIZE) : snap.docs;
+      const newRecords = pageDocs.map((d) => ({ id: d.id, ...d.data() }));
+      lastDoc = pageDocs[pageDocs.length - 1] || null;
       allRecords = append ? [...allRecords, ...newRecords] : newRecords;
       lastLoadedAt = Date.now();
 
-      hasMoreFromServer = snap.docs.length >= PAGE_SIZE;
+      hasMoreFromServer = hasExtra;
       renderRecords();
     } catch (e) {
       lastLoadFailed = true;

@@ -27,6 +27,9 @@
   --warning: #8A6400;
   --radius-lg: 14px;
   --radius-md: 8px;
+  /* 浮動元素（目前只有 .back-to-top）的陰影色，跟著明暗模式各自調深淺，
+     不要整份 CSS 唯一一處寫死 rgba() 字面值 */
+  --shadow-color: rgba(0, 0, 0, 0.18);
   /* 告訴瀏覽器目前的明暗模式，讓原生控件（下拉選單、捲軸、number 增減鈕、
      placeholder 預設色）跟著主題走——沒有這行，深色模式下這些原生元件
      全部維持亮色系外觀，而且預設 placeholder 灰在深底上只有 3.35:1。 */
@@ -61,6 +64,9 @@ body.dark {
   /* 警示色刻意跟品牌重點色用不同色相（琥珀黃 vs 橄欖綠），避免「這是警告」
      跟「這是主題色」混在一起看不出來。 */
   --warning: #B98900;
+  /* 深色背景上黑色陰影本來就融進底色、幾乎看不出來，加深不透明度讓浮動
+     按鈕邊緣還是能跟頁面分出層次 */
+  --shadow-color: rgba(0, 0, 0, 0.45);
   color-scheme: dark;
 }
 
@@ -1062,7 +1068,7 @@ a:hover { text-decoration-color: var(--accent-hover); }
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 2px 10px var(--shadow-color);
   /* 預設隱藏：捲過門檻由 JS 加 .visible。visibility 一起切，隱藏時
      不吃點擊也不會被鍵盤 Tab 到 */
   opacity: 0;
@@ -1083,10 +1089,11 @@ a:hover { text-decoration-color: var(--accent-hover); }
 .article-wrap { max-width: 720px; margin: 0 auto; padding: 0 24px 60px; }
 .article-breadcrumb { font-size: 13px; margin: 28px 0 20px; color: var(--ink-soft); }
 /* 行內連結加垂直 padding 擴大點擊目標（原本只有 ~19px 高）：inline 元素的
-   垂直 padding 只擴大可點範圍、不會推開行距，排版完全不動 */
-.article-breadcrumb a { color: var(--accent-text); text-decoration: none; font-weight: 700; padding: 10px 0; }
+   垂直 padding 只擴大可點範圍、不會推開行距，排版完全不動。11px 是實測
+   13px 字級 + 10px padding 量出來只有 39px、差 1px 沒到 40px 門檻，才加到 11px */
+.article-breadcrumb a { color: var(--accent-text); text-decoration: none; font-weight: 700; padding: 11px 0; }
 .article-breadcrumb a:hover { text-decoration: underline; }
-.notice-body a { padding: 10px 0; }
+.notice-body a { padding: 11px 0; }
 .article-title { font-size: clamp(24px, 4vw, 32px); font-weight: 900; margin: 0 0 12px; color: var(--ink); letter-spacing: -0.01em; }
 .article-meta { font-size: 13px; color: var(--ink-soft); margin: 0 0 24px; }
 .article-lead { font-size: 16px; color: var(--ink-soft); line-height: 1.75; margin: 0 0 28px; }
