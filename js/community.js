@@ -247,11 +247,15 @@
       if (window.MapleSpots) window.MapleSpots.render();
     } catch (e) {
       // permission-denied 通常代表 firestore.rules 還沒同步成驗證版（或規則本身有問題），
-      // 跟一般網路錯誤混在同一句「請稍後再試」的話，這種情況會一直重試一直失敗、
-      // 使用者跟站長都看不出真正原因
-      els.msg.textContent = (e && e.code === "permission-denied")
-        ? "送出被資料庫拒絕，可能是設定尚未同步，請稍後再試或回報給站長"
-        : "送出失敗，請稍後再試";
+      // resource-exhausted 是免費方案每日寫入額度用完——這兩種「重試也沒用」的情況
+      // 都不能沿用「請稍後再試」的措辭，不然使用者會一直重試一直失敗、猜不出真正原因
+      if (e && e.code === "permission-denied") {
+        els.msg.textContent = "送出被資料庫拒絕，可能是設定尚未同步，請稍後再試或回報給站長";
+      } else if (e && e.code === "resource-exhausted") {
+        els.msg.textContent = "今天的回報額度已滿，明天會自動恢復，麻煩明天再試一次";
+      } else {
+        els.msg.textContent = "送出失敗，請稍後再試";
+      }
       els.msg.className = "cm-msg err";
     } finally {
       els.submitBtn.disabled = false;
@@ -324,6 +328,10 @@
         msg = "資料庫拒絕了這次讀取，請重新整理頁面再試一次";
       } else if (e && e.code === "unavailable") {
         msg = "連不上資料庫伺服器，請稍後重新整理頁面";
+      } else if (e && e.code === "resource-exhausted") {
+        // 免費方案的每日讀取額度用完時 Firestore 回這個錯誤碼，重新整理沒有用
+        // （額度要等隔天美西時間午夜才重置），不能沿用「請重新整理」的措辭誤導使用者
+        msg = "今天社群功能的使用量已達上限，明天會自動恢復，其他功能不受影響";
       }
       // 補抓失敗時別把已經顯示的紀錄整片換成錯誤訊息——保留清單、
       // 把錯誤放在分頁區；同時關掉 hasMoreFromServer 避免 renderRecords
