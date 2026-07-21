@@ -13,16 +13,16 @@
 
 ## 工具
 
-- [練等計算機（首頁）](https://xyzzxc00.github.io/maple-classic-calc/): 輸入目前等級與目標等級，自動計算所需經驗值、預估練功時間、加倍卷用量，附倒數計時器、EXP 測速、卷軸強化模擬器、社群練功地點回報
+- [練等計算機（首頁）](https://mapleclassictools.com/): 輸入目前等級與目標等級，自動計算所需經驗值、預估練功時間、加倍卷用量，附倒數計時器、EXP 測速、卷軸強化模擬器、社群練功地點回報
 
 ## 攻略文章
 
-- [開服練功路線](https://xyzzxc00.github.io/maple-classic-calc/guides/launch-leveling-guide/): 7/29 開服日 Lv.1~30 的練等框架與人潮應對思路
-- [經驗值表完整版](https://xyzzxc00.github.io/maple-classic-calc/guides/exp-table/): Lv.1~200 每一級升級所需經驗與累積總量（滿等共約 387 億 EXP）
-- [選職業指南](https://xyzzxc00.github.io/maple-classic-calc/guides/job-selection-guide/): 從戰鬥距離、前期容錯率、上手難度、團隊定位幫新手選擇五大職業
-- [完整轉職路線攻略](https://xyzzxc00.github.io/maple-classic-calc/guides/job-advancement-guide/): 五大職業一轉到四轉的完整任務流程，等級需求、NPC、地點、任務步驟
-- [舊版練功地點大全](https://xyzzxc00.github.io/maple-classic-calc/guides/legacy-leveling-spots/): Lv.1~113 共 67 筆怪物與可打地圖對照（pre-Big Bang 舊版資料）
-- [野王資料與前置任務攻略](https://xyzzxc00.github.io/maple-classic-calc/guides/legacy-bosses/): 27 隻野王的地點/重生時間，加上殘暴炎魔、闇黑龍王、拉圖斯的前置任務步驟
-- [加倍卷解析](https://xyzzxc00.github.io/maple-classic-calc/guides/coupon-stacking-guide/): 加倍卷疊加規則、常見誤解與最划算的使用方式
-- [經驗值曲線解析](https://xyzzxc00.github.io/maple-classic-calc/guides/exp-curve-guide/): 用實際數字拆解為什麼後期經驗值需求成長這麼快
-- [卷軸強化期望值](https://xyzzxc00.github.io/maple-classic-calc/guides/scroll-expected-value-guide/): 卷軸強化的期望值計算邏輯，為什麼提早停損反而省錢
+- [開服練功路線](https://mapleclassictools.com/guides/launch-leveling-guide/): 7/29 開服日 Lv.1~30 的練等框架與人潮應對思路
+- [經驗值表完整版](https://mapleclassictools.com/guides/exp-table/): Lv.1~200 每一級升級所需經驗與累積總量（滿等共約 387 億 EXP）
+- [選職業指南](https://mapleclassictools.com/guides/job-selection-guide/): 從戰鬥距離、前期容錯率、上手難度、團隊定位幫新手選擇五大職業
+- [完整轉職路線攻略](https://mapleclassictools.com/guides/job-advancement-guide/): 五大職業一轉到四轉的完整任務流程，等級需求、NPC、地點、任務步驟
+- [舊版練功地點大全](https://mapleclassictools.com/guides/legacy-leveling-spots/): Lv.1~113 共 67 筆怪物與可打地圖對照（pre-Big Bang 舊版資料）
+- [野王資料與前置任務攻略](https://mapleclassictools.com/guides/legacy-bosses/): 27 隻野王的地點/重生時間，加上殘暴炎魔、闇黑龍王、拉圖斯的前置任務步驟
+- [加倍卷解析](https://mapleclassictools.com/guides/coupon-stacking-guide/): 加倍卷疊加規則、常見誤解與最划算的使用方式
+- [經驗值曲線解析](https://mapleclassictools.com/guides/exp-curve-guide/): 用實際數字拆解為什麼後期經驗值需求成長這麼快
+- [卷軸強化期望值](https://mapleclassictools.com/guides/scroll-expected-value-guide/): 卷軸強化的期望值計算邏輯，為什麼提早停損反而省錢

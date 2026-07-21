@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://xyzzxc00.github.io/maple-classic-calc/sitemap.xml
+Sitemap: https://mapleclassictools.com/sitemap.xml
