@@ -182,7 +182,7 @@ a:hover { text-decoration-color: var(--accent-hover); }
 .countdown-label { font-size: 12px; color: var(--ink-soft); }
 /* 預先下載/事前創角活動塊（上線後整塊移除，跟 index.html 的區塊一起） */
 .prereg-event {
-  max-width: 460px;
+  max-width: 340px;
   margin: 12px auto 0;
   padding: 10px 16px;
   background: var(--accent-tint);
