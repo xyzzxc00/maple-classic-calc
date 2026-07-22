@@ -262,8 +262,10 @@
       finishSuccess(cfg);
     } else if (isCopyDead(cfg)) {
       tallyCurrentCopy();
-      sim.attempts = 0;
-      sim.success = 0;
+      // 跟 autoRun 一樣走 startNewCopy：之前這裡只歸零 attempts/success，
+      // 沒有把裝備件數 +1、也沒累計新裝備的價格，手動模式的「累計試了
+      // X 件」跟總成本會一路低估，分布百分比的分母也跟著錯
+      startNewCopy(cfg);
     }
     renderSimStatus(cfg);
   }
