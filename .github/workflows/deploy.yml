@@ -77,7 +77,7 @@ jobs:
           mkdir dist/js
 
           # Copy static files (firestore.rules 為伺服器端規則，不放進 dist)
-          cp index.html favicon.svg icon-192.png icon-512.png og-image.png robots.txt sitemap.xml \
+          cp index.html privacy.html favicon.svg icon-192.png icon-512.png og-image.png robots.txt sitemap.xml \
              manifest.webmanifest google4878b2ed0894b6d8.html llms.txt CNAME dist/
 
           # guides/ 下的攻略文章是獨立靜態頁（各自要有自己的網址才能被搜尋引擎
