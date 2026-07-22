@@ -1046,6 +1046,29 @@ a:hover { text-decoration-color: var(--accent-hover); }
   .guides-link { width: 100%; text-align: center; box-sizing: border-box; }
 }
 
+/* ---------- FAQ ---------- */
+.faq-panel { margin-top: 24px; }
+.faq-item { border-bottom: 1px solid var(--border); }
+.faq-item:last-child { border-bottom: none; }
+.faq-item summary {
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  /* 觸控目標 ≥40px 高，跟 footer 連結同一套標準 */
+  padding: 13px 4px;
+  list-style-position: outside;
+}
+.faq-item summary:hover { color: var(--accent-text); }
+.faq-item[open] summary { color: var(--accent-text); }
+.faq-item p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--ink-soft);
+  margin: 0 0 14px;
+  padding: 0 4px;
+}
+
 /* ---------- Theme toggle ---------- */
 .theme-toggle {
   position: fixed;
