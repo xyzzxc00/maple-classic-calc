@@ -1038,17 +1038,24 @@ a:hover { text-decoration-color: var(--accent-hover); }
 .feedback-link,
 .donate-link,
 .guides-link {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: var(--accent-text);
   background: transparent;
   border: 1px solid var(--accent-text);
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
+  text-align: center;
   /* 觸控目標 ≥40px 高（原 7px padding 只有 35px，手機易誤觸） */
   padding: 11px 18px;
   border-radius: 999px;
   transition: background 0.15s;
+  /* 桌面版四顆按鈕等寬：固定寬度而不是各自吃內容撐開，寬度抓最長的
+     「意見回饋 / 錯誤回報」單行不換行所需的寬度 */
+  width: 168px;
+  box-sizing: border-box;
 }
 .donate-link:hover,
 .guides-link:hover { background: var(--accent-tint); }
