@@ -68,6 +68,58 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /team_posts/{postId} {
+
+      // 跟 exp_records 的 allowedJobs() 是同一份白名單，Firestore 規則的
+      // function 只在宣告它的 match 區塊內有效，沒辦法跨 match 共用，
+      // 所以這裡重複宣告一次——改職業名稱時兩處都要同步（跟 js/jobsData.js
+      // 的 JOBS_DATA[].paths[].fourth 一致）。
+      function allowedJobs() {
+        return [
+          '英雄', '聖騎士', '黑騎士',
+          '火毒大魔導士', '冰雷大魔導士', '主教',
+          '箭神', '神射手',
+          '夜使者', '暗影神偷',
+          '拳霸', '槍神'
+        ];
+      }
+
+      function allowedServers() {
+        return ['雪吉拉', '菇菇寶貝'];
+      }
+
+      // target（目標）不比對完整清單：js/teamData.js 的野王/任務清單以後會
+      // 微調，把完整清單複製進規則會很快跟前端不同步，變成使用者選到新選項
+      // 卻被規則擋掉。這裡只驗證型別/長度，跟 exp_records 的 map 欄位同一個
+      // 處理方式——反正前端已經是下拉選單擋住亂輸入，這裡再守長度/型別就夠。
+      function isValidNew(d) {
+        return d.keys().hasAll(['type', 'target', 'server', 'map', 'job', 'level', 'currentCount', 'neededCount', 'contact', 'ts'])
+          && d.keys().hasOnly(['type', 'target', 'server', 'map', 'job', 'level', 'currentCount', 'neededCount', 'contact', 'note', 'ts'])
+          && d.type is string && d.type in ['組隊任務', '王團']
+          && d.target is string && d.target.size() >= 1 && d.target.size() <= 40
+          && d.server is string && allowedServers().hasAny([d.server])
+          && d.map is string && d.map.size() >= 1 && d.map.size() <= 40
+          && d.job is string && allowedJobs().hasAny([d.job])
+          && d.level is int && d.level >= 1 && d.level <= 200
+          && d.currentCount is int && d.currentCount >= 0 && d.currentCount <= 6
+          && d.neededCount is int && d.neededCount >= 1 && d.neededCount <= 6
+          && d.currentCount <= d.neededCount
+          && d.contact is string && d.contact.size() >= 1 && d.contact.size() <= 40
+          && d.ts == request.time
+          && (!('note' in d.keys()) || (d.note is string && d.note.size() <= 60));
+      }
+
+      // 揪團貼文不像 exp_records 有「helpful +1」這種安全的部分更新，直接
+      // 不開放 update／delete；到期後前端用 6 小時的時間窗自動從列表濾掉
+      // 就好，不需要真的刪除資料。之後如果資料量長很大，可以另外設
+      // Firestore 原生 TTL policy 清掉舊資料（見 team.js 開頭註解）。
+      allow get: if true;
+      allow list: if request.query.limit <= 100;
+      allow create: if isValidNew(request.resource.data);
+      allow update: if false;
+      allow delete: if false;
+    }
+
     // 其餘集合預設拒絕
     match /{document=**} {
       allow read, write: if false;

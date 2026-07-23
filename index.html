@@ -606,6 +606,7 @@
     <div class="subtabs" role="tablist">
       <button class="subtab active" id="cmSubSuggest" type="button" role="tab" aria-selected="true" aria-controls="cmSuggestView">建議練功地點</button>
       <button class="subtab" id="cmSubRecords" type="button" role="tab" aria-selected="false" aria-controls="cmRecordsView">回報紀錄</button>
+      <button class="subtab" id="cmSubTeam" type="button" role="tab" aria-selected="false" aria-controls="cmTeamView">組隊揪團</button>
     </div>
 
     <div id="cmSuggestView" role="tabpanel" aria-labelledby="cmSubSuggest">
@@ -680,6 +681,90 @@
 
       <div id="cmList"><p class="cm-loading">載入中...</p></div>
       <div class="cm-pagination" id="cmPagination"></div>
+    </div>
+
+    <div id="cmTeamView" role="tabpanel" aria-labelledby="cmSubTeam" hidden>
+      <p class="cm-disclaimer">給組隊任務／打王揪人用的短期公告，貼文 6 小時後會自動從列表消失，不用手動刪除，找到人也不用回來關閉。</p>
+
+      <div class="cm-toolbar">
+        <div class="cm-actions">
+          <div class="cm-sort-btns">
+            <button class="cm-sort-btn active" data-type="" type="button">全部</button>
+            <button class="cm-sort-btn" data-type="組隊任務" type="button">組隊任務</button>
+            <button class="cm-sort-btn" data-type="王團" type="button">王團</button>
+          </div>
+          <button class="btn btn-primary" id="teamAddBtn" type="button">＋ 我要揪團</button>
+        </div>
+      </div>
+
+      <div class="cm-form" id="teamForm" hidden>
+        <div class="field-grid two-col">
+          <label class="field">
+            <span>揪團類型 *</span>
+            <select id="teamType">
+              <option value="" disabled selected>請選擇類型</option>
+              <option value="組隊任務">組隊任務</option>
+              <option value="王團">王團</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>目標 *</span>
+            <select id="teamTarget">
+              <option value="" disabled selected>請先選揪團類型</option>
+            </select>
+          </label>
+        </div>
+        <div class="field-grid three-col">
+          <label class="field">
+            <span>伺服器 *</span>
+            <select id="teamServer">
+              <option value="" disabled selected>請選擇伺服器</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>集合地點 *</span>
+            <input type="text" id="teamMap" maxlength="40" placeholder="例：冰原雪域 長者公館">
+          </label>
+          <label class="field">
+            <span>聯絡方式 *</span>
+            <input type="text" id="teamContact" maxlength="40" placeholder="Discord ID 或角色名">
+          </label>
+        </div>
+        <div class="field-grid four-col">
+          <label class="field">
+            <span>發起人職業 *</span>
+            <select id="teamJob">
+              <option value="" disabled selected>請選擇職業</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>發起人等級 *</span>
+            <input type="number" id="teamLevel" min="1" max="200" placeholder="例：80">
+          </label>
+          <label class="field">
+            <span>目前人數 *</span>
+            <input type="number" id="teamCurrentCount" min="0" max="6" placeholder="例：2">
+          </label>
+          <label class="field">
+            <span>需要人數 *</span>
+            <input type="number" id="teamNeededCount" min="1" max="6" placeholder="例：6">
+          </label>
+        </div>
+        <div class="field-grid">
+          <label class="field">
+            <span>備註（選填）</span>
+            <input type="text" id="teamNote" maxlength="60" placeholder="例：缺補師、晚上8點集合">
+          </label>
+        </div>
+        <div class="cm-form-actions">
+          <button class="btn btn-primary" id="teamSubmitBtn" type="button">送出</button>
+          <button class="btn btn-ghost" id="teamCancelBtn" type="button">取消</button>
+          <span class="cm-msg" id="teamMsg" role="status" aria-live="polite"></span>
+        </div>
+      </div>
+
+      <div id="teamList"><p class="cm-loading">載入中...</p></div>
+      <div class="cm-pagination" id="teamPagination"></div>
     </div>
   </section>
 
@@ -781,9 +866,11 @@
 <script defer src="js/jobs.js"></script>
 <script defer src="js/legacySpotsData.js"></script>
 <script defer src="js/legacySpots.js"></script>
+<script defer src="js/teamData.js"></script>
 <script defer src="js/app.js"></script>
 <script defer src="js/timer.js"></script>
 <script defer src="js/community.js"></script>
+<script defer src="js/team.js"></script>
 <script defer src="js/nav.js"></script>
 <script defer src="js/backToTop.js"></script>
 <script defer src="js/theme.js"></script>

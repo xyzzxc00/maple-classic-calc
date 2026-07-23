@@ -502,38 +502,38 @@
     })
   );
 
-  // 「建議練功地點」/「回報紀錄」子分頁切換，記住使用者上次選的分頁
+  // 「建議練功地點」/「回報紀錄」/「組隊揪團」三個子分頁切換，記住使用者
+  // 上次選的分頁。原本是兩個分頁各自寫死一份 show 函式，加第三個分頁時
+  // 改成資料驅動、迴圈處理，不要再複製第三份幾乎一樣的函式。
   const CM_SUBTAB_KEY = "maple_classic_cm_subtab";
-  const subSuggestBtn = document.getElementById("cmSubSuggest");
-  const subRecordsBtn = document.getElementById("cmSubRecords");
-  const suggestView = document.getElementById("cmSuggestView");
-  const recordsView = document.getElementById("cmRecordsView");
+  const cmSubtabs = [
+    { key: "suggest", btn: document.getElementById("cmSubSuggest"), view: document.getElementById("cmSuggestView") },
+    { key: "records", btn: document.getElementById("cmSubRecords"), view: document.getElementById("cmRecordsView") },
+    { key: "team", btn: document.getElementById("cmSubTeam"), view: document.getElementById("cmTeamView") },
+  ];
 
-  function showSuggestTab(skipSave) {
-    suggestView.hidden = false;
-    recordsView.hidden = true;
-    subSuggestBtn.classList.add("active");
-    subRecordsBtn.classList.remove("active");
-    subSuggestBtn.setAttribute("aria-selected", "true");
-    subRecordsBtn.setAttribute("aria-selected", "false");
-    if (!skipSave) localStorage.setItem(CM_SUBTAB_KEY, "suggest");
-    if (window.MapleSpots) window.MapleSpots.render();
+  function showCmSubtab(key, skipSave) {
+    cmSubtabs.forEach((t) => {
+      const active = t.key === key;
+      t.view.hidden = !active;
+      t.btn.classList.toggle("active", active);
+      t.btn.setAttribute("aria-selected", active ? "true" : "false");
+    });
+    if (!skipSave) localStorage.setItem(CM_SUBTAB_KEY, key);
+    if (key === "suggest" && window.MapleSpots) window.MapleSpots.render();
+    if (key === "team" && window.MapleTeam) window.MapleTeam.render();
   }
 
+  cmSubtabs.forEach((t) => t.btn.addEventListener("click", () => showCmSubtab(t.key)));
+
+  // timer.js 的「套用到社群回報」按鈕會直接呼叫這個函式名稱，保留舊名字
+  // 當 showCmSubtab("records") 的包裝，不用去改 timer.js
   function showRecordsTab(skipSave) {
-    suggestView.hidden = true;
-    recordsView.hidden = false;
-    subSuggestBtn.classList.remove("active");
-    subRecordsBtn.classList.add("active");
-    subSuggestBtn.setAttribute("aria-selected", "false");
-    subRecordsBtn.setAttribute("aria-selected", "true");
-    if (!skipSave) localStorage.setItem(CM_SUBTAB_KEY, "records");
+    showCmSubtab("records", skipSave);
   }
 
-  subSuggestBtn.addEventListener("click", () => showSuggestTab());
-  subRecordsBtn.addEventListener("click", () => showRecordsTab());
-
-  if (localStorage.getItem(CM_SUBTAB_KEY) === "records") showRecordsTab(true);
+  const savedSubtab = localStorage.getItem(CM_SUBTAB_KEY);
+  if (savedSubtab === "records" || savedSubtab === "team") showCmSubtab(savedSubtab, true);
 
   window.MapleCommunity = {
     loadRecords,
@@ -545,5 +545,8 @@
     isSubmissionsOpen: () => SUBMISSIONS_OPEN,
     submissionsClosedMsg: SUBMISSIONS_CLOSED_MSG,
     showRecordsTab,
+    // team.js（揪團公告板）共用同一個 Firebase app／db 實例，不要自己再
+    // initializeApp 一次——同一頁面對同一個 [DEFAULT] app 重複初始化會丟例外
+    ensureDb,
   };
 })();

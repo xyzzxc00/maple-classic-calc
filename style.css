@@ -588,12 +588,17 @@ a:hover { text-decoration-color: var(--accent-hover); }
   .nav-tab { padding: 10px 4px; font-size: 11.5px; min-height: 44px; }
 }
 
-/* ---------- One/two/three column field grid ---------- */
+/* ---------- One/two/three/four column field grid ---------- */
 .field-grid.one-col { grid-template-columns: 1fr; }
 .field-grid.two-col { grid-template-columns: repeat(2, 1fr); }
 .field-grid.three-col { grid-template-columns: repeat(3, 1fr); }
+.field-grid.four-col { grid-template-columns: repeat(4, 1fr); }
 @media (max-width: 560px) {
-  .field-grid.two-col, .field-grid.three-col { grid-template-columns: 1fr; }
+  .field-grid.two-col, .field-grid.three-col, .field-grid.four-col { grid-template-columns: 1fr; }
+}
+@media (min-width: 561px) and (max-width: 760px) {
+  /* 四欄在平板寬度會擠得太窄（單一數字輸入框被壓到 <60px），先降成兩欄 */
+  .field-grid.four-col { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* ---------- Timer ---------- */
