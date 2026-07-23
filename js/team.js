@@ -57,22 +57,9 @@
     els.job.insertAdjacentHTML("beforeend", window.MapleJobOptionsHtml);
   }
 
-  // 「目標」選單依「揪團類型」動態換選項，避免王團/組隊任務的目標混在同一份清單裡選錯
-  function updateTargetOptions() {
-    const type = els.type.value;
-    const list = type === "王團" ? window.MapleTeamBossTargets : type === "組隊任務" ? window.MapleTeamQuestTargets : null;
-    if (!list) {
-      els.target.innerHTML = '<option value="" disabled selected>請先選揪團類型</option>';
-      els.target.disabled = true;
-      return;
-    }
-    els.target.disabled = false;
-    els.target.innerHTML =
-      '<option value="" disabled selected>請選擇目標</option>' +
-      list.map((t) => `<option value="${t}">${t}</option>`).join("");
-  }
-  els.type.addEventListener("change", updateTargetOptions);
-  updateTargetOptions();
+  // 目標欄位原本規劃是依揪團類型從野王/任務清單下拉選，但遊戲還沒正式
+  // 上線，實際的任務/王的名稱都還不確定，先開放自由輸入；等正式資料
+  // 出來後如果想改回下拉選單，可以參考 git 紀錄裡拿掉的版本。
 
   let allPosts = [];
   let lastLoadedAt = 0;
@@ -92,7 +79,7 @@
 
   async function submitTeamPost() {
     const type = els.type.value;
-    const target = els.target.value;
+    const target = els.target.value.trim();
     const server = els.server.value;
     const map = els.map.value.trim();
     const contact = els.contact.value.trim();
@@ -106,7 +93,7 @@
     // 共用一句「請填寫所有必填欄位」會讓人猜不出到底哪一欄有問題
     let fieldError = "";
     if (!type) fieldError = "請選擇揪團類型";
-    else if (!target) fieldError = "請選擇目標";
+    else if (!target) fieldError = "請輸入目標";
     else if (!server) fieldError = "請選擇伺服器";
     else if (!map) fieldError = "請輸入集合地點";
     else if (!contact) fieldError = "請輸入聯絡方式";

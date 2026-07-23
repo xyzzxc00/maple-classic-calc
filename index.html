@@ -709,9 +709,7 @@
           </label>
           <label class="field">
             <span>目標 *</span>
-            <select id="teamTarget">
-              <option value="" disabled selected>請先選揪團類型</option>
-            </select>
+            <input type="text" id="teamTarget" maxlength="40" placeholder="例：紅寶王、四轉試煉">
           </label>
         </div>
         <div class="field-grid three-col">
@@ -750,7 +748,7 @@
             <input type="number" id="teamNeededCount" min="1" max="6" placeholder="例：6">
           </label>
         </div>
-        <div class="field-grid">
+        <div class="field-grid one-col">
           <label class="field">
             <span>備註（選填）</span>
             <input type="text" id="teamNote" maxlength="60" placeholder="例：缺補師、晚上8點集合">
