@@ -43,6 +43,32 @@
   let timerInterval = null;
   let timerEndAt = 0; // 執行中的預計結束時間戳（ms）
 
+  // tick 由 Web Worker 驅動：主執行緒的 setInterval 在背景分頁會被瀏覽器
+  // 節流（Chrome 背景久了最慢一分鐘才跑一次，視窗被遊戲蓋住也算背景）。
+  // 剩餘時間是用時間戳回推所以不會算錯，但「時間到」那一刻的偵測會跟著
+  // 遲到，鈴聲/通知最多晚一分鐘——對拿計時器掐 30 分鐘加倍卷的玩家來說
+  // 不能接受。dedicated worker 的計時器不受分頁可見度節流，鈴聲才準時。
+  // Worker 用 Blob 內嵌，不用多一個檔案（也避開 CI 打包成單一 bundle 的路徑問題）。
+  let tickWorker = null;
+  function startTicker() {
+    stopTicker();
+    try {
+      const blob = new Blob(["setInterval(function(){postMessage(0)},500)"], { type: "text/javascript" });
+      tickWorker = new Worker(URL.createObjectURL(blob));
+      tickWorker.onmessage = timerTick;
+    } catch {
+      // Worker 不可用（極舊瀏覽器）就退回主執行緒 interval，至少前景是準的
+      timerInterval = setInterval(timerTick, 500);
+    }
+  }
+  function stopTicker() {
+    if (tickWorker) {
+      tickWorker.terminate();
+      tickWorker = null;
+    }
+    clearInterval(timerInterval);
+  }
+
   const parseExpVal = MapleCalculator.parseExpVal;
 
   function formatExp(n) {
@@ -124,7 +150,7 @@
     calcExpRate();
     if (timerLeft <= 0) {
       timerRunning = false;
-      clearInterval(timerInterval);
+      stopTicker();
       setLengthControlsEnabled(true);
       els.startBtn.textContent = "重新開始";
       els.label.textContent = "時間到！";
@@ -151,7 +177,7 @@
     }
     if (timerRunning) {
       timerRunning = false;
-      clearInterval(timerInterval);
+      stopTicker();
       // 暫停時先跟時間戳對齊一次，避免顯示停在半秒前的狀態
       timerLeft = Math.max(0, Math.round((timerEndAt - Date.now()) / 1000));
       timerElapsed = timerTotal - timerLeft;
@@ -167,7 +193,7 @@
       timerEndAt = Date.now() + timerLeft * 1000;
       setLengthControlsEnabled(false);
       els.startBtn.textContent = "暫停";
-      timerInterval = setInterval(timerTick, 500);
+      startTicker();
     }
   });
 
@@ -178,7 +204,7 @@
 
   els.resetBtn.addEventListener("click", () => {
     timerRunning = false;
-    clearInterval(timerInterval);
+    stopTicker();
     setLengthControlsEnabled(true);
     timerLeft = timerTotal;
     timerElapsed = 0;
