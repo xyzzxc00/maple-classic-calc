@@ -141,6 +141,47 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /stall_posts/{postId} {
+
+      // 伺服器白名單跟 team_posts 的 allowedServers() 是同一份清單，規則
+      // 沒辦法跨 match 共用 function，重複宣告一次；改動時兩處要同步
+      // （跟 js/teamData.js 的 TEAM_SERVERS 一致）。
+      function allowedServers() {
+        return ['雪吉拉', '菇菇寶貝'];
+      }
+
+      // 沒有 scheduledAt：擺攤是「現在就開著」，不像揪團可以先公告未來
+      // 的時間，到期時間直接用 ts（發文時間）往後推 24 小時就好。
+      function isValidNew(d) {
+        return d.keys().hasAll(['server', 'channel', 'market', 'charId', 'description', 'ts'])
+          && d.keys().hasOnly(['server', 'channel', 'market', 'charId', 'description', 'closed', 'ts'])
+          && d.server is string && allowedServers().hasAny([d.server])
+          && d.channel is int && d.channel >= 1 && d.channel <= 50
+          && d.market is string && d.market.size() >= 1 && d.market.size() <= 40
+          && d.charId is string && d.charId.size() >= 1 && d.charId.size() <= 20
+          && d.description is string && d.description.size() >= 1 && d.description.size() <= 100
+          && d.ts == request.time;
+      }
+
+      // 只放行「這篇已收攤」這一種安全的部分更新，跟 team_posts 的
+      // isMarkFound() 同一套邏輯與同樣的取捨（見上面 team_posts 註解）：
+      // 沒有比對是不是本人在改，UI 層用 localStorage 軟性限制就好。
+      // 這裡刻意不開放「其他玩家回報已收攤」——設計討論時考慮過，但
+      // 那樣任何人都能發動更新，會被拿來惡意洗掉競爭對手的擺攤公告，
+      // 風險比揪團的「已找到團」高很多，所以只留發文者自己下架這條路。
+      function isMarkClosed() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['closed'])
+          && request.resource.data.closed == true
+          && resource.data.get('closed', false) != true;
+      }
+
+      allow get: if true;
+      allow list: if request.query.limit <= 100;
+      allow create: if isValidNew(request.resource.data);
+      allow update: if isMarkClosed();
+      allow delete: if false;
+    }
+
     // 其餘集合預設拒絕
     match /{document=**} {
       allow read, write: if false;

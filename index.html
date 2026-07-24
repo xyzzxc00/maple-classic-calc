@@ -607,6 +607,7 @@
       <button class="subtab active" id="cmSubSuggest" type="button" role="tab" aria-selected="true" aria-controls="cmSuggestView">建議練功地點</button>
       <button class="subtab" id="cmSubRecords" type="button" role="tab" aria-selected="false" aria-controls="cmRecordsView">回報紀錄</button>
       <button class="subtab" id="cmSubTeam" type="button" role="tab" aria-selected="false" aria-controls="cmTeamView">組隊揪團</button>
+      <button class="subtab" id="cmSubStall" type="button" role="tab" aria-selected="false" aria-controls="cmStallView">擺攤資訊</button>
     </div>
 
     <div id="cmSuggestView" role="tabpanel" aria-labelledby="cmSubSuggest">
@@ -768,6 +769,53 @@
       <div id="teamList"><p class="cm-loading">載入中...</p></div>
       <div class="cm-pagination" id="teamPagination"></div>
     </div>
+
+    <div id="cmStallView" role="tabpanel" aria-labelledby="cmSubStall" hidden>
+      <p class="cm-disclaimer">給自由市場擺攤用的公告，讓大家知道你在哪個頻道擺攤賣什麼。貼文 24 小時後會自動下架；不擺攤了也請記得自己回來按「已收攤」，讓資訊保持準確。</p>
+
+      <div class="cm-toolbar">
+        <div class="cm-actions">
+          <button class="btn btn-primary" id="stallAddBtn" type="button">＋ 我要公告擺攤</button>
+        </div>
+      </div>
+
+      <div class="cm-form" id="stallForm" hidden>
+        <div class="field-grid four-col">
+          <label class="field">
+            <span>伺服器 *</span>
+            <select id="stallServer">
+              <option value="" disabled selected>請選擇伺服器</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>頻道 *</span>
+            <input type="number" id="stallChannel" min="1" max="50" placeholder="例：3">
+          </label>
+          <label class="field">
+            <span>自由市場地點 *</span>
+            <input type="text" id="stallMarket" maxlength="40" placeholder="例：自由市場1館">
+          </label>
+          <label class="field">
+            <span>角色 ID *</span>
+            <input type="text" id="stallCharId" maxlength="20" placeholder="方便大家找到你的攤位">
+          </label>
+        </div>
+        <div class="field-grid one-col">
+          <label class="field">
+            <span>販售內容 *</span>
+            <input type="text" id="stallDescription" maxlength="100" placeholder="例：卷軸大特賣、武器防具便宜出清">
+          </label>
+        </div>
+        <div class="cm-form-actions">
+          <button class="btn btn-primary" id="stallSubmitBtn" type="button">送出</button>
+          <button class="btn btn-ghost" id="stallCancelBtn" type="button">取消</button>
+          <span class="cm-msg" id="stallMsg" role="status" aria-live="polite"></span>
+        </div>
+      </div>
+
+      <div id="stallList"><p class="cm-loading">載入中...</p></div>
+      <div class="cm-pagination" id="stallPagination"></div>
+    </div>
   </section>
 
 </div>
@@ -873,6 +921,7 @@
 <script defer src="js/timer.js"></script>
 <script defer src="js/community.js"></script>
 <script defer src="js/team.js"></script>
+<script defer src="js/stall.js"></script>
 <script defer src="js/nav.js"></script>
 <script defer src="js/backToTop.js"></script>
 <script defer src="js/theme.js"></script>

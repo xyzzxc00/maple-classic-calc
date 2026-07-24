@@ -510,6 +510,7 @@
     { key: "suggest", btn: document.getElementById("cmSubSuggest"), view: document.getElementById("cmSuggestView") },
     { key: "records", btn: document.getElementById("cmSubRecords"), view: document.getElementById("cmRecordsView") },
     { key: "team", btn: document.getElementById("cmSubTeam"), view: document.getElementById("cmTeamView") },
+    { key: "stall", btn: document.getElementById("cmSubStall"), view: document.getElementById("cmStallView") },
   ];
 
   function showCmSubtab(key, skipSave) {
@@ -522,6 +523,7 @@
     if (!skipSave) localStorage.setItem(CM_SUBTAB_KEY, key);
     if (key === "suggest" && window.MapleSpots) window.MapleSpots.render();
     if (key === "team" && window.MapleTeam) window.MapleTeam.render();
+    if (key === "stall" && window.MapleStall) window.MapleStall.render();
   }
 
   cmSubtabs.forEach((t) => t.btn.addEventListener("click", () => showCmSubtab(t.key)));
@@ -533,7 +535,7 @@
   }
 
   const savedSubtab = localStorage.getItem(CM_SUBTAB_KEY);
-  if (savedSubtab === "records" || savedSubtab === "team") showCmSubtab(savedSubtab, true);
+  if (savedSubtab === "records" || savedSubtab === "team" || savedSubtab === "stall") showCmSubtab(savedSubtab, true);
 
   window.MapleCommunity = {
     loadRecords,
