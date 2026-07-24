@@ -741,6 +741,46 @@ a:hover { text-decoration-color: var(--accent-hover); }
 .scroll-sim-dist-bar-fill { height: 100%; background: var(--accent); border-radius: 6px; }
 .scroll-sim-dist-count { flex: 1 1 auto; text-align: right; font-weight: 700; white-space: nowrap; }
 
+/* ---------- 轉蛋模擬（骨架階段） ---------- */
+/* 道具名稱比卷軸模擬的「成功 N」短標籤長很多，56px 會被截斷，這裡單獨
+   加寬，只影響 #gachaDist 底下的列，不影響卷軸模擬原本的窄標籤 */
+#gachaDist .scroll-sim-dist-label { flex-basis: 160px; }
+
+.gacha-result-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+}
+.gacha-result-item {
+  text-align: center;
+  padding: 14px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-tint);
+}
+.gacha-result-name { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+.gacha-result-rarity { font-size: 12px; color: var(--ink-soft); }
+/* 稀有度顏色沿用既有的三個色階（--accent/--warning/--danger），不另外
+   引入新顏色；越稀有的顏色越搶眼 */
+.gacha-result-item.gacha-rarity-uncommon { border-color: var(--accent-border); }
+.gacha-result-item.gacha-rarity-uncommon .gacha-result-rarity { color: var(--accent-text); font-weight: 700; }
+.gacha-result-item.gacha-rarity-rare { border-color: var(--warning); }
+.gacha-result-item.gacha-rarity-rare .gacha-result-rarity { color: var(--warning); font-weight: 700; }
+.gacha-result-item.gacha-rarity-legendary { border-color: var(--danger); background: var(--accent-tint); }
+.gacha-result-item.gacha-rarity-legendary .gacha-result-rarity { color: var(--danger); font-weight: 700; }
+
+.gacha-rarity-tag {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.gacha-rarity-tag.gacha-rarity-uncommon { color: var(--accent-text); }
+.gacha-rarity-tag.gacha-rarity-rare { color: var(--warning); }
+.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
+
 /* ---------- Community DB ---------- */
 .cm-disclaimer {
   font-size: 13px;

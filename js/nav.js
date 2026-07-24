@@ -61,6 +61,7 @@
     { key: "exp", btn: document.getElementById("calcSubExp"), view: document.getElementById("calcExpView") },
     { key: "attack", btn: document.getElementById("calcSubAttack"), view: document.getElementById("calcAttackView") },
     { key: "scroll", btn: document.getElementById("calcSubScroll"), view: document.getElementById("calcScrollView") },
+    { key: "gacha", btn: document.getElementById("calcSubGacha"), view: document.getElementById("calcGachaView") },
   ];
 
   function showCalcSubtab(key, skipSave) {

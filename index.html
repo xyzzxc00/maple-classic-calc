@@ -200,6 +200,8 @@
       <!-- 攻擊力計算：資料還在核對，先不對外顯示，見 js/attack.js 開發紀錄 -->
       <button class="subtab" id="calcSubAttack" type="button" role="tab" aria-selected="false" aria-controls="calcAttackView" hidden>攻擊力計算</button>
       <button class="subtab" id="calcSubScroll" type="button" role="tab" aria-selected="false" aria-controls="calcScrollView">卷軸強化模擬</button>
+      <!-- 轉蛋模擬：骨架測試階段，機率跟道具都是假資料，等正式機率公告後再對外開放，見 js/gachaData.js 開頭說明 -->
+      <button class="subtab" id="calcSubGacha" type="button" role="tab" aria-selected="false" aria-controls="calcGachaView" hidden>轉蛋模擬</button>
     </div>
 
     <div id="calcExpView" role="tabpanel" aria-labelledby="calcSubExp">
@@ -529,6 +531,42 @@
     <p class="scroll-sim-result" id="scrollSimResult" hidden></p>
 
     <div class="scroll-sim-dist" id="scrollSimDist" hidden></div>
+  </section>
+
+    </div>
+
+    <div id="calcGachaView" role="tabpanel" aria-labelledby="calcSubGacha" hidden>
+
+  <section class="panel gacha-panel">
+    <div class="panel-head">
+      <h2>轉蛋模擬</h2>
+      <button class="btn btn-ghost" id="gachaResetBtn" type="button">重置紀錄</button>
+    </div>
+    <p class="cm-disclaimer">⚠️ 骨架測試階段：下面的道具跟機率都是示意用的假資料，不是遊戲正式數值。遊戲還沒上線，正式的轉蛋道具與機率請以官方公告的「機率商品說明」為準，等資料出來後會校正成真實數字。</p>
+    <p class="cm-disclaimer">純粹好玩用，不會花到任何真實貨幣或遊戲內道具，單純模擬機率讓大家試試手氣。</p>
+
+    <div class="panel-head scroll-sub-head">
+      <h3>道具池（示意機率）</h3>
+    </div>
+    <div class="exp-rate-box" id="gachaPoolBox"></div>
+
+    <div class="panel-head scroll-sub-head">
+      <h3>抽轉蛋</h3>
+    </div>
+    <div class="scroll-sim-controls">
+      <button class="btn btn-primary" id="gachaPullOnceBtn" type="button">抽一次</button>
+      <button class="btn btn-primary" id="gachaPullTenBtn" type="button">抽十連</button>
+    </div>
+
+    <div class="gacha-result-grid" id="gachaResultGrid"></div>
+
+    <div class="panel-head scroll-sub-head">
+      <h3>累計統計</h3>
+    </div>
+    <div class="exp-rate-box" id="gachaStatsBox">
+      <div class="exp-rate-row"><span>累計抽數</span><span id="gachaTotalPulls">0</span></div>
+    </div>
+    <div class="scroll-sim-dist" id="gachaDist"></div>
   </section>
 
     </div>
@@ -910,6 +948,8 @@
 <script defer src="js/attackData.js"></script>
 <script defer src="js/attack.js"></script>
 <script defer src="js/scroll.js"></script>
+<script defer src="js/gachaData.js"></script>
+<script defer src="js/gacha.js"></script>
 <script defer src="js/jobsData.js"></script>
 <script defer src="js/pagination.js"></script>
 <script defer src="js/spots.js"></script>
