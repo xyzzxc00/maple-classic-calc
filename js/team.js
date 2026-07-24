@@ -183,7 +183,7 @@
       saveMyPostId(docRef.id);
       els.msg.textContent = "✓ 已發布！集合時間過後 6 小時會自動下架，找到團也可以自己提早標記完成";
       els.msg.className = "cm-msg ok";
-      els.target.value = ""; els.map.value = ""; els.contact.value = "";
+      els.type.value = ""; els.target.value = ""; els.server.value = ""; els.map.value = ""; els.contact.value = "";
       els.job.value = ""; els.level.value = "";
       els.currentCount.value = ""; els.neededCount.value = ""; els.note.value = "";
       els.scheduledAt.value = "";

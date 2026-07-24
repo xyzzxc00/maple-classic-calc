@@ -82,7 +82,12 @@
     filterMap: document.getElementById("cmFilterMap"),
     filterLvMin: document.getElementById("cmFilterLvMin"),
     filterLvMax: document.getElementById("cmFilterLvMax"),
-    sortBtns: document.querySelectorAll(".cm-sort-btn"),
+    // 一定要用 #cmRecordsView 限定範圍，不能直接 document.querySelectorAll(".cm-sort-btn")——
+    // 組隊揪團的類型篩選、擺攤資訊的伺服器篩選重用了同一個 class，沒限定範圍的話
+    // 這裡的點擊處理會誤把那兩個分頁的篩選按鈕也一起清掉/設成 active，
+    // 連帶讓下面 renderRecords() 抓錯 activeSort、把使用者選的「效率↓」悄悄
+    // 蓋回「最新」
+    sortBtns: document.querySelectorAll("#cmRecordsView .cm-sort-btn"),
     addBtn: document.getElementById("cmAddBtn"),
     form: document.getElementById("cmForm"),
     job: document.getElementById("cmJob"),
@@ -352,7 +357,7 @@
     const fMap = els.filterMap.value.trim().toLowerCase();
     const fLvMin = parseInt(els.filterLvMin.value, 10) || 0;
     const fLvMax = parseInt(els.filterLvMax.value, 10) || 999;
-    const activeSort = document.querySelector(".cm-sort-btn.active");
+    const activeSort = document.querySelector("#cmRecordsView .cm-sort-btn.active");
     const sortBy = activeSort ? activeSort.dataset.sort : "time";
 
     const filtered = allRecords

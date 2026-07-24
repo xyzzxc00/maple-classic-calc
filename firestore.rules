@@ -152,9 +152,14 @@ service cloud.firestore {
 
       // 沒有 scheduledAt：擺攤是「現在就開著」，不像揪團可以先公告未來
       // 的時間，到期時間直接用 ts（發文時間）往後推 24 小時就好。
+      //
+      // hasOnly 故意不放 closed——跟 team_posts 的 found 一樣，這個欄位
+      // 只能透過下面的 isMarkClosed() 一次性從無/false 改成 true，建立
+      // 當下不該讓 create request 夾帶任意值進來（原本漏放，等於建立時
+      // 沒有驗證就能塞 closed 進去，已修正跟 team_posts 一致）
       function isValidNew(d) {
         return d.keys().hasAll(['server', 'channel', 'market', 'charId', 'description', 'ts'])
-          && d.keys().hasOnly(['server', 'channel', 'market', 'charId', 'description', 'closed', 'ts'])
+          && d.keys().hasOnly(['server', 'channel', 'market', 'charId', 'description', 'ts'])
           && d.server is string && allowedServers().hasAny([d.server])
           && d.channel is int && d.channel >= 1 && d.channel <= 50
           && d.market is string && d.market.size() >= 1 && d.market.size() <= 40
