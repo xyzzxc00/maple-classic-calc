@@ -115,14 +115,29 @@ service cloud.firestore {
           && (!('note' in d.keys()) || (d.note is string && d.note.size() <= 60));
       }
 
-      // 揪團貼文不像 exp_records 有「helpful +1」這種安全的部分更新，直接
-      // 不開放 update／delete；到期後前端用 6 小時的時間窗自動從列表濾掉
-      // 就好，不需要真的刪除資料。之後如果資料量長很大，可以另外設
-      // Firestore 原生 TTL policy 清掉舊資料（見 team.js 開頭註解）。
+      // 只能把 found 從沒設定/false 改成 true，不能改別的欄位、也不能
+      // 反悔改回 false（跟 exp_records 的 isHelpfulIncrement() 同一種
+      // 「只開放一個安全的部分更新」寫法）。這裡沒有比對「是不是本人在改」
+      // ——沒有帳號系統做不到真的驗證，前端用 localStorage 記自己發過的
+      // 文件 ID 決定要不要顯示這顆按鈕，是 UI 層的軟性限制，不是安全機制；
+      // 就算被任何人手動呼叫改掉，最壞情況也只是這篇貼文提早消失，
+      // 影響很小，不值得為此增加複雜度。
+      function isMarkFound() {
+        // found 在建立時不會被寫入（create 規則的 hasOnly 沒有這個欄位），
+        // 所以第一次標記時 resource.data 裡根本沒有 found 這個 key——直接
+        // resource.data.found 對不存在的欄位取值會噴錯，要用 get() 給預設值
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['found'])
+          && request.resource.data.found == true
+          && resource.data.get('found', false) != true;
+      }
+
+      // 不開放刪除；到期後前端用 6 小時的時間窗自動從列表濾掉就好，不需要
+      // 真的刪除資料。之後如果資料量長很大，可以另外設 Firestore 原生
+      // TTL policy 清掉舊資料（見 team.js 開頭註解）。
       allow get: if true;
       allow list: if request.query.limit <= 100;
       allow create: if isValidNew(request.resource.data);
-      allow update: if false;
+      allow update: if isMarkFound();
       allow delete: if false;
     }
 

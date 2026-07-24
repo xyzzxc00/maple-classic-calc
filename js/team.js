@@ -48,8 +48,24 @@
   const MIN_PAST_MS = 60 * 60 * 1000; // 集合時間最多容許比現在早 1 小時（給「現在就要揪」一點緩衝，不用卡到秒）
   const FETCH_LIMIT = 100;
   const CACHE_MS = 60 * 1000; // 跟 community.js 同標準：60 秒內重複進分頁用快取
+  const MY_POSTS_KEY = "maple_classic_my_team_posts";
 
   const escHtml = MapleCalculator.escHtml;
+
+  // 沒有帳號系統，沒辦法真的驗證「這是不是你發的」。做法跟 community.js
+  // 的 VOTED_KEY 同一套精神：發文成功後把自己的文件 ID 記在 localStorage，
+  // 只有這個瀏覽器自己看得到「標記已找到團」的按鈕。這不是真的安全機制
+  // （有心人開 devtools 一樣能改別人的貼文），但跟現有的「有幫助」投票
+  // 一樣，擋的是一般使用者不小心誤觸，不是防駭客——這個公告板的風險
+  // 等級本來就不需要真的做到那個程度。
+  function getMyPostIds() {
+    try { return new Set(JSON.parse(localStorage.getItem(MY_POSTS_KEY)) || []); } catch { return new Set(); }
+  }
+  function saveMyPostId(id) {
+    const s = getMyPostIds();
+    s.add(id);
+    localStorage.setItem(MY_POSTS_KEY, JSON.stringify([...s]));
+  }
 
   // 伺服器／職業下拉選單都是資料驅動，改 teamData.js／jobsData.js 就會
   // 自動反映，不用兩邊維護
@@ -159,14 +175,15 @@
     }
 
     try {
-      await db.collection("team_posts").add({
+      const docRef = await db.collection("team_posts").add({
         type, target, server, map, contact, job, level,
         currentCount, neededCount,
         scheduledAt: firebase.firestore.Timestamp.fromDate(scheduledAtDate),
         ...(note && { note }),
         ts: firebase.firestore.FieldValue.serverTimestamp(),
       });
-      els.msg.textContent = "✓ 已發布！集合時間過後 6 小時會自動下架，找到人不用回來關閉";
+      saveMyPostId(docRef.id);
+      els.msg.textContent = "✓ 已發布！集合時間過後 6 小時會自動下架，找到團也可以自己提早標記完成";
       els.msg.className = "cm-msg ok";
       els.target.value = ""; els.map.value = ""; els.contact.value = "";
       els.job.value = ""; els.level.value = "";
@@ -252,12 +269,16 @@
 
   function renderTeamPosts() {
     const now = Date.now();
+    const myPostIds = getMyPostIds();
     // 過期過濾已經在 Firestore 查詢端做過一次（where scheduledAt >= cutoff），
     // 這裡的 CACHE_MS 快取視窗內時間會往前走，所以還是要再篩一次，避免
-    // 快取住的資料裡混進「查詢當下沒過期、現在已經過期」的邊界情況
+    // 快取住的資料裡混進「查詢當下沒過期、現在已經過期」的邊界情況。
+    // found（已標記找到團）沒有做進 Firestore 查詢條件——多加一個欄位的
+    // range/equality 條件會需要複合索引，這個公告板量級小，直接在前端
+    // 濾掉比較省事。
     const notExpired = allPosts.filter((p) => {
       const t = p.scheduledAt && p.scheduledAt.toDate ? p.scheduledAt.toDate().getTime() : 0;
-      return now - t < GRACE_MS;
+      return now - t < GRACE_MS && !p.found;
     });
     const filtered = activeType ? notExpired.filter((p) => p.type === activeType) : notExpired;
     // 依集合時間由近到遠排序：最快要開始的排最前面，對「找還來得及參加的
@@ -288,6 +309,7 @@
         const t = p.scheduledAt && p.scheduledAt.toDate ? p.scheduledAt.toDate() : new Date(now);
         const started = t.getTime() <= now;
         const scheduledLabel = formatScheduled(t) + (started ? "（進行中／已開始）" : "");
+        const isMine = myPostIds.has(p.id);
         return `<div class="cm-card">
           <div class="cm-job">${escHtml(p.type)}｜${escHtml(p.target)}</div>
           <div class="cm-map">${escHtml(p.server)}・${escHtml(p.map)}</div>
@@ -296,6 +318,9 @@
           <div class="cm-stat"><span>人數</span><span>${p.currentCount} / ${p.neededCount}</span></div>
           <div class="cm-stat"><span>聯絡方式</span><span>${escHtml(p.contact)}</span></div>
           ${p.note ? `<div class="cm-note">${escHtml(p.note)}</div>` : ""}
+          ${isMine ? `<div class="cm-card-footer">
+            <button class="cm-helpful-btn cm-found-btn" data-id="${p.id}" type="button">✓ 已找到團，下架這篇</button>
+          </div>` : ""}
         </div>`;
       }).join("") +
       "</div>";
@@ -306,6 +331,31 @@
       onChange: (p) => { currentPage = p; renderTeamPosts(); },
     });
   }
+
+  // 單一委派監聽器（在初始化時綁一次，避免每次 render 疊加），跟
+  // community.js 的 onHelpfulClick 同一套做法
+  function onFoundClick(e) {
+    const btn = e.target.closest(".cm-found-btn");
+    if (!btn || btn.disabled) return;
+    const id = btn.dataset.id;
+
+    btn.disabled = true;
+    btn.textContent = "處理中...";
+    window.MapleCommunity.ensureDb().then((db) => {
+      if (!db) throw new Error("no-db");
+      return db.collection("team_posts").doc(id).update({ found: true });
+    }).then(() => {
+      // 標記成功就直接從畫面上拿掉，不用等下次重新載入
+      allPosts = allPosts.filter((p) => p.id !== id);
+      renderTeamPosts();
+    }).catch(() => {
+      // 失敗機率不高（自己發的文、規則本來就允許這個更新），失敗了讓
+      // 使用者知道可以再按一次，不要靜默失敗
+      btn.disabled = false;
+      btn.textContent = "標記失敗，再按一次試試";
+    });
+  }
+  els.list.addEventListener("click", onFoundClick);
 
   els.typeFilterBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
