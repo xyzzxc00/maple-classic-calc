@@ -101,8 +101,6 @@
 
   let allPosts = [];
   let lastLoadedAt = 0;
-  let lastLoadFailed = false;
-  let loadsInFlight = 0;
   let currentPage = 1;
   let activeType = ""; // "" = 全部
 
@@ -215,14 +213,11 @@
       return;
     }
     els.list.innerHTML = '<p class="cm-loading">載入中...</p>';
-    lastLoadFailed = false;
-    loadsInFlight++;
     try {
       let db = null;
       try {
         db = await window.MapleCommunity.ensureDb();
       } catch {
-        lastLoadFailed = true;
         els.list.innerHTML = '<p class="cm-empty">連線失敗，請檢查網路後重新整理頁面</p>';
         return;
       }
@@ -243,7 +238,6 @@
       lastLoadedAt = Date.now();
       renderTeamPosts();
     } catch (e) {
-      lastLoadFailed = true;
       let msg = "載入失敗，請重新整理頁面";
       if (typeof navigator !== "undefined" && navigator.onLine === false) {
         msg = "目前似乎沒有網路連線，請檢查後重新整理頁面";
@@ -255,8 +249,6 @@
         msg = "今天社群功能的使用量已達上限，明天會自動恢復，其他功能不受影響";
       }
       els.list.innerHTML = `<p class="cm-empty">${msg}</p>`;
-    } finally {
-      loadsInFlight--;
     }
   }
 
@@ -290,11 +282,14 @@
     });
 
     if (!filtered.length) {
-      els.list.innerHTML = loadsInFlight > 0
-        ? '<p class="cm-loading">載入中...</p>'
-        : !allPosts.length
-          ? '<p class="cm-empty">目前還沒有揪團貼文，第一個發起看看吧！</p>'
-          : '<p class="cm-empty">目前沒有符合篩選條件、還在有效期內的揪團貼文</p>';
+      // renderTeamPosts 只會在資料已經抓回來（成功／失敗都提早 return 了）
+      // 之後才被呼叫，不需要在這裡再判斷「是不是還在載入中」——之前加了
+      // 這個判斷反而是 bug：loadTeamPosts 的 try 區塊裡是先呼叫
+      // renderTeamPosts() 才走到 finally 清掉載入狀態，資料是空的時候
+      // 這裡永遠會判斷成「還在載入」，卡死在「載入中...」不會消失
+      els.list.innerHTML = !allPosts.length
+        ? '<p class="cm-empty">目前還沒有揪團貼文，第一個發起看看吧！</p>'
+        : '<p class="cm-empty">目前沒有符合篩選條件、還在有效期內的揪團貼文</p>';
       els.pagination.innerHTML = "";
       return;
     }
