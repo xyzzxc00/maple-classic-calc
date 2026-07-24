@@ -334,6 +334,10 @@
     if (!btn || btn.disabled) return;
     const id = btn.dataset.id;
 
+    // 這個動作沒辦法復原（規則不開放把 found 改回 false），怕手滑誤點
+    // 直接把自己的貼文下架，按下去前先跳確認
+    if (!confirm("確定要標記這篇揪團已經找到團、下架這篇貼文嗎？這個動作沒辦法復原。")) return;
+
     btn.disabled = true;
     btn.textContent = "處理中...";
     window.MapleCommunity.ensureDb().then((db) => {
