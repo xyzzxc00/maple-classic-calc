@@ -371,4 +371,17 @@
   }
 
   window.MapleTeam = { render };
+
+  // <script defer> 是照 index.html 裡的順序依序執行，community.js 排在
+  // team.js 前面：使用者上次停在「組隊揪團」分頁時，重新整理頁面會先跑
+  // community.js 裡「還原上次分頁」那段邏輯，那時候 window.MapleTeam
+  // 還不存在（這支還沒載完），community.js 只能把 #cmTeamView 的 hidden
+  // 拿掉、但沒辦法呼叫這裡的 render() 去真的抓資料，畫面就停在 index.html
+  // 寫死的「載入中...」點位符，永遠不會真的開始載入。切走再切回來會正常
+  // 是因為那時候是使用者手動點按鈕觸發、team.js 早就載完了。
+  // 修法：team.js 自己載完的當下檢查一次「我是不是已經是攤開的分頁」，
+  // 是的話自己補一次 render()，不去依賴誰先載完這種順序關係。
+  if (!document.getElementById("cmTeamView").hidden) {
+    render();
+  }
 })();
