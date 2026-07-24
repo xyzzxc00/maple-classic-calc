@@ -790,8 +790,24 @@ a:hover { text-decoration-color: var(--accent-hover); }
   padding: 20px;
   margin-bottom: 20px;
 }
-.cm-form-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 4px; }
-#cmCancelBtn { white-space: nowrap; flex-shrink: 0; }
+.cm-form-actions { display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap; margin-top: 4px; }
+/* 送出／取消兩顆按鈕大小一致、左右並排：.btn-primary 原本 width:100% 是
+   給其他頁面單顆滿版按鈕用的（例如計時器「開始」），這裡用比 .btn-primary
+   更高優先度的組合選擇器局部覆蓋，不影響其他地方的按鈕 */
+.cm-form-actions .btn-primary,
+.cm-form-actions .btn-ghost {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 120px;
+  padding: 11px 18px;
+  font-size: 14px;
+}
+@media (max-width: 480px) {
+  /* 手機版改上下排列，兩顆一樣滿版寬，不要並排擠成兩個窄按鈕 */
+  .cm-form-actions { flex-direction: column; }
+  .cm-form-actions .btn-primary,
+  .cm-form-actions .btn-ghost { flex: none; width: 100%; }
+}
 .cm-msg { font-size: 13px; }
 .cm-msg:not(:empty) { flex-basis: 100%; }
 .cm-msg.ok { color: var(--accent-text); font-weight: 700; }
