@@ -42,7 +42,12 @@
   if (!els.form) return;
 
   const EXPIRE_MS = 24 * 60 * 60 * 1000; // 固定 24 小時，發文時系統自動套用，不用玩家選
-  const FETCH_LIMIT = 100;
+  // 顯示的一頁筆數，跟每次跟 Firestore 要資料的批次大小共用同一個數字，
+  // 做法跟 team.js 一樣，「按下一頁」＝「剛好去問伺服器要下一批」
+  const PAGE_SIZE = 30;
+  // 篩選（伺服器）在前端做，篩空時會自動往伺服器補抓下一批；上限 10 批 =
+  // 最多自動搜 300 筆，做法跟 team.js／exp_records 一樣
+  const MAX_AUTO_FETCH_ROUNDS = 10;
   const CACHE_MS = 60 * 1000; // 跟 community.js／team.js 同標準
   const MY_POSTS_KEY = "maple_classic_my_stall_posts";
 
@@ -75,8 +80,11 @@
   }
 
   let allPosts = [];
+  let lastDoc = null;
+  let hasMoreFromServer = false; // Firestore 端是否還有下一批（PAGE_SIZE 筆一批）還沒抓進 allPosts
   let lastLoadedAt = 0;
   let currentPage = 1;
+  let autoFetchRounds = 0;
   let activeServer = ""; // "" = 全部
 
   let formOpen = false;
@@ -156,34 +164,47 @@
   }
   els.submitBtn.addEventListener("click", submitStallPost);
 
-  async function loadStallPosts() {
-    if (allPosts.length && Date.now() - lastLoadedAt < CACHE_MS) {
-      renderStallPosts();
-      return;
+  async function loadStallPosts(append = false) {
+    if (!append) {
+      if (allPosts.length && Date.now() - lastLoadedAt < CACHE_MS) {
+        renderStallPosts();
+        return;
+      }
+      els.list.innerHTML = '<p class="cm-loading">載入中...</p>';
+      allPosts = [];
+      lastDoc = null;
     }
-    els.list.innerHTML = '<p class="cm-loading">載入中...</p>';
     try {
       let db = null;
       try {
         db = await window.MapleCommunity.ensureDb();
       } catch {
         els.list.innerHTML = '<p class="cm-empty">連線失敗，請檢查網路後重新整理頁面</p>';
+        hasMoreFromServer = false;
         return;
       }
       if (!db) {
         els.list.innerHTML = '<p class="cm-empty">社群資料庫尚未開放，敬請期待。</p>';
+        hasMoreFromServer = false;
         return;
       }
       // 直接在查詢端擋掉「發文超過 24 小時」的過期文件，跟 orderBy 是
-      // 同一個欄位（ts），不需要額外設定複合索引
+      // 同一個欄位（ts），不需要額外設定複合索引。多抓 1 筆只用來判斷
+      // 「後面還有沒有資料」，做法跟 community.js 的 exp_records 一樣
       const cutoff = firebase.firestore.Timestamp.fromMillis(Date.now() - EXPIRE_MS);
-      const snap = await db.collection("stall_posts")
+      let query = db.collection("stall_posts")
         .where("ts", ">=", cutoff)
         .orderBy("ts", "desc")
-        .limit(FETCH_LIMIT)
-        .get();
-      allPosts = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        .limit(PAGE_SIZE + 1);
+      if (append && lastDoc) query = query.startAfter(lastDoc);
+      const snap = await query.get();
+      const hasExtra = snap.docs.length > PAGE_SIZE;
+      const pageDocs = hasExtra ? snap.docs.slice(0, PAGE_SIZE) : snap.docs;
+      const newPosts = pageDocs.map((d) => ({ id: d.id, ...d.data() }));
+      lastDoc = pageDocs[pageDocs.length - 1] || null;
+      allPosts = append ? [...allPosts, ...newPosts] : newPosts;
       lastLoadedAt = Date.now();
+      hasMoreFromServer = hasExtra;
       renderStallPosts();
     } catch (e) {
       let msg = "載入失敗，請重新整理頁面";
@@ -195,6 +216,14 @@
         msg = "連不上資料庫伺服器，請稍後重新整理頁面";
       } else if (e && e.code === "resource-exhausted") {
         msg = "今天社群功能的使用量已達上限，明天會自動恢復，其他功能不受影響";
+      }
+      // 補抓失敗時別把已經顯示的公告整片換成錯誤訊息，理由跟 team.js／
+      // community.js 的 exp_records 一樣
+      if (append && allPosts.length) {
+        hasMoreFromServer = false;
+        renderStallPosts();
+        els.pagination.innerHTML = `<p class="cm-empty">${msg}</p>`;
+        return;
       }
       els.list.innerHTML = `<p class="cm-empty">${msg}</p>`;
     }
@@ -222,16 +251,35 @@
     });
 
     if (!filtered.length) {
+      // 已載入的這幾批裡沒有符合條件的，不代表伺服器上真的沒有——篩選
+      // 只在前端做，資料還沒抓完的情況下不能先下「沒有符合條件」的結論，
+      // 做法跟 team.js／community.js 的 exp_records 一樣
+      if (hasMoreFromServer && autoFetchRounds < MAX_AUTO_FETCH_ROUNDS) {
+        autoFetchRounds++;
+        els.list.innerHTML = '<p class="cm-loading">在更多的擺攤公告中搜尋...</p>';
+        els.pagination.innerHTML = "";
+        loadStallPosts(true);
+        return;
+      }
       els.list.innerHTML = !allPosts.length
         ? '<p class="cm-empty">目前還沒有擺攤公告，第一個發起看看吧！</p>'
-        : '<p class="cm-empty">目前沒有符合篩選條件、還在有效期內的擺攤公告</p>';
+        : hasMoreFromServer
+          ? `<p class="cm-empty">最近載入的 ${allPosts.length} 筆公告中沒有符合條件的，可以換個伺服器篩選再試</p>`
+          : '<p class="cm-empty">目前沒有符合篩選條件、還在有效期內的擺攤公告</p>';
       els.pagination.innerHTML = "";
       return;
     }
 
-    const totalPages = Math.max(1, Math.ceil(filtered.length / MaplePagination.PAGE_SIZE));
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    // 篩選後已載入的資料不夠撐滿目前頁碼，但 Firestore 那邊還有更多，先補抓再重繪
+    if (currentPage > totalPages && hasMoreFromServer && autoFetchRounds < MAX_AUTO_FETCH_ROUNDS) {
+      autoFetchRounds++;
+      els.pagination.innerHTML = '<p class="cm-loading">載入更多公告中...</p>';
+      loadStallPosts(true);
+      return;
+    }
     if (currentPage > totalPages) currentPage = totalPages;
-    const pagePosts = MaplePagination.slice(filtered, currentPage);
+    const pagePosts = MaplePagination.slice(filtered, currentPage, PAGE_SIZE);
 
     els.list.innerHTML =
       '<div class="cm-grid">' +
@@ -251,8 +299,22 @@
     MaplePagination.render(els.pagination, {
       total: filtered.length,
       page: currentPage,
+      pageSize: PAGE_SIZE,
+      // Firestore 還有更早批次沒抓完時，讓最後一頁的「›」保持可按——按下去
+      // currentPage 會超過 totalPages，走上面既有的補抓路徑載入下一批
+      hasMore: hasMoreFromServer,
       onChange: (p) => { currentPage = p; renderStallPosts(); },
     });
+    // 篩選都只在已載入的資料內做，資料還沒抓完時如果不講，篩選結果看起來
+    // 像涵蓋全部公告，其實只涵蓋最近幾批
+    if (hasMoreFromServer) {
+      els.pagination.insertAdjacentHTML(
+        "beforeend",
+        `<p class="cm-range-hint">目前涵蓋已載入的 ${allPosts.length} 筆公告，按「›」可繼續載入更早發布的擺攤公告</p>`
+      );
+    }
+    // 成功渲染出結果 = 這一輪補抓鏈結束，下一次篩空可以重新往下搜
+    autoFetchRounds = 0;
   }
 
   // 單一委派監聽器（在初始化時綁一次），跟 team.js 的 onFoundClick 同一套做法
@@ -286,6 +348,7 @@
       btn.classList.add("active");
       activeServer = btn.dataset.server;
       currentPage = 1;
+      autoFetchRounds = 0;
       renderStallPosts();
     });
   });

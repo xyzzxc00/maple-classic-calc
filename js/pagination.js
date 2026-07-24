@@ -4,10 +4,13 @@
 (function () {
   const PAGE_SIZE = 15;
 
-  // items 已經是篩選/排序後的完整陣列；回傳目前這一頁該顯示的子陣列
-  function slice(items, page) {
-    const start = (page - 1) * PAGE_SIZE;
-    return items.slice(start, start + PAGE_SIZE);
+  // items 已經是篩選/排序後的完整陣列；回傳目前這一頁該顯示的子陣列。
+  // pageSize 預設用共用的 15（回報紀錄／建議練功地點），組隊揪團／擺攤
+  // 資訊這種量級小很多的公告板可以傳自己的頁面大小（例如 30），不用
+  // 兩邊共用同一個數字
+  function slice(items, page, pageSize = PAGE_SIZE) {
+    const start = (page - 1) * pageSize;
+    return items.slice(start, start + pageSize);
   }
 
   // 頁碼太多時只顯示目前頁附近幾個 + 頭尾，中間用「…」省略
@@ -20,8 +23,8 @@
   // 為 true 時最後一頁的「›」不能鎖死——呼叫端靠「翻超過 totalPages」這個
   // 訊號去補抓下一批；之前這顆按鈕在最後一頁永遠 disabled，使用者沒有任何
   // 操作能觸發補抓，第 51 筆以後的資料從 UI 上就永遠到不了
-  function render(container, { total, page, onChange, hasMore }) {
-    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  function render(container, { total, page, onChange, hasMore, pageSize = PAGE_SIZE }) {
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
     if (totalPages <= 1 && !hasMore) {
       container.innerHTML = "";
       return;

@@ -46,7 +46,16 @@
   const GRACE_MS = 6 * 60 * 60 * 1000; // 集合時間過後多久還算有效，跟原本 6 小時的設計一致
   const MAX_ADVANCE_MS = 7 * 24 * 60 * 60 * 1000; // 最多能提前 7 天發布
   const MIN_PAST_MS = 60 * 60 * 1000; // 集合時間最多容許比現在早 1 小時（給「現在就要揪」一點緩衝，不用卡到秒）
-  const FETCH_LIMIT = 100;
+  // 顯示的一頁筆數，跟每次跟 Firestore 要資料的批次大小共用同一個數字，
+  // 「按下一頁」＝「剛好去問伺服器要下一批」，邏輯最單純；跟 exp_records
+  // 那種「一批抓 50 筆、畫面一頁 15 筆」的比例式設計不同，是刻意選的——
+  // 這個公告板量級小很多，不需要那麼細的顆粒度
+  const PAGE_SIZE = 30;
+  // 篩選（揪團類型）在前端做，篩空時會自動往伺服器補抓下一批；不設上限
+  // 的話，選到一個當下完全沒人發的類型就等於把整個 collection 抓完。
+  // 上限 10 批 = 最多自動搜 300 筆，超過就停下來明講搜了多少，跟
+  // community.js 的 exp_records 同一套安全機制
+  const MAX_AUTO_FETCH_ROUNDS = 10;
   const CACHE_MS = 60 * 1000; // 跟 community.js 同標準：60 秒內重複進分頁用快取
   const MY_POSTS_KEY = "maple_classic_my_team_posts";
 
@@ -100,8 +109,11 @@
   }
 
   let allPosts = [];
+  let lastDoc = null;
+  let hasMoreFromServer = false; // Firestore 端是否還有下一批（PAGE_SIZE 筆一批）還沒抓進 allPosts
   let lastLoadedAt = 0;
   let currentPage = 1;
+  let autoFetchRounds = 0;
   let activeType = ""; // "" = 全部
 
   let formOpen = false;
@@ -207,35 +219,48 @@
   }
   els.submitBtn.addEventListener("click", submitTeamPost);
 
-  async function loadTeamPosts() {
-    if (allPosts.length && Date.now() - lastLoadedAt < CACHE_MS) {
-      renderTeamPosts();
-      return;
+  async function loadTeamPosts(append = false) {
+    if (!append) {
+      if (allPosts.length && Date.now() - lastLoadedAt < CACHE_MS) {
+        renderTeamPosts();
+        return;
+      }
+      els.list.innerHTML = '<p class="cm-loading">載入中...</p>';
+      allPosts = [];
+      lastDoc = null;
     }
-    els.list.innerHTML = '<p class="cm-loading">載入中...</p>';
     try {
       let db = null;
       try {
         db = await window.MapleCommunity.ensureDb();
       } catch {
         els.list.innerHTML = '<p class="cm-empty">連線失敗，請檢查網路後重新整理頁面</p>';
+        hasMoreFromServer = false;
         return;
       }
       if (!db) {
         els.list.innerHTML = '<p class="cm-empty">社群資料庫尚未開放，敬請期待。</p>';
+        hasMoreFromServer = false;
         return;
       }
       // 直接在查詢端擋掉「集合時間 + 6 小時 < 現在」的過期文件，不用抓一大批
       // 回來前端才過濾——range 條件跟 orderBy 是同一個欄位（scheduledAt），
-      // 不需要額外設定複合索引
+      // 不需要額外設定複合索引。多抓 1 筆只用來判斷「後面還有沒有資料」，
+      // 做法跟 community.js 的 exp_records 一樣
       const cutoff = firebase.firestore.Timestamp.fromMillis(Date.now() - GRACE_MS);
-      const snap = await db.collection("team_posts")
+      let query = db.collection("team_posts")
         .where("scheduledAt", ">=", cutoff)
         .orderBy("scheduledAt", "asc")
-        .limit(FETCH_LIMIT)
-        .get();
-      allPosts = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        .limit(PAGE_SIZE + 1);
+      if (append && lastDoc) query = query.startAfter(lastDoc);
+      const snap = await query.get();
+      const hasExtra = snap.docs.length > PAGE_SIZE;
+      const pageDocs = hasExtra ? snap.docs.slice(0, PAGE_SIZE) : snap.docs;
+      const newPosts = pageDocs.map((d) => ({ id: d.id, ...d.data() }));
+      lastDoc = pageDocs[pageDocs.length - 1] || null;
+      allPosts = append ? [...allPosts, ...newPosts] : newPosts;
       lastLoadedAt = Date.now();
+      hasMoreFromServer = hasExtra;
       renderTeamPosts();
     } catch (e) {
       let msg = "載入失敗，請重新整理頁面";
@@ -247,6 +272,15 @@
         msg = "連不上資料庫伺服器，請稍後重新整理頁面";
       } else if (e && e.code === "resource-exhausted") {
         msg = "今天社群功能的使用量已達上限，明天會自動恢復，其他功能不受影響";
+      }
+      // 補抓失敗時別把已經顯示的貼文整片換成錯誤訊息——保留清單、把錯誤
+      // 放在分頁區；同時關掉 hasMoreFromServer 避免又觸發補抓、失敗、
+      // 再補抓的迴圈，做法跟 community.js 的 exp_records 一樣
+      if (append && allPosts.length) {
+        hasMoreFromServer = false;
+        renderTeamPosts();
+        els.pagination.innerHTML = `<p class="cm-empty">${msg}</p>`;
+        return;
       }
       els.list.innerHTML = `<p class="cm-empty">${msg}</p>`;
     }
@@ -282,21 +316,35 @@
     });
 
     if (!filtered.length) {
-      // renderTeamPosts 只會在資料已經抓回來（成功／失敗都提早 return 了）
-      // 之後才被呼叫，不需要在這裡再判斷「是不是還在載入中」——之前加了
-      // 這個判斷反而是 bug：loadTeamPosts 的 try 區塊裡是先呼叫
-      // renderTeamPosts() 才走到 finally 清掉載入狀態，資料是空的時候
-      // 這裡永遠會判斷成「還在載入」，卡死在「載入中...」不會消失
+      // 已載入的這幾批裡沒有符合條件的，不代表伺服器上真的沒有——篩選
+      // 只在前端做，資料還沒抓完的情況下不能先下「沒有符合條件」的結論，
+      // 做法跟 community.js 的 exp_records 一樣
+      if (hasMoreFromServer && autoFetchRounds < MAX_AUTO_FETCH_ROUNDS) {
+        autoFetchRounds++;
+        els.list.innerHTML = '<p class="cm-loading">在更多的揪團貼文中搜尋...</p>';
+        els.pagination.innerHTML = "";
+        loadTeamPosts(true);
+        return;
+      }
       els.list.innerHTML = !allPosts.length
         ? '<p class="cm-empty">目前還沒有揪團貼文，第一個發起看看吧！</p>'
-        : '<p class="cm-empty">目前沒有符合篩選條件、還在有效期內的揪團貼文</p>';
+        : hasMoreFromServer
+          ? `<p class="cm-empty">最近載入的 ${allPosts.length} 筆貼文中沒有符合條件的，可以放寬篩選條件再試</p>`
+          : '<p class="cm-empty">目前沒有符合篩選條件、還在有效期內的揪團貼文</p>';
       els.pagination.innerHTML = "";
       return;
     }
 
-    const totalPages = Math.max(1, Math.ceil(filtered.length / MaplePagination.PAGE_SIZE));
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    // 篩選後已載入的資料不夠撐滿目前頁碼，但 Firestore 那邊還有更多，先補抓再重繪
+    if (currentPage > totalPages && hasMoreFromServer && autoFetchRounds < MAX_AUTO_FETCH_ROUNDS) {
+      autoFetchRounds++;
+      els.pagination.innerHTML = '<p class="cm-loading">載入更多貼文中...</p>';
+      loadTeamPosts(true);
+      return;
+    }
     if (currentPage > totalPages) currentPage = totalPages;
-    const pagePosts = MaplePagination.slice(filtered, currentPage);
+    const pagePosts = MaplePagination.slice(filtered, currentPage, PAGE_SIZE);
 
     els.list.innerHTML =
       '<div class="cm-grid">' +
@@ -323,8 +371,22 @@
     MaplePagination.render(els.pagination, {
       total: filtered.length,
       page: currentPage,
+      pageSize: PAGE_SIZE,
+      // Firestore 還有更早批次沒抓完時，讓最後一頁的「›」保持可按——按下去
+      // currentPage 會超過 totalPages，走上面既有的補抓路徑載入下一批
+      hasMore: hasMoreFromServer,
       onChange: (p) => { currentPage = p; renderTeamPosts(); },
     });
+    // 篩選都只在已載入的資料內做，資料還沒抓完時如果不講，篩選結果看起來
+    // 像涵蓋全部貼文，其實只涵蓋最近幾批
+    if (hasMoreFromServer) {
+      els.pagination.insertAdjacentHTML(
+        "beforeend",
+        `<p class="cm-range-hint">目前涵蓋已載入的 ${allPosts.length} 筆貼文，按「›」可繼續載入更晚時段的揪團貼文</p>`
+      );
+    }
+    // 成功渲染出結果 = 這一輪補抓鏈結束，下一次篩空可以重新往下搜
+    autoFetchRounds = 0;
   }
 
   // 單一委派監聽器（在初始化時綁一次，避免每次 render 疊加），跟
@@ -362,6 +424,7 @@
       btn.classList.add("active");
       activeType = btn.dataset.type;
       currentPage = 1;
+      autoFetchRounds = 0;
       renderTeamPosts();
     });
   });
