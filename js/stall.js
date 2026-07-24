@@ -25,6 +25,7 @@
  */
 (function () {
   const els = {
+    serverFilterBtns: document.getElementById("stallServerFilterBtns"),
     addBtn: document.getElementById("stallAddBtn"),
     form: document.getElementById("stallForm"),
     server: document.getElementById("stallServer"),
@@ -53,6 +54,12 @@
       "beforeend",
       window.MapleTeamServers.map((s) => `<option value="${s}">${s}</option>`).join("")
     );
+    // 篩選按鈕跟表單的伺服器下拉選單同一份資料來源，動態產生，伺服器
+    // 清單改了不用兩邊維護
+    els.serverFilterBtns.insertAdjacentHTML(
+      "beforeend",
+      window.MapleTeamServers.map((s) => `<button class="cm-sort-btn" data-server="${s}" type="button">${s}</button>`).join("")
+    );
   }
 
   // 沒有帳號系統，用跟 team.js 一樣的做法：發文成功後把文件 ID 記在
@@ -70,6 +77,7 @@
   let allPosts = [];
   let lastLoadedAt = 0;
   let currentPage = 1;
+  let activeServer = ""; // "" = 全部
 
   let formOpen = false;
   function setFormOpen(open) {
@@ -200,10 +208,11 @@
     // 住的資料裡混進「查詢當下沒過期、現在已經過期」的邊界情況。
     // closed（已標記收攤）沒有做進 Firestore 查詢條件，前端濾掉比較省事，
     // 理由跟 team.js 的 found 欄位一樣。
-    const filtered = allPosts.filter((p) => {
+    const notExpired = allPosts.filter((p) => {
       const t = p.ts && p.ts.toDate ? p.ts.toDate().getTime() : 0;
       return now - t < EXPIRE_MS && !p.closed;
     });
+    const filtered = activeServer ? notExpired.filter((p) => p.server === activeServer) : notExpired;
     // 新發的排前面：越新的攤位資訊越可能還在，舊的即使還沒過期也比較
     // 可能已經收攤了
     filtered.sort((a, b) => {
@@ -215,7 +224,7 @@
     if (!filtered.length) {
       els.list.innerHTML = !allPosts.length
         ? '<p class="cm-empty">目前還沒有擺攤公告，第一個發起看看吧！</p>'
-        : '<p class="cm-empty">目前沒有還在有效期內的擺攤公告</p>';
+        : '<p class="cm-empty">目前沒有符合篩選條件、還在有效期內的擺攤公告</p>';
       els.pagination.innerHTML = "";
       return;
     }
@@ -268,6 +277,18 @@
     });
   }
   els.list.addEventListener("click", onClosedClick);
+
+  // 篩選按鈕是進 render() 前（伺服器清單載入時）才動態插入的，這裡直接
+  // querySelectorAll 綁一次即可，不用委派監聽
+  els.serverFilterBtns.querySelectorAll(".cm-sort-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      els.serverFilterBtns.querySelectorAll(".cm-sort-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeServer = btn.dataset.server;
+      currentPage = 1;
+      renderStallPosts();
+    });
+  });
 
   function render() {
     loadStallPosts();
