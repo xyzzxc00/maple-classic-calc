@@ -21,7 +21,11 @@
   const SUBMISSIONS_OPEN = true;
   // 「回報還沒開放」統一用這句，避免同一件事在不同地方各自寫一種措辭
   const SUBMISSIONS_CLOSED_MSG = "遊戲尚未上線，暫不開放回報，敬請期待";
-  const FB_VERSION = "10.14.1";
+  // 2026-07-24 健檢時發現落後正式版將近 2 大版（原本 10.14.1），中間
+  // v12.15.0 剛好修了「Authentication 跟 App Check 用 reCAPTCHA Enterprise
+  // 衝突」的問題——正好是這個專案已經踩過雷、才從 classic v3 切到
+  // Enterprise 的那個區塊，升上來去掉這個已知風險
+  const FB_VERSION = "12.16.0";
   // App Check（reCAPTCHA Enterprise）金鑰 — 公開的、放前端沒問題。
   // 原本用 classic reCAPTCHA v3 一直出現「Invalid reCAPTCHA configuration」
   // 400 錯誤（換新金鑰、重新綁定專案都沒用），改用 Enterprise 這個 provider，
@@ -385,6 +389,12 @@
         loadRecords(true);
         return;
       }
+      // 如果上一次讀取本來就失敗了（loadRecordsInner 的 catch 已經顯示了
+      // 正確的錯誤訊息），這裡不能因為 allRecords 剛好是空的就蓋成「還沒有
+      // 人回報」——那會把「讀取失敗，重新整理」的正確結論，蓋成一個看起來
+      // 像正常空狀態的錯誤結論。點排序/篩選按鈕會呼叫到這裡但不會重新
+      // 觸發載入，所以失敗狀態會一直維持到使用者真的重新整理頁面為止
+      if (lastLoadFailed && !allRecords.length) return;
       // 空資料庫（從沒人回報過）跟「篩選後沒有符合的」是兩種不同狀況，
       // 用同一句「沒有符合條件的紀錄」會讓開服初期的空資料庫看起來像篩選出了問題
       els.list.innerHTML = !allRecords.length

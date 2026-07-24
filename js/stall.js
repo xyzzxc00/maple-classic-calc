@@ -82,6 +82,10 @@
   let allPosts = [];
   let lastDoc = null;
   let hasMoreFromServer = false; // Firestore 端是否還有下一批（PAGE_SIZE 筆一批）還沒抓進 allPosts
+  // renderStallPosts() 靠這個分辨「讀取真的失敗」跟「單純還沒有資料」，
+  // 理由跟 community.js 的 exp_records 一樣：不然點篩選按鈕會把已經顯示
+  // 的正確錯誤訊息，悄悄蓋成「還沒有擺攤公告」
+  let lastLoadFailed = false;
   let lastLoadedAt = 0;
   let currentPage = 1;
   let autoFetchRounds = 0;
@@ -174,6 +178,7 @@
       allPosts = [];
       lastDoc = null;
     }
+    lastLoadFailed = false;
     try {
       let db = null;
       try {
@@ -181,6 +186,7 @@
       } catch {
         els.list.innerHTML = '<p class="cm-empty">連線失敗，請檢查網路後重新整理頁面</p>';
         hasMoreFromServer = false;
+        lastLoadFailed = true;
         return;
       }
       if (!db) {
@@ -217,6 +223,7 @@
       } else if (e && e.code === "resource-exhausted") {
         msg = "今天社群功能的使用量已達上限，明天會自動恢復，其他功能不受影響";
       }
+      lastLoadFailed = true;
       // 補抓失敗時別把已經顯示的公告整片換成錯誤訊息，理由跟 team.js／
       // community.js 的 exp_records 一樣
       if (append && allPosts.length) {
@@ -261,6 +268,10 @@
         loadStallPosts(true);
         return;
       }
+      // 如果上一次讀取本來就失敗了，畫面已經顯示正確的錯誤訊息，這裡不能
+      // 因為 allPosts 剛好是空的就蓋成「還沒有擺攤公告」——點篩選按鈕不會
+      // 重新觸發載入，失敗狀態要維持到使用者真的重新整理頁面為止
+      if (lastLoadFailed && !allPosts.length) return;
       els.list.innerHTML = !allPosts.length
         ? '<p class="cm-empty">目前還沒有擺攤公告，第一個發起看看吧！</p>'
         : hasMoreFromServer
@@ -365,7 +376,14 @@
   // window.MapleStall 還不存在，只能把畫面切成可見、沒辦法真的觸發載入。
   // 這裡載完的當下自己檢查一次「我是不是已經是攤開的分頁」，是的話自己
   // 補一次 render()，不依賴兩支檔案誰先載完。
-  if (!document.getElementById("cmStallView").hidden) {
+  //
+  // 這裡要同時檢查 #pageCm 本身有沒有隱藏——只看 cmStallView 自己的話，
+  // 使用者停在「計算工具」分頁、但上次瀏覽社群資料庫時最後停在擺攤資訊，
+  // community.js 的「還原上次子分頁」邏輯還是會把 cmStallView 的 hidden
+  // 拿掉（即使外層 #pageCm 整個是隱藏的），這裡會誤判成「已經是攤開的
+  // 分頁」而載入 Firebase SDK 打 Firestore，違背「只有切到社群資料庫才
+  // 載入」的設計（spots.js 的 render() 就是兩個都檢查，這裡要跟它一致）
+  if (!document.getElementById("pageCm").hidden && !document.getElementById("cmStallView").hidden) {
     render();
   }
 })();

@@ -62,8 +62,11 @@ body.dark {
   --on-accent: #14150F;
   --danger: #E68278;
   /* 警示色刻意跟品牌重點色用不同色相（琥珀黃 vs 橄欖綠），避免「這是警告」
-     跟「這是主題色」混在一起看不出來。 */
-  --warning: #B98900;
+     跟「這是主題色」混在一起看不出來。原本 #B98900 在 --surface-tint 上
+     只有 4.516:1，貼著 4.5:1 及格線（2026-07-24 健檢發現，轉蛋模擬的
+     「稀有」標籤沒對外開放前先修掉，避免之後開放時卡在邊緣），加亮一階
+     到約 5.5:1 留一點餘裕 */
+  --warning: #CC9900;
   /* 深色背景上黑色陰影本來就融進底色、幾乎看不出來，加深不透明度讓浮動
      按鈕邊緣還是能跟頁面分出層次 */
   --shadow-color: rgba(0, 0, 0, 0.45);
@@ -383,9 +386,16 @@ a:hover { text-decoration-color: var(--accent-hover); }
 }
 .btn-primary:active { background: var(--accent-hover); }
 .btn-ghost:active { background: var(--accent-tint); }
+/* 跟 hover/active 同一個理由（見上面 --accent-hover 的註解）：opacity 會把
+   文字跟底色的對比一起稀釋掉，2026-07-24 健檢量出來大約只剩 2.0-2.9:1，
+   遠低於這份設計系統其他地方的標準。改用跟一般表單輸入框同一套「中性
+   靜音」配色（surface-tint 底 + ink-soft 字 + border-strong 邊），維持
+   ~5.2-5.6:1，看起來依舊明顯「不能按」，但文字仍然讀得到 */
 .btn:disabled {
-  opacity: 0.5;
   cursor: not-allowed;
+  background: var(--surface-tint);
+  color: var(--ink-soft);
+  border: 1px solid var(--border-strong);
 }
 .btn-primary {
   background: var(--accent);
@@ -902,7 +912,10 @@ a:hover { text-decoration-color: var(--accent-hover); }
 }
 .cm-page-btn:hover:not(:disabled) { border-color: var(--accent-text); color: var(--accent-text); }
 .cm-page-btn.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); cursor: default; }
-.cm-page-btn:disabled { opacity: 0.4; cursor: default; }
+/* 拿掉 opacity 降淡：跟 .cm-helpful-btn:disabled 同一套做法，理由見上面
+   .btn:disabled 的註解——這裡文字本來就是 ink-soft，opacity 疊上去會讓
+   ‹/› 箭頭在灰底上幾乎看不出字，只留 cursor 變化就足夠表達不能按 */
+.cm-page-btn:disabled { cursor: default; }
 .cm-page-ellipsis { color: var(--ink-faint); padding: 0 2px; }
 /* 資料還沒從伺服器抓完時，提示排序/篩選只涵蓋已載入範圍（佔滿一行，跟頁碼分開） */
 .cm-range-hint { flex-basis: 100%; text-align: center; font-size: 12px; color: var(--ink-soft); margin: 4px 0 0; }
