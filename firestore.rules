@@ -88,13 +88,16 @@ service cloud.firestore {
         return ['雪吉拉', '菇菇寶貝'];
       }
 
-      // target（目標）不比對完整清單：js/teamData.js 的野王/任務清單以後會
-      // 微調，把完整清單複製進規則會很快跟前端不同步，變成使用者選到新選項
-      // 卻被規則擋掉。這裡只驗證型別/長度，跟 exp_records 的 map 欄位同一個
-      // 處理方式——反正前端已經是下拉選單擋住亂輸入，這裡再守長度/型別就夠。
+      // target（目標）不比對完整清單：本來想接 js/teamData.js 的野王/任務
+      // 清單，但遊戲還沒上線、實際名稱不確定，前端已經改自由輸入，這裡只守
+      // 型別/長度，跟 exp_records 的 map 欄位同一個處理方式。
+      //
+      // scheduledAt（集合時間，使用者填的，不是伺服器蓋章）允許比現在早最多
+      // 1 小時（給「現在就要揪」一點緩衝）、最多提前 7 天，跟 js/team.js 的
+      // MIN_PAST_MS／MAX_ADVANCE_MS 常數要保持一致，這裡改了那裡也要跟著改。
       function isValidNew(d) {
-        return d.keys().hasAll(['type', 'target', 'server', 'map', 'job', 'level', 'currentCount', 'neededCount', 'contact', 'ts'])
-          && d.keys().hasOnly(['type', 'target', 'server', 'map', 'job', 'level', 'currentCount', 'neededCount', 'contact', 'note', 'ts'])
+        return d.keys().hasAll(['type', 'target', 'server', 'map', 'job', 'level', 'currentCount', 'neededCount', 'contact', 'scheduledAt', 'ts'])
+          && d.keys().hasOnly(['type', 'target', 'server', 'map', 'job', 'level', 'currentCount', 'neededCount', 'contact', 'scheduledAt', 'note', 'ts'])
           && d.type is string && d.type in ['組隊任務', '王團']
           && d.target is string && d.target.size() >= 1 && d.target.size() <= 40
           && d.server is string && allowedServers().hasAny([d.server])
@@ -105,6 +108,9 @@ service cloud.firestore {
           && d.neededCount is int && d.neededCount >= 1 && d.neededCount <= 6
           && d.currentCount <= d.neededCount
           && d.contact is string && d.contact.size() >= 1 && d.contact.size() <= 40
+          && d.scheduledAt is timestamp
+          && d.scheduledAt >= request.time - duration.value(1, 'h')
+          && d.scheduledAt <= request.time + duration.value(7, 'd')
           && d.ts == request.time
           && (!('note' in d.keys()) || (d.note is string && d.note.size() <= 60));
       }

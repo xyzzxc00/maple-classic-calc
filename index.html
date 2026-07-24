@@ -684,7 +684,7 @@
     </div>
 
     <div id="cmTeamView" role="tabpanel" aria-labelledby="cmSubTeam" hidden>
-      <p class="cm-disclaimer">給組隊任務／打王揪人用的短期公告，貼文 6 小時後會自動從列表消失，不用手動刪除，找到人也不用回來關閉。</p>
+      <p class="cm-disclaimer">給組隊任務／打王揪人用的公告，可以提前發布未來的集合時間（例如禮拜三先貼禮拜六早上要揪團），貼文會在你填的集合時間之後 6 小時自動下架，不用手動刪除。</p>
 
       <div class="cm-toolbar">
         <div class="cm-actions">
@@ -712,7 +712,7 @@
             <input type="text" id="teamTarget" maxlength="40" placeholder="例：紅寶王、四轉試煉">
           </label>
         </div>
-        <div class="field-grid three-col">
+        <div class="field-grid four-col">
           <label class="field">
             <span>伺服器 *</span>
             <select id="teamServer">
@@ -722,6 +722,10 @@
           <label class="field">
             <span>集合地點 *</span>
             <input type="text" id="teamMap" maxlength="40" placeholder="例：冰原雪域 長者公館">
+          </label>
+          <label class="field">
+            <span>集合時間 *</span>
+            <input type="datetime-local" id="teamScheduledAt">
           </label>
           <label class="field">
             <span>聯絡方式 *</span>
