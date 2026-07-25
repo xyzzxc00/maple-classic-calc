@@ -821,6 +821,22 @@ a:hover { text-decoration-color: var(--accent-hover); }
 .cm-sort-btn:hover { background: var(--accent-tint); }
 .cm-sort-btn.active { background: var(--accent); color: var(--on-accent); }
 .cm-actions .btn-primary { flex: 1; }
+/* .cm-toolbar 是 flex-direction:column，預設 align-items:stretch 會把
+   直接子元素撐滿整排寬度——.cm-actions 本來就需要滿版寬（靠 space-between
+   把伺服器篩選跟按鈕分兩端）所以沒差，但 #stallTypeFilterBtns 這種只有
+   三顆按鈕、設計上該是「內容多寬就多寬」的按鈕組被撐滿後，按鈕會擠在
+   左邊、右邊留一大塊空的邊框，要用 align-self 蓋掉繼承來的 stretch */
+#stallTypeFilterBtns { align-self: flex-start; }
+@media (max-width: 480px) {
+  /* 擺攤收購的伺服器篩選跟「我要發布」按鈕原本並排擠在同一個 .cm-actions
+     裡，手機版兩個都要滿版寬的話沒辦法並排（會互搶寬度，變回原本被壓
+     成一條的問題），改成上下堆疊，每個各自佔一整排 */
+  #cmStallView .cm-actions { flex-direction: column; }
+  /* 賣／收、伺服器兩組篩選按鈕滿版寬、組內按鈕等寬平分，跟上下的
+     「我要發布」按鈕寬度看齊，不要維持內容自然寬度擠成一小條 */
+  #stallTypeFilterBtns, #stallServerFilterBtns { width: 100%; }
+  #stallTypeFilterBtns .cm-sort-btn, #stallServerFilterBtns .cm-sort-btn { flex: 1; }
+}
 .cm-filter-input {
   background: var(--surface);
   border: 1px solid var(--border-strong);
