@@ -1000,6 +1000,11 @@ a:hover { text-decoration-color: var(--accent-hover); }
 
 .subtabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
 .subtab {
+  /* 跟 .nav-tab（主分頁）同一套做法：flex:1 等寬 + white-space:nowrap
+     禁止換行，手機版窄到放不下時靠下面兩層 media query 縮內距/字級，
+     不要讓文字自己斷字換行（原本沒有 flex:1/nowrap，手機版「練功地點」
+     這種 4 個字的標籤會被壓到中間硬斷成兩行，例如「練功地」+「點」） */
+  flex: 1;
   background: transparent;
   color: var(--ink-soft);
   font-family: 'Noto Sans TC', sans-serif;
@@ -1010,10 +1015,19 @@ a:hover { text-decoration-color: var(--accent-hover); }
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   cursor: pointer;
+  white-space: nowrap;
+  text-align: center;
   transition: color 0.15s, border-color 0.15s;
 }
 .subtab:hover { color: var(--ink); }
 .subtab.active { color: var(--accent-text); border-bottom-color: var(--accent-text); }
+@media (max-width: 560px) {
+  .subtab { padding: 10px 8px; font-size: 12px; min-height: 44px; }
+}
+@media (max-width: 420px) {
+  .subtabs { gap: 2px; }
+  .subtab { padding: 10px 4px; font-size: 11px; min-height: 44px; }
+}
 
 /* ---------- Jobs intro ---------- */
 .job-card {
