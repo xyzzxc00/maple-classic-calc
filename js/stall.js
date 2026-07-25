@@ -368,22 +368,13 @@
     loadStallPosts();
   }
 
+  // 頁面重新整理時「我是不是已經是攤開的分頁」這個初次載入判斷，統一
+  // 交給 nav.js 做（見 nav.js 的 switchNav() 註解）——那裡是唯一保證
+  // community.js／team.js／stall.js 都已經載完、也知道最終主分頁是不是
+  // #pageCm 的地方。這裡以前自己土法煉鋼判斷過兩次都各自有時機漏洞
+  // （第一版沒檢查 #pageCm、第二版檢查了但自己執行的當下 nav.js 根本
+  // 還沒跑，#pageCm 必然還是隱藏的，一樣判斷失敗），教訓是這類「我到底
+  // 會不會被看到」的判斷不該分散在各個模組自己猜，交給真正知道答案的
+  // 那一個地方做。
   window.MapleStall = { render };
-
-  // 跟 team.js 同一個修法：<script defer> 是照 index.html 裡的順序依序
-  // 執行，community.js 排在這支前面。使用者上次停在「擺攤資訊」分頁時，
-  // 重新整理頁面會先跑 community.js 的「還原上次分頁」邏輯，那個當下
-  // window.MapleStall 還不存在，只能把畫面切成可見、沒辦法真的觸發載入。
-  // 這裡載完的當下自己檢查一次「我是不是已經是攤開的分頁」，是的話自己
-  // 補一次 render()，不依賴兩支檔案誰先載完。
-  //
-  // 這裡要同時檢查 #pageCm 本身有沒有隱藏——只看 cmStallView 自己的話，
-  // 使用者停在「計算工具」分頁、但上次瀏覽社群資料庫時最後停在擺攤資訊，
-  // community.js 的「還原上次子分頁」邏輯還是會把 cmStallView 的 hidden
-  // 拿掉（即使外層 #pageCm 整個是隱藏的），這裡會誤判成「已經是攤開的
-  // 分頁」而載入 Firebase SDK 打 Firestore，違背「只有切到社群資料庫才
-  // 載入」的設計（spots.js 的 render() 就是兩個都檢查，這裡要跟它一致）
-  if (!document.getElementById("pageCm").hidden && !document.getElementById("cmStallView").hidden) {
-    render();
-  }
 })();
