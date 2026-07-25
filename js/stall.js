@@ -25,13 +25,16 @@
  */
 (function () {
   const els = {
+    typeFilterBtns: document.getElementById("stallTypeFilterBtns"),
     serverFilterBtns: document.getElementById("stallServerFilterBtns"),
     addBtn: document.getElementById("stallAddBtn"),
     form: document.getElementById("stallForm"),
+    type: document.getElementById("stallType"),
     server: document.getElementById("stallServer"),
     channel: document.getElementById("stallChannel"),
     market: document.getElementById("stallMarket"),
     charId: document.getElementById("stallCharId"),
+    descriptionLabel: document.getElementById("stallDescriptionLabel"),
     description: document.getElementById("stallDescription"),
     submitBtn: document.getElementById("stallSubmitBtn"),
     cancelBtn: document.getElementById("stallCancelBtn"),
@@ -40,6 +43,19 @@
     pagination: document.getElementById("stallPagination"),
   };
   if (!els.form) return;
+
+  // 「內容」欄位的說明文字跟著交易類型換，賣/收要打的東西方向相反，
+  // 固定寫死一種措辭會讓另一種類型的使用者看了困惑
+  function updateDescriptionLabel() {
+    if (els.type.value === "收") {
+      els.descriptionLabel.textContent = "收購內容 *";
+      els.description.placeholder = "例：收購潔淨的力量卷軸、龍族武器";
+    } else {
+      els.descriptionLabel.textContent = "交易內容 *";
+      els.description.placeholder = "例：卷軸大特賣、武器防具便宜出清";
+    }
+  }
+  els.type.addEventListener("change", updateDescriptionLabel);
 
   const EXPIRE_MS = 24 * 60 * 60 * 1000; // 固定 24 小時，發文時系統自動套用，不用玩家選
   // 顯示的一頁筆數，跟每次跟 Firestore 要資料的批次大小共用同一個數字，
@@ -89,18 +105,20 @@
   let lastLoadedAt = 0;
   let currentPage = 1;
   let autoFetchRounds = 0;
+  let activeType = ""; // "" = 全部（賣／收）
   let activeServer = ""; // "" = 全部
 
   let formOpen = false;
   function setFormOpen(open) {
     formOpen = open;
     els.form.hidden = !open;
-    els.addBtn.textContent = open ? "✕ 收起" : "＋ 我要公告擺攤";
+    els.addBtn.textContent = open ? "✕ 收起" : "＋ 我要發布";
   }
   els.addBtn.addEventListener("click", () => setFormOpen(!formOpen));
   els.cancelBtn.addEventListener("click", () => setFormOpen(false));
 
   async function submitStallPost() {
+    const type = els.type.value;
     const server = els.server.value;
     const channel = parseInt(els.channel.value, 10);
     const market = els.market.value.trim();
@@ -108,11 +126,12 @@
     const description = els.description.value.trim();
 
     let fieldError = "";
-    if (!server) fieldError = "請選擇伺服器";
+    if (!type) fieldError = "請選擇交易類型";
+    else if (!server) fieldError = "請選擇伺服器";
     else if (isNaN(channel) || channel < 1 || channel > 50) fieldError = "請輸入有效的頻道（1~50）";
     else if (!market) fieldError = "請輸入自由市場地點";
     else if (!charId) fieldError = "請輸入角色 ID";
-    else if (!description) fieldError = "請輸入販售內容";
+    else if (!description) fieldError = "請輸入交易內容";
 
     if (fieldError) {
       els.msg.textContent = fieldError;
@@ -143,13 +162,14 @@
 
     try {
       const docRef = await db.collection("stall_posts").add({
-        server, channel, market, charId, description,
+        type, server, channel, market, charId, description,
         ts: firebase.firestore.FieldValue.serverTimestamp(),
       });
       saveMyPostId(docRef.id);
-      els.msg.textContent = "✓ 已發布！24 小時後會自動下架，收攤了也可以自己提早下架";
+      els.msg.textContent = "✓ 已發布！24 小時後會自動下架，結束了也可以自己提早下架";
       els.msg.className = "cm-msg ok";
-      els.server.value = ""; els.channel.value = ""; els.market.value = ""; els.charId.value = ""; els.description.value = "";
+      els.type.value = ""; els.server.value = ""; els.channel.value = ""; els.market.value = ""; els.charId.value = ""; els.description.value = "";
+      updateDescriptionLabel();
       allPosts = [];
       await loadStallPosts();
     } catch (e) {
@@ -248,7 +268,11 @@
       const t = p.ts && p.ts.toDate ? p.ts.toDate().getTime() : 0;
       return now - t < EXPIRE_MS && !p.closed;
     });
-    const filtered = activeServer ? notExpired.filter((p) => p.server === activeServer) : notExpired;
+    // type 是 2026-07-25 才加的欄位，加之前的舊資料沒有這個欄位——篩選
+    // 「賣」或「收」時，沒有 type 的舊貼文兩邊都篩不到（只會出現在「全部」），
+    // 不會被誤分類，也不會直接消失不見
+    const byType = activeType ? notExpired.filter((p) => p.type === activeType) : notExpired;
+    const filtered = activeServer ? byType.filter((p) => p.server === activeServer) : byType;
     // 新發的排前面：越新的攤位資訊越可能還在，舊的即使還沒過期也比較
     // 可能已經收攤了
     filtered.sort((a, b) => {
@@ -263,7 +287,7 @@
       // 做法跟 team.js／community.js 的 exp_records 一樣
       if (hasMoreFromServer && autoFetchRounds < MAX_AUTO_FETCH_ROUNDS) {
         autoFetchRounds++;
-        els.list.innerHTML = '<p class="cm-loading">在更多的擺攤公告中搜尋...</p>';
+        els.list.innerHTML = '<p class="cm-loading">在更多的公告中搜尋...</p>';
         els.pagination.innerHTML = "";
         loadStallPosts(true);
         return;
@@ -273,10 +297,10 @@
       // 重新觸發載入，失敗狀態要維持到使用者真的重新整理頁面為止
       if (lastLoadFailed && !allPosts.length) return;
       els.list.innerHTML = !allPosts.length
-        ? '<p class="cm-empty">目前還沒有擺攤公告，第一個發起看看吧！</p>'
+        ? '<p class="cm-empty">目前還沒有公告，第一個發起看看吧！</p>'
         : hasMoreFromServer
-          ? `<p class="cm-empty">最近載入的 ${allPosts.length} 筆公告中沒有符合條件的，可以換個伺服器篩選再試</p>`
-          : '<p class="cm-empty">目前沒有符合篩選條件、還在有效期內的擺攤公告</p>';
+          ? `<p class="cm-empty">最近載入的 ${allPosts.length} 筆公告中沒有符合條件的，可以換個篩選條件再試</p>`
+          : '<p class="cm-empty">目前沒有符合篩選條件、還在有效期內的公告</p>';
       els.pagination.innerHTML = "";
       return;
     }
@@ -296,12 +320,15 @@
       '<div class="cm-grid">' +
       pagePosts.map((p) => {
         const isMine = myPostIds.has(p.id);
+        // 舊資料（type 欄位加進來之前發的）沒有 type，不硬塞一個看起來
+        // 像分類錯誤的標籤，乾脆不顯示
+        const typeTag = p.type ? `【${escHtml(p.type)}】` : "";
         return `<div class="cm-card">
-          <div class="cm-job">${escHtml(p.server)}・頻道 ${p.channel}｜${escHtml(p.market)}</div>
+          <div class="cm-job">${typeTag}${escHtml(p.server)}・頻道 ${p.channel}｜${escHtml(p.market)}</div>
           <div class="cm-stat"><span>角色 ID</span><span>${escHtml(p.charId)}</span></div>
           <div class="cm-note">${escHtml(p.description)}</div>
           ${isMine ? `<div class="cm-card-footer">
-            <button class="cm-helpful-btn cm-stall-closed-btn" data-id="${p.id}" type="button">✓ 已收攤，下架這篇</button>
+            <button class="cm-helpful-btn cm-stall-closed-btn" data-id="${p.id}" type="button">✓ 已結束，下架這篇</button>
           </div>` : ""}
         </div>`;
       }).join("") +
@@ -321,7 +348,7 @@
     if (hasMoreFromServer) {
       els.pagination.insertAdjacentHTML(
         "beforeend",
-        `<p class="cm-range-hint">目前涵蓋已載入的 ${allPosts.length} 筆公告，按「›」可繼續載入更早發布的擺攤公告</p>`
+        `<p class="cm-range-hint">目前涵蓋已載入的 ${allPosts.length} 筆公告，按「›」可繼續載入更早發布的公告</p>`
       );
     }
     // 成功渲染出結果 = 這一輪補抓鏈結束，下一次篩空可以重新往下搜
@@ -334,7 +361,7 @@
     if (!btn || btn.disabled) return;
     const id = btn.dataset.id;
 
-    if (!confirm("確定要標記這篇擺攤公告已經收攤、下架這篇貼文嗎？這個動作沒辦法復原。")) return;
+    if (!confirm("確定要標記這篇公告已經結束、下架這篇貼文嗎？這個動作沒辦法復原。")) return;
 
     btn.disabled = true;
     btn.textContent = "處理中...";
@@ -351,7 +378,20 @@
   }
   els.list.addEventListener("click", onClosedClick);
 
-  // 篩選按鈕是進 render() 前（伺服器清單載入時）才動態插入的，這裡直接
+  // 交易類型（賣／收）篩選按鈕是靜態寫在 HTML 裡的（只有伺服器篩選那組
+  // 才是動態插入），這裡直接綁一次即可
+  els.typeFilterBtns.querySelectorAll(".cm-sort-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      els.typeFilterBtns.querySelectorAll(".cm-sort-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeType = btn.dataset.type;
+      currentPage = 1;
+      autoFetchRounds = 0;
+      renderStallPosts();
+    });
+  });
+
+  // 伺服器篩選按鈕是進 render() 前（伺服器清單載入時）才動態插入的，這裡直接
   // querySelectorAll 綁一次即可，不用委派監聽
   els.serverFilterBtns.querySelectorAll(".cm-sort-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
