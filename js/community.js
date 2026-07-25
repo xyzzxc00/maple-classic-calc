@@ -305,7 +305,7 @@
       return;
     }
     if (!db) {
-      els.list.innerHTML = '<p class="cm-empty">社群資料庫尚未開放（遊戲還沒上線），敬請期待。</p>';
+      els.list.innerHTML = '<p class="cm-empty">社群資料庫目前無法連線，請稍後再試。</p>';
       hasMoreFromServer = false;
       return;
     }
@@ -399,7 +399,7 @@
       // 空資料庫（從沒人回報過）跟「篩選後沒有符合的」是兩種不同狀況，
       // 用同一句「沒有符合條件的紀錄」會讓開服初期的空資料庫看起來像篩選出了問題
       els.list.innerHTML = !allRecords.length
-        ? '<p class="cm-empty">目前還沒有玩家回報紀錄，遊戲上線後歡迎來分享你的練功效率！</p>'
+        ? '<p class="cm-empty">目前還沒有玩家回報紀錄，歡迎來分享你的練功效率！</p>'
         : hasMoreFromServer
           ? `<p class="cm-empty">最近 ${allRecords.length} 筆紀錄中沒有符合條件的，可以放寬條件再試</p>`
           : '<p class="cm-empty">沒有符合條件的紀錄</p>';

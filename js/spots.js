@@ -76,7 +76,7 @@
         ? '<p class="cm-empty">載入失敗，請重新整理頁面</p>'
         : allRecords.length
           ? '<p class="cm-empty">這個職業目前還沒有練功地點回報，可以切換其他職業看看，或到「回報紀錄」子分頁貢獻第一筆！</p>'
-          : '<p class="cm-empty">目前還沒有玩家回報練功地點。遊戲上線後，去「回報紀錄」子分頁回報，這裡就會自動整理出建議。</p>';
+          : '<p class="cm-empty">目前還沒有玩家回報練功地點。去「回報紀錄」子分頁回報，這裡就會自動整理出建議。</p>';
       els.pagination.innerHTML = "";
       return;
     }
