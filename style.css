@@ -815,28 +815,62 @@ a:hover { text-decoration-color: var(--accent-hover); }
   font-size: 13px;
   color: var(--ink-soft);
   cursor: pointer;
+  white-space: nowrap;
   transition: background 0.15s, color 0.15s;
 }
 .cm-sort-btn + .cm-sort-btn { border-left: 1px solid var(--border-strong); }
 .cm-sort-btn:hover { background: var(--accent-tint); }
 .cm-sort-btn.active { background: var(--accent); color: var(--on-accent); }
 .cm-actions .btn-primary { flex: 1; }
+/* 組隊揪團（類型篩選）、擺攤收購（類型／伺服器篩選）的按鈕組，要的效果
+   是「組內用最長那個標籤的字數決定寬度、組內等寬，其餘空間都留給旁邊
+   的「＋」按鈕」——不是要篩選按鈕組跟「＋」按鈕也等寬（那樣篩選按鈕組
+   會被硬撐太寬，不好看）。做法：
+   1. 篩選按鈕組本身 flex-shrink:0，不被「＋」按鈕（flex:1，會盡量長大
+      吃掉剩餘空間）擠壓縮小，維持自己該有的天然寬度。
+   2. 組內按鈕 flex:1，讓短標籤（「全部」）長大填滿跟長標籤一樣的寬度。
+      min-width 明確設成組內最長標籤（文字+padding）的天然寬度：試過用
+      min-width:0 蓋掉預設的 min-width:auto，結果 flex 容器的內在寬度
+      算法會低估最長標籤需要的空間（實測「組隊任務」需要 84px 卻只分到
+      67px），文字被擠到跟分隔線黏在一起。改成明確寫死 min-width 這個
+      floor 才是兩者都對的做法：夠寬（不擠、不裁切），三個又還是等寬
+      （因為都卡在同一個 floor，wrapper 沒有多的內在寬度留給 flex-grow
+      再分配）。 */
+#cmTeamView .cm-sort-btns,
+#stallTypeFilterBtns,
+#stallServerFilterBtns {
+  flex-shrink: 0;
+}
+#cmTeamView .cm-sort-btns .cm-sort-btn,
+#stallServerFilterBtns .cm-sort-btn {
+  flex: 1;
+  min-width: 88px; /* 最長標籤「組隊任務」／「菇菇寶貝」天然寬度 84px + 緩衝 */
+}
+#stallTypeFilterBtns .cm-sort-btn {
+  flex: 1;
+  min-width: 62px; /* 最長標籤「全部／販賣／收購」天然寬度 58px + 緩衝 */
+}
+#cmTeamView .cm-actions .btn-primary,
+#cmStallView .cm-actions .btn-primary {
+  /* 跟篩選按鈕群組同一套邏輯：white-space:nowrap 避免「＋ 我要揪團」
+     這種按鈕文字在被壓窄之後自己斷成兩行 */
+  white-space: nowrap;
+}
 @media (max-width: 480px) {
   /* 擺攤收購的交易類型／伺服器篩選跟「我要發布」按鈕桌面版是並排擠在
      同一個 .cm-actions 裡（三個一排），手機版三個都要滿版寬的話沒辦法
      並排（會互搶寬度，變回被壓成一條的老問題），改成上下堆疊，每個
      各自佔一整排 */
   #cmStallView .cm-actions { flex-direction: column; }
-  /* 賣／收、伺服器兩組篩選按鈕滿版寬、組內按鈕等寬平分，跟上下的
-     「我要發布」按鈕寬度看齊，不要維持內容自然寬度擠成一小條 */
+  /* 賣／收、伺服器兩組篩選按鈕滿版寬，跟上下的「我要發布」按鈕寬度
+     看齊，不要維持內容自然寬度擠成一小條（組內按鈕等寬平分已經是
+     上面不分版面大小都套用的規則，這裡只需要再讓整組滿版寬） */
   #stallTypeFilterBtns, #stallServerFilterBtns { width: 100%; }
-  #stallTypeFilterBtns .cm-sort-btn, #stallServerFilterBtns .cm-sort-btn { flex: 1; }
 
   /* 組隊揪團同一套做法：類型篩選（全部/組隊任務/王團）跟「我要揪團」
-     按鈕手機版改上下堆疊、篩選按鈕滿版寬、組內按鈕等寬平分 */
+     按鈕手機版改上下堆疊、篩選按鈕滿版寬 */
   #cmTeamView .cm-actions { flex-direction: column; }
   #cmTeamView .cm-sort-btns { width: 100%; }
-  #cmTeamView .cm-sort-btns .cm-sort-btn { flex: 1; }
 }
 .cm-filter-input {
   background: var(--surface);

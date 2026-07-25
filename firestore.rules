@@ -166,7 +166,7 @@ service cloud.firestore {
       function isValidNew(d) {
         return d.keys().hasAll(['type', 'server', 'channel', 'market', 'charId', 'description', 'ts'])
           && d.keys().hasOnly(['type', 'server', 'channel', 'market', 'charId', 'description', 'ts'])
-          && d.type is string && d.type in ['賣', '收']
+          && d.type is string && d.type in ['販賣', '收購']
           && d.server is string && allowedServers().hasAny([d.server])
           && d.channel is int && d.channel >= 1 && d.channel <= 50
           && d.market is string && d.market.size() >= 1 && d.market.size() <= 40

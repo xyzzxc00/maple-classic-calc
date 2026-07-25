@@ -47,7 +47,7 @@
   // 「內容」欄位的說明文字跟著交易類型換，賣/收要打的東西方向相反，
   // 固定寫死一種措辭會讓另一種類型的使用者看了困惑
   function updateDescriptionLabel() {
-    if (els.type.value === "收") {
+    if (els.type.value === "收購") {
       els.descriptionLabel.textContent = "收購內容 *";
       els.description.placeholder = "例：收購潔淨的力量卷軸、龍族武器";
     } else {
