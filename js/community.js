@@ -21,11 +21,12 @@
   const SUBMISSIONS_OPEN = true;
   // 「回報還沒開放」統一用這句，避免同一件事在不同地方各自寫一種措辭
   const SUBMISSIONS_CLOSED_MSG = "遊戲尚未上線，暫不開放回報，敬請期待";
-  // 2026-07-24 健檢時發現落後正式版將近 2 大版（原本 10.14.1），中間
-  // v12.15.0 剛好修了「Authentication 跟 App Check 用 reCAPTCHA Enterprise
-  // 衝突」的問題——正好是這個專案已經踩過雷、才從 classic v3 切到
-  // Enterprise 的那個區塊，升上來去掉這個已知風險
-  const FB_VERSION = "12.16.0";
+  // 2026-07-24 健檢時升到 12.16.0，結果正式站馬上出現 App Check 403
+  // + throttle（appCheck/initial-throttle，清掉 IndexedDB 重新整理也一樣
+  // 立刻重現，不是快取殘留）——升級本身造成了新的 App Check 迴歸，先退回
+  // 已知能用的版本，之後要再升級的話要先在真的能測 App Check 的環境
+  // （不是 localhost，這裡的失敗訊息看起來一樣）驗證過再上
+  const FB_VERSION = "10.14.1";
   // App Check（reCAPTCHA Enterprise）金鑰 — 公開的、放前端沒問題。
   // 原本用 classic reCAPTCHA v3 一直出現「Invalid reCAPTCHA configuration」
   // 400 錯誤（換新金鑰、重新綁定專案都沒用），改用 Enterprise 這個 provider，
