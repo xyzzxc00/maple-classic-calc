@@ -831,6 +831,12 @@ a:hover { text-decoration-color: var(--accent-hover); }
      「我要發布」按鈕寬度看齊，不要維持內容自然寬度擠成一小條 */
   #stallTypeFilterBtns, #stallServerFilterBtns { width: 100%; }
   #stallTypeFilterBtns .cm-sort-btn, #stallServerFilterBtns .cm-sort-btn { flex: 1; }
+
+  /* 組隊揪團同一套做法：類型篩選（全部/組隊任務/王團）跟「我要揪團」
+     按鈕手機版改上下堆疊、篩選按鈕滿版寬、組內按鈕等寬平分 */
+  #cmTeamView .cm-actions { flex-direction: column; }
+  #cmTeamView .cm-sort-btns { width: 100%; }
+  #cmTeamView .cm-sort-btns .cm-sort-btn { flex: 1; }
 }
 .cm-filter-input {
   background: var(--surface);
