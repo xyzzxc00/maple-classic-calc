@@ -650,14 +650,18 @@
 
     <div id="cmSuggestView" role="tabpanel" aria-labelledby="cmSubSuggest">
       <p class="cm-disclaimer">這裡的地點是玩家在「回報紀錄」子分頁回報的真實效率自動整理出來的，不是官方資料。遊戲上線後，回報的人越多，建議就越準。底色特別標示的地點代表跟你在「練等計算」填的目前等級相近（±5 等），會排在前面。</p>
-      <div class="cm-filter-row" style="margin-bottom:14px">
-        <select class="cm-filter-input" id="spotsFilterJob">
-          <option value="">全部職業</option>
-        </select>
+      <div class="cm-toolbar">
+        <div class="cm-filter-row">
+          <select class="cm-filter-input" id="spotsFilterJob">
+            <option value="">全部職業</option>
+          </select>
+        </div>
+        <div class="cm-actions">
+          <button class="btn btn-primary" id="spotsAddBtn" type="button">＋ 我也要回報練功地點</button>
+        </div>
       </div>
       <div id="spotsList"><p class="cm-loading">載入中...</p></div>
       <div class="cm-pagination" id="spotsPagination"></div>
-      <button class="btn btn-ghost spots-add-btn" id="spotsAddBtn" type="button">＋ 我也要回報練功地點</button>
     </div>
 
     <div id="cmRecordsView" role="tabpanel" aria-labelledby="cmSubRecords" hidden>

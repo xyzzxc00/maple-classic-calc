@@ -939,8 +939,6 @@ a:hover { text-decoration-color: var(--accent-hover); }
 
 /* ---------- Suggested spots ---------- */
 .cm-card.spot-fit { border-color: var(--accent-border); background: var(--accent-tint); }
-.spots-add-btn { width: 100%; margin-top: 16px; }
-
 /* ---------- Legacy spots (舊版資料參考) ---------- */
 #legacySpotsList, #legacyBossPrequestList { display: flex; flex-direction: column; gap: 10px; }
 .legacy-spot-card {
