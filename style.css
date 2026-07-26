@@ -980,6 +980,9 @@ a:hover { text-decoration-color: var(--accent-hover); }
   font-style: normal;
   line-height: 1.6;
   padding-top: 8px;
+  /* 簡介是使用者自己打的多行文字（textarea 換行），預設 .cm-note 是
+     inline 排版會把換行吃掉，這裡要保留使用者排版好的樣子 */
+  white-space: pre-wrap;
 }
 .cm-ts { font-size: 11px; color: var(--ink-faint); }
 .cm-helpful-btn {
