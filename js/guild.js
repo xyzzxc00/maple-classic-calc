@@ -23,6 +23,7 @@
     server: document.getElementById("guildServer"),
     memberCount: document.getElementById("guildMemberCount"),
     description: document.getElementById("guildDescription"),
+    descriptionCount: document.getElementById("guildDescCount"),
     contact: document.getElementById("guildContact"),
     submitBtn: document.getElementById("guildSubmitBtn"),
     cancelBtn: document.getElementById("guildCancelBtn"),
@@ -43,6 +44,17 @@
   const MY_POSTS_KEY = "maple_classic_my_guild_posts";
 
   const escHtml = MapleCalculator.escHtml;
+
+  // 簡介是多行 textarea，比其他板的單行欄位更容易讓人打到超過上限卻
+  // 不知道為什麼字打不進去（瀏覽器原生 maxlength 只會默默擋掉，沒有
+  // 任何提示）。加即時字數提示，快到上限時變色警示。
+  const DESCRIPTION_MAX = 200;
+  function updateDescriptionCount() {
+    const len = els.description.value.length;
+    els.descriptionCount.textContent = `${len} / ${DESCRIPTION_MAX} 字`;
+    els.descriptionCount.classList.toggle("near-limit", len >= DESCRIPTION_MAX - 20);
+  }
+  els.description.addEventListener("input", updateDescriptionCount);
 
   // 伺服器清單跟揪團／擺攤板共用同一份資料來源（teamData.js），不用另外維護一份
   if (window.MapleTeamServers) {
@@ -136,6 +148,7 @@
       els.msg.textContent = "✓ 已發布！7 天後會自動下架，招滿了也可以自己提早下架";
       els.msg.className = "cm-msg ok";
       els.guildName.value = ""; els.server.value = ""; els.memberCount.value = ""; els.description.value = ""; els.contact.value = "";
+      updateDescriptionCount();
       allPosts = [];
       await loadGuildPosts();
     } catch (e) {

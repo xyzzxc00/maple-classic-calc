@@ -714,6 +714,8 @@ a:hover { text-decoration-color: var(--accent-hover); }
 .exp-apply-btn { width: 100%; margin-top: 10px; }
 .exp-rate-hint { font-size: 13px; color: var(--ink-soft); margin-top: 12px; }
 .input-warning-hint { font-size: 13px; color: var(--warning); font-weight: 700; margin: 12px 0 0; }
+.field-char-count { font-size: 11px; color: var(--ink-faint); text-align: right; }
+.field-char-count.near-limit { color: var(--warning); font-weight: 700; }
 
 /* ---------- Scroll enhancement simulator ---------- */
 .scroll-sub-head {
