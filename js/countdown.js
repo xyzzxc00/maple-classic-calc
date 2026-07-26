@@ -12,8 +12,8 @@
  */
 (function () {
   const DEADLINE = new Date("2026-07-28T23:59:00+08:00").getTime();
-  // 官方確切開服時刻（未公布前保持 null，公布後填入 ISO 字串）
-  const LAUNCH_TS = null;
+  // 官方已確認 2026/07/29（二）下午 2 點開服（2026-07-26 填入）
+  const LAUNCH_TS = "2026-07-29T14:00:00+08:00";
 
   const el = document.getElementById("countdownTime");
   const labelEl = document.querySelector("#preregCountdown .countdown-label");
@@ -40,7 +40,7 @@
 
     // 階段二：預約截止後，官方開服時刻已公布且還沒到 → 倒數開服
     if (launchAt && now < launchAt) {
-      if (labelEl) labelEl.textContent = "距離 7/29 正式開服還有";
+      if (labelEl) labelEl.textContent = "距離 7/29（二）下午 2 點正式開服還有";
       el.textContent = formatDiff(launchAt - now);
       return;
     }
