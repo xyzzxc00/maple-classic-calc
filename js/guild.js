@@ -46,10 +46,15 @@
   const escHtml = MapleCalculator.escHtml;
 
   // 簡介是多行 textarea，比其他板的單行欄位更容易讓人打到超過上限卻
-  // 不知道為什麼字打不進去（瀏覽器原生 maxlength 只會默默擋掉，沒有
-  // 任何提示）。加即時字數提示，快到上限時變色警示。
+  // 不知道為什麼字打不進去。原生 maxlength 對「貼上一大段文字」或中文
+  // 輸入法組字這種情境不一定每個瀏覽器都會確實擋下來，這裡不能只靠它，
+  // 改成自己主動裁切＋即時顯示字數，快到上限時變色警示，兩件事一起做
+  // 才能保證欄位真的不會超過上限。
   const DESCRIPTION_MAX = 200;
   function updateDescriptionCount() {
+    if (els.description.value.length > DESCRIPTION_MAX) {
+      els.description.value = els.description.value.slice(0, DESCRIPTION_MAX);
+    }
     const len = els.description.value.length;
     els.descriptionCount.textContent = `${len} / ${DESCRIPTION_MAX} 字`;
     els.descriptionCount.classList.toggle("near-limit", len >= DESCRIPTION_MAX - 20);
