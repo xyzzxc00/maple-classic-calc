@@ -875,11 +875,13 @@ a:hover { text-decoration-color: var(--accent-hover); }
       再分配）。 */
 #cmTeamView .cm-sort-btns,
 #stallTypeFilterBtns,
-#stallServerFilterBtns {
+#stallServerFilterBtns,
+#guildServerFilterBtns {
   flex-shrink: 0;
 }
 #cmTeamView .cm-sort-btns .cm-sort-btn,
-#stallServerFilterBtns .cm-sort-btn {
+#stallServerFilterBtns .cm-sort-btn,
+#guildServerFilterBtns .cm-sort-btn {
   flex: 1;
   min-width: 88px; /* 最長標籤「組隊任務」／「菇菇寶貝」天然寬度 84px + 緩衝 */
 }
