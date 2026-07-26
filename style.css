@@ -307,6 +307,16 @@ a:hover { text-decoration-color: var(--accent-hover); }
 }
 .notice-body { display: flex; flex-direction: column; gap: 8px; }
 .notice-body p { margin: 0; }
+/* notice-banner 裡面本身已經有底色/邊框，這裡的收合只需要文字本身的
+   摘要/展開行為，不需要再疊一層 .cm-disclaimer-details 的框線樣式 */
+.notice-details { margin-bottom: 8px; }
+.notice-details summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--ink);
+  list-style-position: inside;
+}
+.notice-details p { margin: 6px 0 0; }
 .notice-banner strong { color: var(--ink); }
 
 /* ---------- Inputs ---------- */
@@ -800,6 +810,29 @@ a:hover { text-decoration-color: var(--accent-hover); }
   border-radius: var(--radius-md);
   padding: 10px 14px;
   margin-bottom: 16px;
+}
+/* 較長的免責聲明改成收合式，先看一行摘要（<summary>），點開才看到完整
+   說明，跟 FAQ 同一套 <details> 邏輯，桌機／手機都一樣不分螢幕寬度。 */
+.cm-disclaimer-details { margin-top: 12px; margin-bottom: 16px; }
+.cm-disclaimer-details summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  list-style-position: inside;
+}
+.cm-disclaimer-details[open] summary {
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  border-bottom: none;
+}
+.cm-disclaimer-details > .cm-disclaimer {
+  margin: 0;
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 .cm-toolbar { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
 .cm-filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; width: 100%; }
