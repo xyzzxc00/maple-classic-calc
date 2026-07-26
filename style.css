@@ -888,7 +888,8 @@ a:hover { text-decoration-color: var(--accent-hover); }
   min-width: 62px; /* 最長標籤「全部／販賣／收購」天然寬度 58px + 緩衝 */
 }
 #cmTeamView .cm-actions .btn-primary,
-#cmStallView .cm-actions .btn-primary {
+#cmStallView .cm-actions .btn-primary,
+#cmGuildView .cm-actions .btn-primary {
   /* 跟篩選按鈕群組同一套邏輯：white-space:nowrap 避免「＋ 我要揪團」
      這種按鈕文字在被壓窄之後自己斷成兩行 */
   white-space: nowrap;
@@ -908,6 +909,11 @@ a:hover { text-decoration-color: var(--accent-hover); }
      按鈕手機版改上下堆疊、篩選按鈕滿版寬 */
   #cmTeamView .cm-actions { flex-direction: column; }
   #cmTeamView .cm-sort-btns { width: 100%; }
+
+  /* 公會招募新增時漏掉了這組規則，手機版一直維持桌機版的並排擠成一條，
+     這裡補上跟組隊揪團／擺攤收購同一套堆疊做法 */
+  #cmGuildView .cm-actions { flex-direction: column; }
+  #guildServerFilterBtns { width: 100%; }
 }
 .cm-filter-input {
   background: var(--surface);
