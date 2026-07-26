@@ -113,6 +113,10 @@
     els.job.insertAdjacentHTML("beforeend", window.MapleJobOptionsHtml);
   }
 
+  // 字數硬上限＋IME 安全裁切（formGuard.js，四板共用）；欄位都短，不掛計數
+  MapleFormGuard.attach(els.map, 40);
+  MapleFormGuard.attach(els.note, 60);
+
   let allRecords = [];
   let lastDoc = null;
   let formOpen = false;
@@ -121,6 +125,9 @@
   // 「這次真的讀取失敗」的差別；曝露這個旗標讓它能顯示對的訊息，而不是
   // 把讀取失敗誤判成單純的空狀態。
   let lastLoadFailed = false;
+  // 失敗原因的完整訊息也留一份：spots.js（建議練功地點）跟這裡共用同一次
+  // 讀取，失敗時要能顯示一樣細的原因，不能只有一句籠統的「載入失敗」
+  let lastLoadErrorMsg = "";
   // 進行中的載入數（自動補抓可能跟初次載入重疊，用計數不用布林）。spots.js
   // 靠這個分辨「載入中」跟「真的沒資料」——沒有它，切分頁的瞬間會先閃出
   // 「還沒人回報」的錯誤結論，等載入完成才被蓋掉
@@ -287,6 +294,7 @@
       lastDoc = null;
     }
     lastLoadFailed = false;
+    lastLoadErrorMsg = "";
     loadsInFlight++;
     try {
       await loadRecordsInner(append);
@@ -300,7 +308,8 @@
       await ensureDb();
     } catch {
       lastLoadFailed = true;
-      els.list.innerHTML = '<p class="cm-empty">連線失敗，請檢查網路後重新整理頁面</p>';
+      lastLoadErrorMsg = "連線失敗，請檢查網路後重新整理頁面";
+      els.list.innerHTML = `<p class="cm-empty">${lastLoadErrorMsg}</p>`;
       hasMoreFromServer = false;
       return;
     }
@@ -344,6 +353,7 @@
         // （額度要等隔天美西時間午夜才重置），不能沿用「請重新整理」的措辭誤導使用者
         msg = "今天社群功能的使用量已達上限，明天會自動恢復，其他功能不受影響";
       }
+      lastLoadErrorMsg = msg;
       // 補抓失敗時別把已經顯示的紀錄整片換成錯誤訊息——保留清單、
       // 把錯誤放在分頁區；同時關掉 hasMoreFromServer 避免 renderRecords
       // 又觸發補抓、失敗、再補抓的迴圈
@@ -552,8 +562,15 @@
     showCmSubtab("records", skipSave);
   }
 
+  // 網址錨點 #cm-<subtab>（例如攻略文或社群貼文連的 #cm-guild）比
+  // localStorage 的舊紀錄優先，跟 nav.js 處理 #calc-* 的規則一致。
+  // team/stall/guild 的初次 render 這裡呼叫不到（那三個模組排在本檔之後
+  // 載入），一樣交給 nav.js 的補觸發，那邊會用同一套「錨點優先」規則
+  const [cmHashMain, cmHashSub] = location.hash.slice(1).split("-");
+  const hashSubtab = cmHashMain === "cm" && cmSubtabs.some((t) => t.key === cmHashSub) ? cmHashSub : null;
   const savedSubtab = localStorage.getItem(CM_SUBTAB_KEY);
-  if (savedSubtab === "records" || savedSubtab === "team" || savedSubtab === "stall" || savedSubtab === "guild") showCmSubtab(savedSubtab, true);
+  const initialSubtab = hashSubtab || savedSubtab;
+  if (["records", "team", "stall", "guild"].includes(initialSubtab)) showCmSubtab(initialSubtab, true);
 
   window.MapleCommunity = {
     loadRecords,
@@ -561,10 +578,15 @@
     openFormWithExpPer10Min,
     getRecords: () => allRecords,
     hasLoadFailed: () => lastLoadFailed,
+    loadErrorMsg: () => lastLoadErrorMsg,
+    hasMoreOnServer: () => hasMoreFromServer,
     isLoading: () => loadsInFlight > 0,
     isSubmissionsOpen: () => SUBMISSIONS_OPEN,
     submissionsClosedMsg: SUBMISSIONS_CLOSED_MSG,
     showRecordsTab,
+    // nav.js 補觸發子分頁 render 時要讀同一個 localStorage key——鍵名只在
+    // 這裡定義一次，nav.js 透過這個屬性拿，避免兩邊字面量各自漂移
+    cmSubtabKey: CM_SUBTAB_KEY,
     // team.js（揪團公告板）共用同一個 Firebase app／db 實例，不要自己再
     // initializeApp 一次——同一頁面對同一個 [DEFAULT] app 重複初始化會丟例外
     ensureDb,

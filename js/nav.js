@@ -41,7 +41,15 @@
       // 執行，這裡才是唯一保證「所有模組都載完、也知道最終要不要顯示
       // #pageCm」的地方，直接讀 community.js 存的子分頁 key 來決定要不要
       // 補觸發 render()
-      const cmSubtab = localStorage.getItem("maple_classic_cm_subtab");
+      // 錨點 #cm-<subtab> 優先（community.js 切視圖時用同一套規則），
+      // 沒有錨點才讀 localStorage；鍵名以 community.js 匯出的為準（單一
+      // 定義處）。MapleCommunity 不在的話社群頁本身就壞了，補觸發也沒有意義
+      const cmSubtab =
+        hashMain === "cm" && hashSub
+          ? hashSub
+          : window.MapleCommunity
+          ? localStorage.getItem(window.MapleCommunity.cmSubtabKey)
+          : null;
       if (cmSubtab === "team" && window.MapleTeam) window.MapleTeam.render();
       if (cmSubtab === "stall" && window.MapleStall) window.MapleStall.render();
       if (cmSubtab === "guild" && window.MapleGuild) window.MapleGuild.render();

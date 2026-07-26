@@ -73,7 +73,9 @@
       els.list.innerHTML = window.MapleCommunity.isLoading()
         ? '<p class="cm-loading">載入中...</p>'
         : window.MapleCommunity.hasLoadFailed()
-        ? '<p class="cm-empty">載入失敗，請重新整理頁面</p>'
+        // 失敗原因沿用 community.js 分好的訊息（離線／被拒絕／額度用完…），
+        // 同一次失敗在「回報紀錄」跟這裡才不會講兩種粒度的話
+        ? `<p class="cm-empty">${window.MapleCommunity.loadErrorMsg() || "載入失敗，請重新整理頁面"}</p>`
         : allRecords.length
           ? '<p class="cm-empty">這個職業目前還沒有練功地點回報，可以切換其他職業看看，或到「回報紀錄」子分頁貢獻第一筆！</p>'
           : '<p class="cm-empty">目前還沒有玩家回報練功地點。去「回報紀錄」子分頁回報，這裡就會自動整理出建議。</p>';
@@ -113,6 +115,14 @@
       page: currentPage,
       onChange: (p) => { currentPage = p; render(); },
     });
+    // 統計只用已載入的批次（最近 N 筆），伺服器上還有更早的回報沒抓進來時
+    // 要明講，不然這份建議看起來像全站統計；措辭跟回報紀錄頁的涵蓋提示一致
+    if (window.MapleCommunity.hasMoreOnServer()) {
+      els.pagination.insertAdjacentHTML(
+        "beforeend",
+        `<p class="cm-range-hint">建議目前依最近 ${allRecords.length} 筆回報統計，更早的回報可在「回報紀錄」子分頁往回載入</p>`
+      );
+    }
   }
 
   if (els.filterJob) els.filterJob.addEventListener("change", () => { currentPage = 1; render(); });

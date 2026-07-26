@@ -89,6 +89,11 @@
 
   tabs.forEach((t) => t.btn.addEventListener("click", () => showTab(t.key)));
 
+  // 網址錨點 #legacy-<subtab>（例如 guides 文章連的 #legacy-bosses）比
+  // localStorage 的舊紀錄優先，跟 nav.js 處理 #calc-* 的規則一致
+  const [hashMain, hashSub] = location.hash.slice(1).split("-");
+  const hashTab = hashMain === "legacy" && tabs.some((t) => t.key === hashSub) ? hashSub : null;
   const savedTab = localStorage.getItem(STORAGE_KEY);
-  if (tabs.some((t) => t.key === savedTab)) showTab(savedTab, true);
+  const initialTab = hashTab || savedTab;
+  if (tabs.some((t) => t.key === initialTab)) showTab(initialTab, true);
 })();

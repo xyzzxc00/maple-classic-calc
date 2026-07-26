@@ -54,7 +54,11 @@
     "升級預估時間試算",
     "加倍卷用量計算",
     "EXP 計時器與測速",
+    "卷軸強化模擬器",
     "社群練功地點資料庫",
+    "組隊揪團公告板",
+    "擺攤販賣／收購資訊",
+    "公會招募公告板",
     "冒險家職業轉職路線介紹"
   ],
   "about": {
@@ -149,8 +153,8 @@
     <h1 class="title">新楓之谷經典版 練等 × 社群工具</h1>
     <p class="subtitle">輸入目前等級，馬上知道升級還差多少經驗、大概要練多久</p>
     <p class="launch-confirmed">🎉 新楓之谷經典版已正式上線！</p>
-    <a class="prereg-btn" href="https://maplestoryclassic.beanfun.com/Main" target="_blank" rel="noopener">前往官方遊戲頁面</a>
-    <p class="prereg-hint">開服第一天怎麼練？<a href="guides/launch-leveling-guide/">看 Lv.1~30 開服練功路線 →</a></p>
+    <a class="header-cta-btn" href="https://maplestoryclassic.beanfun.com/Main" target="_blank" rel="noopener">前往官方遊戲頁面</a>
+    <p class="header-cta-hint">開服第一天怎麼練？<a href="guides/launch-leveling-guide/">看 Lv.1~30 開服練功路線 →</a></p>
   </div>
 </header>
 
@@ -166,7 +170,7 @@
 <main>
 <div class="wrap" id="pageCalc" role="tabpanel" aria-labelledby="navCalc">
 
-  <section class="panel calc-panel">
+  <section class="panel">
     <div class="panel-head">
       <h2>計算工具</h2>
       <span class="badge">練等／卷軸試算</span>
@@ -288,7 +292,7 @@
   </section>
 
   <div class="calc-col-stack">
-  <section class="calc-section timer-panel">
+  <section class="calc-section">
     <div class="panel-head">
       <h2>倒數計時器</h2>
       <span class="badge">時間到會響＋跳通知</span>
@@ -322,7 +326,7 @@
     </details>
   </section>
 
-  <section class="calc-section exp-tracker-panel">
+  <section class="calc-section">
     <div class="panel-head">
       <h2>EXP 測速</h2>
       <button class="btn btn-ghost" id="clearTrackerBtn" type="button">✕ 清除</button>
@@ -353,16 +357,16 @@
     </div>
 
     <div id="calcAttackView" role="tabpanel" aria-labelledby="calcSubAttack" hidden>
+      <details class="cm-disclaimer-details">
+        <summary>攻擊力公式來源說明</summary>
+        <p class="cm-disclaimer">這裡算的是舊楓之谷（Big Bang 大改版前）角色資訊視窗「攻擊力」欄位的舊制公式。物理攻擊（劍士／弓箭手／盜賊／海盜系）的公式跟武器係數已對照巴哈姆特舊制討論串、PTT 楓之谷板等多個獨立來源交叉核對，數字一致。法師的魔法攻擊力採用巴哈姆特新楓之谷哈啦板 2008 年（大改版前）文章公佈的公式，同樣是台版舊制資料。</p>
+      </details>
 
-  <section class="panel attack-panel">
+  <section class="calc-section">
     <div class="panel-head">
       <h2>攻擊力計算</h2>
-      <button class="btn btn-ghost" id="clearAttackBtn" type="button">✕ 清除</button>
+      <button class="btn btn-ghost" id="clearAttackBtn" type="button">↺ 重設</button>
     </div>
-    <details class="cm-disclaimer-details">
-      <summary>攻擊力公式來源說明</summary>
-      <p class="cm-disclaimer">這裡算的是舊楓之谷（Big Bang 大改版前）角色資訊視窗「攻擊力」欄位的舊制公式。物理攻擊（劍士／弓箭手／盜賊／海盜系）的公式跟武器係數已對照巴哈姆特舊制討論串、PTT 楓之谷板等多個獨立來源交叉核對，數字一致。法師的魔法攻擊力採用巴哈姆特新楓之谷哈啦板 2008 年（大改版前）文章公佈的公式，同樣是台版舊制資料。</p>
-    </details>
 
     <div class="field-grid two-col">
       <label class="field">
@@ -441,17 +445,17 @@
     </div>
 
     <div id="calcScrollView" role="tabpanel" aria-labelledby="calcSubScroll" hidden>
+      <details class="cm-disclaimer-details">
+        <summary>「失敗報廢張數」是什麼？</summary>
+        <p class="cm-disclaimer">「失敗報廢張數」＝一件新裝備開局後，如果最前面連續 X 張全部失敗（中途只要衝到 1 張成功就不會放棄），就當這件報廢、直接換新裝備重來；預設等於裝備衝捲數（等於不主動放棄）。另外「目標成功張數」已經不可能達成時（剩餘可衝張數不夠補到目標），也會直接視同報廢、自動換新裝備。不含裝備爆炸機制（有搭配保護卷軸的話，把保護卷的成本自己加進卷軸單價裡就好）。實際成功率請照自己遊戲內卷軸說明為準。</p>
+      </details>
+      <p class="cm-disclaimer">不懂這些數字怎麼算出來的？<a href="guides/scroll-expected-value-guide/">看卷軸期望值解析 →</a></p>
 
-  <section class="panel scroll-panel">
+  <section class="calc-section">
     <div class="panel-head">
       <h2>卷軸強化模擬</h2>
-      <button class="btn btn-ghost" id="clearScrollBtn" type="button">✕ 清除</button>
+      <button class="btn btn-ghost" id="clearScrollBtn" type="button">↺ 重設</button>
     </div>
-    <details class="cm-disclaimer-details">
-      <summary>「失敗報廢張數」是什麼？</summary>
-      <p class="cm-disclaimer">「失敗報廢張數」＝一件新裝備開局後，如果最前面連續 X 張全部失敗（中途只要衝到 1 張成功就不會放棄），就當這件報廢、直接換新裝備重來；預設等於裝備衝捲數（等於不主動放棄）。不含裝備爆炸機制（有搭配保護卷軸的話，把保護卷的成本自己加進卷軸單價裡就好）。實際成功率請照自己遊戲內卷軸說明為準。</p>
-    </details>
-    <p class="cm-disclaimer">不懂這些數字怎麼算出來的？<a href="guides/scroll-expected-value-guide/">看卷軸期望值解析 →</a></p>
 
     <div class="field-grid two-col">
       <label class="field">
@@ -525,17 +529,17 @@
     </div>
 
     <div id="calcGachaView" role="tabpanel" aria-labelledby="calcSubGacha" hidden>
+      <details class="cm-disclaimer-details">
+        <summary>⚠️ 骨架測試階段：道具與機率都是假資料</summary>
+        <p class="cm-disclaimer">下面的道具跟機率都是示意用的假資料，不是遊戲正式數值。正式的轉蛋道具與機率請以官方公告的「機率商品說明」為準，等資料出來後會校正成真實數字。</p>
+      </details>
+      <p class="cm-disclaimer">純粹好玩用，不會花到任何真實貨幣或遊戲內道具，單純模擬機率讓大家試試手氣。</p>
 
-  <section class="panel gacha-panel">
+  <section class="calc-section">
     <div class="panel-head">
       <h2>轉蛋模擬</h2>
       <button class="btn btn-ghost" id="gachaResetBtn" type="button">重置紀錄</button>
     </div>
-    <details class="cm-disclaimer-details">
-      <summary>⚠️ 骨架測試階段：道具與機率都是假資料</summary>
-      <p class="cm-disclaimer">下面的道具跟機率都是示意用的假資料，不是遊戲正式數值。正式的轉蛋道具與機率請以官方公告的「機率商品說明」為準，等資料出來後會校正成真實數字。</p>
-    </details>
-    <p class="cm-disclaimer">純粹好玩用，不會花到任何真實貨幣或遊戲內道具，單純模擬機率讓大家試試手氣。</p>
 
     <div class="panel-head scroll-sub-head">
       <h3>道具池（示意機率）</h3>
@@ -569,7 +573,7 @@
 
 <div class="wrap" id="pageJobs" role="tabpanel" aria-labelledby="navJobs" hidden>
 
-  <section class="panel version-diff-panel">
+  <section class="panel">
     <div class="panel-head">
       <h2>經典版 vs 新楓之谷</h2>
       <span class="badge">新舊玩家必看</span>
@@ -609,7 +613,7 @@
     </div>
   </section>
 
-  <section class="panel jobs-panel">
+  <section class="panel">
     <div class="panel-head">
       <h2>職業介紹</h2>
       <span class="badge">轉職路線總覽</span>
@@ -630,7 +634,7 @@
 
 <div class="wrap" id="pageCm" role="tabpanel" aria-labelledby="navCm" hidden>
 
-  <section class="panel cm-panel">
+  <section class="panel">
     <div class="panel-head">
       <h2>社群資料庫</h2>
       <span class="badge">玩家回報練功效率</span>
@@ -865,6 +869,7 @@
           <label class="field">
             <span id="stallDescriptionLabel">交易內容 *</span>
             <input type="text" id="stallDescription" maxlength="100" placeholder="例：卷軸大特賣、武器防具便宜出清">
+            <span class="field-char-count" id="stallDescCount">0 / 100 字</span>
           </label>
         </div>
         <div class="cm-form-actions">
@@ -937,7 +942,7 @@
 
 <div class="wrap" id="pageLegacy" role="tabpanel" aria-labelledby="navLegacy" hidden>
 
-  <section class="panel legacy-spots-panel">
+  <section class="panel">
     <div class="panel-head">
       <h2>過往資料參考</h2>
       <span class="badge">過往版本資料，僅供參考</span>
@@ -1044,6 +1049,7 @@
 <script defer src="js/teamData.js"></script>
 <script defer src="js/app.js"></script>
 <script defer src="js/timer.js"></script>
+<script defer src="js/formGuard.js"></script>
 <script defer src="js/community.js"></script>
 <script defer src="js/team.js"></script>
 <script defer src="js/stall.js"></script>

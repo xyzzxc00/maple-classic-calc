@@ -203,9 +203,10 @@ service cloud.firestore {
         return ['雪吉拉', '菇菇寶貝'];
       }
 
-      // 公會招募沒有 scheduledAt／到期時間——招募是長期性的，不像揪團／
-      // 擺攤有明確的時效，所以不用 team_posts／stall_posts 那套「發文
-      // 時間 + 固定小時數」自動下架邏輯，只靠發文者自己標記 closed 下架。
+      // 公會招募沒有 scheduledAt 欄位——招募不像揪團有明確的集合時間點。
+      // 「7 天自動下架」是前端用 ts 過濾實作的（guild.js：查詢與顯示都只取
+      // 最近 7 天），資料本身不會刪除；規則層只負責發文者自己標記 closed
+      // 提早下架這條路。
       //
       // hasOnly 故意不放 closed，理由跟 stall_posts 一樣：這個欄位只能
       // 透過下面的 isMarkClosed() 一次性從無/false 改成 true，建立當下

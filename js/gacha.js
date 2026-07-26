@@ -103,12 +103,16 @@
   els.pullOnceBtn.addEventListener("click", () => doPulls(1));
   els.pullTenBtn.addEventListener("click", () => doPulls(10));
 
+  // 還沒抽過（初次進入或剛重置）時結果區不能是純空白，會看起來像壞掉
+  const EMPTY_RESULT_HTML = '<p class="cm-empty">還沒抽過，按「抽一次」或「抽十連」試試手氣</p>';
+
   els.resetBtn.addEventListener("click", () => {
     totalPulls = 0;
     for (const key in dist) delete dist[key];
-    els.resultGrid.innerHTML = "";
+    els.resultGrid.innerHTML = EMPTY_RESULT_HTML;
     renderStats();
   });
 
+  els.resultGrid.innerHTML = EMPTY_RESULT_HTML;
   renderStats();
 })();

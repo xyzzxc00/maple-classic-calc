@@ -43,6 +43,12 @@
   };
   if (!els.form) return;
 
+  // 字數硬上限＋IME 安全裁切（formGuard.js，四板共用）；欄位都短，不掛計數
+  MapleFormGuard.attach(els.target, 40);
+  MapleFormGuard.attach(els.map, 40);
+  MapleFormGuard.attach(els.contact, 40);
+  MapleFormGuard.attach(els.note, 60);
+
   const GRACE_MS = 6 * 60 * 60 * 1000; // 集合時間過後多久還算有效，跟原本 6 小時的設計一致
   const MAX_ADVANCE_MS = 7 * 24 * 60 * 60 * 1000; // 最多能提前 7 天發布
   const MIN_PAST_MS = 60 * 60 * 1000; // 集合時間最多容許比現在早 1 小時（給「現在就要揪」一點緩衝，不用卡到秒）

@@ -328,6 +328,9 @@
     sim.dist = {};
     sim.done = false;
     els.simResult.hidden = true;
+    // 隱藏之外連內容一起清：舊結果文字留著的話，下次任何地方把 hidden
+    // 拿掉（或未來改版忘了先寫入再顯示）會閃出上一輪的結論
+    els.simResult.textContent = "";
     renderAll();
   }
 

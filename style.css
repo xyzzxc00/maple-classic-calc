@@ -24,7 +24,10 @@
   --accent-border: #7C8262;
   --on-accent: #FFFFFF;
   --danger: #B3261E;
-  --warning: #8A6400;
+  /* 原本 #8A6400 在 --surface-tint 上 4.59:1，距 AA 及格線只剩 0.09——跟深色
+     模式 2026-07-24 修過的是同一族問題（token 在白底上過、換到 tinted 底就
+     貼線）。加深一階到 5.55:1，跟深色側修正後的餘裕（5.52:1）拉齊 */
+  --warning: #7A5800;
   --radius-lg: 14px;
   --radius-md: 8px;
   /* 浮動元素（目前只有 .back-to-top）的陰影色，跟著明暗模式各自調深淺，
@@ -151,7 +154,8 @@ a:hover { text-decoration-color: var(--accent-hover); }
   color: var(--accent-text);
 }
 
-.prereg-btn {
+/* header 的主要 CTA（開服前是事前預約按鈕，現在連官方遊戲頁）＋下方提示行 */
+.header-cta-btn {
   display: inline-block;
   margin-top: 20px;
   font-weight: 700;
@@ -163,9 +167,9 @@ a:hover { text-decoration-color: var(--accent-hover); }
   border-radius: var(--radius-md);
   transition: background 0.15s;
 }
-.prereg-btn:hover,
-.prereg-btn:active { background: var(--accent-hover); }
-.prereg-hint {
+.header-cta-btn:hover,
+.header-cta-btn:active { background: var(--accent-hover); }
+.header-cta-hint {
   font-size: 13px;
   color: var(--ink-soft);
   margin: 10px 0 0;

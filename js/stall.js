@@ -44,6 +44,12 @@
   };
   if (!els.form) return;
 
+  // 字數硬上限＋IME 安全裁切（formGuard.js，四板共用）；內容欄是主要
+  // 自由輸入欄位，加即時字數計數，做法跟公會招募的簡介欄一致
+  const updateDescriptionCount = MapleFormGuard.attach(els.description, 100, document.getElementById("stallDescCount"));
+  MapleFormGuard.attach(els.market, 40);
+  MapleFormGuard.attach(els.charId, 20);
+
   // 「內容」欄位的說明文字跟著交易類型換，賣/收要打的東西方向相反，
   // 固定寫死一種措辭會讓另一種類型的使用者看了困惑
   function updateDescriptionLabel() {
@@ -169,6 +175,7 @@
       els.msg.textContent = "✓ 已發布！24 小時後會自動下架，結束了也可以自己提早下架";
       els.msg.className = "cm-msg ok";
       els.type.value = ""; els.server.value = ""; els.channel.value = ""; els.market.value = ""; els.charId.value = ""; els.description.value = "";
+      updateDescriptionCount();
       updateDescriptionLabel();
       allPosts = [];
       await loadStallPosts();
