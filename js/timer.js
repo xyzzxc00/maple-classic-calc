@@ -216,17 +216,26 @@
   function timerBeep() {
     try {
       const ctx = getAudioCtx();
-      [0, 0.3, 0.6].forEach((offset) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.frequency.value = 880;
-        gain.gain.setValueAtTime(0.4, ctx.currentTime + offset);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.25);
-        osc.start(ctx.currentTime + offset);
-        osc.stop(ctx.currentTime + offset + 0.25);
-      });
+      const playTones = () => {
+        [0, 0.3, 0.6].forEach((offset) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.frequency.value = 880;
+          gain.gain.setValueAtTime(0.4, ctx.currentTime + offset);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + offset + 0.25);
+          osc.start(ctx.currentTime + offset);
+          osc.stop(ctx.currentTime + offset + 0.25);
+        });
+      };
+      // iOS 上倒數跑一段時間沒有其他互動，AudioContext 常常會被系統自動
+      // suspend（省電），getAudioCtx() 裡的 resume() 是非同步的、沒等它
+      // 真的恢復就排音符，遇到這種情況鈴聲會直接無聲失敗。這裡等
+      // resume 真的完成才排音符，suspended 時才需要等，本來就是 running
+      // 就直接播不用多等一輪 Promise
+      if (ctx.state === "suspended") ctx.resume().then(playTones);
+      else playTones();
     } catch {}
   }
 
