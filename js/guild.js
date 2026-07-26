@@ -51,8 +51,15 @@
   // 改成自己主動裁切＋即時顯示字數，快到上限時變色警示，兩件事一起做
   // 才能保證欄位真的不會超過上限。
   const DESCRIPTION_MAX = 200;
+  // 中文／日文輸入法組字期間也會觸發 input 事件——這個時候如果動手改
+  // el.value，會打斷瀏覽器正在處理的組字狀態（畫面上那段還加底線、還沒
+  // 定案的暫存文字），導致打到一半的字被打斷或吃掉。組字中只更新顯示的
+  // 字數，真正裁切要等 compositionend（組字定案）之後再做。
+  let isComposing = false;
+  els.description.addEventListener("compositionstart", () => { isComposing = true; });
+  els.description.addEventListener("compositionend", () => { isComposing = false; updateDescriptionCount(); });
   function updateDescriptionCount() {
-    if (els.description.value.length > DESCRIPTION_MAX) {
+    if (!isComposing && els.description.value.length > DESCRIPTION_MAX) {
       els.description.value = els.description.value.slice(0, DESCRIPTION_MAX);
     }
     const len = els.description.value.length;
