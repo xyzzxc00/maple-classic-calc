@@ -44,6 +44,7 @@
       const cmSubtab = localStorage.getItem("maple_classic_cm_subtab");
       if (cmSubtab === "team" && window.MapleTeam) window.MapleTeam.render();
       if (cmSubtab === "stall" && window.MapleStall) window.MapleStall.render();
+      if (cmSubtab === "guild" && window.MapleGuild) window.MapleGuild.render();
     }
   }
 

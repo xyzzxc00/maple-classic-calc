@@ -527,6 +527,7 @@
     { key: "records", btn: document.getElementById("cmSubRecords"), view: document.getElementById("cmRecordsView") },
     { key: "team", btn: document.getElementById("cmSubTeam"), view: document.getElementById("cmTeamView") },
     { key: "stall", btn: document.getElementById("cmSubStall"), view: document.getElementById("cmStallView") },
+    { key: "guild", btn: document.getElementById("cmSubGuild"), view: document.getElementById("cmGuildView") },
   ];
 
   function showCmSubtab(key, skipSave) {
@@ -540,6 +541,7 @@
     if (key === "suggest" && window.MapleSpots) window.MapleSpots.render();
     if (key === "team" && window.MapleTeam) window.MapleTeam.render();
     if (key === "stall" && window.MapleStall) window.MapleStall.render();
+    if (key === "guild" && window.MapleGuild) window.MapleGuild.render();
   }
 
   cmSubtabs.forEach((t) => t.btn.addEventListener("click", () => showCmSubtab(t.key)));
@@ -551,7 +553,7 @@
   }
 
   const savedSubtab = localStorage.getItem(CM_SUBTAB_KEY);
-  if (savedSubtab === "records" || savedSubtab === "team" || savedSubtab === "stall") showCmSubtab(savedSubtab, true);
+  if (savedSubtab === "records" || savedSubtab === "team" || savedSubtab === "stall" || savedSubtab === "guild") showCmSubtab(savedSubtab, true);
 
   window.MapleCommunity = {
     loadRecords,

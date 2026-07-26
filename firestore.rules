@@ -194,6 +194,52 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /guild_posts/{postId} {
+
+      // 伺服器白名單跟 team_posts／stall_posts 的 allowedServers() 是同一份
+      // 清單，規則沒辦法跨 match 共用 function，重複宣告一次；改動時三處
+      // 都要同步（跟 js/teamData.js 的 TEAM_SERVERS 一致）。
+      function allowedServers() {
+        return ['雪吉拉', '菇菇寶貝'];
+      }
+
+      // 公會招募沒有 scheduledAt／到期時間——招募是長期性的，不像揪團／
+      // 擺攤有明確的時效，所以不用 team_posts／stall_posts 那套「發文
+      // 時間 + 固定小時數」自動下架邏輯，只靠發文者自己標記 closed 下架。
+      //
+      // hasOnly 故意不放 closed，理由跟 stall_posts 一樣：這個欄位只能
+      // 透過下面的 isMarkClosed() 一次性從無/false 改成 true，建立當下
+      // 不該讓 create request 夾帶任意值進來。
+      function isValidNew(d) {
+        return d.keys().hasAll(['guildName', 'server', 'description', 'memberCount', 'contact', 'ts'])
+          && d.keys().hasOnly(['guildName', 'server', 'description', 'memberCount', 'contact', 'ts'])
+          && d.guildName is string && d.guildName.size() >= 1 && d.guildName.size() <= 20
+          && d.server is string && allowedServers().hasAny([d.server])
+          && d.description is string && d.description.size() >= 1 && d.description.size() <= 200
+          && d.memberCount is int && d.memberCount >= 1 && d.memberCount <= 500
+          && d.contact is string && d.contact.size() >= 1 && d.contact.size() <= 40
+          && d.ts == request.time;
+      }
+
+      // 只放行「這篇已下架」這一種安全的部分更新，跟 stall_posts 的
+      // isMarkClosed() 同一套邏輯與同樣的取捨：沒有比對是不是本人在改，
+      // UI 層用 localStorage 軟性限制就好，不開放其他玩家回報。
+      function isMarkClosed() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['closed'])
+          && request.resource.data.closed == true
+          && resource.data.get('closed', false) != true;
+      }
+
+      // 沒有到期機制，理論上集合會一直長大，跟 stall_posts 開頭註解
+      // 提到的處理方式一樣：量級小的時候不用管，長很大再考慮原生 TTL
+      // policy 或人工清理明顯過期的舊公告。
+      allow get: if true;
+      allow list: if request.query.limit <= 100;
+      allow create: if isValidNew(request.resource.data);
+      allow update: if isMarkClosed();
+      allow delete: if false;
+    }
+
     // 其餘集合預設拒絕
     match /{document=**} {
       allow read, write: if false;

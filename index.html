@@ -664,6 +664,7 @@
       <button class="subtab" id="cmSubRecords" type="button" role="tab" aria-selected="false" aria-controls="cmRecordsView">回報紀錄</button>
       <button class="subtab" id="cmSubTeam" type="button" role="tab" aria-selected="false" aria-controls="cmTeamView">組隊揪團</button>
       <button class="subtab" id="cmSubStall" type="button" role="tab" aria-selected="false" aria-controls="cmStallView">擺攤收購</button>
+      <button class="subtab" id="cmSubGuild" type="button" role="tab" aria-selected="false" aria-controls="cmGuildView">公會招募</button>
     </div>
 
     <div id="cmSuggestView" role="tabpanel" aria-labelledby="cmSubSuggest">
@@ -901,6 +902,59 @@
       <div id="stallList"><p class="cm-loading">載入中...</p></div>
       <div class="cm-pagination" id="stallPagination"></div>
     </div>
+
+    <div id="cmGuildView" role="tabpanel" aria-labelledby="cmSubGuild" hidden>
+      <details class="cm-disclaimer-details">
+        <summary>公會招募公告規則說明</summary>
+        <p class="cm-disclaimer">給公會長期招募成員用的公告，貼文 7 天後會自動下架；中途招滿的話也請記得自己回來標記「已招滿」提早下架，讓資訊保持準確。下架按鈕只會出現在你自己發的貼文上，也請大家不要用其他方式亂動別人的貼文，讓需要的人都能看到完整資訊。</p>
+      </details>
+
+      <div class="cm-toolbar">
+        <div class="cm-actions">
+          <div class="cm-sort-btns" id="guildServerFilterBtns">
+            <button class="cm-sort-btn active" data-server="" type="button">全部</button>
+          </div>
+          <button class="btn btn-primary" id="guildAddBtn" type="button">＋ 我要招募</button>
+        </div>
+      </div>
+
+      <div class="cm-form" id="guildForm" hidden>
+        <div class="field-grid two-col">
+          <label class="field">
+            <span>公會名稱 *</span>
+            <input type="text" id="guildName" maxlength="20" placeholder="例：楓葉之翼">
+          </label>
+          <label class="field">
+            <span>伺服器 *</span>
+            <select id="guildServer">
+              <option value="" disabled selected>請選擇伺服器</option>
+            </select>
+          </label>
+        </div>
+        <div class="field-grid two-col">
+          <label class="field">
+            <span>目前人數 *</span>
+            <input type="number" id="guildMemberCount" min="1" max="500" placeholder="例：15">
+          </label>
+          <label class="field">
+            <span>聯絡方式 *</span>
+            <input type="text" id="guildContact" maxlength="40" placeholder="方便有興趣的人找到你">
+          </label>
+        </div>
+        <label class="field">
+          <span>公會簡介 *</span>
+          <textarea id="guildDescription" maxlength="200" rows="3" placeholder="例：主打組隊練功、每週固定王團，歡迎新手加入"></textarea>
+        </label>
+        <div class="cm-form-actions">
+          <button class="btn btn-primary" id="guildSubmitBtn" type="button">送出</button>
+          <button class="btn btn-ghost" id="guildCancelBtn" type="button">取消</button>
+          <span class="cm-msg" id="guildMsg" role="status" aria-live="polite"></span>
+        </div>
+      </div>
+
+      <div id="guildList"><p class="cm-loading">載入中...</p></div>
+      <div class="cm-pagination" id="guildPagination"></div>
+    </div>
   </section>
 
 </div>
@@ -1018,6 +1072,7 @@
 <script defer src="js/community.js"></script>
 <script defer src="js/team.js"></script>
 <script defer src="js/stall.js"></script>
+<script defer src="js/guild.js"></script>
 <script defer src="js/nav.js"></script>
 <script defer src="js/backToTop.js"></script>
 <script defer src="js/theme.js"></script>
