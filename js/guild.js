@@ -294,7 +294,7 @@
           <div class="cm-stat"><span>伺服器</span><span>${escHtml(p.server)}</span></div>
           <div class="cm-stat"><span>目前人數</span><span>${p.memberCount} 人</span></div>
           <div class="cm-note">${escHtml(p.description)}</div>
-          <div class="cm-stat"><span>聯絡方式</span><span>${escHtml(p.contact)}</span></div>
+          <div class="cm-stat cm-stat-divider"><span>聯絡方式</span><span>${escHtml(p.contact)}</span></div>
           ${isMine ? `<div class="cm-card-footer">
             <button class="cm-helpful-btn cm-guild-closed-btn" data-id="${p.id}" type="button">✓ 已招滿，下架這篇</button>
           </div>` : ""}
