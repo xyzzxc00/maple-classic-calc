@@ -6,6 +6,9 @@
     weaponType: document.getElementById("attackWeaponType"),
     weaponAtk: document.getElementById("attackWeaponAtk"),
     weaponAtkLabel: document.getElementById("attackWeaponAtkLabel"),
+    ammoField: document.getElementById("attackAmmoField"),
+    ammoLabel: document.getElementById("attackAmmoLabel"),
+    ammo: document.getElementById("attackAmmo"),
     str: document.getElementById("attackStr"),
     dex: document.getElementById("attackDex"),
     int: document.getElementById("attackInt"),
@@ -71,8 +74,10 @@
     const subStatsSum = weapon.subStats.reduce((sum, key) => sum + getStat(key), 0);
     const mastery = getMastery(warnings);
 
-    const max = Math.floor((mainStatVal * weapon.coef + subStatsSum) * weaponAtk / 100);
-    const min = Math.floor((mainStatVal * weapon.coef * 0.9 * mastery + subStatsSum) * weaponAtk / 100);
+    // 上限取高係數、下限取低係數（合併揮砍/穿刺，跟資訊視窗顯示一致），
+    // 細節見 attackData.js 開頭說明
+    const max = Math.floor((mainStatVal * weapon.coefMax + subStatsSum) * weaponAtk / 100);
+    const min = Math.floor((mainStatVal * weapon.coefMin * 0.9 * mastery + subStatsSum) * weaponAtk / 100);
     els.result.textContent = weaponAtkRaw ? `${min.toLocaleString()} ~ ${max.toLocaleString()}` : "—";
   }
 
@@ -98,8 +103,9 @@
     if (levelDiffRaw && levelDiff < 0) warnings.push("等級差是「怪物比你高幾等」，不能是負數（怪物沒比你高就留空）");
     const effectiveLevelDiff = (!isNaN(levelDiff) && levelDiff >= 0) ? levelDiff : 0;
 
+    // 魔力激發倍率照經典版拆包 Lv30=140%（不是 2008 文獻的 135%）
     const bonusMult = (parseFloat(els.elemBonus.value) || 1) *
-      (els.manaBoost.checked ? 1.35 : 1) *
+      (els.manaBoost.checked ? 1.4 : 1) *
       (parseFloat(els.staffMatch.value) || 1);
 
     // 熟練度×0.9 只作用在線性魔攻項；加成乘算在扣魔防之前；
@@ -120,12 +126,24 @@
     const weaponAtk = parseFloat(weaponAtkRaw) || 0;
     const warnings = [];
     const isMagic = weapon.type === "magic";
+    const hasAmmo = !isMagic && !!weapon.ammoLabel;
 
     ["str", "dex", "int", "luk"].forEach((key) => {
       const raw = STAT_INPUTS[key].value.trim();
       if (raw && parseInt(raw, 10) < 0) warnings.push("能力值不能是負數");
     });
     if (weaponAtkRaw && weaponAtk < 0) warnings.push("武器攻擊力不能是負數");
+
+    // 飛鏢/箭矢/子彈本身的攻擊力和武器攻擊力相加後代入公式
+    els.ammoField.hidden = !hasAmmo;
+    let totalAtk = weaponAtk;
+    if (hasAmmo) {
+      els.ammoLabel.textContent = weapon.ammoLabel + "（和武器攻擊力相加計算）";
+      const ammoRaw = els.ammo.value.trim();
+      const ammoAtk = parseFloat(ammoRaw) || 0;
+      if (ammoRaw && ammoAtk < 0) warnings.push(weapon.ammoLabel + "不能是負數");
+      if (ammoAtk > 0) totalAtk += ammoAtk;
+    }
 
     els.skillPctField.hidden = !isMagic;
     els.monsterMdefField.hidden = !isMagic;
@@ -139,7 +157,7 @@
     if (isMagic) {
       calcMagic(weaponAtk, weaponAtkRaw, warnings);
     } else {
-      calcPhysical(weapon, weaponAtk, weaponAtkRaw, warnings);
+      calcPhysical(weapon, totalAtk, weaponAtkRaw, warnings);
     }
 
     els.warningHint.hidden = warnings.length === 0;
@@ -148,7 +166,7 @@
 
   els.weaponType.addEventListener("change", calc);
   [
-    els.weaponAtk, els.str, els.dex, els.int, els.luk, els.mastery,
+    els.weaponAtk, els.ammo, els.str, els.dex, els.int, els.luk, els.mastery,
     els.skillPct, els.monsterMdef, els.levelDiff,
   ].forEach((el) => el.addEventListener("input", calc));
   [els.elemBonus, els.manaBoost, els.staffMatch].forEach((el) =>
@@ -157,6 +175,7 @@
 
   els.clearBtn.addEventListener("click", () => {
     els.weaponAtk.value = "";
+    els.ammo.value = "";
     els.str.value = 4;
     els.dex.value = 4;
     els.int.value = 4;
