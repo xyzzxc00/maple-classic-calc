@@ -95,6 +95,15 @@
           // 啟用失敗不阻擋讀取；enforcement 未開時仍可運作，開了才會擋
         }
         db = firebase.firestore();
+        // 本機開發環境（localhost）改接 Firebase Local Emulator Suite，
+        // 完全不碰正式資料庫——`firebase emulators:start --only firestore`
+        // 啟動一個假的、可以隨便寫壞的 Firestore，讀的還是同一份 firestore.rules
+        // 所以驗證邏輯跟正式站一致。App Check 在 localhost 上面那個 try/catch
+        // 本來就會啟用失敗（reCAPTCHA 網域沒註冊 localhost），不影響——
+        // 模擬器本來就不檢查 App Check token，兩邊互不干擾，不用特別處理。
+        if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+          db.useEmulator("localhost", 8080);
+        }
         return db;
       })().catch((e) => {
         dbPromise = null; // 讓下次可重試
