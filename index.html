@@ -178,8 +178,7 @@
 
     <div class="subtabs" role="tablist">
       <button class="subtab active" id="calcSubExp" type="button" role="tab" aria-selected="true" aria-controls="calcExpView">練等計算</button>
-      <!-- 攻擊力計算：資料還在核對，先不對外顯示，見 js/attack.js 開發紀錄 -->
-      <button class="subtab" id="calcSubAttack" type="button" role="tab" aria-selected="false" aria-controls="calcAttackView" hidden>攻擊力計算</button>
+      <button class="subtab" id="calcSubAttack" type="button" role="tab" aria-selected="false" aria-controls="calcAttackView">攻擊力計算</button>
       <button class="subtab" id="calcSubScroll" type="button" role="tab" aria-selected="false" aria-controls="calcScrollView">卷軸強化模擬</button>
       <!-- 轉蛋模擬：骨架測試階段，機率跟道具都是假資料，等正式機率公告後再對外開放，見 js/gachaData.js 開頭說明 -->
       <button class="subtab" id="calcSubGacha" type="button" role="tab" aria-selected="false" aria-controls="calcGachaView" hidden>轉蛋模擬</button>
@@ -359,7 +358,7 @@
     <div id="calcAttackView" role="tabpanel" aria-labelledby="calcSubAttack" hidden>
       <details class="cm-disclaimer-details">
         <summary>攻擊力公式來源說明</summary>
-        <p class="cm-disclaimer">這裡算的是舊楓之谷（Big Bang 大改版前）角色資訊視窗「攻擊力」欄位的舊制公式。物理攻擊（劍士／弓箭手／盜賊／海盜系）的公式跟武器係數已對照巴哈姆特舊制討論串、PTT 楓之谷板等多個獨立來源交叉核對，數字一致。法師的魔法攻擊力採用巴哈姆特新楓之谷哈啦板 2008 年（大改版前）文章公佈的公式，同樣是台版舊制資料。</p>
+        <p class="cm-disclaimer">這裡算的是舊楓之谷（Big Bang 大改版前）的舊制攻擊力公式。物理攻擊（劍士／弓箭手／盜賊／海盜系）的公式跟武器係數已對照巴哈姆特舊制討論串、PTT 楓之谷板譯表與英文 SouthPerry 公式彙整（官服時代實測資料）三方交叉核對，數字完全一致。法師的魔法攻擊力採用 SouthPerry 2008 年公式原式，與巴哈姆特 2008 年〈魔法攻擊力計算公式〉文屬同一條式子（巴哈版是近似值，兩者結果差不到 1%）；「魔攻」直接填角色資訊視窗顯示的數值即可。屬性杖「不符合」檔各來源記載在 70%～75% 之間，這裡採 75%。正式開服後若有實測出入會再校正。</p>
       </details>
 
   <section class="calc-section">
@@ -409,16 +408,24 @@
         <span>怪物魔防（沒有特定目標可留空，當 0 算）</span>
         <input type="number" id="attackMonsterMdef" min="0" placeholder="例：550">
       </label>
+      <label class="field" id="attackLevelDiffField" hidden>
+        <span>等級差（怪物比你高幾等；沒比你高就留空）</span>
+        <input type="number" id="attackLevelDiff" min="0" placeholder="例：5">
+      </label>
     </div>
 
     <div class="field-grid three-col" id="attackMagicBonusRow" hidden>
-      <label class="field-inline">
-        <input type="checkbox" id="attackElemBonus">
-        <span>屬性相剋加成（150%）</span>
+      <label class="field">
+        <span>屬性相剋</span>
+        <select id="attackElemBonus">
+          <option value="1">無屬性／怪物無相剋（100%）</option>
+          <option value="1.5">剋屬性（怪物弱點，150%）</option>
+          <option value="0.5">被抵抗（怪物半減，50%）</option>
+        </select>
       </label>
       <label class="field-inline">
         <input type="checkbox" id="attackManaBoost">
-        <span>魔力激發（135%）</span>
+        <span>魔力激發（135%，三轉火毒／冰雷限定）</span>
       </label>
       <label class="field">
         <span>屬性杖加成</span>
