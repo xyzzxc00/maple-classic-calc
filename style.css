@@ -145,6 +145,13 @@ a:hover { text-decoration-color: var(--accent-hover); }
   color: var(--ink-soft);
   margin: 0;
 }
+.launch-schedule {
+  display: block;
+  margin: 10px 0 0;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--accent-text);
+}
 
 /* header 的主要 CTA（開服前是事前預約按鈕，現在連官方遊戲頁）＋下方提示行 */
 .header-cta-btn {
