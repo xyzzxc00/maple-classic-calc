@@ -116,6 +116,10 @@ a:hover { text-decoration-color: var(--accent-hover); }
 .site-header {
   padding: 48px 0 32px;
   text-align: center;
+  /* 跟頁尾呼應，用同一條線把「頁首大標」跟下面的分頁導覽切開；下面的
+     .nav-tabs-wrap 本來就有 border-bottom 把分頁導覽跟內容切開，這樣
+     整條動線是 頁首｜分頁導覽｜內容，兩條線各自框住分頁導覽這一段 */
+  border-bottom: 1px solid var(--border);
 }
 .eyebrow {
   font-weight: 700;
@@ -1158,24 +1162,39 @@ a:hover { text-decoration-color: var(--accent-hover); }
 
 /* ---------- Footer ---------- */
 .site-footer {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  text-align: center;
-  padding: 24px 20px 50px;
+  border-top: 1px solid var(--border);
+  /* 左右留白交給裡面那層 .wrap 去對齊全站內容欄寬（跟上面 FAQ 卡片同一
+     條邊界），這裡只管上下間距，不能再自己疊一層水平 padding，不然寬螢幕
+     時 footer 會比 FAQ 卡片還寬，兩者右邊界對不齊 */
+  padding: 32px 0 50px;
   font-size: 12px;
   color: var(--ink-soft);
 }
-.footer-top-row {
+/* 左邊放站方免責聲明／版權這類長文字，右邊放行動呼籲（按鈕列＋聯絡方式）；
+   兩欄各自靠左對齊，不是整個 footer 置中的舊排法 */
+.footer-columns {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 40px;
+  /* 刻意不用 flex-wrap:wrap——那是照兩欄「基準寬度」加總來決定要不要
+     換行，不是等真的擠不下才換，會在還沒到下面 700px 斷點前就提早跳成
+     上下排。兩欄靠 flex-shrink 收到 min-width 為止，斷點交給下面的
+     media query 統一處理 */
+  flex-wrap: nowrap;
+}
+.footer-left,
+.footer-right {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
+  gap: 10px;
+  text-align: left;
+  min-width: 260px;
 }
-.footer-disclaimer { margin: 0; text-align: center; }
-.footer-cta-row { display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
+.footer-left { flex: 1 1 320px; }
+.footer-right { flex: 0 1 380px; }
+.footer-disclaimer { margin: 0; text-align: left; }
+.footer-cta-row { display: flex; justify-content: flex-start; align-items: center; gap: 10px; flex-wrap: wrap; }
 .feedback-link,
 .donate-link,
 .guides-link {
@@ -1219,9 +1238,50 @@ a:hover { text-decoration-color: var(--accent-hover); }
   margin: -11px -4px;
 }
 .footer-contact a:hover { color: var(--ink); }
-.footer-note { font-size: 12px; line-height: 1.6; margin: 0 auto; max-width: 480px; }
+.footer-note { font-size: 12px; line-height: 1.6; margin: 0; max-width: 480px; }
 @media (max-width: 480px) {
-  .site-footer { gap: 12px; padding-bottom: 40px; }
+  /* 右下角有個 fixed 定位的回到頂端按鈕（bottom:20px、高 46px，算下來
+     要淨空到 66px 才不會壓到），原本 40px 不夠，最後一行「隱私政策」
+     連結會被蓋到／擠在一起，留寬一點的緩衝 */
+  .site-footer { padding-bottom: 90px; }
+}
+/* 兩欄置左排版是桌機專屬的改版，手機版維持改版前的樣子：整塊置中、
+   按鈕列在最上面——所以除了改成上下疊放，還要把置左蓋回置中，並用
+   order 讓 .footer-right（按鈕列＋贊助/聯絡方式）排到 .footer-left
+   （免責聲明等長文字）前面，視覺上跟改版前一樣「按鈕先、文字後」。 */
+@media (max-width: 700px) {
+  /* justify-content 明確蓋回 flex-start——桌機版設的是 space-between，
+     不覆寫的話手機版疊成單欄時如果容器高度被撐高（例如手機瀏覽器網址列
+     動態收合改變可視高度），兩塊中間會被硬塞出一大截空白 */
+  .footer-columns { flex-direction: column; justify-content: flex-start; align-items: center; gap: 20px; }
+  .footer-left,
+  .footer-right {
+    /* 桌機版 .footer-left 是 flex:1 1 320px（會長大吃滿剩餘空間），
+       .footer-right 是 flex:0 1 380px。手機版只覆寫掉 min-width，沒清
+       flex-grow，容器只要哪天被撐高（例如手機瀏覽器網址列動態收合造成
+       的可視高度變化），footer-left 就會被拉伸撐開，中間出現一大截空白
+       ——就算前面已經把 justify-content 蓋回 flex-start 也擋不住，因為
+       flex-grow 跟 justify-content 是各自獨立的機制。這裡直接歸零，兩塊
+       在手機版永遠照內容自然高度顯示，不會被撐大。 */
+    flex: none;
+    min-width: 0;
+    width: 100%;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+  }
+  .footer-right { order: -1; }
+  /* 按鈕列跟下面的免責聲明中間加一條分隔線，視覺上分開「行動呼籲」跟
+     「條款說明」兩塊；線放在 footer-left 上緣，因為 order:-1 讓
+     footer-right 排到前面，footer-left 視覺上永遠是第二塊 */
+  .footer-left {
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+  }
+  .footer-disclaimer,
+  .footer-note,
+  .footer-contact { text-align: center; }
+  .footer-cta-row { justify-content: center; }
 }
 @media (max-width: 640px) {
   .footer-cta-row { flex-direction: column; width: 100%; align-items: stretch; flex-wrap: nowrap; }
