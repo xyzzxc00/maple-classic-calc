@@ -1,18 +1,18 @@
 /**
- * nav.js — 分頁切換（練等計算 / 職業介紹 / 社群資料庫 / 過往資料參考）
+ * nav.js — 分頁切換（練等計算 / 玩法攻略 / 社群資料庫 / 過往資料參考）
  */
 (function () {
   const STORAGE_KEY = "maple_classic_nav_v1";
 
   const pages = {
     calc: document.getElementById("pageCalc"),
-    jobs: document.getElementById("pageJobs"),
+    guides: document.getElementById("pageGuides"),
     cm: document.getElementById("pageCm"),
     legacy: document.getElementById("pageLegacy"),
   };
   const tabs = {
     calc: document.getElementById("navCalc"),
-    jobs: document.getElementById("navJobs"),
+    guides: document.getElementById("navGuides"),
     cm: document.getElementById("navCm"),
     legacy: document.getElementById("navLegacy"),
   };
@@ -58,7 +58,7 @@
   }
 
   tabs.calc.addEventListener("click", () => switchNav("calc"));
-  tabs.jobs.addEventListener("click", () => switchNav("jobs"));
+  tabs.guides.addEventListener("click", () => switchNav("guides"));
   tabs.cm.addEventListener("click", () => switchNav("cm"));
   tabs.legacy.addEventListener("click", () => switchNav("legacy"));
 
@@ -67,7 +67,7 @@
   // tabs[saved] 可能因為分頁暫時關閉而點不到，這種情況下不要照 localStorage
   // 的舊紀錄切過去，不然畫面會停在一個使用者找不到分頁按鈕能切走的地方
   const saved = localStorage.getItem(STORAGE_KEY);
-  // 網址錨點（例如 guides/ 文章連回來的 index.html#jobs，或 #calc-scroll
+  // 網址錨點（例如 guides/ 文章連回來的 index.html#guides，或 #calc-scroll
   // 這種「主分頁-子分頁」格式）優先於 localStorage 的舊紀錄，這樣外部連結
   // 才能準確跳到指定分頁，而不是停在使用者上次逛到的地方
   const [hashMain, hashSub] = location.hash.slice(1).split("-");

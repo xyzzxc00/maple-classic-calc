@@ -32,7 +32,7 @@
 <meta name="twitter:description" content="經典版已於 2026/07/29 正式上線！輸入目前等級，馬上知道升級還差多少經驗、大概要練多久。附加倍卷試算、計時器、社群練功地點資料庫。">
 <meta name="twitter:image" content="https://mapleclassictools.com/og-image.png?v=7">
 <meta name="author" content="xyzzxc00">
-<meta name="keywords" content="新楓之谷經典版,練等計算機,楓之谷經典版,MapleStory Classic,經驗值計算,升級時間,加倍卷,練功地點,職業介紹,台版楓之谷經典服">
+<meta name="keywords" content="新楓之谷經典版,練等計算機,楓之谷經典版,MapleStory Classic,經驗值計算,升級時間,加倍卷,練功地點,組隊任務,台版楓之谷經典服">
 <link rel="canonical" href="https://mapleclassictools.com/">
 <script type="application/ld+json">
 {
@@ -40,7 +40,7 @@
   "@type": "WebApplication",
   "name": "新楓之谷經典版 練等 × 社群工具",
   "url": "https://mapleclassictools.com/",
-  "description": "新楓之谷經典版（台版橘子）的練等計算機，經典版已於 2026/07/29 正式上線。輸入目前等級與目標等級，自動計算所需經驗值、預估練功時間、加倍卷用量。附計時器、EXP 測速、社群練功地點資料庫、冒險家職業介紹。",
+  "description": "新楓之谷經典版（台版橘子）的練等計算機，經典版已於 2026/07/29 正式上線。輸入目前等級與目標等級，自動計算所需經驗值、預估練功時間、加倍卷用量。附計時器、EXP 測速、社群練功地點資料庫、組隊任務／BOSS攻略／忍耐任務等玩法攻略。",
   "applicationCategory": "GameApplication",
   "operatingSystem": "Web",
   "inLanguage": "zh-TW",
@@ -59,7 +59,7 @@
     "組隊揪團公告板",
     "擺攤販賣／收購資訊",
     "公會招募公告板",
-    "冒險家職業轉職路線介紹"
+    "組隊任務／BOSS攻略／忍耐任務等玩法攻略"
   ],
   "about": {
     "@type": "Game",
@@ -161,9 +161,9 @@
 <nav class="wrap nav-tabs-wrap" aria-label="工具分頁">
   <div class="nav-tabs" role="tablist">
     <button class="nav-tab active" id="navCalc" type="button" role="tab" aria-selected="true" aria-controls="pageCalc">計算工具</button>
+    <button class="nav-tab" id="navGuides" type="button" role="tab" aria-selected="false" aria-controls="pageGuides">玩法攻略</button>
     <button class="nav-tab" id="navCm" type="button" role="tab" aria-selected="false" aria-controls="pageCm">社群資料</button>
     <button class="nav-tab" id="navLegacy" type="button" role="tab" aria-selected="false" aria-controls="pageLegacy">過往資料</button>
-    <button class="nav-tab" id="navJobs" type="button" role="tab" aria-selected="false" aria-controls="pageJobs">職業介紹</button>
   </div>
 </nav>
 
@@ -583,63 +583,43 @@
 
 </div>
 
-<div class="wrap" id="pageJobs" role="tabpanel" aria-labelledby="navJobs" hidden>
+<div class="wrap" id="pageGuides" role="tabpanel" aria-labelledby="navGuides" hidden>
 
   <section class="panel">
     <div class="panel-head">
-      <h2>經典版 vs 新楓之谷</h2>
-      <span class="badge">新舊玩家必看</span>
+      <h2>玩法攻略</h2>
+      <span class="badge">經典版當前內容攻略</span>
     </div>
-    <p class="cm-disclaimer">這裡比較的是「Big Bang 大改版（2010年）之前的舊楓之谷」跟「現在還在營運的楓之谷」，抓大方向給新舊玩家一個底，實際內容以官方公告為準。</p>
-    <div class="diff-table">
-      <div class="diff-row diff-head">
-        <div class="diff-cell diff-label"></div>
-        <div class="diff-cell">經典版（本工具對象）</div>
-        <div class="diff-cell">新楓之谷</div>
-      </div>
-      <div class="diff-row">
-        <div class="diff-cell diff-label">職業系統</div>
-        <div class="diff-cell">只有 5 大冒險家職業（劍士／法師／弓箭手／盜賊／海盜），走原始轉職路線</div>
-        <div class="diff-cell">後期陸續加入騎士團、反抗軍等職業系統，官方統計整體職業數已超過 50 種</div>
-      </div>
-      <div class="diff-row">
-        <div class="diff-cell diff-label">經驗值曲線／等級</div>
-        <div class="diff-cell">沿用舊制經驗值表，升等節奏較慢、扎實，本工具支援 Lv.1~200</div>
-        <div class="diff-cell">等級上限已提升到 300，經驗值曲線歷年多次調整＋活動加成，升等速度快很多</div>
-      </div>
-      <div class="diff-row">
-        <div class="diff-cell diff-label">強化系統</div>
-        <div class="diff-cell">沒有星力、潛在能力這類疊加系統，裝備養成較單純</div>
-        <div class="diff-cell">陸續加入星力、潛在能力等強化系統（星力上線已超過 10 年），養成深度高但也更複雜</div>
-      </div>
-      <div class="diff-row">
-        <div class="diff-cell diff-label">技能與戰鬥</div>
-        <div class="diff-cell">舊版技能樹，轉職到四轉就是頂點</div>
-        <div class="diff-cell">四轉之後又加入「5轉：V矩陣」技能系統，技能規模大很多</div>
-      </div>
-      <div class="diff-row">
-        <div class="diff-cell diff-label">遊戲節奏</div>
-        <div class="diff-cell">節奏較慢，練功要自己找地圖刷怪，社群互動感強</div>
-        <div class="diff-cell">官方活動與經驗加成頻繁，升等節奏明顯更快</div>
-      </div>
-    </div>
-  </section>
 
-  <section class="panel">
-    <div class="panel-head">
-      <h2>職業介紹</h2>
-      <span class="badge">轉職路線總覽</span>
+    <div class="subtabs" role="tablist">
+      <button class="subtab active" id="guidesSubTeamQuest" type="button" role="tab" aria-selected="true" aria-controls="guidesTeamQuestView">組隊任務</button>
+      <button class="subtab" id="guidesSubBoss" type="button" role="tab" aria-selected="false" aria-controls="guidesBossView">BOSS攻略</button>
+      <button class="subtab" id="guidesSubEndurance" type="button" role="tab" aria-selected="false" aria-controls="guidesEnduranceView">忍耐任務</button>
     </div>
-    <details class="cm-disclaimer-details">
-      <summary>資料來源與校正說明</summary>
-      <p class="cm-disclaimer">這裡整理的是 Big Bang 大改版前舊版楓之谷的基礎轉職路線與職業特色，先給大家參考，不是技能配點或裝備攻略。地點/NPC 中文譯名還沒對照台版正式翻譯，實際內容以正式上線的經典版為準，屆時會依官方資料補齊校正。</p>
-    </details>
-    <div class="notice-banner">
-      <div class="notice-body">
-        <p>不知道該選哪個系？<a href="guides/job-selection-guide/">看新手選職業指南 →</a>　選好了想看完整任務流程？<a href="guides/job-advancement-guide/">看完整轉職路線攻略 →</a></p>
-      </div>
+
+    <div id="guidesTeamQuestView" role="tabpanel" aria-labelledby="guidesSubTeamQuest">
+      <details class="cm-disclaimer-details">
+        <summary>組隊任務資料說明</summary>
+        <p class="cm-disclaimer">這裡整理的是台版經典版（2026/07/29 上線）目前版本的組隊任務資訊，跟「過往資料」分頁的舊服參考資料不一定相同——過往資料是 Big Bang 大改版前舊版楓之谷的歷史紀錄，這裡則是以經典版實際內容為準。資料還在陸續整理中，如果還沒有內容或內容不夠完整，會等正式開服、或等資料驗證足夠完整後再整合校正上來。</p>
+      </details>
+      <p class="cm-empty">組隊任務資訊整理中，之後會陸續補上。</p>
     </div>
-    <div id="jobsList"></div>
+
+    <div id="guidesBossView" role="tabpanel" aria-labelledby="guidesSubBoss" hidden>
+      <details class="cm-disclaimer-details">
+        <summary>BOSS攻略資料說明</summary>
+        <p class="cm-disclaimer">這裡整理的是台版經典版（2026/07/29 上線）目前版本的王團／BOSS 攻略資訊，跟「過往資料」分頁的舊服野王參考資料不一定相同——過往資料是 Big Bang 大改版前舊版楓之谷的歷史紀錄，這裡則是以經典版實際內容為準。資料還在陸續整理中，如果還沒有內容或內容不夠完整，會等正式開服、或等資料驗證足夠完整後再整合校正上來。</p>
+      </details>
+      <p class="cm-empty">BOSS 攻略資訊整理中，之後會陸續補上。</p>
+    </div>
+
+    <div id="guidesEnduranceView" role="tabpanel" aria-labelledby="guidesSubEndurance" hidden>
+      <details class="cm-disclaimer-details">
+        <summary>忍耐任務資料說明</summary>
+        <p class="cm-disclaimer">這裡整理的是台版經典版（2026/07/29 上線）目前版本的忍耐任務資訊，跟「過往資料」分頁的舊服參考資料不一定相同——過往資料是 Big Bang 大改版前舊版楓之谷的歷史紀錄，這裡則是以經典版實際內容為準。資料還在陸續整理中，如果還沒有內容或內容不夠完整，會等正式開服、或等資料驗證足夠完整後再整合校正上來。</p>
+      </details>
+      <p class="cm-empty">忍耐任務資訊整理中，之後會陸續補上。</p>
+    </div>
   </section>
 
 </div>
@@ -1100,7 +1080,7 @@
 <script defer src="js/jobsData.js"></script>
 <script defer src="js/pagination.js"></script>
 <script defer src="js/spots.js"></script>
-<script defer src="js/jobs.js"></script>
+<script defer src="js/guides.js"></script>
 <script defer src="js/legacySpotsData.js"></script>
 <script defer src="js/legacySpots.js"></script>
 <script defer src="js/teamData.js"></script>

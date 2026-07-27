@@ -1,6 +1,14 @@
 /**
- * jobsData.js — 職業介紹資料
+ * jobsData.js — 職業轉職路線資料
  * -----------------------------------------------------------------
+ * 2026-07-27 起，原本讀這份資料渲染的「職業介紹」分頁已經改成「玩法
+ * 攻略」（組隊任務／BOSS攻略／忍耐任務，見 js/guides.js），這裡不再有
+ * 對應的獨立頁面渲染 JOBS_DATA 本身——現在唯一還在用的是從它衍生出來的
+ * JOB_OPTIONS_HTML（職業 <select> 選單，cmJob／cmFilterJob／
+ * spotsFilterJob／teamJob 共用）。JOBS_DATA 裡的 firstQuest／laterQuests
+ * 轉職關卡細節目前沒有畫面在顯示，先留著（資料查證過，之後如果要在
+ * 玩法攻略或別處重新呈現轉職路線，不用重查一次）。
+ *
  * 這裡只放「轉職路線」跟「職業特色」這種不會因為台版上線而改變的通用
  * 資訊（舊楓之谷經典架構，全球各版本沿用超過 20 年的基本職業樹）。
  * 技能加點、裝備推薦等需要實測數值的攻略內容，故意不寫，避免在正式
@@ -116,5 +124,4 @@ const JOB_OPTIONS_HTML = JOBS_DATA.map(
     `</optgroup>`
 ).join("");
 
-window.MapleJobsData = JOBS_DATA;
 window.MapleJobOptionsHtml = JOB_OPTIONS_HTML;
