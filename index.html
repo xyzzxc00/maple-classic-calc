@@ -595,6 +595,7 @@
       <button class="subtab active" id="guidesSubTeamQuest" type="button" role="tab" aria-selected="true" aria-controls="guidesTeamQuestView">組隊任務</button>
       <button class="subtab" id="guidesSubBoss" type="button" role="tab" aria-selected="false" aria-controls="guidesBossView">BOSS攻略</button>
       <button class="subtab" id="guidesSubEndurance" type="button" role="tab" aria-selected="false" aria-controls="guidesEnduranceView">忍耐任務</button>
+      <button class="subtab" id="guidesSubJobs" type="button" role="tab" aria-selected="false" aria-controls="guidesJobsView">職業攻略</button>
     </div>
 
     <div id="guidesTeamQuestView" role="tabpanel" aria-labelledby="guidesSubTeamQuest">
@@ -619,6 +620,14 @@
         <p class="cm-disclaimer">這裡整理的是台版經典版（2026/07/29 上線）目前版本的忍耐任務資訊，跟「過往資料」分頁的舊服參考資料不一定相同——過往資料是 Big Bang 大改版前舊版楓之谷的歷史紀錄，這裡則是以經典版實際內容為準。資料還在陸續整理中，如果還沒有內容或內容不夠完整，會等正式開服、或等資料驗證足夠完整後再整合校正上來。</p>
       </details>
       <p class="cm-empty">忍耐任務資訊整理中，之後會陸續補上。</p>
+    </div>
+
+    <div id="guidesJobsView" role="tabpanel" aria-labelledby="guidesSubJobs" hidden>
+      <details class="cm-disclaimer-details">
+        <summary>職業攻略資料說明</summary>
+        <p class="cm-disclaimer">這裡整理的是台版經典版（2026/07/29 上線）目前版本的職業技能／裝備攻略，跟「過往資料」分頁的舊服點法參考不一定相同——過往資料是 Big Bang 大改版前舊版楓之谷的歷史紀錄，這裡則是以經典版實際內容為準。資料還在陸續整理中，如果還沒有內容或內容不夠完整，會等正式開服、或等資料驗證足夠完整後再整合校正上來。</p>
+      </details>
+      <p class="cm-empty">職業攻略整理中，之後會陸續補上。</p>
     </div>
   </section>
 
@@ -989,6 +998,7 @@
       <button class="subtab active" id="legacySubSpots" type="button" role="tab" aria-selected="true" aria-controls="legacySpotsView">練功地點</button>
       <button class="subtab" id="legacySubBosses" type="button" role="tab" aria-selected="false" aria-controls="legacyBossView">野王出沒地點</button>
       <button class="subtab" id="legacySubBossPrequests" type="button" role="tab" aria-selected="false" aria-controls="legacyBossPrequestView">BOSS前置</button>
+      <button class="subtab" id="legacySubJobBuilds" type="button" role="tab" aria-selected="false" aria-controls="legacyJobBuildsView">職業配點</button>
     </div>
 
     <div id="legacySpotsView" role="tabpanel" aria-labelledby="legacySubSpots">
@@ -1013,6 +1023,14 @@
         <p class="cm-disclaimer">這裡整理的是殘暴炎魔、闇黑龍王、拉圖斯這三隻王的前置任務流程，交叉參考多個管道（巴哈姆特哈啦板／精華區、PTT、海外舊版資料庫等）整理，拉圖斯前置特別採用較舊的版本資料，避開近期改版過的新流程。僅供參考，實際流程可能因版本微調而有出入，之後會依遊戲內實際流程再校正。獨立頁面版本見<a href="guides/legacy-bosses/">野王資料與前置任務攻略 →</a></p>
       </details>
       <div id="legacyBossPrequestList"></div>
+    </div>
+
+    <div id="legacyJobBuildsView" role="tabpanel" aria-labelledby="legacySubJobBuilds" hidden>
+      <details class="cm-disclaimer-details">
+        <summary>資料來源與版本差異說明</summary>
+        <p class="cm-disclaimer">這裡整理的是 Big Bang 大改版前舊版楓之谷各職業一轉到四轉的技能點法建議，交叉參考 PTT 楓之谷板與巴哈姆特哈啦板／攻略百科的當年文章，加上海外舊版攻略站整理而成，僅供參考，不是台版經典版的正式攻略。職業名與技能名一律採台版大改版前的官方名稱，查不到台版名稱的會直接註明待查；資料只採官方正服來源，不使用私服數值。不同來源偶有點法上的差異，已在各條路線下方的「衝突點」註明；實際點法可依個人玩法調整，之後也會依台版經典版正式資料再校正。</p>
+      </details>
+      <div id="legacyJobBuildsList"></div>
     </div>
   </section>
 
@@ -1082,6 +1100,7 @@
 <script defer src="js/spots.js"></script>
 <script defer src="js/guides.js"></script>
 <script defer src="js/legacySpotsData.js"></script>
+<script defer src="js/legacyJobBuildsData.js"></script>
 <script defer src="js/legacySpots.js"></script>
 <script defer src="js/teamData.js"></script>
 <script defer src="js/app.js"></script>

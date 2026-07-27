@@ -1,20 +1,22 @@
 /**
  * guides.js — 玩法攻略頁子分頁切換
  * -----------------------------------------------------------------
- * 三個子分頁（組隊任務／BOSS攻略／忍耐任務）目前都還只有免責聲明＋
- * 「整理中」的預留位置，內容之後陸續補上；這裡先把子分頁切換的骨架
- * 搭好，做法跟 legacySpots.js 的子分頁切換同一套（hash 錨點優先於
- * localStorage 記住的上次分頁）。
+ * 四個子分頁（組隊任務／BOSS攻略／忍耐任務／職業攻略）目前都還只有
+ * 免責聲明＋「整理中」的預留位置，內容之後陸續補上；這裡先把子分頁
+ * 切換的骨架搭好，做法跟 legacySpots.js 的子分頁切換同一套（hash 錨點
+ * 優先於 localStorage 記住的上次分頁）。
  * -----------------------------------------------------------------
  */
 (function () {
   const subTeamQuestBtn = document.getElementById("guidesSubTeamQuest");
   const subBossBtn = document.getElementById("guidesSubBoss");
   const subEnduranceBtn = document.getElementById("guidesSubEndurance");
+  const subJobsBtn = document.getElementById("guidesSubJobs");
   const teamQuestView = document.getElementById("guidesTeamQuestView");
   const bossView = document.getElementById("guidesBossView");
   const enduranceView = document.getElementById("guidesEnduranceView");
-  if (!subTeamQuestBtn || !subBossBtn || !subEnduranceBtn || !teamQuestView || !bossView || !enduranceView) return;
+  const jobsView = document.getElementById("guidesJobsView");
+  if (!subTeamQuestBtn || !subBossBtn || !subEnduranceBtn || !subJobsBtn || !teamQuestView || !bossView || !enduranceView || !jobsView) return;
 
   const STORAGE_KEY = "maple_classic_guides_subtab";
 
@@ -22,6 +24,7 @@
     { btn: subTeamQuestBtn, view: teamQuestView, key: "teamQuest" },
     { btn: subBossBtn, view: bossView, key: "boss" },
     { btn: subEnduranceBtn, view: enduranceView, key: "endurance" },
+    { btn: subJobsBtn, view: jobsView, key: "jobs" },
   ];
 
   function showTab(key, skipSave) {

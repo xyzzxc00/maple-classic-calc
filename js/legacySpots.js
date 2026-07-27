@@ -61,13 +61,69 @@
     bossPrequestList.innerHTML = prequests.length ? prequests.map(renderPrequest).join("") : DATA_MISSING_MSG;
   }
 
+  // 照職業系分組，每條路線各自收合。標題不再寫成「職業系｜路線」，因為
+  // 職業系已經是分組標題了，重複寫在每張卡片上只是佔掉手機版的寬度。
+  // 預設全部收起來：一到四轉的說明加上信心度本來就長，十二條路線攤開的話
+  // 這個分頁會長到捲不完
+
+  // 信心度／衝突點／各種但書原本是一整段跑完，讀起來很吃力，所以拆成
+  // 帶標籤的區塊；衝突點通常有好幾條，資料裡是陣列的就直接列點
+  function renderJobBuildNote(n) {
+    const body = n.list
+      ? `<ul class="legacy-job-note-list">${n.list.map((i) => `<li>${i}</li>`).join("")}</ul>`
+      : `<p class="legacy-job-note-body">${n.body}</p>`;
+    return `<div class="legacy-job-note">
+      <div class="legacy-job-note-label">${n.label}</div>
+      ${body}
+    </div>`;
+  }
+
+  function renderJobBuildPath(p) {
+    const notes = p.notes || [];
+    return `<details class="legacy-job-path">
+      <summary>${p.route}</summary>
+      <div class="legacy-job-path-body">
+        <ol class="boss-prequest-steps">
+          ${p.stages
+            .map(
+              (s) => `<li class="boss-prequest-step">
+                <div class="boss-prequest-step-title">${s.tier}</div>
+                <div class="boss-prequest-step-desc">${s.note}</div>
+              </li>`
+            )
+            .join("")}
+        </ol>
+        ${notes.length ? `<div class="legacy-job-notes">${notes.map(renderJobBuildNote).join("")}</div>` : ""}
+      </div>
+    </details>`;
+  }
+
+  function renderJobBuildBranch(b) {
+    return `<section class="legacy-job-branch">
+      <h3 class="legacy-job-branch-title">${b.branch}</h3>
+      <div class="legacy-job-paths">${b.paths.map(renderJobBuildPath).join("")}</div>
+    </section>`;
+  }
+
+  const jobBuildsList = document.getElementById("legacyJobBuildsList");
+  if (jobBuildsList) {
+    const branches = window.MapleLegacyJobBuilds || [];
+    // 空陣列（資料還沒整理進來）跟「載入失敗」是兩回事，不要共用
+    // DATA_MISSING_MSG 那句「資料載入失敗」，會誤導使用者以為網站壞了
+    jobBuildsList.innerHTML = branches.length
+      ? branches.map(renderJobBuildBranch).join("")
+      : '<p class="cm-empty">職業配點資料整理中，之後會陸續補上。</p>';
+  }
+
   const subSpotsBtn = document.getElementById("legacySubSpots");
   const subBossesBtn = document.getElementById("legacySubBosses");
   const subBossPrequestsBtn = document.getElementById("legacySubBossPrequests");
+  const subJobBuildsBtn = document.getElementById("legacySubJobBuilds");
   const spotsView = document.getElementById("legacySpotsView");
   const bossView = document.getElementById("legacyBossView");
   const bossPrequestView = document.getElementById("legacyBossPrequestView");
-  if (!subSpotsBtn || !subBossesBtn || !subBossPrequestsBtn || !spotsView || !bossView || !bossPrequestView) return;
+  const jobBuildsView = document.getElementById("legacyJobBuildsView");
+  if (!subSpotsBtn || !subBossesBtn || !subBossPrequestsBtn || !subJobBuildsBtn || !spotsView || !bossView || !bossPrequestView || !jobBuildsView) return;
 
   const STORAGE_KEY = "maple_classic_legacy_subtab";
 
@@ -75,6 +131,7 @@
     { btn: subSpotsBtn, view: spotsView, key: "spots" },
     { btn: subBossesBtn, view: bossView, key: "bosses" },
     { btn: subBossPrequestsBtn, view: bossPrequestView, key: "bossPrequests" },
+    { btn: subJobBuildsBtn, view: jobBuildsView, key: "jobBuilds" },
   ];
 
   function showTab(key, skipSave) {
