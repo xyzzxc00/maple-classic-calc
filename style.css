@@ -821,7 +821,8 @@ a:hover { text-decoration-color: var(--accent-hover); }
 #cmTeamView .cm-sort-btns,
 #stallTypeFilterBtns,
 #stallServerFilterBtns,
-#guildServerFilterBtns {
+#guildServerFilterBtns,
+#livestreamFilterBtns {
   flex-shrink: 0;
 }
 #cmTeamView .cm-sort-btns .cm-sort-btn,
@@ -834,9 +835,14 @@ a:hover { text-decoration-color: var(--accent-hover); }
   flex: 1;
   min-width: 62px; /* 最長標籤「全部／販賣／收購」天然寬度 58px + 緩衝 */
 }
+#livestreamFilterBtns .cm-sort-btn {
+  flex: 1;
+  min-width: 90px; /* 最長標籤「YouTube」天然寬度 86px + 緩衝 */
+}
 #cmTeamView .cm-actions .btn-primary,
 #cmStallView .cm-actions .btn-primary,
-#cmGuildView .cm-actions .btn-primary {
+#cmGuildView .cm-actions .btn-primary,
+#cmLivestreamView .cm-actions .btn-primary {
   /* 跟篩選按鈕群組同一套邏輯：white-space:nowrap 避免「＋ 我要揪團」
      這種按鈕文字在被壓窄之後自己斷成兩行 */
   white-space: nowrap;
@@ -861,6 +867,11 @@ a:hover { text-decoration-color: var(--accent-hover); }
      這裡補上跟組隊揪團／擺攤收購同一套堆疊做法 */
   #cmGuildView .cm-actions { flex-direction: column; }
   #guildServerFilterBtns { width: 100%; }
+
+  /* 實況宣傳新增時同樣漏掉這組規則（跟公會招募當初一樣的疏漏），
+     補上同一套堆疊做法 */
+  #cmLivestreamView .cm-actions { flex-direction: column; }
+  #livestreamFilterBtns { width: 100%; }
 }
 .cm-filter-input {
   background: var(--surface);
@@ -1070,6 +1081,16 @@ a:hover { text-decoration-color: var(--accent-hover); }
 @media (max-width: 420px) {
   .subtabs { gap: 2px; }
   .subtab { padding: 10px 4px; font-size: 11px; min-height: 44px; }
+}
+/* 社群資料庫的子分頁有 6 個（練功地點／回報紀錄／組隊揪團／擺攤收購／
+   公會招募／實況宣傳），手機版塞成一排字會被壓得很小、很難點。只有
+   這個分頁群組（#cmSubtabsList）改成兩排 3 欄的網格，不動全站共用的
+   .subtabs/.subtab（計算工具、過往資料的子分頁數量少，維持單排就好，
+   改動全域規則會連帶影響到它們）。用 grid 而不是手動算 flex-basis，
+   6 個項目分兩排剛好上面三下面三，不用另外處理 gap 的計算。 */
+@media (max-width: 560px) {
+  #cmSubtabsList { display: grid; grid-template-columns: repeat(3, 1fr); }
+  #cmSubtabsList .subtab { width: 100%; }
 }
 
 /* ---------- Jobs intro ---------- */

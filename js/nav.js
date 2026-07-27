@@ -53,6 +53,7 @@
       if (cmSubtab === "team" && window.MapleTeam) window.MapleTeam.render();
       if (cmSubtab === "stall" && window.MapleStall) window.MapleStall.render();
       if (cmSubtab === "guild" && window.MapleGuild) window.MapleGuild.render();
+      if (cmSubtab === "livestream" && window.MapleLivestream) window.MapleLivestream.render();
     }
   }
 

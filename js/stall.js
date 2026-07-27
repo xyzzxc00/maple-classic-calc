@@ -18,6 +18,21 @@
  * 洗掉競爭對手的貼文，所以最後決定只保留「發文者自己下架」這條路，
  * 靠 24 小時到期當保底，不做群眾回報機制。
  *
+ * 2026-07-27 起改成「一人一則＋冷卻」：文件 ID 直接用
+ * window.MapleCommunity.getDeviceId()（裝置層級識別碼，存在
+ * localStorage，跟 team.js／guild.js／livestream.js 共用同一個值），
+ * 用 doc(deviceId).set() 而不是 add()——同一台裝置在這個板永遠只有一篇
+ * 公告，重新發布是覆蓋舊的那篇，不是疊加新的一筆。firestore.rules 用
+ * isRefresh() 擋住太頻繁的覆蓋（1 小時內不能刷新，不因標記過「已收攤」
+ * 而提早解除——不然會被拿來「標記已收攤→立刻重發」無限循環繞過冷卻），
+ * 這裡在送出前先讀一次自己的舊文件、算冷卻剩餘時間，
+ * 給比伺服器直接回絕更友善的錯誤訊息；真正的防線還是規則那邊，前端
+ * 這層檢查只是體驗優化，讀取失敗也不擋發文。「這是我的貼文」（isMine，
+ * 決定要不要顯示「已收攤」按鈕）現在直接比對文件 ID 是不是自己的
+ * deviceId，不用再像以前那樣維護一份 localStorage 貼文 ID 清單。這一樣
+ * 不是真正的身分驗證——清 localStorage 或換瀏覽器就是新裝置，是刻意的
+ * 取捨（防洗版用的軟性機制，不是防駭客）。
+ *
  * Firestore 裡過期後的舊文件不會被刪除，理論上集合會無限變大。目前
  * 量級太小不值得處理；真的長很大的話，可以用 `gcloud firestore fields
  * ttls update` 幫 ts 欄位設原生 TTL policy，讓 Firestore 自動清掉。
@@ -71,7 +86,8 @@
   // 最多自動搜 300 筆，做法跟 team.js／exp_records 一樣
   const MAX_AUTO_FETCH_ROUNDS = 10;
   const CACHE_MS = 60 * 1000; // 跟 community.js／team.js 同標準
-  const MY_POSTS_KEY = "maple_classic_my_stall_posts";
+  // 一人一則的冷卻時間，跟 team.js／guild.js／livestream.js 同標準
+  const REFRESH_COOLDOWN_MS = 60 * 60 * 1000;
 
   const escHtml = MapleCalculator.escHtml;
 
@@ -87,18 +103,6 @@
       "beforeend",
       window.MapleTeamServers.map((s) => `<button class="cm-sort-btn" data-server="${s}" type="button">${s}</button>`).join("")
     );
-  }
-
-  // 沒有帳號系統，用跟 team.js 一樣的做法：發文成功後把文件 ID 記在
-  // localStorage，只有這個瀏覽器自己看得到「已收攤」按鈕。這是 UI 層的
-  // 軟性限制，不是真的安全機制。
-  function getMyPostIds() {
-    try { return new Set(JSON.parse(localStorage.getItem(MY_POSTS_KEY)) || []); } catch { return new Set(); }
-  }
-  function saveMyPostId(id) {
-    const s = getMyPostIds();
-    s.add(id);
-    localStorage.setItem(MY_POSTS_KEY, JSON.stringify([...s]));
   }
 
   let allPosts = [];
@@ -166,12 +170,34 @@
       return;
     }
 
+    const deviceId = window.MapleCommunity.getDeviceId();
     try {
-      const docRef = await db.collection("stall_posts").add({
+      const existingDoc = await db.collection("stall_posts").doc(deviceId).get();
+      if (existingDoc.exists) {
+        const existing = existingDoc.data();
+        const tsMs = existing.ts && existing.ts.toMillis ? existing.ts.toMillis() : 0;
+        const remainMs = REFRESH_COOLDOWN_MS - (Date.now() - tsMs);
+        // 冷卻不因已標記「已收攤」而提早解除——理由跟 guild.js 一樣，
+        // firestore.rules 的 isRefresh() 也是同一套邏輯，兩邊要一起改
+        if (remainMs > 0) {
+          const remainMin = Math.max(1, Math.ceil(remainMs / 60000));
+          els.msg.textContent = `這台裝置剛發過一篇公告，距離上次發布還不到 1 小時，請再等約 ${remainMin} 分鐘才能重新發布（標記「已收攤」不受這個限制，隨時可以標記）`;
+          els.msg.className = "cm-msg err";
+          els.submitBtn.disabled = false;
+          els.submitBtn.textContent = "送出";
+          return;
+        }
+      }
+    } catch {
+      // 冷卻檢查讀取失敗不擋發文，真正的防線在 firestore.rules 的
+      // isRefresh()，這裡的提前檢查只是為了給比伺服器直接回絕更友善的訊息
+    }
+
+    try {
+      await db.collection("stall_posts").doc(deviceId).set({
         type, server, channel, market, charId, description,
         ts: firebase.firestore.FieldValue.serverTimestamp(),
       });
-      saveMyPostId(docRef.id);
       els.msg.textContent = "✓ 已發布！24 小時後會自動下架，結束了也可以自己提早下架";
       els.msg.className = "cm-msg ok";
       els.type.value = ""; els.server.value = ""; els.channel.value = ""; els.market.value = ""; els.charId.value = ""; els.description.value = "";
@@ -181,7 +207,7 @@
       await loadStallPosts();
     } catch (e) {
       if (e && e.code === "permission-denied") {
-        els.msg.textContent = "送出被資料庫拒絕，可能是設定尚未同步，請稍後再試或回報給站長";
+        els.msg.textContent = "送出被資料庫拒絕，可能是冷卻時間還沒到、或設定尚未同步，請稍後再試或回報給站長";
       } else if (e && e.code === "resource-exhausted") {
         els.msg.textContent = "今天的發文額度已滿，明天會自動恢復，麻煩明天再試一次";
       } else {
@@ -265,7 +291,7 @@
 
   function renderStallPosts() {
     const now = Date.now();
-    const myPostIds = getMyPostIds();
+    const deviceId = window.MapleCommunity.getDeviceId();
     // 過期過濾已經在 Firestore 查詢端做過一次（where ts >= cutoff），這裡
     // 的 CACHE_MS 快取視窗內時間會往前走，所以還是要再篩一次，避免快取
     // 住的資料裡混進「查詢當下沒過期、現在已經過期」的邊界情況。
@@ -326,7 +352,7 @@
     els.list.innerHTML =
       '<div class="cm-grid">' +
       pagePosts.map((p) => {
-        const isMine = myPostIds.has(p.id);
+        const isMine = p.id === deviceId;
         // 舊資料（type 欄位加進來之前發的）沒有 type，不硬塞一個看起來
         // 像分類錯誤的標籤，乾脆不顯示
         const typeTag = p.type ? `【${escHtml(p.type)}】` : "";

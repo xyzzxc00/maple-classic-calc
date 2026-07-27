@@ -118,8 +118,8 @@ service cloud.firestore {
       // 只能把 found 從沒設定/false 改成 true，不能改別的欄位、也不能
       // 反悔改回 false（跟 exp_records 的 isHelpfulIncrement() 同一種
       // 「只開放一個安全的部分更新」寫法）。這裡沒有比對「是不是本人在改」
-      // ——沒有帳號系統做不到真的驗證，前端用 localStorage 記自己發過的
-      // 文件 ID 決定要不要顯示這顆按鈕，是 UI 層的軟性限制，不是安全機制；
+      // ——沒有帳號系統做不到真的驗證，前端用 deviceId 是不是等於文件 ID
+      // 決定要不要顯示這顆按鈕，是 UI 層的軟性限制，不是安全機制；
       // 就算被任何人手動呼叫改掉，最壞情況也只是這篇貼文提早消失，
       // 影響很小，不值得為此增加複雜度。
       function isMarkFound() {
@@ -131,13 +131,32 @@ service cloud.firestore {
           && resource.data.get('found', false) != true;
       }
 
+      // 2026-07-27 起：文件 ID 改用 js/team.js 的 getDeviceId()（裝置層級
+      // 識別碼），同一台裝置同時只能有一篇有效貼文，重新發布是覆蓋舊
+      // 文件（doc(deviceId).set()）。isRefresh() 是這個覆蓋的守門——內容
+      // 要通過跟第一次發文一樣的驗證，而且距離上一篇的 ts 必須超過 1
+      // 小時才放行，擋住短時間內一直重複覆蓋、把自己刷到最前面把別人
+      // 擠下去的洗版行為。跟 isMarkFound() 一樣沒有比對是不是本人在改
+      // ——沒有帳號系統做不到真的驗證，這裡擋的是同一裝置的洗版行為，
+      // 不是防駭客。
+      //
+      // 冷卻不因「上一篇已標記找到團」而放行：原本想放行讓「已經結束的
+      // 貼文可以馬上換一篇新的」，但這樣會被拿來「標記找到團→立刻重發→
+      // 標記找到團→立刻重發」無限循環，等於完全繞過冷卻，反而重現了
+      // 一開始要擋的洗版行為，所以不論 found 是不是 true，都要滿足冷卻
+      // 時間才能覆蓋。
+      function isRefresh() {
+        return isValidNew(request.resource.data)
+          && request.time > resource.data.ts + duration.value(1, 'h');
+      }
+
       // 不開放刪除；到期後前端用 6 小時的時間窗自動從列表濾掉就好，不需要
       // 真的刪除資料。之後如果資料量長很大，可以另外設 Firestore 原生
       // TTL policy 清掉舊資料（見 team.js 開頭註解）。
       allow get: if true;
       allow list: if request.query.limit <= 100;
       allow create: if isValidNew(request.resource.data);
-      allow update: if isMarkFound();
+      allow update: if isMarkFound() || isRefresh();
       allow delete: if false;
     }
 
@@ -177,7 +196,7 @@ service cloud.firestore {
 
       // 只放行「這篇已收攤」這一種安全的部分更新，跟 team_posts 的
       // isMarkFound() 同一套邏輯與同樣的取捨（見上面 team_posts 註解）：
-      // 沒有比對是不是本人在改，UI 層用 localStorage 軟性限制就好。
+      // 沒有比對是不是本人在改，UI 層用 deviceId 比對就好。
       // 這裡刻意不開放「其他玩家回報已收攤」——設計討論時考慮過，但
       // 那樣任何人都能發動更新，會被拿來惡意洗掉競爭對手的擺攤公告，
       // 風險比揪團的「已找到團」高很多，所以只留發文者自己下架這條路。
@@ -187,10 +206,23 @@ service cloud.firestore {
           && resource.data.get('closed', false) != true;
       }
 
+      // 2026-07-27 起：文件 ID 改用 js/stall.js 的 getDeviceId()（裝置層級
+      // 識別碼），同一台裝置同時只能有一篇有效公告，重新發布是覆蓋舊
+      // 文件（doc(deviceId).set()）。isRefresh() 是這個覆蓋的守門，寫法
+      // 跟 team_posts 的 isRefresh() 同一套邏輯：內容要重新通過驗證，且
+      // 距上次 ts 必須超過 1 小時才放行，擋住短時間內一直重複覆蓋、把
+      // 自己刷到最前面的洗版行為。不因「上一篇已標記已收攤」而放行冷卻
+      // ——理由見 team_posts 的 isRefresh() 註解（會被拿來下架→立刻重發
+      // 無限循環，等於繞過冷卻）。
+      function isRefresh() {
+        return isValidNew(request.resource.data)
+          && request.time > resource.data.ts + duration.value(1, 'h');
+      }
+
       allow get: if true;
       allow list: if request.query.limit <= 100;
       allow create: if isValidNew(request.resource.data);
-      allow update: if isMarkClosed();
+      allow update: if isMarkClosed() || isRefresh();
       allow delete: if false;
     }
 
@@ -224,11 +256,23 @@ service cloud.firestore {
 
       // 只放行「這篇已下架」這一種安全的部分更新，跟 stall_posts 的
       // isMarkClosed() 同一套邏輯與同樣的取捨：沒有比對是不是本人在改，
-      // UI 層用 localStorage 軟性限制就好，不開放其他玩家回報。
+      // UI 層用 deviceId 比對就好，不開放其他玩家回報。
       function isMarkClosed() {
         return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['closed'])
           && request.resource.data.closed == true
           && resource.data.get('closed', false) != true;
+      }
+
+      // 2026-07-27 起：文件 ID 改用 js/guild.js 的 getDeviceId()（裝置層級
+      // 識別碼），同一台裝置同時只能有一篇有效招募，重新發布是覆蓋舊
+      // 文件（doc(deviceId).set()）。isRefresh() 是這個覆蓋的守門，寫法
+      // 跟 team_posts／stall_posts 的 isRefresh() 同一套邏輯：內容要重新
+      // 通過驗證，且距上次 ts 必須超過 1 小時才放行，擋住短時間內一直
+      // 重複覆蓋、把自己刷到最前面的洗版行為。不因「上一篇已標記已招滿」
+      // 而放行冷卻——理由見 team_posts 的 isRefresh() 註解。
+      function isRefresh() {
+        return isValidNew(request.resource.data)
+          && request.time > resource.data.ts + duration.value(1, 'h');
       }
 
       // 沒有到期機制，理論上集合會一直長大，跟 stall_posts 開頭註解
@@ -237,7 +281,58 @@ service cloud.firestore {
       allow get: if true;
       allow list: if request.query.limit <= 100;
       allow create: if isValidNew(request.resource.data);
-      allow update: if isMarkClosed();
+      allow update: if isMarkClosed() || isRefresh();
+      allow delete: if false;
+    }
+
+    match /livestream_posts/{postId} {
+
+      // 只接受 Twitch／YouTube 的連結，前端 js/livestream.js 的
+      // ALLOWED_URL_PATTERN 要跟這裡同步（規則沒辦法讀前端 JS，改動時
+      // 兩邊都要手動更新）。強制 https，不開放 http；這個板貼的是外部
+      // 連結，比其他三個純文字板多一個「有人塞惡意／釣魚連結」的風險，
+      // 白名單網域是主要的防線。
+      function isAllowedUrl(url) {
+        return url.matches('^https://(www\\.)?(twitch\\.tv|youtube\\.com|youtu\\.be)/.+');
+      }
+
+      // platform（Twitch／YouTube 標籤）不是存進資料庫的欄位，前端直接
+      // 從 url 判斷顯示，這裡不用驗證這個欄位，見 js/livestream.js 開頭
+      // 說明。
+      function isValidNew(d) {
+        return d.keys().hasAll(['channelName', 'url', 'description', 'ts'])
+          && d.keys().hasOnly(['channelName', 'url', 'description', 'ts'])
+          && d.channelName is string && d.channelName.size() >= 1 && d.channelName.size() <= 20
+          && d.url is string && d.url.size() <= 200 && isAllowedUrl(d.url)
+          && d.description is string && d.description.size() >= 1 && d.description.size() <= 100
+          && d.ts == request.time;
+      }
+
+      // 只放行「這篇已下架」這一種安全的部分更新，跟 stall_posts／
+      // guild_posts 的 isMarkClosed() 同一套邏輯與同樣的取捨：沒有比對
+      // 是不是本人在改，UI 層用 deviceId 比對決定要不要顯示按鈕就好。
+      function isMarkClosed() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['closed'])
+          && request.resource.data.closed == true
+          && resource.data.get('closed', false) != true;
+      }
+
+      // 文件 ID 是 js/livestream.js 的 getDeviceId()，同一台裝置同時只能
+      // 有一篇有效宣傳，重新發布是覆蓋舊文件。isRefresh() 寫法跟
+      // team_posts／stall_posts／guild_posts 的 isRefresh() 同一套邏輯：
+      // 距上次 ts 必須超過 1 小時才放行，不因「上一篇已標記已下架」而
+      // 放行冷卻——理由見 team_posts 的 isRefresh() 註解。
+      function isRefresh() {
+        return isValidNew(request.resource.data)
+          && request.time > resource.data.ts + duration.value(1, 'h');
+      }
+
+      // 沒有到期機制，理論上集合會一直長大，跟 guild_posts／stall_posts
+      // 開頭註解提到的處理方式一樣：量級小的時候不用管。
+      allow get: if true;
+      allow list: if request.query.limit <= 100;
+      allow create: if isValidNew(request.resource.data);
+      allow update: if isMarkClosed() || isRefresh();
       allow delete: if false;
     }
 

@@ -16,6 +16,28 @@
   // 「下一頁」就能看到更多資料，多出來的讀取量換算費用可忽略不計
   const PAGE_SIZE = 50;
   const VOTED_KEY = "maple_classic_voted";
+  // 一人一則＋冷卻機制（組隊揪團／擺攤收購／公會招募／實況宣傳共用）的裝置
+  // 識別碼，產生一次就長期存在 localStorage，四個板都拿同一個值當 Firestore
+  // 文件 ID（doc(deviceId).set()，不是 add()）——同一台裝置在同一個板永遠
+  // 只有一篇有效貼文，重新發布是覆蓋舊文件，不是疊加新的一筆。這不是真正
+  // 的身分驗證，清 localStorage 或換瀏覽器就會變成「新裝置」，是刻意的
+  // 取捨（防洗版用的軟性機制，不是防駭客），細節見 team.js／stall.js／
+  // guild.js／livestream.js 開頭說明。
+  const DEVICE_ID_KEY = "maple_classic_device_id";
+  function getDeviceId() {
+    let id;
+    try { id = localStorage.getItem(DEVICE_ID_KEY); } catch { id = null; }
+    if (!id) {
+      id = (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : "id-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
+      try { localStorage.setItem(DEVICE_ID_KEY, id); } catch {
+        // 無痕模式等擋 localStorage 寫入的情況下，退化成每次呼叫都拿到新 id，
+        // 等於失去「一人一則」限制，但不影響其他功能，不用特別處理
+      }
+    }
+    return id;
+  }
   // 回報功能開關（2026-07 已開放）。改成 false 可暫時關閉回報：入口按鈕會鎖住、
   // submit 會被擋；真正的防線是 firestore.rules 的 allow create，兩邊要一起改
   const SUBMISSIONS_OPEN = true;
@@ -538,6 +560,7 @@
     { key: "team", btn: document.getElementById("cmSubTeam"), view: document.getElementById("cmTeamView") },
     { key: "stall", btn: document.getElementById("cmSubStall"), view: document.getElementById("cmStallView") },
     { key: "guild", btn: document.getElementById("cmSubGuild"), view: document.getElementById("cmGuildView") },
+    { key: "livestream", btn: document.getElementById("cmSubLivestream"), view: document.getElementById("cmLivestreamView") },
   ];
 
   function showCmSubtab(key, skipSave) {
@@ -552,6 +575,7 @@
     if (key === "team" && window.MapleTeam) window.MapleTeam.render();
     if (key === "stall" && window.MapleStall) window.MapleStall.render();
     if (key === "guild" && window.MapleGuild) window.MapleGuild.render();
+    if (key === "livestream" && window.MapleLivestream) window.MapleLivestream.render();
   }
 
   cmSubtabs.forEach((t) => t.btn.addEventListener("click", () => showCmSubtab(t.key)));
@@ -570,7 +594,7 @@
   const hashSubtab = cmHashMain === "cm" && cmSubtabs.some((t) => t.key === cmHashSub) ? cmHashSub : null;
   const savedSubtab = localStorage.getItem(CM_SUBTAB_KEY);
   const initialSubtab = hashSubtab || savedSubtab;
-  if (["records", "team", "stall", "guild"].includes(initialSubtab)) showCmSubtab(initialSubtab, true);
+  if (["records", "team", "stall", "guild", "livestream"].includes(initialSubtab)) showCmSubtab(initialSubtab, true);
 
   window.MapleCommunity = {
     loadRecords,
@@ -590,5 +614,8 @@
     // team.js（揪團公告板）共用同一個 Firebase app／db 實例，不要自己再
     // initializeApp 一次——同一頁面對同一個 [DEFAULT] app 重複初始化會丟例外
     ensureDb,
+    // 一人一則＋冷卻機制共用的裝置識別碼，team.js／stall.js／guild.js／
+    // livestream.js 都呼叫這個，不要各自產生一份
+    getDeviceId,
   };
 })();

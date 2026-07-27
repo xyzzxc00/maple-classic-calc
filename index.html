@@ -652,12 +652,13 @@
       <span class="badge">玩家回報練功效率</span>
     </div>
 
-    <div class="subtabs" role="tablist">
+    <div class="subtabs" id="cmSubtabsList" role="tablist">
       <button class="subtab active" id="cmSubSuggest" type="button" role="tab" aria-selected="true" aria-controls="cmSuggestView">練功地點</button>
       <button class="subtab" id="cmSubRecords" type="button" role="tab" aria-selected="false" aria-controls="cmRecordsView">回報紀錄</button>
       <button class="subtab" id="cmSubTeam" type="button" role="tab" aria-selected="false" aria-controls="cmTeamView">組隊揪團</button>
       <button class="subtab" id="cmSubStall" type="button" role="tab" aria-selected="false" aria-controls="cmStallView">擺攤收購</button>
       <button class="subtab" id="cmSubGuild" type="button" role="tab" aria-selected="false" aria-controls="cmGuildView">公會招募</button>
+      <button class="subtab" id="cmSubLivestream" type="button" role="tab" aria-selected="false" aria-controls="cmLivestreamView">實況宣傳</button>
     </div>
 
     <div id="cmSuggestView" role="tabpanel" aria-labelledby="cmSubSuggest">
@@ -948,6 +949,50 @@
       <div id="guildList"><p class="cm-loading">載入中...</p></div>
       <div class="cm-pagination" id="guildPagination"></div>
     </div>
+
+    <div id="cmLivestreamView" role="tabpanel" aria-labelledby="cmSubLivestream" hidden>
+      <details class="cm-disclaimer-details">
+        <summary>實況宣傳公告規則說明</summary>
+        <p class="cm-disclaimer">給實況主宣傳自己頻道用的公告，連結只接受 Twitch、YouTube，貼文 7 天後會自動下架；不再實況了也請記得自己回來按「已下架」，讓資訊保持準確。「已下架」的按鈕只會出現在你自己發的貼文上，也請大家不要用其他方式亂動別人的貼文，讓需要的人都能看到完整資訊。</p>
+      </details>
+
+      <div class="cm-toolbar">
+        <div class="cm-actions">
+          <div class="cm-sort-btns" id="livestreamFilterBtns">
+            <button class="cm-sort-btn active" data-platform="" type="button">全部</button>
+            <button class="cm-sort-btn" data-platform="Twitch" type="button">Twitch</button>
+            <button class="cm-sort-btn" data-platform="YouTube" type="button">YouTube</button>
+          </div>
+          <button class="btn btn-primary" id="livestreamAddBtn" type="button">＋ 我要宣傳</button>
+        </div>
+      </div>
+
+      <div class="cm-form" id="livestreamForm" hidden>
+        <div class="field-grid two-col">
+          <label class="field">
+            <span>頻道／實況主名稱 *</span>
+            <input type="text" id="livestreamChannelName" maxlength="20" placeholder="例：楓葉小隊長">
+          </label>
+          <label class="field">
+            <span>頻道連結 *</span>
+            <input type="url" id="livestreamUrl" maxlength="200" placeholder="Twitch 或 YouTube 頻道網址">
+          </label>
+        </div>
+        <label class="field">
+          <span>簡介 *</span>
+          <input type="text" id="livestreamDescription" maxlength="100" placeholder="例：每晚 8 點固定直播練功、假日不定期開王團">
+          <span class="field-char-count" id="livestreamDescCount">0 / 100 字</span>
+        </label>
+        <div class="cm-form-actions">
+          <button class="btn btn-primary" id="livestreamSubmitBtn" type="button">送出</button>
+          <button class="btn btn-ghost" id="livestreamCancelBtn" type="button">取消</button>
+          <span class="cm-msg" id="livestreamMsg" role="status" aria-live="polite"></span>
+        </div>
+      </div>
+
+      <div id="livestreamList"><p class="cm-loading">載入中...</p></div>
+      <div class="cm-pagination" id="livestreamPagination"></div>
+    </div>
   </section>
 
 </div>
@@ -1066,6 +1111,7 @@
 <script defer src="js/team.js"></script>
 <script defer src="js/stall.js"></script>
 <script defer src="js/guild.js"></script>
+<script defer src="js/livestream.js"></script>
 <script defer src="js/nav.js"></script>
 <script defer src="js/backToTop.js"></script>
 <script defer src="js/theme.js"></script>

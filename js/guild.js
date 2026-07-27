@@ -10,6 +10,21 @@
  * stall.js 一樣）。也沒有 type 篩選——這個板只有一種公告類型，篩選
  * 只需要伺服器。
  *
+ * 2026-07-27 起改成「一人一則＋冷卻」：文件 ID 直接用
+ * window.MapleCommunity.getDeviceId()（裝置層級識別碼，存在
+ * localStorage，跟 team.js／stall.js／livestream.js 共用同一個值），
+ * 用 doc(deviceId).set() 而不是 add()——同一台裝置永遠只有一篇公告，
+ * 重新發布是覆蓋舊的那篇，不是疊加新的一筆。firestore.rules 用
+ * isRefresh() 擋住太頻繁的覆蓋（1 小時內不能刷新，不因標記過「已招滿」
+ * 而提早解除——不然會被拿來「標記已招滿→立刻重發」無限循環繞過冷卻），
+ * 這裡在送出前先讀一次自己的舊文件、算冷卻剩餘時間，
+ * 給比伺服器直接回絕更友善的錯誤訊息；真正的防線還是規則那邊，前端
+ * 這層檢查只是體驗優化，讀取失敗也不擋發文。「這是我的貼文」（isMine，
+ * 決定要不要顯示「已招滿」按鈕）現在直接比對文件 ID 是不是自己的
+ * deviceId，不用再像以前那樣維護一份 localStorage 貼文 ID 清單。這一樣
+ * 不是真正的身分驗證——清 localStorage 或換瀏覽器就是新裝置，是刻意的
+ * 取捨（防洗版用的軟性機制，不是防駭客）。
+ *
  * 卡片刻意做得比其他板大（.cm-card-lg），一頁預期抓 9 筆（3x3 排版），
  * 這個數字是先抓一個試試看，之後可能會依實際卡片高度調整。
  * -----------------------------------------------------------------
@@ -41,7 +56,9 @@
   // 做法跟 team.js／stall.js 一樣
   const MAX_AUTO_FETCH_ROUNDS = 10;
   const CACHE_MS = 60 * 1000; // 跟 community.js／team.js／stall.js 同標準
-  const MY_POSTS_KEY = "maple_classic_my_guild_posts";
+  // 一人一則的冷卻時間，跟 stall.js／team.js／livestream.js 同標準，
+  // 之後想個別調整（例如招募內容變動比擺攤慢，拉長也合理）再分開改
+  const REFRESH_COOLDOWN_MS = 60 * 60 * 1000;
 
   const escHtml = MapleCalculator.escHtml;
 
@@ -63,18 +80,6 @@
       "beforeend",
       window.MapleTeamServers.map((s) => `<button class="cm-sort-btn" data-server="${s}" type="button">${s}</button>`).join("")
     );
-  }
-
-  // 沒有帳號系統，用跟 team.js／stall.js 一樣的做法：發文成功後把文件 ID
-  // 記在 localStorage，只有這個瀏覽器自己看得到「已招滿」按鈕。這是 UI
-  // 層的軟性限制，不是真的安全機制。
-  function getMyPostIds() {
-    try { return new Set(JSON.parse(localStorage.getItem(MY_POSTS_KEY)) || []); } catch { return new Set(); }
-  }
-  function saveMyPostId(id) {
-    const s = getMyPostIds();
-    s.add(id);
-    localStorage.setItem(MY_POSTS_KEY, JSON.stringify([...s]));
   }
 
   let allPosts = [];
@@ -136,12 +141,35 @@
       return;
     }
 
+    const deviceId = window.MapleCommunity.getDeviceId();
     try {
-      const docRef = await db.collection("guild_posts").add({
+      const existingDoc = await db.collection("guild_posts").doc(deviceId).get();
+      if (existingDoc.exists) {
+        const existing = existingDoc.data();
+        const tsMs = existing.ts && existing.ts.toMillis ? existing.ts.toMillis() : 0;
+        const remainMs = REFRESH_COOLDOWN_MS - (Date.now() - tsMs);
+        // 冷卻不因已標記「已招滿」而提早解除——不然會被拿來「標記已招滿→
+        // 立刻重發」無限循環繞過冷卻，firestore.rules 的 isRefresh() 也是
+        // 同一套邏輯，兩邊要一起改
+        if (remainMs > 0) {
+          const remainMin = Math.max(1, Math.ceil(remainMs / 60000));
+          els.msg.textContent = `這台裝置剛發過一篇招募公告，距離上次發布還不到 1 小時，請再等約 ${remainMin} 分鐘才能重新發布（標記「已招滿」不受這個限制，隨時可以標記）`;
+          els.msg.className = "cm-msg err";
+          els.submitBtn.disabled = false;
+          els.submitBtn.textContent = "送出";
+          return;
+        }
+      }
+    } catch {
+      // 冷卻檢查讀取失敗不擋發文，真正的防線在 firestore.rules 的
+      // isRefresh()，這裡的提前檢查只是為了給比伺服器直接回絕更友善的訊息
+    }
+
+    try {
+      await db.collection("guild_posts").doc(deviceId).set({
         guildName, server, memberCount, description, contact,
         ts: firebase.firestore.FieldValue.serverTimestamp(),
       });
-      saveMyPostId(docRef.id);
       els.msg.textContent = "✓ 已發布！7 天後會自動下架，招滿了也可以自己提早下架";
       els.msg.className = "cm-msg ok";
       els.guildName.value = ""; els.server.value = ""; els.memberCount.value = ""; els.description.value = ""; els.contact.value = "";
@@ -150,7 +178,7 @@
       await loadGuildPosts();
     } catch (e) {
       if (e && e.code === "permission-denied") {
-        els.msg.textContent = "送出被資料庫拒絕，可能是設定尚未同步，請稍後再試或回報給站長";
+        els.msg.textContent = "送出被資料庫拒絕，可能是冷卻時間還沒到、或設定尚未同步，請稍後再試或回報給站長";
       } else if (e && e.code === "resource-exhausted") {
         els.msg.textContent = "今天的發文額度已滿，明天會自動恢復，麻煩明天再試一次";
       } else {
@@ -232,7 +260,7 @@
 
   function renderGuildPosts() {
     const now = Date.now();
-    const myPostIds = getMyPostIds();
+    const deviceId = window.MapleCommunity.getDeviceId();
     // 過期過濾已經在 Firestore 查詢端做過一次（where ts >= cutoff），這裡
     // 的 CACHE_MS 快取視窗內時間會往前走，所以還是要再篩一次，避免快取
     // 住的資料裡混進「查詢當下沒過期、現在已經過期」的邊界情況，理由跟
@@ -280,7 +308,7 @@
     els.list.innerHTML =
       '<div class="cm-grid">' +
       pagePosts.map((p) => {
-        const isMine = myPostIds.has(p.id);
+        const isMine = p.id === deviceId;
         return `<div class="cm-card cm-card-lg">
           <div class="cm-job">${escHtml(p.guildName)}</div>
           <div class="cm-stat"><span>伺服器</span><span>${escHtml(p.server)}</span></div>
