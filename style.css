@@ -1387,8 +1387,10 @@ a:hover { text-decoration-color: var(--accent-hover); }
 .back-to-top:active { background: var(--accent-hover); }
 
 /* ---------- 攻略文章（guides/） ---------- */
-/* 用比 1200px 的 .wrap 更窄的容器裝長文字，一行太長反而不好讀 */
-.article-wrap { max-width: 720px; margin: 0 auto; padding: 0 24px 60px; }
+/* 用比 1200px 的 .wrap 更窄的容器裝長文字，一行太長反而不好讀；上 padding
+   40px 是因為內文第一段 .article-body p 的上邊界是 margin:0（見下面），
+   完全沒留白，緊貼著頁首那條分隔線，這裡補回間距 */
+.article-wrap { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
 .article-breadcrumb { font-size: 13px; margin: 28px 0 20px; color: var(--ink-soft); }
 /* 行內連結加垂直 padding 擴大點擊目標（原本只有 ~19px 高）：inline 元素的
    垂直 padding 只擴大可點範圍、不會推開行距，排版完全不動。11px 是實測
