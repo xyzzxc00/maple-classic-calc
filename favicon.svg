@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <!-- 楓葉葉片剪影，改用新版鼠尾草綠主色，取代舊版蘑菇圖案 -->
-  <path d="M16 48 C16 30 30 16 48 16 C48 34 34 48 16 48 Z" fill="#4F6B49"/>
-  <path d="M16 48 L10 54" stroke="#4F6B49" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M16 48 C16 30 30 16 48 16 C48 34 34 48 16 48 Z" fill="#5C6640"/>
+  <path d="M16 48 L10 54" stroke="#5C6640" stroke-width="4" stroke-linecap="round" fill="none"/>
 </svg>
