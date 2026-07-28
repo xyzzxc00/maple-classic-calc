@@ -674,6 +674,9 @@
     isBoardOpen: (key) => BOARDS_OPEN[key] !== false,
     boardClosedMsg: BOARD_CLOSED_MSG,
     showRecordsTab,
+    // 計算機結果區的「看 Lv.X 附近的推薦練功地點」導流用，跟 showRecordsTab
+    // 同一套包裝
+    showSuggestTab: (skipSave) => showCmSubtab("suggest", skipSave),
     // nav.js 補觸發子分頁 render 時要讀同一個 localStorage key——鍵名只在
     // 這裡定義一次，nav.js 透過這個屬性拿，避免兩邊字面量各自漂移
     cmSubtabKey: CM_SUBTAB_KEY,

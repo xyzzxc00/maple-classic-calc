@@ -230,30 +230,27 @@
       <h2>輸入等級資訊</h2>
       <button class="btn btn-ghost" id="clearInputBtn" type="button">✕ 清除</button>
     </div>
-    <div class="field-grid two-col">
-      <label class="field">
-        <span>目前等級</span>
+    <!-- DOM 順序＝手機單欄順序（必填核心在前、加倍卷試算群組在後）；
+         桌面兩欄的視覺排列（左欄核心／右欄加倍卷）靠 style.css 的 order
+         還原，不要依 DOM 順序推測桌面版面 -->
+    <div class="field-grid two-col calc-input-grid">
+      <label class="field f-cur">
+        <span>目前等級 *</span>
         <input type="number" id="currentLevel" min="1" max="200" placeholder="例：1" inputmode="numeric">
       </label>
-      <label class="field">
-        <span>加倍卷排程（選填）每天打幾小時</span>
-        <input type="number" id="dailyHours" min="0.5" max="24" step="0.5" placeholder="例：3">
-      </label>
-
-      <label class="field">
-        <span>目標等級</span>
+      <label class="field f-target">
+        <span>目標等級 *</span>
         <input type="number" id="targetLevel" min="1" max="200" placeholder="例：30" inputmode="numeric">
       </label>
-      <label class="field">
-        <span>手上持有幾張加倍卷（每張30分）</span>
-        <input type="number" id="ownedCoupons" min="0" step="1" placeholder="例：10">
-      </label>
-
-      <label class="field">
+      <label class="field f-exp">
         <span>目前經驗值（選填）</span>
         <input type="number" id="currentExp" min="0" value="0" inputmode="numeric">
       </label>
-      <div class="field">
+      <label class="field f-rate">
+        <span>每10分鐘經驗（選填，自填效率）</span>
+        <input type="text" id="expPer10Min" placeholder="例：50000（可用 5W 代表萬）" inputmode="decimal">
+      </label>
+      <div class="field f-mult">
         <span>加倍設定</span>
         <div class="mult-btns">
           <button class="mult-btn" data-val="1" type="button" aria-pressed="false">1x</button>
@@ -263,14 +260,17 @@
           <button class="mult-btn" data-val="4" type="button" aria-pressed="false">4x</button>
         </div>
       </div>
-
-      <label class="field">
-        <span>每10分鐘經驗（選填，自填效率）</span>
-        <input type="text" id="expPer10Min" placeholder="例：5W 或 50000" inputmode="decimal">
+      <label class="field f-custom">
+        <span>自訂倍率（選填，按鈕沒有的倍率才填）</span>
+        <input type="number" id="customMult" value="2" min="1" step="0.5" inputmode="decimal">
       </label>
-      <label class="field">
-        <span>自訂倍率</span>
-        <input type="number" id="customMult" value="2" min="1" step="0.5">
+      <label class="field f-daily">
+        <span>加倍卷排程（選填）每天打幾小時</span>
+        <input type="number" id="dailyHours" min="0.5" max="24" step="0.5" placeholder="例：3" inputmode="decimal">
+      </label>
+      <label class="field f-owned">
+        <span>持有幾張加倍卷（選填，每張30分）</span>
+        <input type="number" id="ownedCoupons" min="0" step="1" placeholder="例：10" inputmode="numeric">
       </label>
     </div>
     <p class="input-warning-hint" id="inputWarningHint" hidden></p>
@@ -310,6 +310,8 @@
       <div class="stat-row" id="dailyDaysRow"><span>幾天能練完（加倍／不加倍）</span><span id="dailyDays">—</span></div>
     </div>
 
+    <p class="cm-disclaimer" id="rateHint" hidden>想知道要練多久？填上面的「每10分鐘經驗」，或用下方 <a href="#" id="rateHintTimerLink">EXP 測速</a>邊練邊實測，時間就會自動算出來。</p>
+    <p class="cm-disclaimer" id="spotsLinkRow" hidden>不知道去哪練？<a href="#cm-suggest" id="goSpotsLink">看 Lv.<span id="spotsLinkLevel">1</span> 附近的推薦練功地點 →</a></p>
     <p class="cm-disclaimer">多張加倍卷是不是能疊更高倍率？<a href="guides/coupon-stacking-guide/">看加倍卷解析 →</a></p>
 
     <div class="share-row">
@@ -331,7 +333,7 @@
       <button class="btn btn-ghost timer-preset" data-min="5" type="button">5分</button>
       <button class="btn btn-ghost timer-preset" data-min="10" type="button">10分</button>
       <label class="timer-custom-field">
-        <input type="number" id="timerCustomMin" min="1" max="999" placeholder="分">
+        <input type="number" id="timerCustomMin" inputmode="numeric" min="1" max="999" placeholder="分">
       </label>
     </div>
     <div class="timer-display-wrap">
@@ -363,11 +365,11 @@
     <div class="field-grid one-col">
       <label class="field">
         <span>測試前經驗值</span>
-        <input type="text" id="expBefore" placeholder="例：185W 或 1850000" inputmode="decimal">
+        <input type="text" id="expBefore" placeholder="例：1850000（可用 185W）" inputmode="decimal">
       </label>
       <label class="field">
         <span>測試後經驗值</span>
-        <input type="text" id="expAfter" placeholder="例：200W 或 2000000" inputmode="decimal">
+        <input type="text" id="expAfter" placeholder="例：2000000（可用 200W）" inputmode="decimal">
       </label>
     </div>
     <div class="exp-rate-box" id="expRateBox" hidden>
@@ -519,11 +521,11 @@
 
       <label class="field">
         <span>裝備價格（楓幣，選填）</span>
-        <input type="text" id="scrollEquipPrice" placeholder="例：1W 或 10000" inputmode="decimal">
+        <input type="text" id="scrollEquipPrice" placeholder="例：10000（可用 1W）" inputmode="decimal">
       </label>
       <label class="field">
         <span>卷軸單價（楓幣，選填）</span>
-        <input type="text" id="scrollPrice" placeholder="例：5W 或 50000" inputmode="decimal">
+        <input type="text" id="scrollPrice" placeholder="例：50000（可用 5W）" inputmode="decimal">
       </label>
     </div>
     <p class="input-warning-hint" id="scrollWarningHint" hidden></p>
@@ -636,10 +638,10 @@
       <div class="pq-list">
 
         <details class="pq-card">
-          <summary>月妙組隊任務（月妙的年糕）<span class="pq-level">Lv.10+</span><span class="pq-status">開服後驗證</span></summary>
+          <summary>月妙組隊任務（月妙的年糕）<span class="pq-level">Lv.10+</span><span class="pq-status pq-status--confirmed">官方影片預告</span></summary>
           <div class="pq-card-body">
             <p class="pq-section-label">基本資料</p>
-            <p>人數 3～6 人（台版 2007 年活動版為 6 人固定，經典版採哪種待驗證）｜時限 10 分鐘｜進場：弓箭手村邱比特公園的粉紅兔 NPC「達爾利」｜場內交年糕對象：老虎「興兒」。台版舊時代月妙多為元宵／中秋節慶限定活動，官方尚未點名經典版是否常駐開放。</p>
+            <p>人數 3～6 人（台版 2007 年活動版為 6 人固定，經典版採哪種待驗證）｜時限 10 分鐘｜進場：弓箭手村邱比特公園的粉紅兔 NPC「達爾利」｜場內交年糕對象：老虎「興兒」。官方宣傳影片已預告月妙組隊任務會推出，實際開放時間與細部數值待開服確認。</p>
             <p class="pq-section-label">流程</p>
             <ol>
               <li><strong>收種子</strong>：打「迎月花草」收六色迎月花種子放上對應平台——口訣：<strong>左上藍、左中黃、左下黃褐；右上綠、右中紫、右下淺紫</strong>。全放對後新月變滿月，月妙出現。</li>
@@ -858,7 +860,7 @@
         <div class="field-grid three-col">
           <label class="field">
             <span>EXP / 10分鐘（未加倍）* 可用 W 代替萬</span>
-            <input type="text" id="cmExpPer10Min" placeholder="例：5W 或 50000" inputmode="decimal">
+            <input type="text" id="cmExpPer10Min" placeholder="例：50000（可用 5W）" inputmode="decimal">
           </label>
           <label class="field">
             <span>練功方式</span>

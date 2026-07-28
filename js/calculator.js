@@ -114,7 +114,9 @@ const MapleCalculator = (() => {
    * 每天打 X 小時，估算加倍後／不加倍各要幾天練完
    */
   function calcDailyDays(minutesNo, minutesMult, dailyHours) {
-    if (!dailyHours || dailyHours <= 0 || minutesNo == null) return null;
+    // minutesNo <= 0（已達成目標）也回 null——不然會算出 Math.ceil(0)=0，
+    // 畫面顯示奇怪的「0 天／0 天」，同列其他欄位都是顯示「已達成」/「—」
+    if (!dailyHours || dailyHours <= 0 || minutesNo == null || minutesNo <= 0) return null;
     const dailyMinutes = dailyHours * 60;
     return {
       daysNo: Math.ceil(minutesNo / dailyMinutes),

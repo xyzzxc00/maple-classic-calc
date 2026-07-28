@@ -98,7 +98,10 @@
     const rawGiveup = parseInt(els.giveup.value, 10) || 0;
 
     const rate = Math.min(Math.max(rawRate, 0), 100) / 100;
-    const slots = Math.max(rawSlots, 1);
+    // 上限跟 HTML 的 max="20" 一致——HTML 屬性擋不住手動打字，沒有這條的話
+    // 極大值會讓二項分布計算溢位成 NaN，幾萬以上更會讓每次 input 重算卡住
+    // 整個分頁好幾秒（O(n·k) 迴圈），這是唯一能把分頁弄死的輸入
+    const slots = Math.min(Math.max(rawSlots, 1), 20);
     const target = Math.min(Math.max(rawTarget, 1), slots);
     const giveup = Math.min(Math.max(rawGiveup, 1), slots);
     const equipPrice = parseExpVal(els.equipPrice.value);
@@ -149,6 +152,8 @@
     const msgs = [];
     if (cfg.rawSlotsFilled && cfg.rawSlots < 1) {
       msgs.push("裝備衝捲數至少要 1 格，已改用 1 格計算。");
+    } else if (cfg.rawSlots > 20) {
+      msgs.push("裝備衝捲數最多 20 格，已改用 20 格計算。");
     }
     if (cfg.rawTargetFilled && cfg.rawTarget < 1) {
       msgs.push("目標成功張數至少要 1 張，已改用 1 張計算。");

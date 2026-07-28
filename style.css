@@ -492,7 +492,10 @@ a:hover { text-decoration-color: var(--accent-hover); }
 .stat-row:last-child { border-bottom: none; }
 .stat-row span:first-child { flex: 1 1 auto; }
 .stat-row span:last-child { flex-shrink: 0; font-weight: 700; color: var(--ink); text-align: right; }
-.stat-row span.hl { color: var(--accent-text); font-size: 1.05rem; }
+/* 「全程加倍需要幾張加倍卷」是加倍卷試算的核心輸出（回鍋玩家最想知道
+   「要準備幾張」），原本 1.05rem 夾在五列統計中間太不顯眼，拉大到接近
+   stat-value 的層級 */
+.stat-row span.hl { color: var(--accent-text); font-size: 18px; font-weight: 900; }
 
 .share-row { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
 .share-btn { width: 100%; justify-content: center; }
@@ -575,8 +578,23 @@ a:hover { text-decoration-color: var(--accent-hover); }
 @media (min-width: 561px) and (max-width: 760px) {
   /* 四欄在平板寬度會擠得太窄（單一數字輸入框被壓到 <60px），先降成兩欄；
      三欄同理——回報表單的長標籤（「EXP / 10分鐘（未加倍）* 可用 W 代替萬」）
-     在三欄下會折成多行，一起降成兩欄 */
+     在三欄下會折成兩欄 */
   .field-grid.four-col, .field-grid.three-col { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* 練等計算機輸入區：DOM 順序是手機單欄的順序（必填核心在前、加倍卷群組
+   在後），桌面兩欄用 order 還原成「左欄核心、右欄加倍卷」的視覺——grid
+   的 row 流向會照 order 逐列填（1,2 第一列、3,4 第二列…），所以奇數
+   order 落在左欄、偶數落在右欄 */
+@media (min-width: 561px) {
+  .calc-input-grid .f-cur { order: 1; }
+  .calc-input-grid .f-daily { order: 2; }
+  .calc-input-grid .f-target { order: 3; }
+  .calc-input-grid .f-owned { order: 4; }
+  .calc-input-grid .f-exp { order: 5; }
+  .calc-input-grid .f-mult { order: 6; }
+  .calc-input-grid .f-rate { order: 7; }
+  .calc-input-grid .f-custom { order: 8; }
 }
 
 /* ---------- Timer ---------- */

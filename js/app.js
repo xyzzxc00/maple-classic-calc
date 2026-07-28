@@ -33,6 +33,11 @@
     shareThreadsBtn: document.getElementById("shareThreadsBtn"),
     shareLineBtn: document.getElementById("shareLineBtn"),
     shareHint: document.getElementById("shareHint"),
+    rateHint: document.getElementById("rateHint"),
+    rateHintTimerLink: document.getElementById("rateHintTimerLink"),
+    spotsLinkRow: document.getElementById("spotsLinkRow"),
+    goSpotsLink: document.getElementById("goSpotsLink"),
+    spotsLinkLevel: document.getElementById("spotsLinkLevel"),
   };
 
   let currentMult = 2;
@@ -75,9 +80,10 @@
 
   els.customMult.addEventListener("input", () => {
     const parsed = parseFloat(els.customMult.value);
-    // 0 或負值直接當倍率會讓後面的時間計算變成 0 或負數，所以跟「打不出數字」
-    // 一樣退回預設值 1，而不是讓 "0 || 1" 這種寫法意外放行負數
-    currentMult = (!isNaN(parsed) && parsed > 0) ? parsed : 1;
+    // 小於 1（含 0、負值、0.5 這種）都退回 1——0<x<1 的值雖然數學上算得出來，
+    // 但會讓畫面三格互相矛盾（「加倍後」反而更慢、「省下時間」顯示—、
+    // 「所需加倍卷」顯示無需），加倍卷本來就沒有低於 1x 的倍率
+    currentMult = (!isNaN(parsed) && parsed >= 1) ? parsed : 1;
     els.multBtns.forEach((b) => {
       b.classList.remove("active");
       b.setAttribute("aria-pressed", "false");
@@ -106,21 +112,26 @@
   }
 
   function calcAndRender() {
-    // 兩個等級欄位都還沒填時，直接跑計算會用預設值 1/1 算出「已達成」，
-    // 讓第一次來的使用者誤以為工具壞了。這裡先顯示中性的空狀態。
-    if (!els.currentLevel.value.trim() && !els.targetLevel.value.trim()) {
+    // 目標等級還沒填時不要跑計算——直接算會用預設值 1 得出「已達成」，
+    // 只填了目前等級的第一次使用者會誤以為工具壞了。這裡顯示中性的空狀態
+    //（時間框用「—」不用「尚無效率資料」：這時缺的是等級不是效率，
+    // 訊息要對症）。
+    if (!els.targetLevel.value.trim()) {
       els.multLabel.textContent = currentMult + "x";
       els.statExpNeeded.textContent = "—";
       els.statLevelsToGo.textContent = "—";
-      els.timeNo.textContent = "尚無效率資料";
-      els.timeMult.textContent = "尚無效率資料";
+      els.timeNo.textContent = "—";
+      els.timeMult.textContent = "—";
       els.timeSaved.textContent = "—";
       els.couponsNeeded.textContent = "—";
       els.couponStatus.textContent = "—";
       els.couponShort.textContent = "—";
       els.dailyDays.textContent = "—";
       els.inputWarningHint.hidden = true;
-      if (window.MapleSpots) window.MapleSpots.setCurrentLevel(1);
+      if (els.rateHint) els.rateHint.hidden = true;
+      const curOnly = parseInt(els.currentLevel.value, 10);
+      updateSpotsLink(curOnly >= 1 && curOnly <= 200 ? curOnly : null);
+      if (window.MapleSpots) window.MapleSpots.setCurrentLevel(curOnly >= 1 && curOnly <= 200 ? curOnly : 1);
       return;
     }
 
@@ -131,11 +142,20 @@
     // 超出範圍的等級/倍率之前是直接靜默夾在合法值內去算，使用者不會知道自己
     // 打的數字沒被採用，這裡把原因講出來，計算結果本身還是照樣算給他看
     const warnings = [];
-    if (els.currentLevel.value.trim() && (currentLevel < 1 || currentLevel > 200)) {
+    if (!els.currentLevel.value.trim()) {
+      // 只填目標沒填目前時默默從 Lv.1 起算大致符合直覺，但要講出來，
+      // 跟其他欄位「fallback 都明講」的風格一致
+      warnings.push("目前等級未填，先以 Lv.1 起算");
+    } else if (currentLevel < 1 || currentLevel > 200) {
       warnings.push("目前等級請輸入 1~200 之間的整數");
     }
     if (els.targetLevel.value.trim() && (targetLevel < 1 || targetLevel > 200)) {
       warnings.push("目標等級請輸入 1~200 之間的整數");
+    }
+    // 填反（目標比目前低）最常見的原因是兩欄填顛倒了，畫面只顯示「已達成」
+    // 看起來像壞掉，這裡把可能性講出來；剛好相等就是真的達成，不用提示
+    if (els.currentLevel.value.trim() && targetLevel < currentLevel) {
+      warnings.push("目標等級比目前等級低，是不是兩欄填反了？");
     }
     // 目前經驗值之前是唯一沒驗證的欄位：負值會被公式當成「還缺更多」讓結果
     // 憑空膨脹；填成累積總經驗（超過該等升級所需）則會出現「還需 0 但還要
@@ -151,8 +171,8 @@
         }
       }
     }
-    if (els.customMult.value.trim() && parseFloat(els.customMult.value) <= 0) {
-      warnings.push("自訂倍率需大於 0，已暫時以 1x 計算");
+    if (els.customMult.value.trim() && parseFloat(els.customMult.value) < 1) {
+      warnings.push("自訂倍率最低 1（加倍卷沒有低於 1x 的倍率），已暫時以 1x 計算");
     }
     // 打錯字（例如打了看不懂的字元）跟「沒填」原本都會落到同一個「尚無效率資料」，
     // 使用者不知道自己的輸入被拒絕了；這裡跟 EXP 測速一樣明講出來
@@ -176,6 +196,10 @@
 
     const expPerMin = getExpPerMin();
     const hasRate = !isNaN(expPerMin) && expPerMin > 0;
+
+    // 效率是解鎖時間/加倍卷計算的鑰匙，但「尚無效率資料」本身沒告訴使用者
+    // 資料要從哪來——等級都填了、只差效率時，顯示可行動的指引
+    if (els.rateHint) els.rateHint.hidden = hasRate || targetLevel <= currentLevel;
 
     if (!hasRate) {
       els.timeNo.textContent = "尚無效率資料";
@@ -208,7 +232,41 @@
       els.dailyDays.textContent = dailyDays ? `${dailyDays.daysMult} 天／${dailyDays.daysNo} 天` : "—";
     }
 
+    updateSpotsLink(els.currentLevel.value.trim() && currentLevel >= 1 && currentLevel <= 200 ? currentLevel : null);
     if (window.MapleSpots) window.MapleSpots.setCurrentLevel(currentLevel);
+  }
+
+  // 「看 Lv.X 附近的推薦練功地點」導流：等級其實一直有默默同步到社群分頁
+  // 的推薦清單，但結果區沒有看得見的入口——「去哪練」是開服期最大的痛點，
+  // 這條導流要擺在明面上
+  function updateSpotsLink(level) {
+    if (!els.spotsLinkRow) return;
+    els.spotsLinkRow.hidden = level == null;
+    if (level != null) els.spotsLinkLevel.textContent = level;
+  }
+
+  if (els.goSpotsLink) {
+    els.goSpotsLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (window.MapleNav && window.MapleCommunity && window.MapleCommunity.showSuggestTab) {
+        window.MapleNav.switchNav("cm");
+        window.MapleCommunity.showSuggestTab();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else {
+        // 模組沒載成功時退回錨點導向，重新整理後 nav.js 會照 #cm-suggest 開對分頁
+        location.hash = "cm-suggest";
+        location.reload();
+      }
+    });
+  }
+
+  // 「用下方 EXP 測速」：捲到計時器區塊，讓使用者知道測速工具就在同一頁
+  if (els.rateHintTimerLink) {
+    els.rateHintTimerLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      const timerPanel = document.getElementById("timerPanel") || document.getElementById("timerStartBtn");
+      if (timerPanel) timerPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   }
 
   [els.currentLevel, els.currentExp, els.targetLevel, els.expPer10Min, els.dailyHours, els.ownedCoupons].forEach(

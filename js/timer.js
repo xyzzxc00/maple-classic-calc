@@ -71,7 +71,11 @@
     stopTicker();
     try {
       const blob = new Blob(["setInterval(function(){postMessage(0)},500)"], { type: "text/javascript" });
-      tickWorker = new Worker(URL.createObjectURL(blob));
+      const blobUrl = URL.createObjectURL(blob);
+      tickWorker = new Worker(blobUrl);
+      // Worker 建構完就用不到這個 URL 了，立刻釋放——不 revoke 的話每次
+      // 開始計時都會累積一個 blob URL（極小的洩漏，順手清掉）
+      URL.revokeObjectURL(blobUrl);
       tickWorker.onmessage = timerTick;
     } catch {
       // Worker 不可用（極舊瀏覽器）就退回主執行緒 interval，至少前景是準的
@@ -303,7 +307,8 @@
     }
 
     const gained = after - before;
-    const secs = timerElapsed > 0 ? timerElapsed : timerTotal;
+    const usedFallback = !(timerElapsed > 0);
+    const secs = usedFallback ? timerTotal : timerElapsed;
     const mins = secs / 60;
     lastExpPerMin = gained / mins;
     lastExpPerHour = Math.round(lastExpPerMin * 60);
@@ -314,7 +319,16 @@
     els.expPerHourResult.textContent = formatExp(lastExpPerHour);
 
     els.expRateBox.hidden = false;
-    els.expRateHint.hidden = true;
+    // 沒開計時器時是用「上面設定的分鐘數」估算的——實際練功時間跟設定值
+    // 差多少，速率就會差多少倍（練 30 分鐘卻用預設 1 分鐘估＝膨脹 30 倍），
+    // 這種數據再被「新增到社群資料庫」就污染大家的參考值。原本只有預設
+    // 說明文字帶過一句，這裡改成結果出來時明顯警告
+    if (usedFallback) {
+      els.expRateHint.textContent = `⚠ 你沒有啟動計時器，以上是用設定的 ${formatDuration(mins)} 估算的——如果實際練功時間不是這個長度，速率會差很多倍，建議用計時器實測，也請不要把估算值回報到社群資料庫`;
+      els.expRateHint.hidden = false;
+    } else {
+      els.expRateHint.hidden = true;
+    }
   }
 
   [els.expBefore, els.expAfter].forEach((el) => el.addEventListener("input", () => {
@@ -347,6 +361,7 @@
 
   els.applyToCmBtn.addEventListener("click", () => {
     if (!lastExpPerMin) return;
+    if (!window.MapleNav) return; // nav.js 沒載成功時不要 TypeError，跟下一行 MapleCommunity 的防呆一致
     window.MapleNav.switchNav("cm");
     if (!window.MapleCommunity) return;
     // 社群分頁可能停在「建議練功地點」子分頁，表單在隱藏的「回報紀錄」裡；
