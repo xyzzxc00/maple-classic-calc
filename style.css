@@ -860,6 +860,7 @@ a:hover { text-decoration-color: var(--accent-hover); }
       floor 才是兩者都對的做法：夠寬（不擠、不裁切），三個又還是等寬
       （因為都卡在同一個 floor，wrapper 沒有多的內在寬度留給 flex-grow
       再分配）。 */
+#cmRecordsView .cm-sort-btns,
 #cmTeamView .cm-sort-btns,
 #stallTypeFilterBtns,
 #stallServerFilterBtns,
@@ -867,6 +868,9 @@ a:hover { text-decoration-color: var(--accent-hover); }
 #livestreamFilterBtns {
   flex-shrink: 0;
 }
+/* 回報紀錄的「排序」（最新／效率）當初新增時漏掉了這條等寬規則，兩顆
+   按鈕各自照文字天然寬度撐開，「最新」比「效率」寬，兩顆看起來沒對齊 */
+#cmRecordsView .cm-sort-btns .cm-sort-btn,
 #cmTeamView .cm-sort-btns .cm-sort-btn,
 #stallServerFilterBtns .cm-sort-btn,
 #guildServerFilterBtns .cm-sort-btn {
