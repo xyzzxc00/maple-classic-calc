@@ -100,7 +100,21 @@
   els.addBtn.addEventListener("click", () => setFormOpen(!formOpen));
   els.cancelBtn.addEventListener("click", () => setFormOpen(false));
 
+  // 板別開關（開關本體在 community.js 的 BOARDS_OPEN，跟 firestore.rules
+  // 的 allow create 要一起改）
+  const BOARD_OPEN = !window.MapleCommunity || window.MapleCommunity.isBoardOpen("guild");
+  if (!BOARD_OPEN) {
+    els.addBtn.disabled = true;
+    els.addBtn.textContent = "暫時關閉維護中";
+    els.addBtn.title = window.MapleCommunity.boardClosedMsg;
+  }
+
   async function submitGuildPost() {
+    if (!BOARD_OPEN) {
+      els.msg.textContent = window.MapleCommunity.boardClosedMsg;
+      els.msg.className = "cm-msg err";
+      return;
+    }
     const guildName = els.guildName.value.trim();
     const server = els.server.value;
     const memberCount = parseInt(els.memberCount.value, 10);
@@ -108,14 +122,27 @@
     const contact = els.contact.value.trim();
 
     let fieldError = "";
-    if (!guildName) fieldError = "請輸入公會名稱";
-    else if (!server) fieldError = "請選擇伺服器";
-    else if (isNaN(memberCount) || memberCount < 1 || memberCount > 500) fieldError = "請輸入有效的目前人數";
-    else if (!description) fieldError = "請輸入公會簡介";
-    else if (!contact) fieldError = "請輸入聯絡方式";
+    let errEl = null;
+    if (!guildName) { fieldError = "請輸入公會名稱"; errEl = els.guildName; }
+    else if (!server) { fieldError = "請選擇伺服器"; errEl = els.server; }
+    else if (isNaN(memberCount) || memberCount < 1 || memberCount > 500) { fieldError = "請輸入有效的目前人數（1~500）"; errEl = els.memberCount; }
+    else if (!description) { fieldError = "請輸入公會簡介"; errEl = els.description; }
+    else if (!contact) { fieldError = "請輸入聯絡方式"; errEl = els.contact; }
 
     if (fieldError) {
       els.msg.textContent = fieldError;
+      els.msg.className = "cm-msg err";
+      if (errEl) {
+        errEl.focus();
+        errEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      return;
+    }
+
+    // Firestore 寫入在離線時不會 reject、promise 永遠 pending，按鈕會永久
+    // 卡在「送出中...」——讀取路徑有 onLine 判斷，寫入也要有
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      els.msg.textContent = "目前似乎沒有網路連線，請檢查後再按一次送出（表單內容會保留）";
       els.msg.className = "cm-msg err";
       return;
     }
@@ -159,6 +186,14 @@
           els.submitBtn.textContent = "送出";
           return;
         }
+        // 舊貼文還在版上（沒過期也沒標記招滿）時，重新發布會直接取代它——
+        // 不問一聲就默默蓋掉會讓使用者的舊公告無聲消失，先確認
+        const oldStillActive = !existing.closed && Date.now() - tsMs < EXPIRE_MS;
+        if (oldStillActive && !confirm("你已經有一篇還在版上的招募公告，重新發布會直接取代它（每台裝置同時只能有一篇）。確定要發布嗎？")) {
+          els.submitBtn.disabled = false;
+          els.submitBtn.textContent = "送出";
+          return;
+        }
       }
     } catch {
       // 冷卻檢查讀取失敗不擋發文，真正的防線在 firestore.rules 的
@@ -192,6 +227,10 @@
   }
   els.submitBtn.addEventListener("click", submitGuildPost);
 
+  // 載入世代計數，用途跟 community.js 的 loadGen 一樣：在途補抓回來時
+  // 世代已變（送出成功觸發整批重載）就丟棄，避免舊批次疊進新清單
+  let loadGen = 0;
+
   async function loadGuildPosts(append = false) {
     if (!append) {
       if (allPosts.length && Date.now() - lastLoadedAt < CACHE_MS) {
@@ -201,7 +240,9 @@
       els.list.innerHTML = '<p class="cm-loading">載入中...</p>';
       allPosts = [];
       lastDoc = null;
+      loadGen++;
     }
+    const gen = loadGen;
     lastLoadFailed = false;
     try {
       let db = null;
@@ -228,6 +269,7 @@
         .limit(PAGE_SIZE + 1);
       if (append && lastDoc) query = query.startAfter(lastDoc);
       const snap = await query.get();
+      if (gen !== loadGen) return; // 世代已變，這批是舊清單的下一批，丟棄
       const hasExtra = snap.docs.length > PAGE_SIZE;
       const pageDocs = hasExtra ? snap.docs.slice(0, PAGE_SIZE) : snap.docs;
       const newPosts = pageDocs.map((d) => ({ id: d.id, ...d.data() }));
@@ -237,11 +279,12 @@
       hasMoreFromServer = hasExtra;
       renderGuildPosts();
     } catch (e) {
+      if (gen !== loadGen) return;
       let msg = "載入失敗，請重新整理頁面";
       if (typeof navigator !== "undefined" && navigator.onLine === false) {
         msg = "目前似乎沒有網路連線，請檢查後重新整理頁面";
       } else if (e && e.code === "permission-denied") {
-        msg = "資料庫拒絕了這次讀取，請重新整理頁面再試一次";
+        msg = "資料庫拒絕了這次讀取，可能是功能暫時維護中；稍後重新整理頁面再試一次";
       } else if (e && e.code === "unavailable") {
         msg = "連不上資料庫伺服器，請稍後重新整理頁面";
       } else if (e && e.code === "resource-exhausted") {
@@ -345,6 +388,13 @@
     const id = btn.dataset.id;
 
     if (!confirm("確定要標記這篇公會招募已經招滿、下架這篇貼文嗎？這個動作沒辦法復原。")) return;
+
+    // 離線時 Firestore 的 update 不會 reject，會永久卡在「處理中...」
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      btn.textContent = "沒有網路，稍後再試";
+      setTimeout(() => { btn.textContent = "✓ 已招滿，下架這篇"; }, 2000);
+      return;
+    }
 
     btn.disabled = true;
     btn.textContent = "處理中...";

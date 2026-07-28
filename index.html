@@ -799,6 +799,10 @@
           <select class="cm-filter-input" id="spotsFilterJob">
             <option value="">全部職業</option>
           </select>
+          <!-- 高亮基準等級：預設跟著「練等計算」填的目前等級走，但直接
+               進社群頁的人沒填過計算機，看不懂底色高亮是依什麼判斷的，
+               這裡給一個看得見、也能直接改的入口 -->
+          <input class="cm-filter-input cm-filter-lv" id="spotsLevelInput" type="number" min="1" max="200" placeholder="你的等級">
         </div>
         <div class="cm-actions">
           <button class="btn btn-primary" id="spotsAddBtn" type="button">＋ 我也要回報練功地點</button>
@@ -809,6 +813,10 @@
     </div>
 
     <div id="cmRecordsView" role="tabpanel" aria-labelledby="cmSubRecords" hidden>
+      <details class="cm-disclaimer-details">
+        <summary>回報紀錄說明</summary>
+        <p class="cm-disclaimer">這裡是玩家回報的原始練功效率紀錄（「練功地點」子分頁是這些紀錄整理後的版本）。EXP 為未使用加倍卷的數值；卡片上有「團練」標籤的是組隊練功的數據，每人效率跟單練不能直接比較，也不會計入練功地點的平均。覺得某筆回報有參考價值可以按「有幫助」，每筆每台裝置只能按一次。</p>
+      </details>
       <div class="cm-toolbar">
         <div class="cm-filter-row">
           <select class="cm-filter-input" id="cmFilterJob">
@@ -822,7 +830,7 @@
           </div>
         </div>
         <div class="cm-actions">
-          <div class="cm-sort-btns">
+          <div class="cm-sort-btns"><span class="cm-group-label">排序</span>
             <button class="cm-sort-btn active" data-sort="time" type="button">最新</button>
             <button class="cm-sort-btn" data-sort="exp" type="button">效率</button>
           </div>
@@ -840,7 +848,7 @@
           </label>
           <label class="field">
             <span>地圖名稱（怪物）*</span>
-            <input type="text" id="cmMap" maxlength="40" placeholder="例：（待補）楓葉村周邊">
+            <input type="text" id="cmMap" maxlength="40" placeholder="例：豬豬海灘（緞帶肥肥）">
           </label>
           <label class="field">
             <span>角色等級 *</span>
@@ -878,12 +886,12 @@
     <div id="cmTeamView" role="tabpanel" aria-labelledby="cmSubTeam" hidden>
       <details class="cm-disclaimer-details">
         <summary>揪團公告規則說明</summary>
-        <p class="cm-disclaimer">給組隊任務／打王揪人用的公告，可以提前發布未來的集合時間（例如禮拜三先貼禮拜六早上要揪團），貼文會在你填的集合時間之後 6 小時自動下架，不用手動刪除。「已找到團」的下架按鈕只會出現在你自己發的貼文上，也請大家不要用其他方式亂動別人的揪團貼文，讓需要的人都能看到完整資訊。</p>
+        <p class="cm-disclaimer">給組隊任務／打王揪人用的公告，可以提前發布未來的集合時間（例如禮拜三先貼禮拜六早上要揪團），貼文會在你填的集合時間之後 6 小時自動下架，不用手動刪除。每台裝置在這個板同時只會有一篇貼文，重新發布會直接取代原本那篇（發布後 1 小時內不能重發）。「已找到團」的下架按鈕只會出現在你自己發的貼文上，也請大家不要用其他方式亂動別人的揪團貼文，讓需要的人都能看到完整資訊。</p>
       </details>
 
       <div class="cm-toolbar">
         <div class="cm-actions">
-          <div class="cm-sort-btns">
+          <div class="cm-sort-btns"><span class="cm-group-label">類型</span>
             <button class="cm-sort-btn active" data-type="" type="button">全部</button>
             <button class="cm-sort-btn" data-type="組隊任務" type="button">組隊任務</button>
             <button class="cm-sort-btn" data-type="王團" type="button">王團</button>
@@ -943,8 +951,8 @@
             <input type="number" id="teamCurrentCount" min="0" max="6" placeholder="例：2">
           </label>
           <label class="field">
-            <span>需要人數 *</span>
-            <input type="number" id="teamNeededCount" min="1" max="6" placeholder="例：6">
+            <span>隊伍目標人數（含自己）*</span>
+            <input type="number" id="teamNeededCount" min="1" max="6" placeholder="例：6（滿編人數）">
           </label>
         </div>
         <div class="field-grid one-col">
@@ -967,20 +975,20 @@
     <div id="cmStallView" role="tabpanel" aria-labelledby="cmSubStall" hidden>
       <details class="cm-disclaimer-details">
         <summary>擺攤／收購公告規則說明</summary>
-        <p class="cm-disclaimer">給自由市場擺攤收購用的公告，讓大家知道你在哪個頻道賣什麼、或想收購什麼。貼文 24 小時後會自動下架；結束了也請記得自己回來按「已下架」，讓資訊保持準確。「已下架」的按鈕只會出現在你自己發的貼文上，也請大家不要用其他方式亂動別人的貼文，讓需要的人都能看到完整資訊。</p>
+        <p class="cm-disclaimer">給自由市場擺攤收購用的公告，讓大家知道你在哪個頻道賣什麼、或想收購什麼。貼文 24 小時後會自動下架；結束了也請記得自己回來按「已下架」，讓資訊保持準確。每台裝置在這個板同時只會有一篇貼文，重新發布會直接取代原本那篇（發布後 1 小時內不能重發）。「已下架」的按鈕只會出現在你自己發的貼文上，也請大家不要用其他方式亂動別人的貼文，讓需要的人都能看到完整資訊。</p>
       </details>
 
       <div class="cm-toolbar">
         <div class="cm-actions">
-          <div class="cm-sort-btns" id="stallTypeFilterBtns">
+          <div class="cm-sort-btns" id="stallTypeFilterBtns"><span class="cm-group-label">類型</span>
             <button class="cm-sort-btn active" data-type="" type="button">全部</button>
             <button class="cm-sort-btn" data-type="販賣" type="button">販賣</button>
             <button class="cm-sort-btn" data-type="收購" type="button">收購</button>
           </div>
-          <div class="cm-sort-btns" id="stallServerFilterBtns">
+          <div class="cm-sort-btns" id="stallServerFilterBtns"><span class="cm-group-label">伺服器</span>
             <button class="cm-sort-btn active" data-server="" type="button">全部</button>
           </div>
-          <button class="btn btn-primary" id="stallAddBtn" type="button">＋ 我要發布</button>
+          <button class="btn btn-primary" id="stallAddBtn" type="button">＋ 我要擺攤／收購</button>
         </div>
       </div>
 
@@ -1012,7 +1020,7 @@
         <div class="field-grid two-col">
           <label class="field">
             <span>角色 ID *</span>
-            <input type="text" id="stallCharId" maxlength="20" placeholder="方便大家找到你">
+            <input type="text" id="stallCharId" maxlength="20" placeholder="例：小楓楓">
           </label>
           <label class="field">
             <span id="stallDescriptionLabel">交易內容 *</span>
@@ -1034,12 +1042,12 @@
     <div id="cmGuildView" role="tabpanel" aria-labelledby="cmSubGuild" hidden>
       <details class="cm-disclaimer-details">
         <summary>公會招募公告規則說明</summary>
-        <p class="cm-disclaimer">給公會長期招募成員用的公告，貼文 7 天後會自動下架；中途招滿的話也請記得自己回來標記「已招滿」提早下架，讓資訊保持準確。下架按鈕只會出現在你自己發的貼文上，也請大家不要用其他方式亂動別人的貼文，讓需要的人都能看到完整資訊。</p>
+        <p class="cm-disclaimer">給公會長期招募成員用的公告，貼文 7 天後會自動下架；中途招滿的話也請記得自己回來標記「已招滿」提早下架，讓資訊保持準確。每台裝置在這個板同時只會有一篇貼文，重新發布會直接取代原本那篇（發布後 1 小時內不能重發）。下架按鈕只會出現在你自己發的貼文上，也請大家不要用其他方式亂動別人的貼文，讓需要的人都能看到完整資訊。</p>
       </details>
 
       <div class="cm-toolbar">
         <div class="cm-actions">
-          <div class="cm-sort-btns" id="guildServerFilterBtns">
+          <div class="cm-sort-btns" id="guildServerFilterBtns"><span class="cm-group-label">伺服器</span>
             <button class="cm-sort-btn active" data-server="" type="button">全部</button>
           </div>
           <button class="btn btn-primary" id="guildAddBtn" type="button">＋ 我要招募</button>
@@ -1066,7 +1074,7 @@
           </label>
           <label class="field">
             <span>聯絡方式 *</span>
-            <input type="text" id="guildContact" maxlength="40" placeholder="方便有興趣的人找到你">
+            <input type="text" id="guildContact" maxlength="40" placeholder="例：遊戲ID 小楓楓 或 Discord ID">
           </label>
         </div>
         <label class="field">
@@ -1088,12 +1096,12 @@
     <div id="cmLivestreamView" role="tabpanel" aria-labelledby="cmSubLivestream" hidden>
       <details class="cm-disclaimer-details">
         <summary>實況宣傳公告規則說明</summary>
-        <p class="cm-disclaimer">給實況主宣傳自己頻道用的公告，連結只接受 Twitch、YouTube，貼文 7 天後會自動下架；不再實況了也請記得自己回來按「已下架」，讓資訊保持準確。「已下架」的按鈕只會出現在你自己發的貼文上，也請大家不要用其他方式亂動別人的貼文，讓需要的人都能看到完整資訊。</p>
+        <p class="cm-disclaimer">給實況主宣傳自己頻道用的公告，連結只接受 Twitch、YouTube，貼文 7 天後會自動下架；不再實況了也請記得自己回來按「已下架」，讓資訊保持準確。每台裝置在這個板同時只會有一篇貼文，重新發布會直接取代原本那篇（發布後 1 小時內不能重發）。「已下架」的按鈕只會出現在你自己發的貼文上，也請大家不要用其他方式亂動別人的貼文，讓需要的人都能看到完整資訊。</p>
       </details>
 
       <div class="cm-toolbar">
         <div class="cm-actions">
-          <div class="cm-sort-btns" id="livestreamFilterBtns">
+          <div class="cm-sort-btns" id="livestreamFilterBtns"><span class="cm-group-label">平台</span>
             <button class="cm-sort-btn active" data-platform="" type="button">全部</button>
             <button class="cm-sort-btn" data-platform="Twitch" type="button">Twitch</button>
             <button class="cm-sort-btn" data-platform="YouTube" type="button">YouTube</button>

@@ -137,7 +137,21 @@
   els.addBtn.addEventListener("click", () => setFormOpen(!formOpen));
   els.cancelBtn.addEventListener("click", () => setFormOpen(false));
 
+  // 板別開關（開服後被灌爆時的滅火手段，開關本體在 community.js 的
+  // BOARDS_OPEN，跟 firestore.rules 的 allow create 要一起改）
+  const BOARD_OPEN = !window.MapleCommunity || window.MapleCommunity.isBoardOpen("team");
+  if (!BOARD_OPEN) {
+    els.addBtn.disabled = true;
+    els.addBtn.textContent = "暫時關閉維護中";
+    els.addBtn.title = window.MapleCommunity.boardClosedMsg;
+  }
+
   async function submitTeamPost() {
+    if (!BOARD_OPEN) {
+      els.msg.textContent = window.MapleCommunity.boardClosedMsg;
+      els.msg.className = "cm-msg err";
+      return;
+    }
     const type = els.type.value;
     const target = els.target.value.trim();
     const server = els.server.value;
@@ -152,24 +166,39 @@
     const note = els.note.value.trim();
 
     // 逐欄給對應訊息，理由跟 community.js 的 submitRecord 一樣：全部欄位
-    // 共用一句「請填寫所有必填欄位」會讓人猜不出到底哪一欄有問題
+    // 共用一句「請填寫所有必填欄位」會讓人猜不出到底哪一欄有問題。
+    // errEl 記住出錯的欄位——這張表單欄位最多、手機版直排最長，錯誤訊息
+    // 在最底部按鈕旁，只給文字要使用者自己往上捲逐欄對照，直接帶過去
     let fieldError = "";
-    if (!type) fieldError = "請選擇揪團類型";
-    else if (!target) fieldError = "請輸入目標";
-    else if (!server) fieldError = "請選擇伺服器";
-    else if (!map) fieldError = "請輸入集合地點";
-    else if (!scheduledAtDate || isNaN(scheduledAtDate.getTime())) fieldError = "請選擇集合時間";
-    else if (scheduledAtDate.getTime() < Date.now() - MIN_PAST_MS) fieldError = "集合時間不能是過去的時間";
-    else if (scheduledAtDate.getTime() > Date.now() + MAX_ADVANCE_MS) fieldError = "集合時間最多只能提前 7 天發布";
-    else if (!contact) fieldError = "請輸入聯絡方式";
-    else if (!job) fieldError = "請選擇發起人職業";
-    else if (isNaN(level) || level < 1 || level > 200) fieldError = "請輸入有效的發起人等級（1~200）";
-    else if (isNaN(currentCount) || currentCount < 0 || currentCount > 6) fieldError = "請輸入有效的目前人數（0~6）";
-    else if (isNaN(neededCount) || neededCount < 1 || neededCount > 6) fieldError = "請輸入有效的需要人數（1~6）";
-    else if (currentCount > neededCount) fieldError = "目前人數不能超過需要人數";
+    let errEl = null;
+    if (!type) { fieldError = "請選擇揪團類型"; errEl = els.type; }
+    else if (!target) { fieldError = "請輸入目標"; errEl = els.target; }
+    else if (!server) { fieldError = "請選擇伺服器"; errEl = els.server; }
+    else if (!map) { fieldError = "請輸入集合地點"; errEl = els.map; }
+    else if (!scheduledAtDate || isNaN(scheduledAtDate.getTime())) { fieldError = "請選擇集合時間"; errEl = els.scheduledAt; }
+    else if (scheduledAtDate.getTime() < Date.now() - MIN_PAST_MS) { fieldError = "集合時間不能是過去的時間"; errEl = els.scheduledAt; }
+    else if (scheduledAtDate.getTime() > Date.now() + MAX_ADVANCE_MS) { fieldError = "集合時間最多只能提前 7 天發布"; errEl = els.scheduledAt; }
+    else if (!contact) { fieldError = "請輸入聯絡方式"; errEl = els.contact; }
+    else if (!job) { fieldError = "請選擇發起人職業"; errEl = els.job; }
+    else if (isNaN(level) || level < 1 || level > 200) { fieldError = "請輸入有效的發起人等級（1~200）"; errEl = els.level; }
+    else if (isNaN(currentCount) || currentCount < 0 || currentCount > 6) { fieldError = "請輸入有效的目前人數（0~6）"; errEl = els.currentCount; }
+    else if (isNaN(neededCount) || neededCount < 1 || neededCount > 6) { fieldError = "請輸入有效的隊伍目標人數（1~6）"; errEl = els.neededCount; }
+    else if (currentCount > neededCount) { fieldError = "目前人數不能超過隊伍目標人數"; errEl = els.currentCount; }
 
     if (fieldError) {
       els.msg.textContent = fieldError;
+      els.msg.className = "cm-msg err";
+      if (errEl) {
+        errEl.focus();
+        errEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      return;
+    }
+
+    // Firestore 寫入在離線時不會 reject、promise 永遠 pending，按鈕會永久
+    // 卡在「送出中...」——讀取路徑有 onLine 判斷，寫入也要有
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      els.msg.textContent = "目前似乎沒有網路連線，請檢查後再按一次送出（表單內容會保留）";
       els.msg.className = "cm-msg err";
       return;
     }
@@ -212,6 +241,17 @@
           els.submitBtn.textContent = "送出";
           return;
         }
+        // 一裝置一貼文＝重新發布會「取代」舊貼文。舊貼文如果還在版上
+        // （沒過期也沒標記找到團），不問一聲就默默蓋掉的話，想同時揪兩場的
+        // 使用者第一篇會無聲消失——這裡反正已經把舊文件讀回來了，多一個
+        // 確認框成本為零
+        const oldSchedMs = existing.scheduledAt && existing.scheduledAt.toMillis ? existing.scheduledAt.toMillis() : 0;
+        const oldStillActive = !existing.found && Date.now() - oldSchedMs < GRACE_MS;
+        if (oldStillActive && !confirm("你已經有一篇還在版上的揪團貼文，重新發布會直接取代它（每台裝置同時只能有一篇）。確定要發布嗎？")) {
+          els.submitBtn.disabled = false;
+          els.submitBtn.textContent = "送出";
+          return;
+        }
       }
     } catch {
       // 冷卻檢查讀取失敗不擋發文，真正的防線在 firestore.rules 的
@@ -226,7 +266,9 @@
         ...(note && { note }),
         ts: firebase.firestore.FieldValue.serverTimestamp(),
       });
-      els.msg.textContent = "✓ 已發布！集合時間過後 6 小時會自動下架，找到團也可以自己提早標記完成";
+      // 這個板依「集合時間」由近到遠排序，提前發的未來場次不會排在最上面——
+      // 不講的話使用者會以為沒發成功、再按一次送出（然後撞上 1 小時冷卻）
+      els.msg.textContent = "✓ 已發布！列表依集合時間排序，提前發的場次可能不在最上面。集合時間過後 6 小時會自動下架，找到團也可以自己提早標記完成";
       els.msg.className = "cm-msg ok";
       els.type.value = ""; els.target.value = ""; els.server.value = ""; els.map.value = ""; els.contact.value = "";
       els.job.value = ""; els.level.value = "";
@@ -252,6 +294,10 @@
   }
   els.submitBtn.addEventListener("click", submitTeamPost);
 
+  // 載入世代計數，用途跟 community.js 的 loadGen 一樣：在途補抓回來時
+  // 世代已變（送出成功觸發整批重載）就丟棄，避免舊批次疊進新清單
+  let loadGen = 0;
+
   async function loadTeamPosts(append = false) {
     if (!append) {
       if (allPosts.length && Date.now() - lastLoadedAt < CACHE_MS) {
@@ -261,7 +307,9 @@
       els.list.innerHTML = '<p class="cm-loading">載入中...</p>';
       allPosts = [];
       lastDoc = null;
+      loadGen++;
     }
+    const gen = loadGen;
     lastLoadFailed = false;
     try {
       let db = null;
@@ -289,6 +337,7 @@
         .limit(PAGE_SIZE + 1);
       if (append && lastDoc) query = query.startAfter(lastDoc);
       const snap = await query.get();
+      if (gen !== loadGen) return; // 世代已變，這批是舊清單的下一批，丟棄
       const hasExtra = snap.docs.length > PAGE_SIZE;
       const pageDocs = hasExtra ? snap.docs.slice(0, PAGE_SIZE) : snap.docs;
       const newPosts = pageDocs.map((d) => ({ id: d.id, ...d.data() }));
@@ -298,11 +347,12 @@
       hasMoreFromServer = hasExtra;
       renderTeamPosts();
     } catch (e) {
+      if (gen !== loadGen) return;
       let msg = "載入失敗，請重新整理頁面";
       if (typeof navigator !== "undefined" && navigator.onLine === false) {
         msg = "目前似乎沒有網路連線，請檢查後重新整理頁面";
       } else if (e && e.code === "permission-denied") {
-        msg = "資料庫拒絕了這次讀取，請重新整理頁面再試一次";
+        msg = "資料庫拒絕了這次讀取，可能是功能暫時維護中；稍後重新整理頁面再試一次";
       } else if (e && e.code === "unavailable") {
         msg = "連不上資料庫伺服器，請稍後重新整理頁面";
       } else if (e && e.code === "resource-exhausted") {
@@ -439,6 +489,13 @@
     // 這個動作沒辦法復原（規則不開放把 found 改回 false），怕手滑誤點
     // 直接把自己的貼文下架，按下去前先跳確認
     if (!confirm("確定要標記這篇揪團已經找到團、下架這篇貼文嗎？這個動作沒辦法復原。")) return;
+
+    // 離線時 Firestore 的 update 不會 reject，會永久卡在「處理中...」
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      btn.textContent = "沒有網路，稍後再試";
+      setTimeout(() => { btn.textContent = "✓ 已找到團，下架這篇"; }, 2000);
+      return;
+    }
 
     btn.disabled = true;
     btn.textContent = "處理中...";

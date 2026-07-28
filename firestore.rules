@@ -294,9 +294,10 @@ service cloud.firestore {
       // ALLOWED_URL_PATTERN 要跟這裡同步（規則沒辦法讀前端 JS，改動時
       // 兩邊都要手動更新）。強制 https，不開放 http；這個板貼的是外部
       // 連結，比其他三個純文字板多一個「有人塞惡意／釣魚連結」的風險，
-      // 白名單網域是主要的防線。
+      // 白名單網域是主要的防線。m. 開頭的行動版網址也收（2026-07-28 加，
+      // 手機使用者複製到的常常是 m.twitch.tv／m.youtube.com）。
       function isAllowedUrl(url) {
-        return url.matches('^https://(www\\.)?(twitch\\.tv|youtube\\.com|youtu\\.be)/.+');
+        return url.matches('^https://((www|m)\\.)?(twitch\\.tv|youtube\\.com|youtu\\.be)/.+');
       }
 
       // platform（Twitch／YouTube 標籤）不是存進資料庫的欄位，前端直接

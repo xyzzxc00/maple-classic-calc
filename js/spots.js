@@ -12,6 +12,7 @@
     pagination: document.getElementById("spotsPagination"),
     addBtn: document.getElementById("spotsAddBtn"),
     filterJob: document.getElementById("spotsFilterJob"),
+    levelInput: document.getElementById("spotsLevelInput"),
   };
 
   // 職業選單改由 jobsData.js 的單一資料來源動態產生，避免 HTML 裡多份清單各自維護
@@ -26,20 +27,30 @@
 
   function setCurrentLevel(level) {
     currentLevel = level || 1;
+    // 計算機那邊改等級時同步顯示到本分頁的等級欄，讓「底色高亮依什麼判斷」
+    // 有一個看得見的來源；使用者正在打字（欄位聚焦中）就不要蓋掉
+    if (els.levelInput && document.activeElement !== els.levelInput) {
+      els.levelInput.value = currentLevel;
+    }
     render();
   }
 
-  // 把同一張地圖的多筆回報合併成一個地點：平均效率、看過的等級範圍、回報過的職業
+  // 把同一張地圖的多筆回報合併成一個地點：平均效率、看過的等級範圍、回報過的職業。
+  // 平均「只計單練」——團練的每人 EXP 通常遠高於單練（組隊經驗分配），混進
+  // 平均會把地圖效率系統性拉高、誤導單練玩家，排序（推薦順位）也會跟著失真。
+  // mode 是 2026-07-28 才加的欄位，沒有 mode 的歷史紀錄視為單練（跟表單預設
+  // 一致）；團練筆數另外統計，卡片上標注「未計入平均」
   function groupByMap(records) {
     const groups = new Map();
     records.forEach((r) => {
       if (!groups.has(r.map)) {
-        groups.set(r.map, { map: r.map, jobs: new Set(), levels: [], expRates: [], count: 0 });
+        groups.set(r.map, { map: r.map, jobs: new Set(), levels: [], expRates: [], count: 0, partyCount: 0 });
       }
       const g = groups.get(r.map);
       g.jobs.add(r.job);
       g.levels.push(r.level);
-      g.expRates.push(r.expPer10Min);
+      if (r.mode === "party") g.partyCount++;
+      else g.expRates.push(r.expPer10Min);
       g.count++;
     });
     return Array.from(groups.values()).map((g) => ({
@@ -47,7 +58,11 @@
       jobs: Array.from(g.jobs),
       levelMin: Math.min(...g.levels),
       levelMax: Math.max(...g.levels),
-      avgExpPer10Min: Math.round(g.expRates.reduce((a, b) => a + b, 0) / g.expRates.length),
+      // 全部都是團練回報時沒有可平均的單練數據，avg 為 null，卡片顯示「僅團練回報」
+      avgExpPer10Min: g.expRates.length
+        ? Math.round(g.expRates.reduce((a, b) => a + b, 0) / g.expRates.length)
+        : null,
+      partyCount: g.partyCount,
       count: g.count,
     }));
   }
@@ -87,7 +102,8 @@
       const aFit = isSuitable(a) ? 1 : 0;
       const bFit = isSuitable(b) ? 1 : 0;
       if (aFit !== bFit) return bFit - aFit;
-      return b.avgExpPer10Min - a.avgExpPer10Min;
+      // avg 為 null（僅團練回報、沒有單練基準）的排到同組最後
+      return (b.avgExpPer10Min ?? -1) - (a.avgExpPer10Min ?? -1);
     });
 
     const totalPages = Math.max(1, Math.ceil(spots.length / MaplePagination.PAGE_SIZE));
@@ -99,12 +115,17 @@
       pageSpots
         .map((s) => {
           const fit = isSuitable(s);
+          const partyNote = s.partyCount
+            ? s.avgExpPer10Min === null
+              ? `${s.count} 筆回報（全部為團練，效率為組隊數據）`
+              : `${s.count} 筆回報（含 ${s.partyCount} 筆團練，未計入平均）`
+            : `${s.count} 筆回報`;
           return `<div class="cm-card${fit ? " spot-fit" : ""}">
         <div class="cm-job">${escHtml(s.map)}</div>
         <div class="cm-map">回報過的角色等級 Lv.${s.levelMin} - ${s.levelMax}</div>
-        <div class="cm-stat"><span>平均 EXP / 10分鐘</span><span>${s.avgExpPer10Min.toLocaleString()}</span></div>
+        <div class="cm-stat"><span>平均 EXP / 10分鐘${s.avgExpPer10Min === null ? "（僅團練）" : ""}</span><span>${s.avgExpPer10Min === null ? "—" : s.avgExpPer10Min.toLocaleString()}</span></div>
         <div class="cm-stat"><span>回報職業</span><span>${escHtml(s.jobs.join("、"))}</span></div>
-        <div class="cm-note">${s.count} 筆回報</div>
+        <div class="cm-note">${partyNote}</div>
       </div>`;
         })
         .join("") +
@@ -126,6 +147,15 @@
   }
 
   if (els.filterJob) els.filterJob.addEventListener("change", () => { currentPage = 1; render(); });
+  // 直接在本分頁改等級也能重算高亮，不用繞回計算機
+  if (els.levelInput) {
+    els.levelInput.addEventListener("input", () => {
+      const v = parseInt(els.levelInput.value, 10);
+      currentLevel = v >= 1 && v <= 200 ? v : 1;
+      currentPage = 1;
+      render();
+    });
+  }
 
   els.addBtn.addEventListener("click", () => {
     if (window.MapleCommunity) {

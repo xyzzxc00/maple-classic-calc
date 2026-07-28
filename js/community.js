@@ -43,6 +43,13 @@
   const SUBMISSIONS_OPEN = true;
   // 「回報還沒開放」統一用這句，避免同一件事在不同地方各自寫一種措辭
   const SUBMISSIONS_CLOSED_MSG = "遊戲尚未上線，暫不開放回報，敬請期待";
+  // 四個公告板各自的前端開關（2026-07-28 加）：開服後任一板被灌爆時，把
+  // 對應的值改成 false 再 push，入口按鈕會鎖住、submit 會被擋——跟
+  // SUBMISSIONS_OPEN 一樣，真正的防線是 firestore.rules 把該集合的
+  // allow create 改成 false，兩邊要一起改，不然前端關了規則還開著（或反過
+  // 來規則關了前端還讓人填完整張表單才吃閉門羹）
+  const BOARDS_OPEN = { team: true, stall: true, guild: true, livestream: true };
+  const BOARD_CLOSED_MSG = "這個公告板暫時關閉維護中，之後會再開放";
   // 2026-07-24 健檢時升到 12.16.0，結果正式站馬上出現 App Check 403
   // + throttle（appCheck/initial-throttle，清掉 IndexedDB 重新整理也一樣
   // 立刻重現，不是快取殘留）——升級本身造成了新的 App Check 迴歸，先退回
@@ -247,15 +254,34 @@
     const note = els.note.value.trim();
 
     // 逐欄檢查、給對應訊息，不要把 4 種不同的錯誤都壓成同一句「請填寫所有必填欄位」——
-    // 那樣即使只有一欄有問題，使用者也會以為自己整份表單都沒填
+    // 那樣即使只有一欄有問題，使用者也會以為自己整份表單都沒填。
+    // errEl 記住出錯的欄位：手機版表單直排很長、錯誤訊息在最底部的按鈕旁，
+    // 只給文字的話使用者要自己往上捲逐欄對照，直接把焦點跟畫面帶過去
     let fieldError = "";
-    if (!job) fieldError = "請選擇職業";
-    else if (!map) fieldError = "請輸入地圖名稱";
-    else if (isNaN(level) || level < 1 || level > 200) fieldError = "請輸入有效的角色等級（1~200）";
-    else if (isNaN(expPer10Min) || expPer10Min <= 0) fieldError = "請輸入有效的 EXP / 10分鐘數值";
+    let errEl = null;
+    if (!job) { fieldError = "請選擇職業"; errEl = els.job; }
+    else if (!map) { fieldError = "請輸入地圖名稱"; errEl = els.map; }
+    else if (isNaN(level) || level < 1 || level > 200) { fieldError = "請輸入有效的角色等級（1~200）"; errEl = els.level; }
+    else if (isNaN(expPer10Min) || expPer10Min <= 0) { fieldError = "請輸入有效的 EXP / 10分鐘數值"; errEl = els.expPer10Min; }
+    // 上限跟 firestore.rules 的 expPer10Min <= 1000000000 一致——沒有這條的話，
+    // W 縮寫多打一個 0（例如 500000W = 50 億）會被規則整筆拒絕，前端只能顯示
+    // 籠統的 permission-denied 訊息，使用者會以為站掛了
+    else if (expPer10Min > 1000000000) { fieldError = "EXP 數值太大（上限 10 億），請確認是不是多打了一個 0 或 W"; errEl = els.expPer10Min; }
 
     if (fieldError) {
       els.msg.textContent = fieldError;
+      els.msg.className = "cm-msg err";
+      if (errEl) {
+        errEl.focus();
+        errEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      return;
+    }
+
+    // Firestore 寫入在離線時不會 reject、promise 永遠 pending，finally 不會
+    // 執行、按鈕會永久卡在「送出中...」——讀取路徑有 onLine 判斷，寫入也要有
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      els.msg.textContent = "目前似乎沒有網路連線，請檢查後再按一次送出（表單內容會保留）";
       els.msg.className = "cm-msg err";
       return;
     }
@@ -319,6 +345,12 @@
 
   els.submitBtn.addEventListener("click", submitRecord);
 
+  // 載入世代計數：每次「整批重載」（非 append）就 +1。在途的補抓（append）
+  // 回來時如果世代已經變了（例如補抓鏈跑到一半使用者送出了新回報、觸發
+  // 整批重載），代表它抓的是舊清單的下一批，直接丟棄——不然舊批次會疊進
+  // 新清單，出現重複卡片、lastDoc 游標也會錯亂
+  let loadGen = 0;
+
   async function loadRecords(append = false) {
     if (!append) {
       if (allRecords.length && Date.now() - lastLoadedAt < CACHE_MS) {
@@ -328,18 +360,19 @@
       els.list.innerHTML = '<p class="cm-loading">載入中...</p>';
       allRecords = [];
       lastDoc = null;
+      loadGen++;
     }
     lastLoadFailed = false;
     lastLoadErrorMsg = "";
     loadsInFlight++;
     try {
-      await loadRecordsInner(append);
+      await loadRecordsInner(append, loadGen);
     } finally {
       loadsInFlight--;
     }
   }
 
-  async function loadRecordsInner(append) {
+  async function loadRecordsInner(append, gen) {
     try {
       await ensureDb();
     } catch {
@@ -364,6 +397,8 @@
       if (append && lastDoc) query = query.startAfter(lastDoc);
 
       const snap = await query.get();
+      // 世代變了＝這批是針對已被重載捨棄的舊清單抓的，丟棄不合併
+      if (gen !== loadGen) return;
       const hasExtra = snap.docs.length > PAGE_SIZE;
       const pageDocs = hasExtra ? snap.docs.slice(0, PAGE_SIZE) : snap.docs;
       const newRecords = pageDocs.map((d) => ({ id: d.id, ...d.data() }));
@@ -374,6 +409,7 @@
       hasMoreFromServer = hasExtra;
       renderRecords();
     } catch (e) {
+      if (gen !== loadGen) return;
       lastLoadFailed = true;
       // 網路離線、資料庫拒絕存取（規則/App Check）、其他錯誤這裡分開講，
       // 不然使用者跟站長都只看到同一句「載入失敗」，猜不出是哪一種狀況
@@ -381,7 +417,9 @@
       if (typeof navigator !== "undefined" && navigator.onLine === false) {
         msg = "目前似乎沒有網路連線，請檢查後重新整理頁面";
       } else if (e && e.code === "permission-denied") {
-        msg = "資料庫拒絕了這次讀取，請重新整理頁面再試一次";
+        // 站方用 rules 暫時關閉功能時也會走到這裡——「請重新整理」在維護
+        // 期間是反效果措辭（重新整理也沒用），把兩種可能都講清楚
+        msg = "資料庫拒絕了這次讀取，可能是功能暫時維護中；稍後重新整理頁面再試一次";
       } else if (e && e.code === "unavailable") {
         msg = "連不上資料庫伺服器，請稍後重新整理頁面";
       } else if (e && e.code === "resource-exhausted") {
@@ -511,9 +549,28 @@
     const btn = e.target.closest(".cm-helpful-btn");
     if (!btn || btn.disabled) return;
     const id = btn.dataset.id;
-    if (!db || getVotedSet().has(id)) return;
+    if (getVotedSet().has(id)) return;
 
     const originalHtml = btn.innerHTML;
+    const showBtnError = (text) => {
+      // 靜默失敗會讓使用者以為自己按過了；短暫顯示失敗訊息再恢復原狀。
+      // 只換文字、讚數維持顯示（原本整個 innerHTML 被換掉會連讚數一起消失）
+      const countEl = btn.querySelector(".cm-helpful-count");
+      const count = countEl ? countEl.textContent : "0";
+      btn.innerHTML = `${text} <span class="cm-helpful-count">${count}</span>`;
+      setTimeout(() => {
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+      }, 2000);
+    };
+    // db 沒初始化（理論上列表能顯示就代表已初始化，防禦性處理）跟離線都
+    // 不能靜默 return——Firestore 離線寫入不會 reject，會永久卡 disabled
+    if (!db || (typeof navigator !== "undefined" && navigator.onLine === false)) {
+      btn.disabled = true;
+      showBtnError("✕ 沒有網路，稍後再試");
+      return;
+    }
+
     btn.disabled = true;
     db.collection("exp_records").doc(id).update({
       helpful: firebase.firestore.FieldValue.increment(1),
@@ -525,16 +582,7 @@
       const rec = allRecords.find((r) => r.id === id);
       if (rec) rec.helpful = (rec.helpful || 0) + 1;
     }).catch(() => {
-      // 靜默失敗會讓使用者以為自己按過了；短暫顯示失敗訊息再恢復原狀，
-      // 這樣使用者知道剛剛那次沒算數，可以再按一次。原本整個 innerHTML 被換掉
-      // 會連讚數一起消失 2 秒，這裡改成只換文字、讚數維持顯示
-      const countEl = btn.querySelector(".cm-helpful-count");
-      const count = countEl ? countEl.textContent : "0";
-      btn.innerHTML = `✕ 送出失敗，再試一次 <span class="cm-helpful-count">${count}</span>`;
-      setTimeout(() => {
-        btn.innerHTML = originalHtml;
-        btn.disabled = false;
-      }, 2000);
+      showBtnError("✕ 送出失敗，再試一次");
     });
   }
   els.list.addEventListener("click", onHelpfulClick);
@@ -621,6 +669,10 @@
     isLoading: () => loadsInFlight > 0,
     isSubmissionsOpen: () => SUBMISSIONS_OPEN,
     submissionsClosedMsg: SUBMISSIONS_CLOSED_MSG,
+    // 板別開關：team.js／stall.js／guild.js／livestream.js 在初始化跟 submit
+    // 前都要檢查，開關本體只在本檔開頭定義一份（BOARDS_OPEN）
+    isBoardOpen: (key) => BOARDS_OPEN[key] !== false,
+    boardClosedMsg: BOARD_CLOSED_MSG,
     showRecordsTab,
     // nav.js 補觸發子分頁 render 時要讀同一個 localStorage key——鍵名只在
     // 這裡定義一次，nav.js 透過這個屬性拿，避免兩邊字面量各自漂移
