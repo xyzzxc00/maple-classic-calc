@@ -866,21 +866,25 @@ a:hover { text-decoration-color: var(--accent-hover); }
    「空間夠時要長多寬」，min-width 才是真正擋住 overflow:hidden 副作用
    的下限。 */
 #cmRecordsView .cm-sort-btns,
-#cmTeamView .cm-sort-btns,
 #guildServerFilterBtns,
 #livestreamFilterBtns {
   flex: 1 0 50%;
 }
 #stallTypeFilterBtns,
-#stallServerFilterBtns {
+#stallServerFilterBtns,
+#teamTypeFilterBtns,
+#teamServerFilterBtns {
   flex: 1 0 25%; /* 兩組相加＝整排的一半，兩組彼此之間也等寬 */
 }
 #stallTypeFilterBtns { min-width: 229px; } /* 標籤「類型」39px + 3×62px 按鈕 + 分隔線 */
-#stallServerFilterBtns { min-width: 318px; } /* 標籤「伺服器」50px + 3×88px 按鈕 + 分隔線 */
+#stallServerFilterBtns,
+#teamServerFilterBtns { min-width: 318px; } /* 標籤「伺服器」50px + 3×88px 按鈕 + 分隔線 */
+#teamTypeFilterBtns { min-width: 307px; } /* 標籤「類型」39px + 3×88px 按鈕（「組隊任務」較長）+ 分隔線緩衝 */
 /* 回報紀錄的「排序」（最新／效率）當初新增時漏掉了這條等寬規則，兩顆
    按鈕各自照文字天然寬度撐開，「最新」比「效率」寬，兩顆看起來沒對齊 */
 #cmRecordsView .cm-sort-btns .cm-sort-btn,
-#cmTeamView .cm-sort-btns .cm-sort-btn,
+#teamTypeFilterBtns .cm-sort-btn,
+#teamServerFilterBtns .cm-sort-btn,
 #stallServerFilterBtns .cm-sort-btn,
 #guildServerFilterBtns .cm-sort-btn {
   flex: 1;
@@ -912,14 +916,23 @@ a:hover { text-decoration-color: var(--accent-hover); }
    斷點，要在更寬的地方就先切成上下堆疊。 */
 @media (max-width: 900px) {
   #cmStallView .cm-actions { flex-direction: column; }
-  #stallTypeFilterBtns, #stallServerFilterBtns { width: 100%; }
+  /* min-width:0 蓋掉桌面版設的 229px／318px——那是專門擋 overflow:hidden
+     裁切用的下限，堆疊成單欄後 width:100% 已經會滿版寬，兩個下限打架
+     會讓這兩組比同排的「+」按鈕寬出幾 px（實測沒有真的溢出頁面，但邊界
+     對不齊），乾脆歸零讓 width:100% 說了算 */
+  #stallTypeFilterBtns, #stallServerFilterBtns { width: 100%; min-width: 0; }
+}
+/* 組隊揪團加了伺服器篩選後也變成兩組篩選，而且類型組用的是「組隊任務」
+   這種較長標籤的 88px min-width（擺攤收購類型組是較短的「販賣/收購」
+   只要 62px），兩組加起來 625px 比擺攤收購的 547px 還寬，撐不住的斷點
+   自然也要更寬——實測 1200px 寬時類型組還會裁切 2px（min-width 算得
+   稍微小了，已補緩衝修正），1041px 起橫排已經完全沒問題，抓 1040px
+   當斷點、980px 算過還有近 300px 餘裕給按鈕，足夠安全。 */
+@media (max-width: 1040px) {
+  #cmTeamView .cm-actions { flex-direction: column; }
+  #teamTypeFilterBtns, #teamServerFilterBtns { width: 100%; min-width: 0; }
 }
 @media (max-width: 480px) {
-  /* 組隊揪團同一套做法：類型篩選（全部/組隊任務/王團）跟「我要揪團」
-     按鈕手機版改上下堆疊、篩選按鈕滿版寬 */
-  #cmTeamView .cm-actions { flex-direction: column; }
-  #cmTeamView .cm-sort-btns { width: 100%; }
-
   /* 公會招募新增時漏掉了這組規則，手機版一直維持桌機版的並排擠成一條，
      這裡補上跟組隊揪團／擺攤收購同一套堆疊做法 */
   #cmGuildView .cm-actions { flex-direction: column; }

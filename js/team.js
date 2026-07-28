@@ -36,7 +36,11 @@
  */
 (function () {
   const els = {
-    typeFilterBtns: document.querySelectorAll("#cmTeamView .cm-sort-btn"),
+    // 一定要限定在各自的篩選群組容器裡，不能直接 querySelectorAll("#cmTeamView .cm-sort-btn")——
+    // 加了伺服器篩選之後，那樣會把兩組按鈕全部抓在一起，點伺服器篩選會被
+    // 誤判成類型篩選，反之亦然
+    typeFilterBtns: document.querySelectorAll("#teamTypeFilterBtns .cm-sort-btn"),
+    serverFilterBtns: document.getElementById("teamServerFilterBtns"),
     addBtn: document.getElementById("teamAddBtn"),
     form: document.getElementById("teamForm"),
     type: document.getElementById("teamType"),
@@ -90,6 +94,12 @@
       "beforeend",
       window.MapleTeamServers.map((s) => `<option value="${s}">${s}</option>`).join("")
     );
+    // 伺服器篩選按鈕跟表單的伺服器下拉選單同一份資料來源，動態產生，
+    // 伺服器清單改了不用兩邊維護，做法跟 stall.js 一樣
+    els.serverFilterBtns.insertAdjacentHTML(
+      "beforeend",
+      window.MapleTeamServers.map((s) => `<button class="cm-sort-btn" data-server="${s}" type="button">${s}</button>`).join("")
+    );
   }
   if (window.MapleJobOptionsHtml) {
     els.job.insertAdjacentHTML("beforeend", window.MapleJobOptionsHtml);
@@ -126,6 +136,7 @@
   let currentPage = 1;
   let autoFetchRounds = 0;
   let activeType = ""; // "" = 全部
+  let activeServer = ""; // "" = 全部
 
   let formOpen = false;
   function setFormOpen(open) {
@@ -392,7 +403,8 @@
       const t = p.scheduledAt && p.scheduledAt.toDate ? p.scheduledAt.toDate().getTime() : 0;
       return now - t < GRACE_MS && !p.found;
     });
-    const filtered = activeType ? notExpired.filter((p) => p.type === activeType) : notExpired;
+    const byType = activeType ? notExpired.filter((p) => p.type === activeType) : notExpired;
+    const filtered = activeServer ? byType.filter((p) => p.server === activeServer) : byType;
     // 依集合時間由近到遠排序：最快要開始的排最前面，對「找還來得及參加的
     // 揪團」比依發文時間排序更有用
     filtered.sort((a, b) => {
@@ -520,6 +532,19 @@
       els.typeFilterBtns.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
       activeType = btn.dataset.type;
+      currentPage = 1;
+      autoFetchRounds = 0;
+      renderTeamPosts();
+    });
+  });
+
+  // 伺服器篩選按鈕是進 render() 前（伺服器清單載入時）才動態插入的，這裡
+  // 直接 querySelectorAll 綁一次即可，不用委派監聽，做法跟 stall.js 一樣
+  els.serverFilterBtns.querySelectorAll(".cm-sort-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      els.serverFilterBtns.querySelectorAll(".cm-sort-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeServer = btn.dataset.server;
       currentPage = 1;
       autoFetchRounds = 0;
       renderTeamPosts();
