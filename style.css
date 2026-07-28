@@ -914,6 +914,12 @@ a:hover { text-decoration-color: var(--accent-hover); }
   #cmGuildView .cm-actions { flex-direction: column; }
   #guildServerFilterBtns { width: 100%; }
 
+  /* 回報紀錄同樣漏掉這組規則（跟公會招募／實況宣傳當初一樣的疏漏）：
+     手機版排序按鈕組跟「新增紀錄」擠在同一排，按鈕被壓窄到文字換行成
+     「新增紀」/「錄」兩行，補上同一套堆疊做法 */
+  #cmRecordsView .cm-actions { flex-direction: column; }
+  #cmRecordsView .cm-sort-btns { width: 100%; }
+
   /* 實況宣傳新增時同樣漏掉這組規則（跟公會招募當初一樣的疏漏），
      補上同一套堆疊做法 */
   #cmLivestreamView .cm-actions { flex-direction: column; }
