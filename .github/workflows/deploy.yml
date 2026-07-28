@@ -86,6 +86,11 @@ jobs:
           # 這樣網址列才不會出現 .html，整個資料夾樹直接遞迴複製過去
           cp -r guides dist/
 
+          # privacy/ 同理：2026-07-28 從平面 privacy.html 搬成 privacy/index.html
+          # 乾淨網址，根目錄的 privacy.html 保留成 0 秒 meta refresh 轉址 stub
+          # （上面 cp 那行已經複製了），這裡另外複製新資料夾
+          cp -r privacy dist/
+
           # Bundle all JS in load order → single minified file.
           # 檔案清單直接從 index.html 現有的 <script defer src="js/...">
           # 標籤解析出來，不再手動維護一份清單——新增 js 檔案只要記得在
