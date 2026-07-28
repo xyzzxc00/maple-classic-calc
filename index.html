@@ -847,14 +847,21 @@
             <input type="number" id="cmLevel" min="1" max="200" placeholder="例：20">
           </label>
         </div>
-        <div class="field-grid two-col">
+        <div class="field-grid three-col">
           <label class="field">
             <span>EXP / 10分鐘（未加倍）* 可用 W 代替萬</span>
             <input type="text" id="cmExpPer10Min" placeholder="例：5W 或 50000" inputmode="decimal">
           </label>
           <label class="field">
+            <span>練功方式</span>
+            <select id="cmMode">
+              <option value="solo" selected>單練</option>
+              <option value="party">團練（有組隊）</option>
+            </select>
+          </label>
+          <label class="field">
             <span>備註（選填）</span>
-            <input type="text" id="cmNote" maxlength="60" placeholder="例：開技能、有吃藥水等">
+            <input type="text" id="cmNote" maxlength="60" placeholder="例：開技能、有吃藥水、3人團等">
           </label>
         </div>
         <div class="cm-form-actions">

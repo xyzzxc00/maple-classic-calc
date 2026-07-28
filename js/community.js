@@ -130,6 +130,7 @@
     map: document.getElementById("cmMap"),
     level: document.getElementById("cmLevel"),
     expPer10Min: document.getElementById("cmExpPer10Min"),
+    mode: document.getElementById("cmMode"),
     note: document.getElementById("cmNote"),
     submitBtn: document.getElementById("cmSubmitBtn"),
     cancelBtn: document.getElementById("cmCancelBtn"),
@@ -240,6 +241,9 @@
     const map = els.map.value.trim();
     const level = parseInt(els.level.value, 10);
     const expPer10Min = parseExpVal(els.expPer10Min.value);
+    // 練功方式：solo（單練）/ party（團練）。歷史紀錄沒有這個欄位（當時
+    // 表單還沒有這一欄），所以顯示端要把「沒有 mode」當成未知而不是單練
+    const mode = els.mode.value === "party" ? "party" : "solo";
     const note = els.note.value.trim();
 
     // 逐欄檢查、給對應訊息，不要把 4 種不同的錯誤都壓成同一句「請填寫所有必填欄位」——
@@ -283,6 +287,7 @@
       await db.collection("exp_records").add({
         job, map, level,
         expPer10Min: Math.round(expPer10Min),
+        mode,
         helpful: 0,
         ...(note && { note }),
         ts: firebase.firestore.FieldValue.serverTimestamp(),
@@ -290,7 +295,7 @@
       els.msg.textContent = "✓ 已送出！感謝分享";
       els.msg.className = "cm-msg ok";
       els.job.value = ""; els.map.value = "";
-      els.level.value = ""; els.expPer10Min.value = ""; els.note.value = "";
+      els.level.value = ""; els.expPer10Min.value = ""; els.mode.value = "solo"; els.note.value = "";
       allRecords = []; lastDoc = null;
       await loadRecords();
       if (window.MapleSpots) window.MapleSpots.render();
@@ -466,7 +471,7 @@
         const tsText = r.ts && r.ts.toDate ? formatTS(r.ts.toDate()) : "—";
         const hasVoted = voted.has(r.id);
         return `<div class="cm-card">
-          <div class="cm-job">${escHtml(r.job)}</div>
+          <div class="cm-job">${escHtml(r.job)}${r.mode === "party" ? '<span class="cm-mode-tag">團練</span>' : ""}</div>
           <div class="cm-map">${escHtml(r.map)}</div>
           <div class="cm-stat"><span>角色等級</span><span>Lv.${r.level}</span></div>
           <div class="cm-stat"><span>EXP / 10分鐘</span><span>${r.expPer10Min.toLocaleString()}</span></div>

@@ -936,6 +936,19 @@ a:hover { text-decoration-color: var(--accent-hover); }
   gap: 6px;
 }
 .cm-job { font-weight: 700; color: var(--ink); }
+/* 團練標籤：讓看的人一眼知道這筆效率是組隊數據（跟單練不可直接比較）。
+   沒有標籤的是單練或改版前的舊紀錄（當時表單還沒有練功方式欄位） */
+.cm-mode-tag {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--accent-text);
+  background: var(--accent-tint);
+  padding: 1px 8px;
+  border-radius: 999px;
+  margin-left: 6px;
+  vertical-align: 1px;
+}
 .cm-map { font-size: 13px; color: var(--ink-soft); }
 .cm-stat { display: flex; justify-content: space-between; font-size: 13px; }
 .cm-stat span:first-child { color: var(--ink-soft); }

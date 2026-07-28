@@ -42,14 +42,17 @@ service cloud.firestore {
 
       function isValidNew(d) {
         return d.keys().hasAll(['job', 'map', 'level', 'expPer10Min', 'helpful', 'ts'])
-          && d.keys().hasOnly(['job', 'map', 'level', 'expPer10Min', 'helpful', 'note', 'ts'])
+          && d.keys().hasOnly(['job', 'map', 'level', 'expPer10Min', 'helpful', 'note', 'mode', 'ts'])
           && d.job is string && allowedJobs().hasAny([d.job])
           && d.map is string && d.map.size() >= 1 && d.map.size() <= 40
           && d.level is int && d.level >= 1 && d.level <= 200
           && d.expPer10Min is int && d.expPer10Min > 0 && d.expPer10Min <= 1000000000
           && d.helpful == 0
           && d.ts == request.time
-          && (!('note' in d.keys()) || (d.note is string && d.note.size() <= 60));
+          && (!('note' in d.keys()) || (d.note is string && d.note.size() <= 60))
+          // mode（練功方式）2026-07-28 新增，設計成「可不存在」向後相容：
+          // 改版前就開著的舊分頁送出的表單沒有這個欄位，也要能照常通過
+          && (!('mode' in d.keys()) || d.mode in ['solo', 'party']);
       }
 
       // 只能改 helpful，且必須是 +1（防止一次灌大量讚 / 竄改其他欄位）
