@@ -914,6 +914,20 @@ a:hover { text-decoration-color: var(--accent-hover); }
      補上同一套堆疊做法 */
   #cmLivestreamView .cm-actions { flex-direction: column; }
   #livestreamFilterBtns { width: 100%; }
+
+  /* 用途小標（類型／伺服器／平台）加了之後，「標籤 + 3 顆按鈕」的最小
+     總寬度在常見手機寬度下會超過容器（實測：雪吉拉／菇菇寶貝這組在
+     375px 寬的手機上就已經溢出，320px 寬的手機上直接被 overflow:hidden
+     切掉 50~60px，最後一顆按鈕文字被裁到看不全，是真的溢出不是視覺
+     錯覺）——手機版改成標籤自己佔滿一整行、按鈕群組換到下一行再滿版寬，
+     兩者不再搶同一行的空間 */
+  .cm-sort-btns { flex-wrap: wrap; }
+  .cm-group-label {
+    width: 100%;
+    justify-content: center;
+    border-right: none;
+    border-bottom: 1px solid var(--border-strong);
+  }
 }
 .cm-filter-input {
   background: var(--surface);
