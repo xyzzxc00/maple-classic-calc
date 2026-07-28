@@ -121,6 +121,12 @@ a:hover { text-decoration-color: var(--accent-hover); }
      整條動線是 頁首｜分頁導覽｜內容，兩條線各自框住分頁導覽這一段 */
   border-bottom: 1px solid var(--border);
 }
+/* 次要頁（攻略列表／文章／隱私政策）的頁首沒有首頁那顆 CTA 按鈕墊在下面，
+   內容比首頁少一截，用同樣的 32px 下 padding 看起來會跟分隔線貼太近，
+   所以這幾頁的頁首額外加大下 padding */
+.site-header--short {
+  padding-bottom: 44px;
+}
 .eyebrow {
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -1204,12 +1210,14 @@ a:hover { text-decoration-color: var(--accent-hover); }
   color: var(--accent-text);
   background: transparent;
   border: 1px solid var(--accent-text);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 700;
   text-decoration: none;
   text-align: center;
-  /* 觸控目標 ≥40px 高（原 7px padding 只有 35px，手機易誤觸） */
-  padding: 11px 18px;
+  /* 垂直 padding 撐住 ≥40px 觸控高度不能再縮（原 7px padding 只有 35px，
+     手機易誤觸，這是踩過的坑）；水平 padding 從 18px 收到 14px 純粹是
+     視覺上不要那麼寬，不影響觸控高度 */
+  padding: 11px 14px;
   border-radius: 999px;
   transition: background 0.15s;
   /* 桌面版四顆按鈕等寬：固定寬度而不是各自吃內容撐開，寬度抓最長的
