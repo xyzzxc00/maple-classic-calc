@@ -1177,10 +1177,13 @@ a:hover { text-decoration-color: var(--accent-hover); }
   color: var(--ink-soft);
 }
 /* 左邊放站方免責聲明／版權這類長文字，右邊放行動呼籲（按鈕列＋聯絡方式）；
-   兩欄各自靠左對齊，不是整個 footer 置中的舊排法 */
+   兩欄等寬對切，各自的內容在「自己那一半」裡置中——之前兩欄都靠左對齊，
+   footer-left 又比較短，會在畫面正中間留一大截空白，看起來像排版沒對齊；
+   兩欄等寬 + 各自置中，兩塊視覺重心都落在半版中央，中間的留白就變成兩邊
+   對稱的間距，而不是一塊突兀的空白 */
 .footer-columns {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: flex-start;
   gap: 40px;
   /* 刻意不用 flex-wrap:wrap——那是照兩欄「基準寬度」加總來決定要不要
@@ -1194,13 +1197,16 @@ a:hover { text-decoration-color: var(--accent-hover); }
   display: flex;
   flex-direction: column;
   gap: 10px;
-  text-align: left;
+  text-align: center;
   min-width: 260px;
+  flex: 1 1 0;
 }
-.footer-left { flex: 1 1 320px; }
-.footer-right { flex: 0 1 380px; }
-.footer-disclaimer { margin: 0; text-align: left; }
-.footer-cta-row { display: flex; justify-content: flex-start; align-items: center; gap: 10px; flex-wrap: wrap; }
+.footer-disclaimer { margin: 0; text-align: center; }
+/* 固定用 grid 排 2 欄，而不是靠 flex-wrap 自然換行——4 顆按鈕用 flex-wrap
+   在中等寬度常常擠成「3 顆 + 1 顆」，第二排只剩一顆孤伶伶置中，寬度跟
+   第一排對不齊，看起來像沒排好；grid 兩欄固定住，永遠是工整的 2 排 2 顆，
+   兩排寬度也會一致 */
+.footer-cta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .feedback-link,
 .donate-link,
 .guides-link {
@@ -1220,9 +1226,9 @@ a:hover { text-decoration-color: var(--accent-hover); }
   padding: 11px 14px;
   border-radius: 999px;
   transition: background 0.15s;
-  /* 桌面版四顆按鈕等寬：固定寬度而不是各自吃內容撐開，寬度抓最長的
-     「意見回饋 / 錯誤回報」單行不換行所需的寬度 */
-  width: 168px;
+  /* 桌面版四顆按鈕等寬：交給 .footer-cta-row 的 grid 兩欄自動撐滿，
+     不再自己固定寬度，兩排的寬度才會跟著欄寬走、彼此對齊 */
+  width: 100%;
   box-sizing: border-box;
 }
 .donate-link:hover,
@@ -1246,7 +1252,11 @@ a:hover { text-decoration-color: var(--accent-hover); }
   margin: -11px -4px;
 }
 .footer-contact a:hover { color: var(--ink); }
-.footer-note { font-size: 12px; line-height: 1.6; margin: 0; max-width: 480px; }
+/* max-width 拿掉——之前限制 480px 是單欄置左排版時代怕整行太長不好讀，
+   但欄寬本身已經被 .footer-left 收窄了；留著這個 max-width 會讓這幾段
+   文字的框比同欄位裡 disclaimer／contact 的框窄，置中軸線對不齊，三段文字
+   看起來偏左、跟上下兩行沒對齊 */
+.footer-note { font-size: 12px; line-height: 1.6; margin: 0; }
 @media (max-width: 480px) {
   /* 右下角有個 fixed 定位的回到頂端按鈕（bottom:20px、高 46px，算下來
      要淨空到 66px 才不會壓到），原本 40px 不夠，最後一行「隱私政策」
@@ -1292,7 +1302,8 @@ a:hover { text-decoration-color: var(--accent-hover); }
   .footer-cta-row { justify-content: center; }
 }
 @media (max-width: 640px) {
-  .footer-cta-row { flex-direction: column; width: 100%; align-items: stretch; flex-wrap: nowrap; }
+  /* 桌機是 grid 兩欄，手機版收回單欄堆疊，蓋回原本的樣子 */
+  .footer-cta-row { display: flex; flex-direction: column; width: 100%; align-items: stretch; flex-wrap: nowrap; }
   .feedback-link,
   .donate-link,
   .guides-link { width: 100%; text-align: center; box-sizing: border-box; }
