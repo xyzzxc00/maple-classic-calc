@@ -846,28 +846,37 @@ a:hover { text-decoration-color: var(--accent-hover); }
 .cm-sort-btn:hover { background: var(--accent-tint); }
 .cm-sort-btn.active { background: var(--accent); color: var(--on-accent); }
 .cm-actions .btn-primary { flex: 1; }
-/* 組隊揪團（類型篩選）、擺攤收購（類型／伺服器篩選）的按鈕組，要的效果
-   是「組內用最長那個標籤的字數決定寬度、組內等寬，其餘空間都留給旁邊
-   的「＋」按鈕」——不是要篩選按鈕組跟「＋」按鈕也等寬（那樣篩選按鈕組
-   會被硬撐太寬，不好看）。做法：
-   1. 篩選按鈕組本身 flex-shrink:0，不被「＋」按鈕（flex:1，會盡量長大
-      吃掉剩餘空間）擠壓縮小，維持自己該有的天然寬度。
-   2. 組內按鈕 flex:1，讓短標籤（「全部」）長大填滿跟長標籤一樣的寬度。
-      min-width 明確設成組內最長標籤（文字+padding）的天然寬度：試過用
-      min-width:0 蓋掉預設的 min-width:auto，結果 flex 容器的內在寬度
-      算法會低估最長標籤需要的空間（實測「組隊任務」需要 84px 卻只分到
-      67px），文字被擠到跟分隔線黏在一起。改成明確寫死 min-width 這個
-      floor 才是兩者都對的做法：夠寬（不擠、不裁切），三個又還是等寬
-      （因為都卡在同一個 floor，wrapper 沒有多的內在寬度留給 flex-grow
-      再分配）。 */
+/* 桌面版工具列左右各半：左邊篩選（一組或多組）、右邊「＋」按鈕，五個
+   子分頁不管篩選按鈕多寡都用同一個比例，不會再因為擺攤收購兩組篩選
+   特別長、公會招募只有一組特別短，讓每個子分頁的工具列長短不一。
+   2026-07-28 從「篩選組維持天然寬度、＋按鈕吃剩餘空間」改成明確寫死
+   50%／50%（擺攤收購因為有兩組篩選，各佔左半邊的一半，即 25%／25%）。
+   filter-shrink:0 保留：basis 50%/25% 只是「目標寬度」，真的擠不下時
+   （視窗窄但還沒窄到 480px 進手機版）還是要優先維持組內最長標籤（例如
+   「組隊任務」）的天然寬度，不能為了湊滿 50% 反而讓文字跟分隔線擠在
+   一起——basis 隨視窗變寬時會把該有的一半空間分到。
+   flex-shrink:0 本身不夠：.cm-sort-btns 有 overflow:hidden（為了讓圓角
+   乾淨），這會讓 flex 子項目的自動最小寬度（min-width:auto→內容天然
+   寬度）失效變成 0——單組佔 50% 時空間本來就夠寬，沒踩到這個坑；但
+   擺攤收購兩組各佔 25% 互搶空間時，25% 常常小於「標籤+3顆按鈕」的
+   天然寬度，容器會被壓縮到比按鈕還窄，超出的部分被 overflow:hidden
+   吃掉，最後一顆按鈕的文字被裁到看不全（實測「菇菇寶貝」被裁掉快一半）。
+   解法是幫這兩組明確寫死 min-width（標籤天然寬度+3顆按鈕 min-width+
+   分隔線），跟下面按鈕自己的 min-width 用同一個邏輯：basis 只決定
+   「空間夠時要長多寬」，min-width 才是真正擋住 overflow:hidden 副作用
+   的下限。 */
 #cmRecordsView .cm-sort-btns,
 #cmTeamView .cm-sort-btns,
-#stallTypeFilterBtns,
-#stallServerFilterBtns,
 #guildServerFilterBtns,
 #livestreamFilterBtns {
-  flex-shrink: 0;
+  flex: 1 0 50%;
 }
+#stallTypeFilterBtns,
+#stallServerFilterBtns {
+  flex: 1 0 25%; /* 兩組相加＝整排的一半，兩組彼此之間也等寬 */
+}
+#stallTypeFilterBtns { min-width: 229px; } /* 標籤「類型」39px + 3×62px 按鈕 + 分隔線 */
+#stallServerFilterBtns { min-width: 318px; } /* 標籤「伺服器」50px + 3×88px 按鈕 + 分隔線 */
 /* 回報紀錄的「排序」（最新／效率）當初新增時漏掉了這條等寬規則，兩顆
    按鈕各自照文字天然寬度撐開，「最新」比「效率」寬，兩顆看起來沒對齊 */
 #cmRecordsView .cm-sort-btns .cm-sort-btn,
@@ -885,25 +894,27 @@ a:hover { text-decoration-color: var(--accent-hover); }
   flex: 1;
   min-width: 90px; /* 最長標籤「YouTube」天然寬度 86px + 緩衝 */
 }
+#cmRecordsView .cm-actions .btn-primary,
 #cmTeamView .cm-actions .btn-primary,
 #cmStallView .cm-actions .btn-primary,
 #cmGuildView .cm-actions .btn-primary,
 #cmLivestreamView .cm-actions .btn-primary {
   /* 跟篩選按鈕群組同一套邏輯：white-space:nowrap 避免「＋ 我要揪團」
-     這種按鈕文字在被壓窄之後自己斷成兩行 */
+     這種按鈕文字在被壓窄之後自己斷成兩行；basis 50% 呼應上面篩選組的
+     50%／25%，湊成右半邊 */
   white-space: nowrap;
+  flex: 1 1 50%;
+}
+/* 擺攤收購有兩組篩選（類型+伺服器），min-width 加起來 547px，比其他
+   分頁（只有一組、頂多 314px）早很多就會撐不住——實測 820px 寬時「+我要
+   擺攤/收購」按鈕已經被壓到 151px、整排溢出捲軸；860px 才安全（180px），
+   保留一點餘裕抓到 900px。所以擺攤收購不能跟其他分頁共用下面 480px 那個
+   斷點，要在更寬的地方就先切成上下堆疊。 */
+@media (max-width: 900px) {
+  #cmStallView .cm-actions { flex-direction: column; }
+  #stallTypeFilterBtns, #stallServerFilterBtns { width: 100%; }
 }
 @media (max-width: 480px) {
-  /* 擺攤收購的交易類型／伺服器篩選跟「我要發布」按鈕桌面版是並排擠在
-     同一個 .cm-actions 裡（三個一排），手機版三個都要滿版寬的話沒辦法
-     並排（會互搶寬度，變回被壓成一條的老問題），改成上下堆疊，每個
-     各自佔一整排 */
-  #cmStallView .cm-actions { flex-direction: column; }
-  /* 賣／收、伺服器兩組篩選按鈕滿版寬，跟上下的「我要發布」按鈕寬度
-     看齊，不要維持內容自然寬度擠成一小條（組內按鈕等寬平分已經是
-     上面不分版面大小都套用的規則，這裡只需要再讓整組滿版寬） */
-  #stallTypeFilterBtns, #stallServerFilterBtns { width: 100%; }
-
   /* 組隊揪團同一套做法：類型篩選（全部/組隊任務/王團）跟「我要揪團」
      按鈕手機版改上下堆疊、篩選按鈕滿版寬 */
   #cmTeamView .cm-actions { flex-direction: column; }
