@@ -117,11 +117,22 @@ const JOBS_DATA = [
 // 注意：firestore.rules 的 allowedJobs() 白名單是獨立維護的伺服器端規則，
 // 沒辦法直接讀這裡的 JS，因此改動職業名稱時「一定要」手動同步過去，
 // 否則使用者選到的職業會被 Firestore 規則擋掉，送出時只會看到「送出失敗」。
-const JOB_OPTIONS_HTML = JOBS_DATA.map(
-  (job) =>
-    `<optgroup label="${job.branch}">` +
-    job.paths.map((p) => `<option value="${p.fourth}">${p.fourth}</option>`).join("") +
-    `</optgroup>`
-).join("");
+//
+// 一轉（劍士/法師/弓箭手/盜賊/海盜）獨立放一個 optgroup 排最前面，不
+// 掛在各自的系底下：開服初期大家都還是一轉，還沒分流到劍士系/法師系
+// 這種二轉以上才有意義的分類，硬塞進某個系的 optgroup 底下反而混淆。
+const FIRST_JOB_OPTIONS_HTML =
+  `<optgroup label="一轉（尚未分流）">` +
+  JOBS_DATA.map((job) => `<option value="${job.firstJob}">${job.firstJob}</option>`).join("") +
+  `</optgroup>`;
+
+const JOB_OPTIONS_HTML =
+  FIRST_JOB_OPTIONS_HTML +
+  JOBS_DATA.map(
+    (job) =>
+      `<optgroup label="${job.branch}">` +
+      job.paths.map((p) => `<option value="${p.fourth}">${p.fourth}</option>`).join("") +
+      `</optgroup>`
+  ).join("");
 
 window.MapleJobOptionsHtml = JOB_OPTIONS_HTML;

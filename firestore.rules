@@ -26,12 +26,14 @@ service cloud.firestore {
 
     match /exp_records/{recordId} {
 
-      // 允許的職業，須跟前端 js/jobsData.js 的 JOBS_DATA[].paths[].fourth 保持一致
+      // 允許的職業，須跟前端 js/jobsData.js 的 JOBS_DATA[].paths[].fourth 跟
+      // JOBS_DATA[].firstJob（一轉，開服初期還沒分流的玩家用）保持一致
       // （前端 3 個 <select> 的選項都是從那份資料動態產生的單一來源）。
       // Firestore 規則沒辦法讀取前端 JS，所以改 jobsData.js 的職業名稱時，
       // 一定要手動同步更新這裡，否則使用者選到的職業會被下面 create 規則擋掉。
       function allowedJobs() {
         return [
+          '劍士', '法師', '弓箭手', '盜賊', '海盜',
           '英雄', '聖騎士', '黑騎士',
           '火毒大魔導士', '冰雷大魔導士', '主教',
           '箭神', '神射手',
@@ -76,9 +78,10 @@ service cloud.firestore {
       // 跟 exp_records 的 allowedJobs() 是同一份白名單，Firestore 規則的
       // function 只在宣告它的 match 區塊內有效，沒辦法跨 match 共用，
       // 所以這裡重複宣告一次——改職業名稱時兩處都要同步（跟 js/jobsData.js
-      // 的 JOBS_DATA[].paths[].fourth 一致）。
+      // 的 JOBS_DATA[].paths[].fourth 跟 JOBS_DATA[].firstJob 一致）。
       function allowedJobs() {
         return [
+          '劍士', '法師', '弓箭手', '盜賊', '海盜',
           '英雄', '聖騎士', '黑騎士',
           '火毒大魔導士', '冰雷大魔導士', '主教',
           '箭神', '神射手',
