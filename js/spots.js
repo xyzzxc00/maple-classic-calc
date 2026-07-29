@@ -44,12 +44,12 @@
     const groups = new Map();
     records.forEach((r) => {
       if (!groups.has(r.map)) {
-        groups.set(r.map, { map: r.map, jobs: new Set(), levels: [], expRates: [], count: 0, partyCount: 0 });
+        groups.set(r.map, { map: r.map, jobs: new Set(), levels: [], expRates: [], partyExpRates: [], count: 0, partyCount: 0 });
       }
       const g = groups.get(r.map);
       g.jobs.add(r.job);
       g.levels.push(r.level);
-      if (r.mode === "party") g.partyCount++;
+      if (r.mode === "party") { g.partyCount++; g.partyExpRates.push(r.expPer10Min); }
       else g.expRates.push(r.expPer10Min);
       g.count++;
     });
@@ -59,8 +59,15 @@
       levelMin: Math.min(...g.levels),
       levelMax: Math.max(...g.levels),
       // 全部都是團練回報時沒有可平均的單練數據，avg 為 null，卡片顯示「僅團練回報」
+      // ——但卡片上還是要秀出團練自己的平均，不然玩家點進來只看到一個「—」
+      // 完全沒資訊，見下面 avgPartyExpPer10Min。這個 null 不受影響，排序
+      // （isSuitable 之後的次要排序）還是照舊把僅團練回報排到同組最後，
+      // 避免組隊經驗分配拉高的數字混進單練效率排名。
       avgExpPer10Min: g.expRates.length
         ? Math.round(g.expRates.reduce((a, b) => a + b, 0) / g.expRates.length)
+        : null,
+      avgPartyExpPer10Min: g.partyExpRates.length
+        ? Math.round(g.partyExpRates.reduce((a, b) => a + b, 0) / g.partyExpRates.length)
         : null,
       partyCount: g.partyCount,
       count: g.count,
@@ -123,7 +130,7 @@
           return `<div class="cm-card${fit ? " spot-fit" : ""}">
         <div class="cm-job">${escHtml(s.map)}</div>
         <div class="cm-map">回報過的角色等級 Lv.${s.levelMin} - ${s.levelMax}</div>
-        <div class="cm-stat"><span>平均 EXP / 10分鐘${s.avgExpPer10Min === null ? "（僅團練）" : ""}</span><span>${s.avgExpPer10Min === null ? "—" : s.avgExpPer10Min.toLocaleString()}</span></div>
+        <div class="cm-stat"><span>平均 EXP / 10分鐘${s.avgExpPer10Min === null ? "（僅團練）" : ""}</span><span>${s.avgExpPer10Min === null ? (s.avgPartyExpPer10Min === null ? "—" : s.avgPartyExpPer10Min.toLocaleString()) : s.avgExpPer10Min.toLocaleString()}</span></div>
         <div class="cm-stat"><span>回報職業</span><span>${escHtml(s.jobs.join("、"))}</span></div>
         <div class="cm-note">${partyNote}</div>
       </div>`;
