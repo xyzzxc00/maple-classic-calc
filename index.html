@@ -140,7 +140,7 @@
       "name": "新楓之谷經典版等級上限是幾等？",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "等級上限為 Lv.200，從 Lv.1 練到滿等總共需要 38,703,313,816（約 387 億）EXP。各等級所需經驗值可用本工具試算。"
+        "text": "等級上限設計為 Lv.200，但經典版開服階段目前僅開放至 Lv.100，200 等會隨後續版本更新逐步開放。從 Lv.1 練到 Lv.200 總共需要 38,703,313,816（約 387 億）EXP，各等級所需經驗值可用本工具試算。"
       }
     },
     {
@@ -573,10 +573,14 @@
 
     <div id="calcGachaView" role="tabpanel" aria-labelledby="calcSubGacha" hidden>
       <details class="cm-disclaimer-details">
-        <summary>⚠️ 骨架測試階段：道具與機率都是假資料</summary>
-        <p class="cm-disclaimer">下面的道具跟機率都是示意用的假資料，不是遊戲正式數值。正式的轉蛋道具與機率請以官方公告的「機率商品說明」為準，等資料出來後會校正成真實數字。</p>
+        <summary>⚠️ 機率商品說明（官方公告）</summary>
+        <p class="cm-disclaimer">1. 每期商品機率會依照內容物不同調整，依照當下公布的機率為主。<br>
+        2. 限定時間販售商品，依照當下公布的機率為主。<br>
+        3. 相關機率數據四捨五入，取小數點後兩位數，故機率總和不一定為 100%。<br>
+        4. 詳細道具資訊、時間日期請依遊戲內容為主，若有任何特殊異動將另行於官網公告說明。<br>
+        5. 此區為機會中獎商品，消費者購買或參與活動不代表即可獲得特定商品。</p>
       </details>
-      <p class="cm-disclaimer">純粹好玩用，不會花到任何真實貨幣或遊戲內道具，單純模擬機率讓大家試試手氣。</p>
+      <p class="cm-disclaimer">下面是純前端模擬，不會花到任何真實貨幣或遊戲內道具，單純用官方公布的機率讓大家試試手氣，抽的結果不會影響遊戲內帳號。</p>
 
   <section class="calc-section">
     <div class="panel-head">
@@ -585,7 +589,16 @@
     </div>
 
     <div class="panel-head scroll-sub-head">
-      <h3>道具池（示意機率）</h3>
+      <h3>轉蛋機</h3>
+    </div>
+    <label class="field">
+      <span>選擇轉蛋機</span>
+      <select id="gachaBoxSelect"></select>
+    </label>
+    <p class="cm-disclaimer" id="gachaBoxPeriod"></p>
+
+    <div class="panel-head scroll-sub-head">
+      <h3>道具池（官方機率）</h3>
     </div>
     <div class="exp-rate-box" id="gachaPoolBox"></div>
 
@@ -1235,7 +1248,7 @@
     </details>
     <details class="faq-item">
       <summary>新楓之谷經典版等級上限是幾等？</summary>
-      <p>等級上限為 Lv.200，從 Lv.1 練到滿等總共需要 38,703,313,816（約 387 億）EXP。各等級所需經驗值可用本工具試算，完整數字見「<a href="guides/exp-table/">經驗值表 Lv.1~200 完整版</a>」。</p>
+      <p>等級上限設計為 Lv.200，但經典版開服階段目前僅開放至 Lv.100，200 等會隨後續版本更新逐步開放。從 Lv.1 練到 Lv.200 總共需要 38,703,313,816（約 387 億）EXP，各等級所需經驗值可用本工具試算，完整數字見「<a href="guides/exp-table/">經驗值表 Lv.1~200 完整版</a>」。</p>
     </details>
     <details class="faq-item">
       <summary>新楓之谷經典版是官方伺服器嗎？</summary>

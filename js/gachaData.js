@@ -1,21 +1,198 @@
 /**
- * gachaData.js — 轉蛋模擬的道具池資料（骨架階段：全部是示意用假資料）
+ * gachaData.js — 轉蛋模擬的道具池資料
  * -----------------------------------------------------------------
- * 遊戲還沒上線，實際轉蛋道具/機率都還不知道（官方選單裡有「機率商品
- * 說明」，代表確定會有機率型商品，但正式數字要等上線或官方公告才有）。
- * 這裡先放一組示意用的假道具/機率，只是為了把 UI 骨架搭出來給你看排版
- * 跟互動，等正式資料出來後把這個陣列換成真的道具/機率就好，gacha.js
- * 的邏輯不用改。
+ * 資料來源：官方「機率商品說明」頁面公告的機率，非玩家推測值。等級標示
+ * S/A/B/C 為官方原始分級，數字為官方公布的中獎機率（已四捨五入取小數
+ * 後兩位，故單一箱總和不一定剛好等於 100%，這是官方公告本身的特性，
+ * 不是這裡的計算誤差）。
  *
- * weight 是相對權重，不用剛好加總 100（抽取邏輯會自己按比例算），但為了
- * 方便閱讀這裡還是抓成總和 100。
+ * 部分道具為角色性別鎖定的成對道具（例如男/女泳裝），官方說明：無法
+ * 獲得該性別道具時，機率會均等分配到其他獎勵——這裡仍照官方表格原始
+ * 數字條列，不特別處理性別互斥邏輯。
+ *
+ * weight 直接採用官方公布的機率數字（不用剛好加總 100，抽取邏輯會自己
+ * 按比例算）。之後有新一期轉蛋上架，比照這個結構加新的 box 進
+ * GACHA_BOXES，gacha.js 的邏輯不用改。
  * -----------------------------------------------------------------
  */
-const GACHA_ITEMS = [
-  { name: "示意道具・木劍", rarity: "普通", weight: 50 },
-  { name: "示意道具・鐵劍", rarity: "稀有", weight: 30 },
-  { name: "示意道具・附魔石", rarity: "珍稀", weight: 15 },
-  { name: "示意道具・傳說武器", rarity: "傳說", weight: 5 },
+const GACHA_BOXES = [
+  {
+    id: "shining-comet",
+    name: "閃亮彗星",
+    period: "2026/07/29 09:00 ～ 2026/08/13 07:59",
+    items: [
+      { name: "冷冽之痕", rarity: "A", weight: 1.30 },
+      { name: "冷豔之心", rarity: "A", weight: 1.30 },
+      { name: "冷豔之服", rarity: "A", weight: 1.20 },
+      { name: "冷冽之服", rarity: "A", weight: 1.20 },
+      { name: "冷豔的步伐", rarity: "A", weight: 1.50 },
+      { name: "冷冽的步伐", rarity: "A", weight: 1.50 },
+      { name: "冷冽的束縛", rarity: "A", weight: 1.00 },
+      { name: "冷冽的希望", rarity: "A", weight: 1.00 },
+      { name: "五顏六色冰淇淋", rarity: "B", weight: 2.50 },
+      { name: "海上男人的海灘褲", rarity: "B", weight: 2.40 },
+      { name: "海灘辣妹的泳裝", rarity: "B", weight: 2.40 },
+      { name: "海上男人的夾腳拖", rarity: "B", weight: 2.50 },
+      { name: "海灘辣妹的夾腳拖", rarity: "B", weight: 2.50 },
+      { name: "請給我冰淇淋", rarity: "B", weight: 2.20 },
+      { name: "黑色蝴蝶結髮圈", rarity: "C", weight: 4.88 },
+      { name: "煎蛋帽", rarity: "C", weight: 4.88 },
+      { name: "呱呱鴨名牌戒指", rarity: "C", weight: 4.88 },
+      { name: "呱呱鴨聊天戒指", rarity: "C", weight: 4.88 },
+      { name: "藍畫工服", rarity: "C", weight: 4.88 },
+      { name: "法國足球制服No.14", rarity: "C", weight: 4.88 },
+      { name: "復古套頭T恤", rarity: "C", weight: 4.88 },
+      { name: "絨毛粉色套頭夾克", rarity: "C", weight: 4.88 },
+      { name: "櫻桃運動褲", rarity: "C", weight: 4.88 },
+      { name: "寬版七分褲", rarity: "C", weight: 4.88 },
+      { name: "墮落城市高工皮鞋", rarity: "C", weight: 4.88 },
+      { name: "魔法森林魔法學校皮鞋", rarity: "C", weight: 4.88 },
+      { name: "粉紅色翅膀包包", rarity: "C", weight: 4.88 },
+      { name: "藍色翅膀包包", rarity: "C", weight: 4.88 },
+      { name: "紅色薔薇", rarity: "C", weight: 4.88 },
+      { name: "幸福青鳥", rarity: "C", weight: 4.88 },
+    ],
+  },
+  {
+    id: "brilliant-comet",
+    name: "璀璨彗星",
+    period: "2026/07/29 09:00 ～ 2026/08/13 07:59",
+    items: [
+      { name: "血腥守護者帽", rarity: "S", weight: 1.10 },
+      { name: "血腥新娘面紗", rarity: "S", weight: 1.10 },
+      { name: "血腥守護者", rarity: "S", weight: 1.00 },
+      { name: "血腥新娘", rarity: "S", weight: 1.00 },
+      { name: "血腥中筒靴", rarity: "S", weight: 1.30 },
+      { name: "血腥高跟鞋", rarity: "S", weight: 1.30 },
+      { name: "血腥薔薇", rarity: "S", weight: 1.20 },
+      { name: "血腥童話", rarity: "S", weight: 1.00 },
+      { name: "餅乾糖果帽", rarity: "A", weight: 1.28 },
+      { name: "餅乾糖果連帽衣", rarity: "A", weight: 1.28 },
+      { name: "餅乾糖果長袍", rarity: "A", weight: 1.14 },
+      { name: "餅乾糖果團隊裝", rarity: "A", weight: 1.14 },
+      { name: "餅乾糖果披風", rarity: "A", weight: 1.31 },
+      { name: "餅乾糖果靴子", rarity: "A", weight: 1.38 },
+      { name: "草莓蛋糕叉子", rarity: "A", weight: 1.21 },
+      { name: "血色帽子", rarity: "B", weight: 2.90 },
+      { name: "血色晚宴服", rarity: "B", weight: 2.62 },
+      { name: "血色晚禮服", rarity: "B", weight: 2.62 },
+      { name: "血色披肩", rarity: "B", weight: 2.96 },
+      { name: "魔神披風(女)", rarity: "B", weight: 2.96 },
+      { name: "漂漂帽T", rarity: "A", weight: 1.31 },
+      { name: "呼喵喵藍色衣袖", rarity: "A", weight: 1.28 },
+      { name: "呼喵喵膝上襪", rarity: "A", weight: 1.45 },
+      { name: "黑貓娃娃武器", rarity: "A", weight: 1.21 },
+      { name: "黑色水手服帽子", rarity: "B", weight: 2.76 },
+      { name: "黑色水手服緞帶帽子", rarity: "B", weight: 2.76 },
+      { name: "黑色水軍服", rarity: "B", weight: 2.69 },
+      { name: "黑色水手服", rarity: "B", weight: 2.69 },
+      { name: "黑色水手鞋", rarity: "B", weight: 2.90 },
+      { name: "綠豬帽", rarity: "A", weight: 1.34 },
+      { name: "可愛豬豬男生套組", rarity: "A", weight: 1.24 },
+      { name: "可愛豬豬女生套組", rarity: "A", weight: 1.24 },
+      { name: "可愛豬豬武器", rarity: "A", weight: 1.21 },
+      { name: "寶貝貓咪帽", rarity: "B", weight: 2.76 },
+      { name: "男生寶貝貓咪套裝", rarity: "B", weight: 2.72 },
+      { name: "女生寶貝貓咪套裝", rarity: "B", weight: 2.72 },
+      { name: "寶貝貓咪圍巾", rarity: "B", weight: 2.83 },
+      { name: "喵鳴拳套", rarity: "B", weight: 2.90 },
+      { name: "寶貝貓咪臉飾", rarity: "B", weight: 2.93 },
+      { name: "寶貝貓咪鞋", rarity: "B", weight: 2.76 },
+      { name: "雪月花・雪", rarity: "A", weight: 1.34 },
+      { name: "雪月花・月", rarity: "A", weight: 1.17 },
+      { name: "雪月花・花", rarity: "A", weight: 1.45 },
+      { name: "白夜叉角", rarity: "A", weight: 1.24 },
+      { name: "白夜叉套服", rarity: "A", weight: 1.17 },
+      { name: "白夜叉斗篷", rarity: "A", weight: 1.28 },
+      { name: "白夜叉木屐", rarity: "A", weight: 1.45 },
+      { name: "白夜叉刺青", rarity: "A", weight: 1.34 },
+      { name: "櫻花刀", rarity: "A", weight: 1.24 },
+      { name: "過度沉迷者的帽子", rarity: "B", weight: 2.59 },
+      { name: "過度沉迷者T恤", rarity: "B", weight: 2.48 },
+      { name: "過度沉迷者褲", rarity: "B", weight: 2.48 },
+      { name: "過度沉迷者書包", rarity: "B", weight: 2.90 },
+      { name: "過度沉迷者鞋", rarity: "B", weight: 2.41 },
+    ],
+  },
+  // 皇家美容院是「美髮券／整形券」各自獨立販售，男女、髮型/整形各是
+  // 獨立一份 100% 機率表（不是合在一起抽），所以拆成 4 個獨立 box，
+  // 不是 1 個 box 裡分 4 組
+  {
+    id: "royal-salon-hair-m",
+    name: "皇家美容院・皇家美髮(男)",
+    period: "2026/07/29 09:00 ～ 2026/08/12 23:59",
+    items: [
+      { name: "黑色金賢重造型", weight: 2.50 },
+      { name: "黑色半熟男孩造型", weight: 2.50 },
+      { name: "黑色簡短造型", weight: 2.50 },
+      { name: "黑色妖精翁造型", weight: 2.50 },
+      { name: "黑色妖精王造型", weight: 7.50 },
+      { name: "黑色伊卡勒特造型", weight: 7.50 },
+      { name: "黑色帥氣日系造型", weight: 7.50 },
+      { name: "黑色影武者造型", weight: 7.50 },
+      { name: "黑色軍刀頭", weight: 15.00 },
+      { name: "黑色街頭雅痞髮型", weight: 15.00 },
+      { name: "黑色擴散鬃毛造型", weight: 15.00 },
+      { name: "黑色側分飄逸造型", weight: 15.00 },
+    ],
+  },
+  {
+    id: "royal-salon-hair-f",
+    name: "皇家美容院・皇家美髮(女)",
+    period: "2026/07/29 09:00 ～ 2026/08/12 23:59",
+    items: [
+      { name: "黑色華爾滋造型", weight: 2.50 },
+      { name: "黑色馬奧奈特造型", weight: 2.50 },
+      { name: "黑色活潑波浪髮型", weight: 2.50 },
+      { name: "黑色圈圈髮尾造型", weight: 2.50 },
+      { name: "黑色氣質愛心造型", weight: 7.50 },
+      { name: "黑色蝴蝶側尾造型", weight: 7.50 },
+      { name: "黑色嬌俏雙尾造型", weight: 7.50 },
+      { name: "黑色蘋果長髮造型", weight: 7.50 },
+      { name: "黑色中國風情造型", weight: 15.00 },
+      { name: "黑色輕盈雙辮造型", weight: 15.00 },
+      { name: "黑色雙角捲造型", weight: 15.00 },
+      { name: "黑色娃娃盤髮造型", weight: 15.00 },
+    ],
+  },
+  {
+    id: "royal-salon-face-m",
+    name: "皇家美容院・皇家整形(男)",
+    period: "2026/07/29 09:00 ～ 2026/08/12 23:59",
+    items: [
+      { name: "惹人愛臉型(男)", weight: 10.00 },
+      { name: "龍魔導士臉型", weight: 10.00 },
+      { name: "清純的臉型", weight: 10.00 },
+      { name: "笑咪咪臉型(男)", weight: 7.78 },
+      { name: "有自信臉型", weight: 7.78 },
+      { name: "很謹慎臉型", weight: 7.78 },
+      { name: "無所謂臉型", weight: 7.78 },
+      { name: "瞪大眼臉型", weight: 7.78 },
+      { name: "乾淨的臉型", weight: 7.78 },
+      { name: "好性感臉型", weight: 7.78 },
+      { name: "下垂眼臉型", weight: 7.78 },
+      { name: "小動物臉型", weight: 7.78 },
+    ],
+  },
+  {
+    id: "royal-salon-face-f",
+    name: "皇家美容院・皇家整形(女)",
+    period: "2026/07/29 09:00 ～ 2026/08/12 23:59",
+    items: [
+      { name: "不耐煩臉型", weight: 10.00 },
+      { name: "超新星臉型", weight: 10.00 },
+      { name: "好清純臉型", weight: 10.00 },
+      { name: "無所謂臉型", weight: 7.78 },
+      { name: "瞪著你臉型", weight: 7.78 },
+      { name: "迷人的臉型", weight: 7.78 },
+      { name: "好性感臉型", weight: 7.78 },
+      { name: "下垂眼臉型", weight: 7.78 },
+      { name: "小動物臉型", weight: 7.78 },
+      { name: "不理人臉型", weight: 7.78 },
+      { name: "仁王眼臉型", weight: 7.78 },
+      { name: "大眼睛臉型(女)", weight: 7.78 },
+    ],
+  },
 ];
 
-window.MapleGachaItems = GACHA_ITEMS;
+window.MapleGachaBoxes = GACHA_BOXES;
