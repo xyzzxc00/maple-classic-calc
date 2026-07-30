@@ -187,8 +187,8 @@
 <nav class="wrap nav-tabs-wrap" aria-label="工具分頁">
   <div class="nav-tabs" role="tablist">
     <button class="nav-tab active" id="navCalc" type="button" role="tab" aria-selected="true" aria-controls="pageCalc">計算工具</button>
-    <button class="nav-tab" id="navGuides" type="button" role="tab" aria-selected="false" aria-controls="pageGuides">玩法攻略</button>
     <button class="nav-tab" id="navCm" type="button" role="tab" aria-selected="false" aria-controls="pageCm">社群資料</button>
+    <button class="nav-tab" id="navGuides" type="button" role="tab" aria-selected="false" aria-controls="pageGuides">玩法攻略</button>
     <button class="nav-tab" id="navLegacy" type="button" role="tab" aria-selected="false" aria-controls="pageLegacy">過往資料</button>
   </div>
 </nav>
@@ -895,9 +895,9 @@
 
     <div class="subtabs" role="tablist">
       <button class="subtab active" id="legacySubSpots" type="button" role="tab" aria-selected="true" aria-controls="legacySpotsView">練功地點</button>
-      <button class="subtab" id="legacySubBosses" type="button" role="tab" aria-selected="false" aria-controls="legacyBossView">野王出沒地點</button>
-      <button class="subtab" id="legacySubBossPrequests" type="button" role="tab" aria-selected="false" aria-controls="legacyBossPrequestView">BOSS前置</button>
       <button class="subtab" id="legacySubJobBuilds" type="button" role="tab" aria-selected="false" aria-controls="legacyJobBuildsView">職業配點</button>
+      <button class="subtab" id="legacySubBosses" type="button" role="tab" aria-selected="false" aria-controls="legacyBossView">野王地點</button>
+      <button class="subtab" id="legacySubBossPrequests" type="button" role="tab" aria-selected="false" aria-controls="legacyBossPrequestView">BOSS前置</button>
     </div>
 
     <div id="legacySpotsView" role="tabpanel" aria-labelledby="legacySubSpots">
@@ -906,6 +906,19 @@
         <p class="cm-disclaimer">這裡整理的是 Big Bang 大改版前舊版楓之谷的練功地點，僅供參考，不是台版經典版的即時回報（正式回報請看「社群資料庫」的「練功地點」）。不含王級頭目，等級門檻/地圖如與正式版有出入會再校正。獨立頁面版本見<a href="guides/legacy-leveling-spots/">舊版練功地點大全 →</a></p>
       </details>
       <div id="legacySpotsList"></div>
+    </div>
+
+    <div id="legacyJobBuildsView" role="tabpanel" aria-labelledby="legacySubJobBuilds" hidden>
+      <details class="cm-disclaimer-details">
+        <summary>資料來源與版本差異說明</summary>
+        <p class="cm-disclaimer">這裡整理的是 Big Bang 大改版前舊版楓之谷各職業一轉到四轉的技能點法建議，交叉參考 PTT 楓之谷板與巴哈姆特哈啦板／攻略百科的當年文章，加上海外舊版攻略站整理而成，僅供參考，不是台版經典版的正式攻略。職業名與技能名一律採台版大改版前的官方名稱，查不到台版名稱的會直接註明待查；資料只採官方正服來源，不使用私服數值。不同來源偶有點法上的差異，已在各條路線下方的「衝突點」註明；實際點法可依個人玩法調整，之後也會依台版經典版正式資料再校正。</p>
+      </details>
+      <div class="notice-banner">
+        <div class="notice-body">
+          <p>不知道該選哪個系？<a href="guides/job-selection-guide/">看新手選職業指南 →</a>　選好了想看完整任務流程？<a href="guides/job-advancement-guide/">看完整轉職路線攻略 →</a></p>
+        </div>
+      </div>
+      <div id="legacyJobBuildsList"></div>
     </div>
 
     <div id="legacyBossView" role="tabpanel" aria-labelledby="legacySubBosses" hidden>
@@ -924,18 +937,6 @@
       <div id="legacyBossPrequestList"></div>
     </div>
 
-    <div id="legacyJobBuildsView" role="tabpanel" aria-labelledby="legacySubJobBuilds" hidden>
-      <details class="cm-disclaimer-details">
-        <summary>資料來源與版本差異說明</summary>
-        <p class="cm-disclaimer">這裡整理的是 Big Bang 大改版前舊版楓之谷各職業一轉到四轉的技能點法建議，交叉參考 PTT 楓之谷板與巴哈姆特哈啦板／攻略百科的當年文章，加上海外舊版攻略站整理而成，僅供參考，不是台版經典版的正式攻略。職業名與技能名一律採台版大改版前的官方名稱，查不到台版名稱的會直接註明待查；資料只採官方正服來源，不使用私服數值。不同來源偶有點法上的差異，已在各條路線下方的「衝突點」註明；實際點法可依個人玩法調整，之後也會依台版經典版正式資料再校正。</p>
-      </details>
-      <div class="notice-banner">
-        <div class="notice-body">
-          <p>不知道該選哪個系？<a href="guides/job-selection-guide/">看新手選職業指南 →</a>　選好了想看完整任務流程？<a href="guides/job-advancement-guide/">看完整轉職路線攻略 →</a></p>
-        </div>
-      </div>
-      <div id="legacyJobBuildsList"></div>
-    </div>
   </section>
 
 </div>
