@@ -16,13 +16,11 @@
   // 「下一頁」就能看到更多資料，多出來的讀取量換算費用可忽略不計
   const PAGE_SIZE = 50;
   const VOTED_KEY = "maple_classic_voted";
-  // 一人一則＋冷卻機制（組隊揪團／擺攤收購／公會招募／實況宣傳共用）的裝置
-  // 識別碼，產生一次就長期存在 localStorage，四個板都拿同一個值當 Firestore
-  // 文件 ID（doc(deviceId).set()，不是 add()）——同一台裝置在同一個板永遠
-  // 只有一篇有效貼文，重新發布是覆蓋舊文件，不是疊加新的一筆。這不是真正
-  // 的身分驗證，清 localStorage 或換瀏覽器就會變成「新裝置」，是刻意的
-  // 取捨（防洗版用的軟性機制，不是防駭客），細節見 team.js／stall.js／
-  // guild.js／livestream.js 開頭說明。
+  // 裝置識別碼，產生一次就長期存在 localStorage。回報時存進 exp_records
+  // 的 deviceId 欄位，讓回報者之後能在「回報紀錄」認出哪些是自己發的、
+  // 打錯數字時可以自己刪掉（見 onRemoveClick）。這不是真正的身分驗證，
+  // 清 localStorage 或換瀏覽器就會變成「新裝置」，是刻意的取捨（防止
+  // 誤刪別人資料用的軟性機制，不是防駭客）。
   const DEVICE_ID_KEY = "maple_classic_device_id";
   function getDeviceId() {
     let id;
@@ -43,13 +41,6 @@
   const SUBMISSIONS_OPEN = true;
   // 「回報還沒開放」統一用這句，避免同一件事在不同地方各自寫一種措辭
   const SUBMISSIONS_CLOSED_MSG = "遊戲尚未上線，暫不開放回報，敬請期待";
-  // 四個公告板各自的前端開關（2026-07-28 加）：開服後任一板被灌爆時，把
-  // 對應的值改成 false 再 push，入口按鈕會鎖住、submit 會被擋——跟
-  // SUBMISSIONS_OPEN 一樣，真正的防線是 firestore.rules 把該集合的
-  // allow create 改成 false，兩邊要一起改，不然前端關了規則還開著（或反過
-  // 來規則關了前端還讓人填完整張表單才吃閉門羹）
-  const BOARDS_OPEN = { team: true, stall: true, guild: true, livestream: true };
-  const BOARD_CLOSED_MSG = "這個公告板暫時關閉維護中，之後會再開放";
   // 2026-07-24 健檢時升到 12.16.0，結果正式站馬上出現 App Check 403
   // + throttle（appCheck/initial-throttle，清掉 IndexedDB 重新整理也一樣
   // 立刻重現，不是快取殘留）——升級本身造成了新的 App Check 迴歸，先退回
@@ -125,11 +116,6 @@
     filterMap: document.getElementById("cmFilterMap"),
     filterLvMin: document.getElementById("cmFilterLvMin"),
     filterLvMax: document.getElementById("cmFilterLvMax"),
-    // 一定要用 #cmRecordsView 限定範圍，不能直接 document.querySelectorAll(".cm-sort-btn")——
-    // 組隊揪團的類型篩選、擺攤資訊的伺服器篩選重用了同一個 class，沒限定範圍的話
-    // 這裡的點擊處理會誤把那兩個分頁的篩選按鈕也一起清掉/設成 active，
-    // 連帶讓下面 renderRecords() 抓錯 activeSort、把使用者選的「效率↓」悄悄
-    // 蓋回「最新」
     sortBtns: document.querySelectorAll("#cmRecordsView .cm-sort-btn"),
     addBtn: document.getElementById("cmAddBtn"),
     form: document.getElementById("cmForm"),
@@ -315,6 +301,9 @@
         expPer10Min: Math.round(expPer10Min),
         mode,
         helpful: 0,
+        // 讓自己之後能在「回報紀錄」認出這筆是不是自己發的、打錯數字時可以
+        // 自己刪掉，見下面 onRemoveClick／isMarkRemoved()（firestore.rules）
+        deviceId: getDeviceId(),
         ...(note && { note }),
         ts: firebase.firestore.FieldValue.serverTimestamp(),
       });
@@ -451,6 +440,7 @@
 
     const filtered = allRecords
       .filter((r) =>
+        !r.removed &&
         (!fJob || r.job.toLowerCase().includes(fJob)) &&
         (!fMap || r.map.toLowerCase().includes(fMap)) &&
         r.level >= fLvMin && r.level <= fLvMax
@@ -503,11 +493,16 @@
     const pageRecords = MaplePagination.slice(filtered, currentPage);
 
     const voted = getVotedSet();
+    const deviceId = getDeviceId();
     els.list.innerHTML =
       '<div class="cm-grid">' +
       pageRecords.map((r) => {
         const tsText = r.ts && r.ts.toDate ? formatTS(r.ts.toDate()) : "—";
         const hasVoted = voted.has(r.id);
+        // 舊資料（deviceId 欄位加進來之前的回報）沒有這欄，比對一定是
+        // false——本來就沒辦法讓人自己刪掉那些舊紀錄，跟 note／mode 欄位
+        // 的向後相容處理是同一種取捨
+        const isMine = r.deviceId === deviceId;
         return `<div class="cm-card">
           <div class="cm-job">${escHtml(r.job)}${r.mode === "party" ? '<span class="cm-mode-tag">團練</span>' : ""}</div>
           <div class="cm-map">${escHtml(r.map)}</div>
@@ -520,6 +515,9 @@
               有幫助 <span class="cm-helpful-count">${r.helpful || 0}</span>
             </button>
           </div>
+          ${isMine ? `<div class="cm-card-footer">
+            <button class="cm-helpful-btn cm-remove-btn" data-id="${r.id}" type="button">✕ 刪除這筆回報</button>
+          </div>` : ""}
         </div>`;
       }).join("") +
       "</div>";
@@ -587,6 +585,42 @@
   }
   els.list.addEventListener("click", onHelpfulClick);
 
+  // 自己刪掉打錯數字的回報，跟 team.js 的 onFoundClick／stall.js 的
+  // onClosedClick 同一套做法：單一委派監聽器、按鈕只在 isMine 時渲染出來。
+  function onRemoveClick(e) {
+    const btn = e.target.closest(".cm-remove-btn");
+    if (!btn || btn.disabled) return;
+    const id = btn.dataset.id;
+
+    // 沒辦法復原（規則不開放把 removed 改回 false），怕手滑誤刪先跳確認
+    if (!confirm("確定要刪除這筆回報嗎？如果是打錯數字，可以刪掉後重新回報正確的。這個動作沒辦法復原。")) return;
+
+    // 離線時 Firestore 的 update 不會 reject，會永久卡在「處理中...」
+    if (typeof navigator !== "undefined" && navigator.onLine === false) {
+      btn.textContent = "沒有網路，稍後再試";
+      setTimeout(() => { btn.textContent = "✕ 刪除這筆回報"; }, 2000);
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "刪除中...";
+    ensureDb().then((db) => {
+      if (!db) throw new Error("no-db");
+      return db.collection("exp_records").doc(id).update({ removed: true });
+    }).then(() => {
+      // 刪除成功就直接從畫面上拿掉，不用等下次重新載入
+      allRecords = allRecords.filter((r) => r.id !== id);
+      renderRecords();
+      if (window.MapleSpots) window.MapleSpots.render();
+    }).catch(() => {
+      // 失敗機率不高（自己發的文、規則本來就允許這個更新），失敗了讓
+      // 使用者知道可以再按一次，不要靜默失敗
+      btn.disabled = false;
+      btn.textContent = "刪除失敗，再按一次試試";
+    });
+  }
+  els.list.addEventListener("click", onRemoveClick);
+
   function renderRecordsFromStart() {
     currentPage = 1;
     autoFetchRounds = 0;
@@ -612,17 +646,11 @@
     })
   );
 
-  // 「建議練功地點」/「回報紀錄」/「組隊揪團」三個子分頁切換，記住使用者
-  // 上次選的分頁。原本是兩個分頁各自寫死一份 show 函式，加第三個分頁時
-  // 改成資料驅動、迴圈處理，不要再複製第三份幾乎一樣的函式。
+  // 「建議練功地點」/「回報紀錄」兩個子分頁切換，記住使用者上次選的分頁。
   const CM_SUBTAB_KEY = "maple_classic_cm_subtab";
   const cmSubtabs = [
     { key: "suggest", btn: document.getElementById("cmSubSuggest"), view: document.getElementById("cmSuggestView") },
     { key: "records", btn: document.getElementById("cmSubRecords"), view: document.getElementById("cmRecordsView") },
-    { key: "team", btn: document.getElementById("cmSubTeam"), view: document.getElementById("cmTeamView") },
-    { key: "stall", btn: document.getElementById("cmSubStall"), view: document.getElementById("cmStallView") },
-    { key: "guild", btn: document.getElementById("cmSubGuild"), view: document.getElementById("cmGuildView") },
-    { key: "livestream", btn: document.getElementById("cmSubLivestream"), view: document.getElementById("cmLivestreamView") },
   ];
 
   function showCmSubtab(key, skipSave) {
@@ -634,10 +662,6 @@
     });
     if (!skipSave) localStorage.setItem(CM_SUBTAB_KEY, key);
     if (key === "suggest" && window.MapleSpots) window.MapleSpots.render();
-    if (key === "team" && window.MapleTeam) window.MapleTeam.render();
-    if (key === "stall" && window.MapleStall) window.MapleStall.render();
-    if (key === "guild" && window.MapleGuild) window.MapleGuild.render();
-    if (key === "livestream" && window.MapleLivestream) window.MapleLivestream.render();
   }
 
   cmSubtabs.forEach((t) => t.btn.addEventListener("click", () => showCmSubtab(t.key)));
@@ -648,31 +672,27 @@
     showCmSubtab("records", skipSave);
   }
 
-  // 網址錨點 #cm-<subtab>（例如攻略文或社群貼文連的 #cm-guild）比
-  // localStorage 的舊紀錄優先，跟 nav.js 處理 #calc-* 的規則一致。
-  // team/stall/guild 的初次 render 這裡呼叫不到（那三個模組排在本檔之後
-  // 載入），一樣交給 nav.js 的補觸發，那邊會用同一套「錨點優先」規則
+  // 網址錨點 #cm-<subtab>（例如攻略文連的 #cm-records）比 localStorage
+  // 的舊紀錄優先，跟 nav.js 處理 #calc-* 的規則一致。
   const [cmHashMain, cmHashSub] = location.hash.slice(1).split("-");
   const hashSubtab = cmHashMain === "cm" && cmSubtabs.some((t) => t.key === cmHashSub) ? cmHashSub : null;
   const savedSubtab = localStorage.getItem(CM_SUBTAB_KEY);
   const initialSubtab = hashSubtab || savedSubtab;
-  if (["records", "team", "stall", "guild", "livestream"].includes(initialSubtab)) showCmSubtab(initialSubtab, true);
+  if (initialSubtab === "records") showCmSubtab(initialSubtab, true);
 
   window.MapleCommunity = {
     loadRecords,
     openForm,
     openFormWithExpPer10Min,
-    getRecords: () => allRecords,
+    // spots.js（建議練功地點）算平均效率用的是這份清單，被刪除的紀錄不能
+    // 混進去，見 onRemoveClick
+    getRecords: () => allRecords.filter((r) => !r.removed),
     hasLoadFailed: () => lastLoadFailed,
     loadErrorMsg: () => lastLoadErrorMsg,
     hasMoreOnServer: () => hasMoreFromServer,
     isLoading: () => loadsInFlight > 0,
     isSubmissionsOpen: () => SUBMISSIONS_OPEN,
     submissionsClosedMsg: SUBMISSIONS_CLOSED_MSG,
-    // 板別開關：team.js／stall.js／guild.js／livestream.js 在初始化跟 submit
-    // 前都要檢查，開關本體只在本檔開頭定義一份（BOARDS_OPEN）
-    isBoardOpen: (key) => BOARDS_OPEN[key] !== false,
-    boardClosedMsg: BOARD_CLOSED_MSG,
     showRecordsTab,
     // 計算機結果區的「看 Lv.X 附近的推薦練功地點」導流用，跟 showRecordsTab
     // 同一套包裝
@@ -680,11 +700,5 @@
     // nav.js 補觸發子分頁 render 時要讀同一個 localStorage key——鍵名只在
     // 這裡定義一次，nav.js 透過這個屬性拿，避免兩邊字面量各自漂移
     cmSubtabKey: CM_SUBTAB_KEY,
-    // team.js（揪團公告板）共用同一個 Firebase app／db 實例，不要自己再
-    // initializeApp 一次——同一頁面對同一個 [DEFAULT] app 重複初始化會丟例外
-    ensureDb,
-    // 一人一則＋冷卻機制共用的裝置識別碼，team.js／stall.js／guild.js／
-    // livestream.js 都呼叫這個，不要各自產生一份
-    getDeviceId,
   };
 })();

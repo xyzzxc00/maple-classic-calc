@@ -29,31 +29,6 @@
       window.MapleCommunity.loadRecords().then(() => {
         if (window.MapleSpots) window.MapleSpots.render();
       });
-      // 組隊揪團／擺攤資訊的初次載入觸發，統一放在這裡做，不要各自在
-      // team.js／stall.js 的檔案尾端自己猜「我是不是已經是攤開的分頁」。
-      // <script defer> 是照 index.html 順序執行：community.js（還原上次
-      // cm 子分頁、把 cmTeamView 的 hidden 拿掉）排在 team.js／stall.js
-      // 前面，但 nav.js（還原上次主分頁、把 #pageCm 的 hidden 拿掉）排在
-      // 最後——team.js／stall.js 原本各自檢查「#pageCm 沒隱藏」的寫法，
-      // 在它們自己執行的當下 nav.js 根本還沒跑，#pageCm 一定還是隱藏的，
-      // 檢查永遠失敗，重新整理停在組隊揪團／擺攤資訊會卡在「載入中...」
-      // 動不了，要手動切分頁再切回來才會觸發。nav.js 排在所有子模組後面
-      // 執行，這裡才是唯一保證「所有模組都載完、也知道最終要不要顯示
-      // #pageCm」的地方，直接讀 community.js 存的子分頁 key 來決定要不要
-      // 補觸發 render()
-      // 錨點 #cm-<subtab> 優先（community.js 切視圖時用同一套規則），
-      // 沒有錨點才讀 localStorage；鍵名以 community.js 匯出的為準（單一
-      // 定義處）。MapleCommunity 不在的話社群頁本身就壞了，補觸發也沒有意義
-      const cmSubtab =
-        hashMain === "cm" && hashSub
-          ? hashSub
-          : window.MapleCommunity
-          ? localStorage.getItem(window.MapleCommunity.cmSubtabKey)
-          : null;
-      if (cmSubtab === "team" && window.MapleTeam) window.MapleTeam.render();
-      if (cmSubtab === "stall" && window.MapleStall) window.MapleStall.render();
-      if (cmSubtab === "guild" && window.MapleGuild) window.MapleGuild.render();
-      if (cmSubtab === "livestream" && window.MapleLivestream) window.MapleLivestream.render();
     }
   }
 

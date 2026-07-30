@@ -5,9 +5,8 @@
   const PAGE_SIZE = 15;
 
   // items 已經是篩選/排序後的完整陣列；回傳目前這一頁該顯示的子陣列。
-  // pageSize 預設用共用的 15（回報紀錄／建議練功地點），組隊揪團／擺攤
-  // 資訊這種量級小很多的公告板可以傳自己的頁面大小（例如 30），不用
-  // 兩邊共用同一個數字
+  // pageSize 預設用共用的 15（回報紀錄／建議練功地點），其他呼叫端量級
+  // 不同時可以傳自己的頁面大小，不用兩邊共用同一個數字
   function slice(items, page, pageSize = PAGE_SIZE) {
     const start = (page - 1) * pageSize;
     return items.slice(start, start + pageSize);

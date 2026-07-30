@@ -43,13 +43,17 @@ service cloud.firestore {
       }
 
       function isValidNew(d) {
-        return d.keys().hasAll(['job', 'map', 'level', 'expPer10Min', 'helpful', 'ts'])
-          && d.keys().hasOnly(['job', 'map', 'level', 'expPer10Min', 'helpful', 'note', 'mode', 'ts'])
+        return d.keys().hasAll(['job', 'map', 'level', 'expPer10Min', 'helpful', 'deviceId', 'ts'])
+          && d.keys().hasOnly(['job', 'map', 'level', 'expPer10Min', 'helpful', 'note', 'mode', 'deviceId', 'ts'])
           && d.job is string && allowedJobs().hasAny([d.job])
           && d.map is string && d.map.size() >= 1 && d.map.size() <= 40
           && d.level is int && d.level >= 1 && d.level <= 200
           && d.expPer10Min is int && d.expPer10Min > 0 && d.expPer10Min <= 1000000000
           && d.helpful == 0
+          // deviceId（裝置識別碼，js/community.js 的 getDeviceId()）2026-07-30
+          // 新增：讓回報者之後能自己刪掉打錯數字的紀錄，見 isMarkRemoved()。
+          // 不是身分驗證，只是拿來比對「這篇是不是我發的」的軟性欄位。
+          && d.deviceId is string && d.deviceId.size() >= 1 && d.deviceId.size() <= 100
           && d.ts == request.time
           && (!('note' in d.keys()) || (d.note is string && d.note.size() <= 60))
           // mode（練功方式）2026-07-28 新增，設計成「可不存在」向後相容：
@@ -63,283 +67,24 @@ service cloud.firestore {
           && request.resource.data.helpful == resource.data.helpful + 1;
       }
 
+      // 只放行「這筆已刪除」這一種安全的部分更新：沒有比對是不是本人在改，
+      // UI 層用 deviceId 是否等於自己的裝置碼決定要不要顯示刪除按鈕，不是
+      // 安全機制——沒有帳號系統做不到真的驗證。hasOnly 故意不放 removed，
+      // 這個欄位只能透過這裡一次性從無/false 改成 true，建立當下不該讓
+      // create request 夾帶任意值進來。
+      function isMarkRemoved() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['removed'])
+          && request.resource.data.removed == true
+          && resource.data.get('removed', false) != true;
+      }
+
       // list 要求帶 limit（且不超過 100），擋掉直接打 API 整包撈走整個集合；
       // 前端實際查詢帶的 limit 是 PAGE_SIZE+1=51（js/community.js，多抓 1 筆
       // 判斷還有沒有下一頁），100 留一點餘裕。
       allow get: if true;
       allow list: if request.query.limit <= 100;
       allow create: if isValidNew(request.resource.data);
-      allow update: if isHelpfulIncrement();
-      allow delete: if false;
-    }
-
-    match /team_posts/{postId} {
-
-      // 跟 exp_records 的 allowedJobs() 是同一份白名單，Firestore 規則的
-      // function 只在宣告它的 match 區塊內有效，沒辦法跨 match 共用，
-      // 所以這裡重複宣告一次——改職業名稱時兩處都要同步（跟 js/jobsData.js
-      // 的 JOBS_DATA[].paths[].fourth 跟 JOBS_DATA[].firstJob 一致）。
-      function allowedJobs() {
-        return [
-          '劍士', '法師', '弓箭手', '盜賊', '海盜',
-          '英雄', '聖騎士', '黑騎士',
-          '火毒大魔導士', '冰雷大魔導士', '主教',
-          '箭神', '神射手',
-          '夜使者', '暗影神偷',
-          '拳霸', '槍神'
-        ];
-      }
-
-      function allowedServers() {
-        return ['雪吉拉', '菇菇寶貝'];
-      }
-
-      // target（目標）不比對完整清單：本來想接 js/teamData.js 的野王/任務
-      // 清單，但遊戲還沒上線、實際名稱不確定，前端已經改自由輸入，這裡只守
-      // 型別/長度，跟 exp_records 的 map 欄位同一個處理方式。
-      //
-      // scheduledAt（集合時間，使用者填的，不是伺服器蓋章）允許比現在早最多
-      // 1 小時（給「現在就要揪」一點緩衝）、最多提前 7 天，跟 js/team.js 的
-      // MIN_PAST_MS／MAX_ADVANCE_MS 常數要保持一致，這裡改了那裡也要跟著改。
-      function isValidNew(d) {
-        return d.keys().hasAll(['type', 'target', 'server', 'map', 'job', 'level', 'currentCount', 'neededCount', 'contact', 'scheduledAt', 'ts'])
-          && d.keys().hasOnly(['type', 'target', 'server', 'map', 'job', 'level', 'currentCount', 'neededCount', 'contact', 'scheduledAt', 'note', 'ts'])
-          && d.type is string && d.type in ['組隊任務', '王團']
-          && d.target is string && d.target.size() >= 1 && d.target.size() <= 40
-          && d.server is string && allowedServers().hasAny([d.server])
-          && d.map is string && d.map.size() >= 1 && d.map.size() <= 40
-          && d.job is string && allowedJobs().hasAny([d.job])
-          && d.level is int && d.level >= 1 && d.level <= 200
-          && d.currentCount is int && d.currentCount >= 0 && d.currentCount <= 6
-          && d.neededCount is int && d.neededCount >= 1 && d.neededCount <= 6
-          && d.currentCount <= d.neededCount
-          && d.contact is string && d.contact.size() >= 1 && d.contact.size() <= 40
-          && d.scheduledAt is timestamp
-          && d.scheduledAt >= request.time - duration.value(1, 'h')
-          && d.scheduledAt <= request.time + duration.value(7, 'd')
-          && d.ts == request.time
-          && (!('note' in d.keys()) || (d.note is string && d.note.size() <= 60));
-      }
-
-      // 只能把 found 從沒設定/false 改成 true，不能改別的欄位、也不能
-      // 反悔改回 false（跟 exp_records 的 isHelpfulIncrement() 同一種
-      // 「只開放一個安全的部分更新」寫法）。這裡沒有比對「是不是本人在改」
-      // ——沒有帳號系統做不到真的驗證，前端用 deviceId 是不是等於文件 ID
-      // 決定要不要顯示這顆按鈕，是 UI 層的軟性限制，不是安全機制；
-      // 就算被任何人手動呼叫改掉，最壞情況也只是這篇貼文提早消失，
-      // 影響很小，不值得為此增加複雜度。
-      function isMarkFound() {
-        // found 在建立時不會被寫入（create 規則的 hasOnly 沒有這個欄位），
-        // 所以第一次標記時 resource.data 裡根本沒有 found 這個 key——直接
-        // resource.data.found 對不存在的欄位取值會噴錯，要用 get() 給預設值
-        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['found'])
-          && request.resource.data.found == true
-          && resource.data.get('found', false) != true;
-      }
-
-      // 2026-07-27 起：文件 ID 改用 js/team.js 的 getDeviceId()（裝置層級
-      // 識別碼），同一台裝置同時只能有一篇有效貼文，重新發布是覆蓋舊
-      // 文件（doc(deviceId).set()）。isRefresh() 是這個覆蓋的守門——內容
-      // 要通過跟第一次發文一樣的驗證，而且距離上一篇的 ts 必須超過 1
-      // 小時才放行，擋住短時間內一直重複覆蓋、把自己刷到最前面把別人
-      // 擠下去的洗版行為。跟 isMarkFound() 一樣沒有比對是不是本人在改
-      // ——沒有帳號系統做不到真的驗證，這裡擋的是同一裝置的洗版行為，
-      // 不是防駭客。
-      //
-      // 冷卻不因「上一篇已標記找到團」而放行：原本想放行讓「已經結束的
-      // 貼文可以馬上換一篇新的」，但這樣會被拿來「標記找到團→立刻重發→
-      // 標記找到團→立刻重發」無限循環，等於完全繞過冷卻，反而重現了
-      // 一開始要擋的洗版行為，所以不論 found 是不是 true，都要滿足冷卻
-      // 時間才能覆蓋。
-      function isRefresh() {
-        return isValidNew(request.resource.data)
-          && request.time > resource.data.ts + duration.value(1, 'h');
-      }
-
-      // 不開放刪除；到期後前端用 6 小時的時間窗自動從列表濾掉就好，不需要
-      // 真的刪除資料。之後如果資料量長很大，可以另外設 Firestore 原生
-      // TTL policy 清掉舊資料（見 team.js 開頭註解）。
-      allow get: if true;
-      allow list: if request.query.limit <= 100;
-      allow create: if isValidNew(request.resource.data);
-      allow update: if isMarkFound() || isRefresh();
-      allow delete: if false;
-    }
-
-    match /stall_posts/{postId} {
-
-      // 伺服器白名單跟 team_posts 的 allowedServers() 是同一份清單，規則
-      // 沒辦法跨 match 共用 function，重複宣告一次；改動時兩處要同步
-      // （跟 js/teamData.js 的 TEAM_SERVERS 一致）。
-      function allowedServers() {
-        return ['雪吉拉', '菇菇寶貝'];
-      }
-
-      // 沒有 scheduledAt：擺攤是「現在就開著」，不像揪團可以先公告未來
-      // 的時間，到期時間直接用 ts（發文時間）往後推 24 小時就好。
-      //
-      // type（賣／收）是 2026-07-25 加的：這個板原本只有「擺攤賣東西」，
-      // 後來發現有玩家直接把「收購」需求也貼在這裡（用 description 自己
-      // 打「收」），乾脆讓它變成正式欄位方便篩選。這個欄位加進來之前就有
-      // 舊資料存在，那些文件沒有 type，讀取（get/list）不受影響，只有
-      // 「新建立」的資料才會被這裡的驗證擋。
-      //
-      // hasOnly 故意不放 closed——跟 team_posts 的 found 一樣，這個欄位
-      // 只能透過下面的 isMarkClosed() 一次性從無/false 改成 true，建立
-      // 當下不該讓 create request 夾帶任意值進來（原本漏放，等於建立時
-      // 沒有驗證就能塞 closed 進去，已修正跟 team_posts 一致）
-      function isValidNew(d) {
-        return d.keys().hasAll(['type', 'server', 'channel', 'market', 'charId', 'description', 'ts'])
-          && d.keys().hasOnly(['type', 'server', 'channel', 'market', 'charId', 'description', 'ts'])
-          && d.type is string && d.type in ['販賣', '收購']
-          && d.server is string && allowedServers().hasAny([d.server])
-          && d.channel is int && d.channel >= 1 && d.channel <= 50
-          && d.market is string && d.market.size() >= 1 && d.market.size() <= 40
-          && d.charId is string && d.charId.size() >= 1 && d.charId.size() <= 20
-          && d.description is string && d.description.size() >= 1 && d.description.size() <= 100
-          && d.ts == request.time;
-      }
-
-      // 只放行「這篇已收攤」這一種安全的部分更新，跟 team_posts 的
-      // isMarkFound() 同一套邏輯與同樣的取捨（見上面 team_posts 註解）：
-      // 沒有比對是不是本人在改，UI 層用 deviceId 比對就好。
-      // 這裡刻意不開放「其他玩家回報已收攤」——設計討論時考慮過，但
-      // 那樣任何人都能發動更新，會被拿來惡意洗掉競爭對手的擺攤公告，
-      // 風險比揪團的「已找到團」高很多，所以只留發文者自己下架這條路。
-      function isMarkClosed() {
-        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['closed'])
-          && request.resource.data.closed == true
-          && resource.data.get('closed', false) != true;
-      }
-
-      // 2026-07-27 起：文件 ID 改用 js/stall.js 的 getDeviceId()（裝置層級
-      // 識別碼），同一台裝置同時只能有一篇有效公告，重新發布是覆蓋舊
-      // 文件（doc(deviceId).set()）。isRefresh() 是這個覆蓋的守門，寫法
-      // 跟 team_posts 的 isRefresh() 同一套邏輯：內容要重新通過驗證，且
-      // 距上次 ts 必須超過 1 小時才放行，擋住短時間內一直重複覆蓋、把
-      // 自己刷到最前面的洗版行為。不因「上一篇已標記已收攤」而放行冷卻
-      // ——理由見 team_posts 的 isRefresh() 註解（會被拿來下架→立刻重發
-      // 無限循環，等於繞過冷卻）。
-      function isRefresh() {
-        return isValidNew(request.resource.data)
-          && request.time > resource.data.ts + duration.value(1, 'h');
-      }
-
-      allow get: if true;
-      allow list: if request.query.limit <= 100;
-      allow create: if isValidNew(request.resource.data);
-      allow update: if isMarkClosed() || isRefresh();
-      allow delete: if false;
-    }
-
-    match /guild_posts/{postId} {
-
-      // 伺服器白名單跟 team_posts／stall_posts 的 allowedServers() 是同一份
-      // 清單，規則沒辦法跨 match 共用 function，重複宣告一次；改動時三處
-      // 都要同步（跟 js/teamData.js 的 TEAM_SERVERS 一致）。
-      function allowedServers() {
-        return ['雪吉拉', '菇菇寶貝'];
-      }
-
-      // 公會招募沒有 scheduledAt 欄位——招募不像揪團有明確的集合時間點。
-      // 「7 天自動下架」是前端用 ts 過濾實作的（guild.js：查詢與顯示都只取
-      // 最近 7 天），資料本身不會刪除；規則層只負責發文者自己標記 closed
-      // 提早下架這條路。
-      //
-      // hasOnly 故意不放 closed，理由跟 stall_posts 一樣：這個欄位只能
-      // 透過下面的 isMarkClosed() 一次性從無/false 改成 true，建立當下
-      // 不該讓 create request 夾帶任意值進來。
-      function isValidNew(d) {
-        return d.keys().hasAll(['guildName', 'server', 'description', 'memberCount', 'contact', 'ts'])
-          && d.keys().hasOnly(['guildName', 'server', 'description', 'memberCount', 'contact', 'ts'])
-          && d.guildName is string && d.guildName.size() >= 1 && d.guildName.size() <= 20
-          && d.server is string && allowedServers().hasAny([d.server])
-          && d.description is string && d.description.size() >= 1 && d.description.size() <= 200
-          && d.memberCount is int && d.memberCount >= 1 && d.memberCount <= 500
-          && d.contact is string && d.contact.size() >= 1 && d.contact.size() <= 40
-          && d.ts == request.time;
-      }
-
-      // 只放行「這篇已下架」這一種安全的部分更新，跟 stall_posts 的
-      // isMarkClosed() 同一套邏輯與同樣的取捨：沒有比對是不是本人在改，
-      // UI 層用 deviceId 比對就好，不開放其他玩家回報。
-      function isMarkClosed() {
-        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['closed'])
-          && request.resource.data.closed == true
-          && resource.data.get('closed', false) != true;
-      }
-
-      // 2026-07-27 起：文件 ID 改用 js/guild.js 的 getDeviceId()（裝置層級
-      // 識別碼），同一台裝置同時只能有一篇有效招募，重新發布是覆蓋舊
-      // 文件（doc(deviceId).set()）。isRefresh() 是這個覆蓋的守門，寫法
-      // 跟 team_posts／stall_posts 的 isRefresh() 同一套邏輯：內容要重新
-      // 通過驗證，且距上次 ts 必須超過 1 小時才放行，擋住短時間內一直
-      // 重複覆蓋、把自己刷到最前面的洗版行為。不因「上一篇已標記已招滿」
-      // 而放行冷卻——理由見 team_posts 的 isRefresh() 註解。
-      function isRefresh() {
-        return isValidNew(request.resource.data)
-          && request.time > resource.data.ts + duration.value(1, 'h');
-      }
-
-      // 沒有到期機制，理論上集合會一直長大，跟 stall_posts 開頭註解
-      // 提到的處理方式一樣：量級小的時候不用管，長很大再考慮原生 TTL
-      // policy 或人工清理明顯過期的舊公告。
-      allow get: if true;
-      allow list: if request.query.limit <= 100;
-      allow create: if isValidNew(request.resource.data);
-      allow update: if isMarkClosed() || isRefresh();
-      allow delete: if false;
-    }
-
-    match /livestream_posts/{postId} {
-
-      // 只接受 Twitch／YouTube 的連結，前端 js/livestream.js 的
-      // ALLOWED_URL_PATTERN 要跟這裡同步（規則沒辦法讀前端 JS，改動時
-      // 兩邊都要手動更新）。強制 https，不開放 http；這個板貼的是外部
-      // 連結，比其他三個純文字板多一個「有人塞惡意／釣魚連結」的風險，
-      // 白名單網域是主要的防線。m. 開頭的行動版網址也收（2026-07-28 加，
-      // 手機使用者複製到的常常是 m.twitch.tv／m.youtube.com）。
-      function isAllowedUrl(url) {
-        return url.matches('^https://((www|m)\\.)?(twitch\\.tv|youtube\\.com|youtu\\.be)/.+');
-      }
-
-      // platform（Twitch／YouTube 標籤）不是存進資料庫的欄位，前端直接
-      // 從 url 判斷顯示，這裡不用驗證這個欄位，見 js/livestream.js 開頭
-      // 說明。
-      function isValidNew(d) {
-        return d.keys().hasAll(['channelName', 'url', 'description', 'ts'])
-          && d.keys().hasOnly(['channelName', 'url', 'description', 'ts'])
-          && d.channelName is string && d.channelName.size() >= 1 && d.channelName.size() <= 20
-          && d.url is string && d.url.size() <= 200 && isAllowedUrl(d.url)
-          && d.description is string && d.description.size() >= 1 && d.description.size() <= 100
-          && d.ts == request.time;
-      }
-
-      // 只放行「這篇已下架」這一種安全的部分更新，跟 stall_posts／
-      // guild_posts 的 isMarkClosed() 同一套邏輯與同樣的取捨：沒有比對
-      // 是不是本人在改，UI 層用 deviceId 比對決定要不要顯示按鈕就好。
-      function isMarkClosed() {
-        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['closed'])
-          && request.resource.data.closed == true
-          && resource.data.get('closed', false) != true;
-      }
-
-      // 文件 ID 是 js/livestream.js 的 getDeviceId()，同一台裝置同時只能
-      // 有一篇有效宣傳，重新發布是覆蓋舊文件。isRefresh() 寫法跟
-      // team_posts／stall_posts／guild_posts 的 isRefresh() 同一套邏輯：
-      // 距上次 ts 必須超過 1 小時才放行，不因「上一篇已標記已下架」而
-      // 放行冷卻——理由見 team_posts 的 isRefresh() 註解。
-      function isRefresh() {
-        return isValidNew(request.resource.data)
-          && request.time > resource.data.ts + duration.value(1, 'h');
-      }
-
-      // 沒有到期機制，理論上集合會一直長大，跟 guild_posts／stall_posts
-      // 開頭註解提到的處理方式一樣：量級小的時候不用管。
-      allow get: if true;
-      allow list: if request.query.limit <= 100;
-      allow create: if isValidNew(request.resource.data);
-      allow update: if isMarkClosed() || isRefresh();
+      allow update: if isHelpfulIncrement() || isMarkRemoved();
       allow delete: if false;
     }
 
