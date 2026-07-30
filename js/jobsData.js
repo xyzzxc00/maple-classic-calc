@@ -2,7 +2,7 @@
  * jobsData.js — 職業轉職路線資料
  * -----------------------------------------------------------------
  * 2026-07-27 起，原本讀這份資料渲染的「職業介紹」分頁已經改成「玩法
- * 攻略」（組隊任務／BOSS攻略／忍耐任務，見 js/guides.js），這裡不再有
+ * 攻略」（組隊任務／BOSS攻略，見 js/guides.js），這裡不再有
  * 對應的獨立頁面渲染 JOBS_DATA 本身——現在唯一還在用的是從它衍生出來的
  * JOB_OPTIONS_HTML（職業 <select> 選單，cmJob／cmFilterJob／
  * spotsFilterJob／teamJob 共用）。JOBS_DATA 裡的 firstQuest／laterQuests
