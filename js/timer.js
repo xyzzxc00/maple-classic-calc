@@ -43,23 +43,6 @@
   let timerInterval = null;
   let timerEndAt = 0; // 執行中的預計結束時間戳（ms）
 
-  // 計時器狀態存 localStorage：誤按重新整理（或手機瀏覽器背景被回收）時，
-  // 掐加倍卷掐到一半的倒數不會直接歸零。running 時只存 endAt，剩餘秒數
-  // 還原時用時間戳回推，跟 timerTick 同一套邏輯，關頁面期間照樣走時間。
-  const TIMER_STORE_KEY = "maple_classic_timer_v1";
-  function saveTimerState() {
-    try {
-      localStorage.setItem(TIMER_STORE_KEY, JSON.stringify({
-        total: timerTotal,
-        left: timerLeft,
-        running: timerRunning,
-        endAt: timerEndAt,
-        expBefore: els.expBefore.value,
-        expAfter: els.expAfter.value,
-      }));
-    } catch {}
-  }
-
   // tick 由 Web Worker 驅動：主執行緒的 setInterval 在背景分頁會被瀏覽器
   // 節流（Chrome 背景久了最慢一分鐘才跑一次，視窗被遊戲蓋住也算背景）。
   // 剩餘時間是用時間戳回推所以不會算錯，但「時間到」那一刻的偵測會跟著
@@ -145,7 +128,6 @@
       btn.classList.add("active");
       els.customMin.value = "";
       setTimerLength(parseInt(btn.dataset.min, 10));
-      saveTimerState();
     });
   });
 
@@ -157,7 +139,6 @@
     if (val && val >= 1) {
       els.presets.forEach((b) => b.classList.remove("active"));
       setTimerLength(val);
-      saveTimerState();
     }
   });
 
@@ -187,7 +168,6 @@
           new Notification("經典版練等計算機", { body: "倒數結束！" });
         }
       } catch {}
-      saveTimerState();
     }
   }
 
@@ -224,7 +204,6 @@
       els.startBtn.textContent = "暫停";
       startTicker();
     }
-    saveTimerState();
   });
 
   // 從背景分頁切回來時立刻對時，不用等下一次被節流的 tick
@@ -241,7 +220,6 @@
     els.startBtn.textContent = "開始";
     els.display.classList.remove("timer-done-flash");
     renderTimer();
-    saveTimerState();
   });
 
   function timerBeep() {
@@ -331,10 +309,7 @@
     }
   }
 
-  [els.expBefore, els.expAfter].forEach((el) => el.addEventListener("input", () => {
-    calcExpRate();
-    saveTimerState();
-  }));
+  [els.expBefore, els.expAfter].forEach((el) => el.addEventListener("input", calcExpRate));
 
   els.clearTrackerBtn.addEventListener("click", () => {
     els.expBefore.value = "";
@@ -342,7 +317,6 @@
     els.expRateBox.hidden = true;
     els.expRateHint.textContent = EXP_RATE_HINT_DEFAULT;
     els.expRateHint.hidden = false;
-    saveTimerState();
   });
 
   els.applyExpRateBtn.addEventListener("click", () => {
@@ -378,59 +352,6 @@
     window.MapleCommunity.openFormWithExpPer10Min(Math.round(lastExpPerMin * 10));
   });
 
-  // ---------- 還原上次狀態 ----------
-  function restoreTimerState() {
-    let s = null;
-    try { s = JSON.parse(localStorage.getItem(TIMER_STORE_KEY)); } catch {}
-    if (!s || typeof s.total !== "number" || !(s.total >= 60) || s.total > 24 * 3600) return;
-
-    timerTotal = Math.round(s.total);
-
-    // 同步時長控制項的視覺：吻合的 preset 亮起，否則填自訂欄位
-    const mins = timerTotal / 60;
-    let presetMatched = false;
-    els.presets.forEach((b) => {
-      const match = parseInt(b.dataset.min, 10) === mins;
-      b.classList.toggle("active", match);
-      if (match) presetMatched = true;
-    });
-    if (!presetMatched) els.customMin.value = mins;
-
-    if (s.running && typeof s.endAt === "number" && s.endAt > Date.now()) {
-      // 重新整理前正在倒數且還沒到：無縫接回去繼續跑
-      timerRunning = true;
-      timerEndAt = s.endAt;
-      timerLeft = Math.max(0, Math.round((timerEndAt - Date.now()) / 1000));
-      timerElapsed = timerTotal - timerLeft;
-      setLengthControlsEnabled(false);
-      els.startBtn.textContent = "暫停";
-      startTicker();
-    } else if (s.running) {
-      // 離開期間就已經到點了：呈現「時間到」狀態，但不補鈴聲——
-      // 頁面剛載入沒有使用者手勢，AudioContext/通知都發不出來
-      timerLeft = 0;
-      timerElapsed = timerTotal;
-      els.startBtn.textContent = "重新開始";
-    } else {
-      const left = typeof s.left === "number" ? Math.round(s.left) : timerTotal;
-      timerLeft = Math.min(Math.max(0, left), timerTotal);
-      timerElapsed = timerTotal - timerLeft;
-      if (timerLeft > 0 && timerLeft < timerTotal) els.startBtn.textContent = "繼續";
-      else if (timerLeft <= 0) els.startBtn.textContent = "重新開始";
-    }
-
-    if (typeof s.expBefore === "string") els.expBefore.value = s.expBefore;
-    if (typeof s.expAfter === "string") els.expAfter.value = s.expAfter;
-  }
-
-  restoreTimerState();
   renderTimer();
-  // renderTimer 只處理「準備開始／計時中」兩種標籤，還原出來的暫停／到點狀態要自己補
-  if (!timerRunning && timerLeft <= 0 && timerTotal > 0 && timerElapsed >= timerTotal) {
-    els.label.textContent = "時間到！";
-    els.display.classList.add("timer-done-flash");
-  } else if (!timerRunning && timerLeft > 0 && timerLeft < timerTotal) {
-    els.label.textContent = "已暫停";
-  }
   calcExpRate();
 })();
