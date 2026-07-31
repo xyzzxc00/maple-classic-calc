@@ -1248,7 +1248,12 @@ a:hover { text-decoration-color: var(--accent-hover); }
   gap: 10px;
   text-align: center;
   min-width: 260px;
-  flex: 1 1 0;
+  /* 原本是 flex:1 1 0（兩欄各自撐滿一半寬度、各自置中內容），現在
+     .footer-right 的按鈕格縮小了很多，撐滿半版寬只會讓中間空出一大截
+     看不見的空白；改成 flex:0 1 auto 讓兩欄各自收到內容的實際寬度，
+     .footer-columns 的 gap:40px + justify-content:center 才會是兩欄
+     之間真正看得到的間距，不會被額外撐開。 */
+  flex: 0 1 auto;
 }
 .footer-disclaimer { margin: 0; text-align: center; }
 /* 固定用 grid 排 2 欄，而不是靠 flex-wrap 自然換行——4 顆按鈕用 flex-wrap
@@ -1350,6 +1355,32 @@ a:hover { text-decoration-color: var(--accent-hover); }
   .footer-contact { text-align: center; }
   .footer-cta-row { justify-content: center; }
 }
+@media (min-width: 641px) {
+  /* 桌機版縮小這四顆按鈕：手機版維持原本的 padding/字級/滿版寬不動——
+     那是為了 ≥40px 觸控高度特別留的（見上面的踩坑註解），縮小只在桌機
+     這個滑鼠操作、不用顧慮誤觸的範圍做，不動手機版的安全邊界。
+     光縮 padding 沒用——.feedback-link 等原本靠 width:100% 撐滿 grid
+     欄寬，padding 縮再多，外框還是頂著欄寬邊界不會變窄；改成固定寬度
+     （155px，含 padding 放得下最長的「意見回饋 / 錯誤回報」不換行）
+     + justify-items:center，四顆按鈕才會等寬、又比原本撐滿欄寬窄。
+     但欄寬（grid-template-columns: 1fr 1fr）還是照 .footer-right 容器
+     寬度平分，容器比按鈕寬很多時，兩顆按鈕各自置中在很寬的欄位裡，中間
+     反而空出一大截——欄寬改成 max-content（跟著按鈕實際寬度走，不是
+     容器寬度）+ justify-content:center 讓整排置中，兩顆按鈕間距才會是
+     單純的 gap 值，不會被欄寬撐開。 */
+  .footer-cta-row {
+    grid-template-columns: max-content max-content;
+    justify-content: center;
+    justify-items: center;
+  }
+  .feedback-link,
+  .donate-link,
+  .guides-link {
+    width: 155px;
+    padding: 8px 12px;
+    font-size: 11.5px;
+  }
+}
 @media (max-width: 640px) {
   /* 桌機是 grid 兩欄，手機版收回單欄堆疊，蓋回原本的樣子 */
   .footer-cta-row { display: flex; flex-direction: column; width: 100%; align-items: stretch; flex-wrap: nowrap; }
@@ -1360,6 +1391,29 @@ a:hover { text-decoration-color: var(--accent-hover); }
 
 /* ---------- FAQ ---------- */
 .faq-panel { margin-top: 24px; }
+/* 常見問題整個區塊也收合起來（盒中盒：外層收合面板，裡面每一題各自
+   也是收合項目）——手機滑到這裡常常一大片問題列表全展開佔滿畫面，收合後
+   一眼掃過去只有一行標題，想找答案再點開。外層 summary 直接沿用
+   .panel-head 的排版（h2 + badge 左右對齊，display:flex），但 <summary>
+   原生的展開三角形是靠 display:list-item 生成的 ::marker，一旦蓋成
+   display:flex 那個原生三角形就直接消失，使用者看不出這行可以點——
+   所以 list-style:none 把原生的關掉，改在 h2 前面自己塞一個 ▶，跟
+   .faq-item 裡每一題的展開三角形是同一種視覺語言，點開時用 transform
+   轉 90 度變成 ▼，效果也跟原生三角形展開時一致。 */
+.faq-outer > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.faq-outer > summary::-webkit-details-marker { display: none; }
+.faq-outer > summary:hover h2 { color: var(--accent-text); }
+.faq-outer:not([open]) > summary { margin-bottom: 0; }
+.faq-outer-arrow {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--ink-soft);
+  transition: transform 0.15s;
+}
+.faq-outer[open] .faq-outer-arrow { transform: rotate(90deg); }
 .faq-item { border-bottom: 1px solid var(--border); }
 .faq-item:last-child { border-bottom: none; }
 .faq-item summary {
