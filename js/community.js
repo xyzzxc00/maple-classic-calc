@@ -187,6 +187,21 @@
     return date.toLocaleDateString("zh-TW") + " " + date.toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit" });
   }
 
+  // Firestore 離線持久化的寫入（add/update）在「網路看似正常但連不到
+  // Firestore 伺服器」時（例如廣告封鎖器/防火牆擋了 Firestore 網域）不會
+  // reject，會排進本地佇列無限期 pending——navigator.onLine 判斷不出這種
+  // 情況（那只測「裝置有沒有網路」，不是「連不連得到 Firestore」），沒有
+  // 這層保護的話按鈕會永久卡在「送出中...」，2026-07-31 健檢實測重現過。
+  // 幫寫入包一層逾時，逾時就當失敗處理，讓使用者至少看得到「可以再試
+  // 一次」，不會卡死看不出發生什麼事。
+  const WRITE_TIMEOUT_MS = 15000;
+  function withWriteTimeout(promise) {
+    return Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error("write-timeout")), WRITE_TIMEOUT_MS)),
+    ]);
+  }
+
   function toggleForm() {
     formOpen = !formOpen;
     els.form.hidden = !formOpen;
@@ -296,7 +311,7 @@
     }
 
     try {
-      await db.collection("exp_records").add({
+      await withWriteTimeout(db.collection("exp_records").add({
         job, map, level,
         expPer10Min: Math.round(expPer10Min),
         mode,
@@ -306,7 +321,7 @@
         deviceId: getDeviceId(),
         ...(note && { note }),
         ts: firebase.firestore.FieldValue.serverTimestamp(),
-      });
+      }));
       els.msg.textContent = "✓ 已送出！感謝分享";
       els.msg.className = "cm-msg ok";
       els.job.value = ""; els.map.value = "";
@@ -322,6 +337,8 @@
         els.msg.textContent = "送出被資料庫拒絕，可能是設定尚未同步，請稍後再試或回報給站長";
       } else if (e && e.code === "resource-exhausted") {
         els.msg.textContent = "今天的回報額度已滿，明天會自動恢復，麻煩明天再試一次";
+      } else if (e && e.message === "write-timeout") {
+        els.msg.textContent = "連線太久沒回應，可能是網路擋住了社群資料庫，請檢查網路後再試一次";
       } else {
         els.msg.textContent = "送出失敗，請稍後再試";
       }
@@ -570,9 +587,9 @@
     }
 
     btn.disabled = true;
-    db.collection("exp_records").doc(id).update({
+    withWriteTimeout(db.collection("exp_records").doc(id).update({
       helpful: firebase.firestore.FieldValue.increment(1),
-    }).then(() => {
+    })).then(() => {
       saveVote(id);
       btn.classList.add("voted");
       const countEl = btn.querySelector(".cm-helpful-count");
@@ -606,7 +623,7 @@
     btn.textContent = "刪除中...";
     ensureDb().then((db) => {
       if (!db) throw new Error("no-db");
-      return db.collection("exp_records").doc(id).update({ removed: true });
+      return withWriteTimeout(db.collection("exp_records").doc(id).update({ removed: true }));
     }).then(() => {
       // 刪除成功就直接從畫面上拿掉，不用等下次重新載入
       allRecords = allRecords.filter((r) => r.id !== id);

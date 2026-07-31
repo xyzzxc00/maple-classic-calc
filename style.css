@@ -567,19 +567,17 @@ a:hover { text-decoration-color: var(--accent-hover); }
   .nav-tab { padding: 10px 4px; font-size: 11.5px; min-height: 44px; }
 }
 
-/* ---------- One/two/three/four column field grid ---------- */
+/* ---------- One/two/three column field grid ---------- */
 .field-grid.one-col { grid-template-columns: 1fr; }
 .field-grid.two-col { grid-template-columns: repeat(2, 1fr); }
 .field-grid.three-col { grid-template-columns: repeat(3, 1fr); }
-.field-grid.four-col { grid-template-columns: repeat(4, 1fr); }
 @media (max-width: 560px) {
-  .field-grid.two-col, .field-grid.three-col, .field-grid.four-col { grid-template-columns: 1fr; }
+  .field-grid.two-col, .field-grid.three-col { grid-template-columns: 1fr; }
 }
 @media (min-width: 561px) and (max-width: 760px) {
-  /* 四欄在平板寬度會擠得太窄（單一數字輸入框被壓到 <60px），先降成兩欄；
-     三欄同理——回報表單的長標籤（「EXP / 10分鐘（未加倍）* 可用 W 代替萬」）
-     在三欄下會折成兩欄 */
-  .field-grid.four-col, .field-grid.three-col { grid-template-columns: repeat(2, 1fr); }
+  /* 三欄在平板寬度會擠得太窄——回報表單的長標籤（「EXP / 10分鐘（未加倍）
+     * 可用 W 代替萬」）在三欄下會折成兩欄 */
+  .field-grid.three-col { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* 練等計算機輸入區：DOM 順序是手機單欄的順序（必填核心在前、加倍卷群組
@@ -688,8 +686,6 @@ a:hover { text-decoration-color: var(--accent-hover); }
 .exp-apply-btn { width: 100%; margin-top: 10px; }
 .exp-rate-hint { font-size: 13px; color: var(--ink-soft); margin-top: 12px; }
 .input-warning-hint { font-size: 13px; color: var(--warning); font-weight: 700; margin: 12px 0 0; }
-.field-char-count { font-size: 11px; color: var(--ink-faint); text-align: right; }
-.field-char-count.near-limit { color: var(--warning); font-weight: 700; }
 
 /* ---------- Scroll enhancement simulator ---------- */
 .scroll-sub-head {
@@ -775,9 +771,18 @@ a:hover { text-decoration-color: var(--accent-hover); }
   font-weight: 700;
   color: var(--ink-soft);
 }
-.gacha-rarity-tag.gacha-rarity-uncommon { color: var(--accent-text); }
-.gacha-rarity-tag.gacha-rarity-rare { color: var(--warning); }
-.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
+/* 加 span 元素選擇器（跟 .gacha-rarity-tag.xxx 兩顆 class 湊成跟下面
+   同樣的 specificity）：道具池列表沿用 EXP 測速的 .exp-rate-row 排版，
+   它的 `.exp-rate-row span:first-child { color: var(--ink-soft) }`
+   規則（style.css 685 行）也吃得到巢狀在裡面的 .gacha-rarity-tag（它
+   同時也是自己父層 span 的第一個子元素，符合 :first-child），
+   specificity 打平時原本的 .gacha-rarity-tag.xxx（沒有 span）反而
+   因為少一個 type selector 分數更低直接輸掉，S/A/B 的顏色全被蓋成
+   灰色。加上 span 讓兩邊 specificity 打平，靠後寫的規則（這裡）才會
+   贏，顏色才會正確顯示。 */
+span.gacha-rarity-tag.gacha-rarity-uncommon { color: var(--accent-text); }
+span.gacha-rarity-tag.gacha-rarity-rare { color: var(--warning); }
+span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 
 /* ---------- Community DB ---------- */
 .cm-disclaimer {
@@ -966,6 +971,14 @@ a:hover { text-decoration-color: var(--accent-hover); }
 .cm-helpful-btn:hover:not(:disabled) { border-color: var(--accent-text); color: var(--accent-text); }
 .cm-helpful-btn.voted { border-color: var(--accent-text); color: var(--accent-text); background: var(--accent-tint); }
 .cm-helpful-btn:disabled { cursor: default; }
+/* 「刪除這筆回報」是不可逆動作，跟旁邊無害的「有幫助」按讚鈕沿用同一顆
+   class，原本長得一模一樣、只差文字，手滑風險偏高——文字/邊框改成警示色，
+   一眼就能跟其他按鈕分開，2026-07-31 健檢抓到補上。--danger 在這個站
+   一律只當文字／邊框色用（暗色模式的值是給暗底配的淺色調，不是拿來當
+   實心底色的），hover 沿用 .gacha-result-item.gacha-rarity-legendary
+   同一招：底色用中性的 --accent-tint，不直接拿 --danger 填色 */
+.cm-remove-btn { color: var(--danger); border-color: var(--danger); }
+.cm-remove-btn:hover:not(:disabled) { background: var(--accent-tint); color: var(--danger); border-color: var(--danger); }
 @media (max-width: 700px) {
   /* 觸控目標：桌機 4px padding 約 26px 高沒問題（滑鼠準），手機要拉到
      ≥40px——「刪除這筆回報」沿用這個 class，是不可復原的動作，不能配
@@ -1355,8 +1368,13 @@ a:hover { text-decoration-color: var(--accent-hover); }
   .footer-contact { text-align: center; }
   .footer-cta-row { justify-content: center; }
 }
-@media (min-width: 641px) {
-  /* 桌機版縮小這四顆按鈕：手機版維持原本的 padding/字級/滿版寬不動——
+@media (min-width: 701px) {
+  /* 斷點要跟 .footer-columns 疊成單欄的 700px 對齊，不能用比較窄的
+     641px——中間這段（641~700px）原本會同時吃到「桌機瘦身按鈕」跟
+     「手機單欄堆疊版面」，桌機瘦身版的 padding 縮到只剩 34px 高，
+     但這段寬度其實已經是手機版面了，比全站其他地方統一的 ≥40px
+     觸控標準還小，是這次健檢抓到的真實 bug，修正對齊到 700px。
+     桌機版縮小這四顆按鈕：手機版維持原本的 padding/字級/滿版寬不動——
      那是為了 ≥40px 觸控高度特別留的（見上面的踩坑註解），縮小只在桌機
      這個滑鼠操作、不用顧慮誤觸的範圍做，不動手機版的安全邊界。
      光縮 padding 沒用——.feedback-link 等原本靠 width:100% 撐滿 grid

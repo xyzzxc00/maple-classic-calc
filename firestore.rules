@@ -12,14 +12,28 @@ rules_version = '2';
 // 設計原則（匿名公開資料庫）：
 //   - 任何人可讀。
 //   - 新增紀錄要通過欄位型別 / 範圍 / 長度驗證，擋掉超大 payload 與髒資料。
-//   - 更新只允許「helpful 讚數 +1」，其他欄位一律不可改。
-//   - 不允許刪除、不允許改動既有內容。
+//   - 更新只允許「helpful 讚數 +1」，或本人把 removed 從無/false 改成 true
+//     （2026-07-30 新增的自刪功能，見 isMarkRemoved()）。其他欄位一律不可改。
+//   - 不允許刪除、不允許把 removed 改回 false。
+//
+// ⚠ isMarkRemoved() 已知的殘留風險：規則沒辦法比對「是不是本人在改」
+// （沒有帳號系統做不到真的驗證，UI 層用 deviceId 決定要不要顯示刪除按鈕，
+// 不是安全機制）。因為 exp_records 本來就 `allow get/list: if true`，
+// deviceId 本身是公開可讀的欄位，理論上任何人都能寫一段迴圈把全部
+// 文件的 removed 改成 true，等於不可逆清空整個資料庫。這是刻意接受的
+// 殘留風險（要真的擋掉需要加 Firebase Auth，是更大的架構改動），主要
+// 防線是下面的 App Check 強制執行——擋得住自動化腳本，擋不住有人自己
+// 開瀏覽器 devtools 貼程式碼跑。真的發生時只能靠 Console/Admin SDK
+// 手動把資料改回來，沒有自動復原機制。
 //
 // 濫用滅火開關（規則擋得住格式不合法的資料，擋不住真瀏覽器灌「格式合法」
-// 的垃圾回報——上線初期建議每天看一眼資料量）。發現灌水時一個 commit 關閉回報：
-//   1. 下面的 allow create 改成 `allow create: if false;`
-//   2. js/community.js 的 SUBMISSIONS_OPEN 改成 false（入口按鈕會鎖住）
-//   兩邊要一起改，推上 main 就會同時部署規則與前端。
+// 的垃圾回報，也擋不住上面那種 removed 濫用——上線初期建議每天看一眼資料
+// 量）。發現濫用時一個 commit 關閉回報／刪除：
+//   1. 下面的 allow create 改成 `allow create: if false;`（擋新增垃圾）
+//   2. 需要連刪除也擋的話，allow update 改成只留 isHelpfulIncrement()
+//      （拿掉 isMarkRemoved()，擋掉 removed 濫用，但也連帶擋掉正常的自刪功能）
+//   3. js/community.js 的 SUBMISSIONS_OPEN 改成 false（入口按鈕會鎖住）
+//   以上要一起改，推上 main 就會同時部署規則與前端。
 // -----------------------------------------------------------------------------
 service cloud.firestore {
   match /databases/{database}/documents {

@@ -49,9 +49,13 @@ jobs:
         continue-on-error: true
 
       # firebase-tools 部署規則偶爾也會遇到瞬斷，跟下面 Pages 部署一樣的重試模式：
-      # 失敗不要讓整個 run 掛掉（規則沒變的話網站其實還是能正常部署），先重試一次再說
+      # 失敗不要讓整個 run 掛掉（規則沒變的話網站其實還是能正常部署），先重試一次再說。
+      # continue-on-error 一定要加：這裡是「規則部署」最後一次嘗試，沒有它的話，
+      # 這步本身失敗會讓整個 job fail，連帶擋掉後面的 dist build 跟 Pages 部署——
+      # 跟上面這段註解自己講的意圖矛盾（2026-07-31 健檢抓到，之前漏加）
       - name: Retry deploy Firestore rules
         if: steps.rules-deploy.outcome == 'failure'
+        continue-on-error: true
         run: |
           sleep 15
           npx firebase-tools@14 deploy --only firestore:rules --project maple-classic-calc
