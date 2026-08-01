@@ -1,7 +1,7 @@
 /**
  * guides.js — 玩法攻略頁子分頁切換
  * -----------------------------------------------------------------
- * 三個子分頁（組隊任務／BOSS攻略／職業攻略）目前都還只有
+ * 四個子分頁（組隊任務／BOSS攻略／職業攻略／任務攻略）目前都還只有
  * 免責聲明＋「整理中」的預留位置，內容之後陸續補上；這裡先把子分頁
  * 切換的骨架搭好，做法跟 legacySpots.js 的子分頁切換同一套（hash 錨點
  * 優先於 localStorage 記住的上次分頁）。
@@ -11,10 +11,12 @@
   const subTeamQuestBtn = document.getElementById("guidesSubTeamQuest");
   const subBossBtn = document.getElementById("guidesSubBoss");
   const subJobsBtn = document.getElementById("guidesSubJobs");
+  const subQuestsBtn = document.getElementById("guidesSubQuests");
   const teamQuestView = document.getElementById("guidesTeamQuestView");
   const bossView = document.getElementById("guidesBossView");
   const jobsView = document.getElementById("guidesJobsView");
-  if (!subTeamQuestBtn || !subBossBtn || !subJobsBtn || !teamQuestView || !bossView || !jobsView) return;
+  const questsView = document.getElementById("guidesQuestsView");
+  if (!subTeamQuestBtn || !subBossBtn || !subJobsBtn || !subQuestsBtn || !teamQuestView || !bossView || !jobsView || !questsView) return;
 
   const STORAGE_KEY = "maple_classic_guides_subtab";
 
@@ -22,6 +24,7 @@
     { btn: subTeamQuestBtn, view: teamQuestView, key: "teamQuest" },
     { btn: subBossBtn, view: bossView, key: "boss" },
     { btn: subJobsBtn, view: jobsView, key: "jobs" },
+    { btn: subQuestsBtn, view: questsView, key: "quests" },
   ];
 
   function showTab(key, skipSave) {
