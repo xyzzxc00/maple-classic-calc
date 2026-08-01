@@ -187,8 +187,8 @@
 <nav class="wrap nav-tabs-wrap" aria-label="工具分頁">
   <div class="nav-tabs" role="tablist">
     <button class="nav-tab active" id="navCalc" type="button" role="tab" aria-selected="true" aria-controls="pageCalc">計算工具</button>
-    <button class="nav-tab" id="navCm" type="button" role="tab" aria-selected="false" aria-controls="pageCm">社群資料</button>
     <button class="nav-tab" id="navGuides" type="button" role="tab" aria-selected="false" aria-controls="pageGuides">玩法攻略</button>
+    <button class="nav-tab" id="navCm" type="button" role="tab" aria-selected="false" aria-controls="pageCm">社群資料</button>
     <button class="nav-tab" id="navLegacy" type="button" role="tab" aria-selected="false" aria-controls="pageLegacy">過往資料</button>
   </div>
 </nav>
@@ -633,13 +633,13 @@
     </div>
 
     <div class="subtabs" role="tablist">
-      <button class="subtab active" id="guidesSubTeamQuest" type="button" role="tab" aria-selected="true" aria-controls="guidesTeamQuestView">組隊任務</button>
-      <button class="subtab" id="guidesSubBoss" type="button" role="tab" aria-selected="false" aria-controls="guidesBossView">BOSS攻略</button>
+      <button class="subtab active" id="guidesSubQuests" type="button" role="tab" aria-selected="true" aria-controls="guidesQuestsView">任務攻略</button>
       <button class="subtab" id="guidesSubJobs" type="button" role="tab" aria-selected="false" aria-controls="guidesJobsView">職業攻略</button>
-      <button class="subtab" id="guidesSubQuests" type="button" role="tab" aria-selected="false" aria-controls="guidesQuestsView">任務攻略</button>
+      <button class="subtab" id="guidesSubTeamQuest" type="button" role="tab" aria-selected="false" aria-controls="guidesTeamQuestView">組隊任務</button>
+      <button class="subtab" id="guidesSubBoss" type="button" role="tab" aria-selected="false" aria-controls="guidesBossView">BOSS攻略</button>
     </div>
 
-    <div id="guidesTeamQuestView" role="tabpanel" aria-labelledby="guidesSubTeamQuest">
+    <div id="guidesTeamQuestView" role="tabpanel" aria-labelledby="guidesSubTeamQuest" hidden>
       <details class="cm-disclaimer-details">
         <summary>組隊任務資料說明</summary>
         <p class="cm-disclaimer">以下四個組隊任務攻略主要整理自巴哈姆特新楓之谷板經典時代（Big Bang 改版前）的玩家攻略與精華區文章，並以海外官方經典服（GMS MapleStory Classic World）與舊版官方資料交叉確認，沒有使用任何私服內容。台版經典版（2026/07/29 上線）實際開放哪些組隊任務、細部數值（經驗、時限、獎勵）是否與舊版一致，都要等開服後陸續驗證校正。</p>
@@ -768,7 +768,7 @@
     <div id="guidesJobsView" role="tabpanel" aria-labelledby="guidesSubJobs" hidden>
       <details class="cm-disclaimer-details">
         <summary>職業攻略資料說明</summary>
-        <p class="cm-disclaimer">這裡整理的是開服（2026/07/29）後玩家在巴哈姆特「新楓之谷：經典版」哈啦板與 Threads 分享的實測心得，交叉參考多篇文章整理而成，跟「過往資料」分頁的舊服點法參考是兩回事——過往資料是 Big Bang 大改版前舊版楓之谷的歷史紀錄，這裡是玩家實際玩經典版之後的第一手心得。開服才幾天，目前伺服器等級上限 100 等、只開放到二轉，內容範圍也限縮在目前真的有人驗證過的一、二轉；三轉（Lv.70 起）資料還很零星，四轉（Lv.120 起）目前沒有任何人能達成，暫不收錄。社群也證實兩件跟舊版不同的機制：<strong>經典版沒有技改</strong>（玩家從解包資料確認技能數值與舊版一致），但<strong>「洗血系統」不會出現，血量改用別的方式調整</strong>——所以下面提到「沒洗血」相關的舊版經驗評論，實際數值要等官方公布後再校正。強度評價會隨版本熟悉度、裝備取得難易度變動，僅供參考，不是絕對定論；想知道怎麼轉職、任務怎麼跑，看「<a href="guides/job-advancement-guide/">完整轉職路線攻略</a>」，想先確認五大職業怎麼選，看「<a href="guides/job-selection-guide/">選職業指南</a>」。</p>
+        <p class="cm-disclaimer">這裡整理的是開服（2026/07/29）後玩家在巴哈姆特「新楓之谷：經典版」哈啦板與 Threads 分享的實測心得，交叉參考多篇文章整理而成，跟「過往資料」分頁的舊服點法參考是兩回事——過往資料是 Big Bang 大改版前舊版楓之谷的歷史紀錄，這裡是玩家實際玩經典版之後的第一手心得。開服才幾天，目前伺服器等級上限 100 等、只開放到二轉，內容範圍也限縮在目前真的有人驗證過的一、二轉；三轉（Lv.70 起）資料還很零星，四轉（Lv.120 起）目前沒有任何人能達成，暫不收錄。社群也證實兩件跟舊版不同的機制：<strong>經典版沒有技改</strong>（玩家從解包資料確認技能數值與舊版一致），但<strong>「洗血系統」不會出現，血量改用別的方式調整</strong>——所以下面提到「沒洗血」相關的舊版經驗評論，實際數值要等官方公布後再校正。五大職業的「現況評價」段落都來自玩家 2026 年的第一手實測心得；「沒有技改」已被證實，所以逐級技能點法直接沿用本站「過往資料」整理的舊版點法資料庫，屬於機制性數字、不是每個分支都各自另外找過 2026 年新測回報，各卡片來源欄位都有說明分別是哪一種。強度評價會隨版本熟悉度、裝備取得難易度變動，僅供參考，不是絕對定論；想知道怎麼轉職、任務怎麼跑，看「<a href="guides/job-advancement-guide/">完整轉職路線攻略</a>」，想先確認五大職業怎麼選，看「<a href="guides/job-selection-guide/">選職業指南</a>」。</p>
       </details>
 
       <div class="pq-list">
@@ -820,28 +820,61 @@
         <details class="pq-card">
           <summary>弓箭手系<span class="pq-level">主屬性：敏捷 DEX</span></summary>
           <div class="pq-card-body">
-            <p class="cm-empty">資料還在累積中。開服才幾天，目前只挖得到玩家對「弓／弩」兩條線的強度風評與技能機制吐槽，還沒有像劍士／法師那樣完整的逐級技能點法與練功路線，等社群資料更充分再補上。</p>
+            <p class="pq-section-label">能力值配點（AP）</p>
+            <p>敏捷主吃，力量只要抓到當下弓／弩的裝備需求門檻就好（弩弓手所需力量比弓箭手低）。門檻夠了之後，剩下的能力點全部灌敏捷；這是弓箭手系的通用邏輯，具體門檻看武器本身標示的力量需求。</p>
+            <p class="pq-section-label">1轉 弓箭手（Lv10~30，兩分支通用）</p>
+            <p>斷魂箭 1（解鎖用）→ 精準強化 3 → 百步穿楊 8（點滿）→ 霸王箭 20（點滿）→ 二連箭 20（點滿）→ 剩下 9 點給集中術。弓、弩兩條路線 1轉點法完全相同，二連箭點滿、斷魂箭只放 1 點是主流做法：二連箭一次射兩箭等於兩次爆擊機會，配霸王箭傷害比較穩。</p>
+            <p class="pq-section-label">2轉技能點法（Lv30~70，兩分支各自）</p>
+            <ul>
+              <li><strong>獵人（→遊俠→箭神）</strong>：炸彈箭 1（拉怪用）→ 精準之弓 19~20 → 快速之弓 → 無形之箭 → 炸彈箭 30（點滿）。剩下的點數有兩派做法：一派把終極之弓點滿 30；另一派完全不點，改投強弓與集中術——終極攻擊會把怪打飛、干擾炸彈箭聚怪，是不點派的主要理由。</li>
+              <li><strong>弩弓手（→狙擊手→神射手）</strong>：穿透之箭 1（拉怪用）→ 精準之弩 19~20 → 快速之弩 → 無形之箭 → 穿透之箭 30（點滿）。剩餘點數同樣分「終極之弩點滿 30」與「不點改投強弩＋集中術」兩派。</li>
+            </ul>
+            <p class="pq-section-label">兩分支現況評價</p>
+            <p><strong>箭神</strong>一轉成長曲線平滑，稱得上快；二轉只要撐到 33 等以上，爆炸箭就開始發力，是很不錯的練等技能，到了 50 等左右單體傷害也不錯，可以無傷打一些小 boss。缺點是弓箭手近身揮弓的動作模式，在怪物密集的地圖沒辦法練，有些地圖會打得很憋屈。<strong>神射手</strong>目前風評明顯較差：攻速慢、成形晚，光速神弩還要先集氣才能放，實戰體驗不好；必殺狙擊看似傷害嚇人，但因為有 5 秒冷卻時間，換算成 DPS 其實偏低。強弓（擊退效果）跟終極弓弩（會自動補一發普攻拉低傷害、且三轉以上不生效）這兩支技能評價也都不高，點的時候要有心理準備。</p>
+            <p class="pq-source">兩分支現況評價來源：巴哈姆特「新楓之谷：經典版」哈啦板〈職業心得〉（2026-07-30，maplej4m3，同一篇也是劍士系／法師系卡片現況評價的來源）。1轉／2轉技能點法屬於原版機制數值，經典版已由玩家解包確認「沒有技改」，理論上與此處列的一致；這部分數字整理自本站「過往資料」使用的舊版技能點法資料庫（多方 2007～2010 年代當年逐級表交叉核對），屬於機制性的技能上限與加點順序，不是 2026 年新測數字，能力值配點門檻請以遊戲內實際裝備需求為準。</p>
           </div>
         </details>
 
         <details class="pq-card">
           <summary>盜賊系<span class="pq-level">主屬性：幸運 LUK</span></summary>
           <div class="pq-card-body">
-            <p class="cm-empty">資料還在累積中。開服才幾天，目前只挖得到玩家對「鏢賊／刀賊」兩條線的強度風評（例如鏢賊資源投入報酬率的討論），還沒有完整的逐級技能點法與練功路線，等社群資料更充分再補上。</p>
+            <p class="pq-section-label">能力值配點（AP）</p>
+            <p>轉職前敏捷點到門檻（25）即可；轉職後盜賊看的是幸運，敏捷只要夠穿裝備門檻，其餘能力點全部灌幸運。這是盜賊系公認的通用邏輯，具體敏捷門檻隨等級與裝備需求變動，抓到能穿裝備的量就好，別浪費點數。</p>
+            <p class="pq-section-label">1轉 盜賊（Lv10~30，依二轉路線分兩派）</p>
+            <p>1轉點法從一開始就跟著你想走的二轉分支走：想走<strong>飛鏢／夜使者路線</strong>的話，雙飛斬 1 → 幻化術 3 → 鷹之眼 8（點滿）→ 雙飛斬 20（點滿）→ 幻化術 20（點滿）→ 詛咒術 3 → 剩餘給隱身術；想走<strong>短刀／暗影神偷路線</strong>的話，劈空斬 1 → 幻化術 3 → 鷹之眼 8 → 劈空斬 20（點滿）→ 幻化術 20（點滿）→ 詛咒術 3 → 隱身術 10，雙飛斬完全不點。</p>
+            <p class="pq-section-label">2轉技能點法（Lv30~70，兩分支各自）</p>
+            <ul>
+              <li><strong>刺客（→暗殺者→夜使者）</strong>：精準暗器 3~5（開前置）→ 強力投擲點滿 30（爆擊主力，優先）→ 速度激發 20 → 精準暗器往上補 → 極速暗殺 20 → 恢復術 3 → 吸血術點滿 30。</li>
+              <li><strong>俠盜（→神偷→暗影神偷）</strong>：精準之刃 1 起手 → 精準之刃推到 19 → 迴旋斬點滿 30 → 快速之刃 → 速度激發點滿 20 → 快速之刃點滿 20 → 精準之刃補滿 20 → 恢復術點滿 20 → 剩餘點數給妙手術。</li>
+            </ul>
+            <p class="pq-section-label">兩分支現況評價</p>
+            <p><strong>標賊（飛鏢線）</strong>技能組從頭強到尾，前提是要有資源——有錢就無敵，沒錢的話前期跟劍士差不多。二、三轉機動性非常高，四轉配合會心之眼是單體輸出最強職業之一，但成長曲線偏坐牢，沒有裝備投資報酬率會很低；整體評價是「有愛有資源就給到夯」。<strong>刀賊（短刀線）</strong>實際傷害其實一言難盡——瞬來瞬去的動作看起來很帥，但把攻速跟延遲算進去，輸出並沒有想像中高；不過如果裝備到位，會是二轉最強的職業，四轉的金錢盾配瞬步無敵幀更是全職業最強的生存能力之一，煙霧彈這個輔助技也很實用。楓幣炸彈是貨真價實的強力技能，但代價是燒錢；反而是勇者掠奪術這個設計評價很低，掠奪到的錢炸出來的傷害很小，不如省點數點別的技能。整體來說刀賊「不在乎輸出數字、喜歡這套玩法又有錢」的話一樣給到夯。</p>
+            <p class="pq-source">兩分支現況評價來源：巴哈姆特「新楓之谷：經典版」哈啦板〈職業心得〉（2026-07-30，maplej4m3）。1轉／2轉技能點法屬於原版機制數值，經典版已確認「沒有技改」，理論上一致；整理自本站「過往資料」使用的舊版技能點法資料庫，屬機制性上限與加點順序，不是 2026 年新測數字。</p>
           </div>
         </details>
 
         <details class="pq-card">
           <summary>海盜系<span class="pq-level">主屬性：力量／敏捷</span></summary>
           <div class="pq-card-body">
-            <p class="cm-empty">資料還在累積中。海盜系開服第一天就直接開放，但目前只挖得到「拳師／槍手」兩條線的簡短強度風評，還沒有完整的逐級技能點法與練功路線，等社群資料更充分再補上。</p>
+            <p class="pq-section-label">能力值配點（AP）</p>
+            <p>海盜系兩條線主副屬相反：打手線（拳霸路線）主力副敏，槍手線（槍神路線）主敏副力。副屬只要抓到武器裝備當下的需求門檻，其餘能力點全部灌主屬，這是兩分支共通的配點邏輯。</p>
+            <p class="pq-section-label">1轉 海盜（Lv10~30，依二轉路線分兩派）</p>
+            <p><strong>打手線</strong>：旋風斬點滿 20 → 極限迴避點滿 20 → 衝擊拳點滿 20 → 剩下 1 點給衝鋒。近戰走這條要注意：衝鋒只點 1 點就好，近戰打怪時左右轉向容易誤觸衝鋒白白噴 MP。<strong>槍手線</strong>：雙子星攻擊點滿 20（主攻）→ 極限迴避點滿 20 → 衝鋒點滿 10 → 剩餘 11 點給旋風斬。跟打手線最大差別是衝鋒要點滿——遠程職業要靠它趕路，不會像近戰那樣誤觸。</p>
+            <p class="pq-section-label">2轉技能點法（Lv30~70，兩分支各自）</p>
+            <ul>
+              <li><strong>打手（→格鬥家→拳霸）</strong>：體魄強健點滿 10（最優先，會放大之後每級的 HP 成長）→ 精通指虎與致命快打依序推 → 狂暴衝擊 20 → 昇龍拳 20 → 迴旋肘擊 20 → 魔力再生 10 → 剩下 1 點給偽裝術。</li>
+              <li><strong>槍手（→神槍手→槍神）</strong>：精通槍法點滿 20（務必點滿，職業定位吃命中與傷害穩定度）→ 散射點滿 20（二轉主攻）→ 偽裝射擊點滿 20（滿點暈眩機率拉滿）→ 脫離戰場 → 緩降術點滿 10（趕路必需）→ 迅雷再起點滿 20 → 炸彈投擲基本放生（不實用）。</li>
+            </ul>
+            <p class="pq-section-label">兩分支現況評價</p>
+            <p><strong>拳霸</strong>成形很晚，技能傷害係數高但延遲也高，整體傷害評價普通；四轉前主要輸出手段只有泡泡拳，連變身術都被評價「比泡泡拳還爛」。四轉的技能組傷害不錯，但閃連殺的冷卻時間會讓人等到很崩潰——好處是施放時會強制動作，可以藉此閃掉不少控制技能。<strong>槍神</strong>因為沒有爆擊機制，整體評價比較尷尬，敏捷系職業前期傷害就偏低，被形容成「坐牢中的坐牢」；四轉的海盜船傷害其實不錯，但成形非常晚、路上還有不少沒什麼用的技能。能撐到四轉後期的話評價會轉好，但過程中的生存能力偏弱。</p>
+            <p class="pq-source">兩分支現況評價來源：巴哈姆特「新楓之谷：經典版」哈啦板〈職業心得〉（2026-07-30，maplej4m3）。1轉／2轉技能點法屬於原版機制數值，經典版已確認「沒有技改」，理論上一致；整理自本站「過往資料」使用的舊版技能點法資料庫，屬機制性上限與加點順序，不是 2026 年新測數字。</p>
           </div>
         </details>
 
       </div>
     </div>
 
-    <div id="guidesQuestsView" role="tabpanel" aria-labelledby="guidesSubQuests" hidden>
+    <div id="guidesQuestsView" role="tabpanel" aria-labelledby="guidesSubQuests">
       <details class="cm-disclaimer-details">
         <summary>任務攻略資料說明</summary>
         <p class="cm-disclaimer">這裡整理的任務主要來自兩篇巴哈姆特「新楓之谷：經典版」哈啦板文章：〈經典舊版任務完整大彙整〉（2026-07-29，domious4888，整理了楓之島／維多利亞島／艾納斯島共 41 個任務）與〈這邊提供任務需求的怪物掉落物彙整一覽表〉（2026-08-01，daniel881，持續更新中，是玩家自己整理的 2026 年實測素材需求）。大彙整那篇文末自己註明「取材於 2007 舊文章」，本身不是開服後實測，所以每張卡片的說明欄都會標明：這個任務的流程／獎勵是不是有另外找到 2026 年玩家實測回報（daniel881 的清單、其他實測心得文）或楓葉雨資料庫交叉確認過，還是目前只有大彙整這一篇來源、尚待驗證——特別是需要進入「忍耐地圖」的幾個任務（沉睡森林、耐之林、地鐵忍耐關卡），目前只確認忍耐任務系統本身還在，個別地圖還沒找到玩家回報，卡片裡都有特別註明。找過 Threads 上不少同名任務攻略，但幾乎都是《楓之谷 Artale》（Nexon 另一款復古手遊）或《MapleStory Worlds》玩家在 2025 年（本作 2026/07/29 才上線）分享的內容，帳號標籤和發文日期都對不上，已經排除不採用。有拿「楓葉雨」（maple.yampiz.com）任務資料庫核對過流程與 NPC／道具需求，大致一致；但楓葉雨查詢版本預設是 Artale，該版本經驗值／楓幣獎勵多數是經典版的 2 倍，實際獎勵數字仍以巴哈姆特玩家在本作的實測回報為準。</p>
@@ -1006,11 +1039,11 @@
             <p>比前兩個任務累一點——要打滿刺菇菇傘 120 個、黑肥肥尖牙 100 個，合計 220 隻的量，獎勵是<strong>隨機 60% 武器攻擊卷軸</strong>（不是自選，抽到什麼武器種類全憑運氣，跟本身職業無關），在 25 級這個階段算是很值得的裝備投資，適合已經抓到練功節奏、想搏一把好卷軸的玩家。</p>
             <p class="pq-section-label">任務流程</p>
             <p>維多利亞港售票處前找 NPC 珍接取，於奇幻村周邊打刺菇菇收「刺菇菇傘 x120」、打黑肥肥收「黑肥肥尖牙 x100」，收滿交還給珍即完成。</p>
-            <p class="pq-section-label">順路技巧</p>
-            <p>墮落城市醫院同時有「醫院的神祕少女」任務只需要道符 x100（打殭屍菇菇掉落），跟珍與黑肥肥的練功範圍相近，建議兩個任務一起接、一起刷，不要分兩趟打。</p>
+            <p class="pq-section-label">順路任務：醫院的神祕少女（Lv.25）</p>
+            <p>墮落城市醫院找 NPC「神秘的女孩」，跟珍與黑肥肥的練功範圍相近，建議兩個任務一起接、一起刷，不要分兩趟打。分兩階段：第一階段打黑肥肥收「鏡子碎片 x20」，獎勵經驗 +2,300；少女復活後接續第二階段，打殭屍菇菇收「道符 x100」，同樣獎勵經驗 +2,300。</p>
             <p class="pq-section-label">後續：煉金術士，珍（Lv.40）</p>
             <p>珍與黑肥肥的後續任務，分三個階段：第一階段交怪藥 x30、巫婆實驗用青蛙 x20、礦泉水 x1（獎勵經驗 +6,500、特殊藥水 x10）；第二階段交蘑菇王芽孢 x1、暴龍之血 x3、怪藥 x100、巫婆實驗用青蛙 x30（獎勵經驗 +6,800、超級藥水 x15）；第三階段交龍皮 x20、枯木樹液 x10、月石 x1（獎勵經驗 +7,100、手套攻擊卷 60% 或 10% x1——原始資料沒寫清楚是隨機還是自選，這點還沒確認，並開放跟珍購買特殊藥水）。材料偏雜，適合已經在打高階怪、順手收集素材的玩家。</p>
-            <p class="pq-source">來源：巴哈姆特〈經典舊版任務完整大彙整〉（2026-07-29，domious4888）第 17、18 項；獎勵與道具數量以楓葉雨任務資料庫（qu_0264）交叉核對完全一致（含經驗值 2,500 非 Artale 加倍數字）；龍皮需求量另以〈這邊提供任務需求的怪物掉落物彙整一覽表〉（2026-08-01，daniel881）確認。</p>
+            <p class="pq-source">來源：巴哈姆特〈經典舊版任務完整大彙整〉（2026-07-29，domious4888）第 17、18 項；獎勵與道具數量以楓葉雨任務資料庫（qu_0264）交叉核對完全一致（含經驗值 2,500 非 Artale 加倍數字）；龍皮需求量另以〈這邊提供任務需求的怪物掉落物彙整一覽表〉（2026-08-01，daniel881）確認。醫院的神祕少女道符需求量以巴哈姆特〈給剛滿25等的玩家－任務一條龍〉（2026 年，xeriof915）提及一致，經驗值與流程另以楓葉雨任務資料庫（qu_0266）交叉核對。</p>
           </div>
         </details>
 
