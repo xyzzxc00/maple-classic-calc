@@ -146,6 +146,8 @@
 
   tabs.forEach((t) => t.btn.addEventListener("click", () => showTab(t.key)));
 
+  window.MapleLegacy = { showTab };
+
   // 網址錨點 #legacy-<subtab>（例如 guides 文章連的 #legacy-bosses）比
   // localStorage 的舊紀錄優先，跟 nav.js 處理 #calc-* 的規則一致
   const [hashMain, hashSub] = location.hash.slice(1).split("-");

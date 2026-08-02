@@ -30,6 +30,10 @@
   --warning: #7A5800;
   --radius-lg: 14px;
   --radius-md: 8px;
+  /* 側邊欄新版排版的固定頂欄高度／側邊欄寬度，.top-banner／.sidebar／
+     .app-main 好幾個地方都要對齊同一組值，才不會露出縫隙或蓋到內容 */
+  --top-banner-h: 40px;
+  --sidebar-w: 260px;
   /* 浮動元素（目前只有 .back-to-top）的陰影色，跟著明暗模式各自調深淺，
      不要整份 CSS 唯一一處寫死 rgba() 字面值 */
   --shadow-color: rgba(0, 0, 0, 0.18);
@@ -1198,36 +1202,6 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 .boss-prequest-step-title { font-weight: 700; color: var(--ink); font-size: 14px; }
 .boss-prequest-step-desc { font-size: 13px; color: var(--ink-soft); margin-top: 4px; line-height: 1.6; }
 
-.subtabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
-.subtab {
-  /* 跟 .nav-tab（主分頁）同一套做法：flex:1 等寬 + white-space:nowrap
-     禁止換行，手機版窄到放不下時靠下面兩層 media query 縮內距/字級，
-     不要讓文字自己斷字換行（原本沒有 flex:1/nowrap，手機版「練功地點」
-     這種 4 個字的標籤會被壓到中間硬斷成兩行，例如「練功地」+「點」） */
-  flex: 1;
-  background: transparent;
-  color: var(--ink-soft);
-  font-family: 'Noto Sans TC', sans-serif;
-  font-weight: 700;
-  font-size: 13px;
-  padding: 10px 16px;
-  border: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  cursor: pointer;
-  white-space: nowrap;
-  text-align: center;
-  transition: color 0.15s, border-color 0.15s;
-}
-.subtab:hover { color: var(--ink); }
-.subtab.active { color: var(--accent-text); border-bottom-color: var(--accent-text); }
-@media (max-width: 560px) {
-  .subtab { padding: 10px 8px; font-size: 12px; min-height: 44px; }
-}
-@media (max-width: 420px) {
-  .subtabs { gap: 2px; }
-  .subtab { padding: 10px 4px; font-size: 11px; min-height: 44px; }
-}
 /* ---------- Footer ---------- */
 .site-footer {
   border-top: 1px solid var(--border);
@@ -1455,24 +1429,39 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   padding: 0 16px 0 34px;
 }
 
-/* ---------- Theme toggle ---------- */
+/* ---------- Theme toggle（月亮／太陽小圖示按鈕） ---------- */
 .theme-toggle {
   position: fixed;
   top: 14px;
   right: 16px;
   z-index: 200;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--surface);
   border: 1px solid var(--border-strong);
   border-radius: 999px;
   color: var(--ink-soft);
-  padding: 8px 16px;
+  padding: 0;
   cursor: pointer;
-  font-family: 'Noto Sans TC', sans-serif;
-  font-weight: 700;
-  font-size: 13px;
+  font-size: 15px;
+  line-height: 1;
   transition: all 0.15s;
 }
 .theme-toggle:hover { border-color: var(--accent-text); color: var(--accent-text); }
+/* SVG 圖示置中、不吃行高的 baseline 位移 */
+.theme-toggle svg { display: block; }
+/* 有側邊欄的新版頁面（目前只有 index.html）：圖示要疊在固定頂欄裡面，
+   蓋掉底下舊版 ≤480px 那條「跟著頁首捲走」的規則（見下面），固定在頂欄
+   垂直置中的位置，不會被展開的側邊欄品牌區蓋到 */
+body.has-sidebar .theme-toggle {
+  position: fixed;
+  top: calc((var(--top-banner-h) - 34px) / 2);
+  right: 16px;
+  z-index: 260;
+}
 
 /* ---------- 回到最上面（右下角浮動按鈕，js/backToTop.js 動態插入） ---------- */
 .back-to-top {
@@ -1556,11 +1545,421 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
      硬留白反而讓 badge 貼右對齊時看起來空一大塊。改成跟著頁首一起捲走，
      這樣往下捲動後所有 panel-head 都能正常貼右對齊，不用再特別留白。 */
   .site-header { position: relative; }
-  .theme-toggle {
+  /* 只有還在用舊版 site-header 排版的頁面（guides/*、privacy/）才需要
+     這條「跟著頁首捲走」的規則；有側邊欄的新版頁面（body.has-sidebar）
+     排除在外，圖示固定在頂欄裡，不跟著捲 */
+  body:not(.has-sidebar) .theme-toggle {
     position: absolute;
     top: 10px;
     right: 10px;
+    width: auto;
+    height: auto;
     padding: 12px 14px;
     font-size: 12px;
   }
+}
+
+/* ============================================================
+   側邊欄＋卡片式排版（2026-08-02 導覽改版）
+   .nav-tab／.subtab 這兩個 class 還是沿用給 nav.js／guides.js／
+   community.js／legacySpots.js 的 .active 切換邏輯用（id 不變、
+   JS 完全沒改）。舊的 .nav-tabs-wrap/.nav-tabs 容器 class 已經沒有
+   任何地方在用，留著也不會被套用到；但舊的 .subtabs/.subtab 規則
+   （橫向子分頁列的樣式）已經整段刪除——.subtab.active 原本無條件
+   把顏色設成 accent，子分頁搬進側邊欄後，這條規則會讓「上次切到
+   別的主分頁時選過的子分頁」看起來也是亮的，所以子分頁的亮框樣式
+   全部改用下面 .sidebar-link.active 搭配 .nav-group-btn.active 的
+   scoped 規則。
+   ============================================================ */
+
+/* ---------- 頂部公告條 ---------- */
+/* 固定在最上層、捲動時不會消失，但只蓋主內容那一欄的寬度（從側邊欄
+   右邊界開始），不會整條蓋過側邊欄——側邊欄本身要是從最上面到最下面
+   一路到底、沒有被這條公告切斷的完整一欄（跟參考的 meowdb 排版一樣：
+   側邊欄自己有品牌列，公告／搜尋列只出現在側邊欄右邊那塊主內容區）。
+   .app-main 的內容要留一個等於這條公告高度的 padding-top，才不會被
+   蓋住 */
+.top-banner {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-w);
+  right: 0;
+  z-index: 250;
+  height: var(--top-banner-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-tint);
+  color: var(--accent-text);
+  border-bottom: 1px solid var(--accent-border);
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 0 60px 0 16px;
+  overflow: hidden;
+}
+.top-banner-text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ---------- App shell：側邊欄 + 主內容 ---------- */
+.app-shell { display: flex; align-items: flex-start; }
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 16px 12px 24px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+/* .app-main 撐滿整個視窗高度、footer 用 main 的 flex:1 推到最底：
+   內容不夠長的分頁（例如 BOSS 攻略）footer 也會固定貼在畫面最下方，
+   不會懸在半空留一大塊空白 */
+.app-main {
+  flex: 1;
+  min-width: 0;
+  padding-top: var(--top-banner-h);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+.app-main > main { flex: 1 0 auto; }
+
+/* ---------- 側邊欄品牌區（同時是 Home 連結） ---------- */
+.sidebar-brand {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  cursor: pointer;
+  padding: 8px 8px 16px;
+  margin-bottom: 10px;
+}
+.sidebar-brand-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  padding: 6px;
+  box-sizing: border-box;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.sidebar-brand-text { display: flex; flex-direction: column; line-height: 1.3; }
+.sidebar-brand-name { font-weight: 900; font-size: 14px; color: var(--ink); }
+.sidebar-brand-sub { font-size: 11px; color: var(--ink-soft); }
+
+/* ---------- 分頁群組（原本的 4 顆橫向大分頁，改成側邊欄群組標題） ---------- */
+.nav-group { margin-bottom: 2px; }
+.nav-group-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  border-bottom: none;
+  margin-bottom: 0;
+  border-radius: var(--radius-md);
+  padding: 9px 10px;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+}
+.nav-group-btn:hover { color: var(--ink); background: var(--surface-tint); }
+.nav-group-btn.active { color: var(--accent-text); border-bottom: none; }
+.nav-group-chev { font-size: 10px; opacity: 0.65; transition: transform 0.15s ease; flex-shrink: 0; }
+.nav-group.collapsed .nav-group-chev { transform: rotate(-90deg); }
+
+/* 展開/收合用 max-height 動畫（實際數值由 sidebar.js 量測 scrollHeight
+   後設成 inline style，不是猜一個固定值——猜的話收合/展開最後一段會
+   停頓，不夠流暢）。box-sizing:border-box 是為了讓 max-height 把 padding
+   也算進去，但 max-height:0 沒辦法把 padding 本身壓成 0（padding 有
+   自己的最小值下限，兩個垂直 padding 加起來還是會撐出一截空隙），所以
+   padding-top/bottom 額外用 .collapsed class 一起轉場收掉 */
+.nav-group-links {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px 0 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.25s ease, padding-top 0.25s ease, padding-bottom 0.25s ease;
+}
+.nav-group.collapsed .nav-group-links { padding-top: 0; padding-bottom: 0; }
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: 'Noto Sans TC', sans-serif;
+  border: none;
+  border-bottom: none;
+  margin-bottom: 0;
+  white-space: normal;
+  border-radius: var(--radius-md);
+  padding: 8px 10px 8px 28px;
+  font-size: 13.5px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+.sidebar-link:hover { color: var(--ink); background: var(--surface-tint); }
+.sidebar-link.active { border-bottom: none; }
+
+/* 手機版側邊欄的關閉鈕（✕）與背景遮罩：桌機版側邊欄常駐，用不到 */
+.sidebar-close { display: none; }
+.sidebar-backdrop { display: none; }
+
+/* 子分頁的「亮著」樣式只在自己所屬的主分頁也是目前分頁時才顯示，
+   不然使用者在別的分頁時，其他分頁上次選過的子分頁看起來也會是亮的 */
+.nav-group-btn.active + .nav-group-links .sidebar-link.active {
+  color: var(--accent-text);
+  background: var(--accent-tint);
+  font-weight: 700;
+}
+
+.sidebar-footer {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sidebar-footer .sidebar-link { padding-left: 10px; font-size: 12.5px; color: var(--ink-faint); }
+
+/* 官方遊戲頁面／隱私政策／常見問題／攻略文章／贊助連結／免責聲明原本
+   各自散落在每個頁面底部或連到舊版獨立頁面，現在常見問題／攻略文章／
+   隱私政策都改成側邊欄按鈕，點了直接在右側切換成應用內的分頁（用跟
+   #pageHome/#pageCalc 等一樣的 switchNav 機制），不再連到 guides/、
+   privacy/ 那兩個舊版 UI 的獨立頁面。免責聲明段落用一條分隔線隔開，
+   不然全部黏在一起看起來很擠 */
+.sidebar-footer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+/* 免責聲明／贊助說明這些固定文字：每個分頁都看得到，放在 .app-main
+   裡、所有 .wrap 分頁容器外面。分隔線畫在容器本身上，容器是 .app-main
+   的直接子元素、不設 max-width，所以這條線會從側邊欄右緣一路延伸到
+   視窗最右邊；文字內容分成左右兩欄平均分攤，高度才不會拉太長 */
+.app-main-footer {
+  margin-top: 36px; /* 跟上面分頁內容（例如首頁的最新更新清單）拉開距離 */
+  padding: 20px 32px 32px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--ink-soft);
+  text-align: center;
+}
+.app-main-footer-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 40px;
+  max-width: 980px;
+  margin: 0 auto;
+}
+.app-main-footer p { margin: 0 0 10px; line-height: 1.6; }
+.app-main-footer-col p:last-child { margin-bottom: 0; }
+.app-main-footer .footer-copyright { margin: 14px 0 0; }
+@media (max-width: 700px) {
+  .app-main-footer-cols { grid-template-columns: 1fr; }
+}
+.app-main-footer a { color: var(--ink-soft); text-decoration: underline; }
+.app-main-footer a:hover { color: var(--accent-text); }
+
+/* ---------- Topbar（手機漢堡選單 + 開服狀態） ---------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  /* 不畫 border-bottom 分隔線：上面已經有固定的公告條當視覺分界，
+     這裡再畫一條顯得多餘又不明顯 */
+}
+.menu-btn {
+  display: none;
+  background: var(--surface-tint);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-text);
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-border);
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-text); }
+
+/* ---------- 首頁儀表板 hero ---------- */
+.dashboard-hero {
+  background: radial-gradient(circle at 12% 15%, var(--accent-tint), transparent 55%), var(--surface);
+}
+.dashboard-hero .subtitle { max-width: 560px; margin-bottom: 18px; }
+.dashboard-hero-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+.dashboard-hero-actions .btn-primary { width: auto; }
+
+/* ---------- 區塊標題 ---------- */
+.section-head { margin: 30px 0 14px; }
+.section-head h2 { font-size: 16px; margin: 0; }
+
+/* ---------- 快速工具卡片格 ---------- */
+.tool-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.tool-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+.tool-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.tool-card-title { font-weight: 700; font-size: 14px; color: var(--ink); margin-bottom: 4px; }
+.tool-card-desc { font-size: 12.5px; color: var(--ink-soft); line-height: 1.6; }
+
+/* ---------- 最新更新清單 ---------- */
+.feed-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.feed-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  border: none;
+  border-radius: 0;
+  padding: 13px 16px;
+  cursor: pointer;
+}
+.feed-item + .feed-item { border-top: 1px solid var(--border); }
+.feed-item:hover { background: var(--surface-tint); }
+.feed-item--static { cursor: default; }
+.feed-item--static:hover { background: var(--surface); }
+.feed-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--accent-text);
+  background: var(--accent-tint);
+  padding: 3px 8px;
+  border-radius: 5px;
+  flex-shrink: 0;
+}
+.feed-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.feed-title { font-size: 13.5px; color: var(--ink); }
+.feed-desc { font-size: 11.5px; color: var(--ink-soft); }
+.feed-date { font-size: 11.5px; color: var(--ink-faint); flex-shrink: 0; }
+
+/* ---------- 手機版：側邊欄收成漢堡選單 ---------- */
+@media (max-width: 880px) {
+  .sidebar {
+    position: fixed;
+    top: var(--top-banner-h);
+    left: -280px;
+    z-index: 30;
+    height: calc(100vh - var(--top-banner-h));
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.25);
+    transition: left 0.2s ease;
+  }
+  body.dark .sidebar { box-shadow: 0 0 40px rgba(0, 0, 0, 0.5); }
+  #sidebar.open { left: 0; }
+  .dashboard-hero { padding: 20px; }
+  .tool-card-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  /* 手機版側邊欄收在畫面外、不占版位，公告條要蓋滿整個寬度，不能再
+     照桌機版留側邊欄的寬度。漢堡鈕整合在公告條最左邊（桌機隱藏），
+     文字只顯示站名（「— 非官方粉絲網站…」後半段藏起來），右邊留空間
+     給疊在頂欄裡的暗色切換鈕 */
+  .top-banner {
+    left: 0;
+    justify-content: flex-start;
+    text-align: left;
+    font-size: 12px;
+    gap: 4px;
+    padding: 0 52px 0 4px;
+  }
+  .top-banner-extra { display: none; }
+  .menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    color: var(--accent-text);
+    font-size: 17px;
+    flex-shrink: 0;
+  }
+
+  /* 側邊欄展開時：右上角有明確的 ✕ 可以關、旁邊的半透明遮罩點一下
+     也會關，選單打開時鎖住背景捲動 */
+  .sidebar-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 12px;
+    right: 10px;
+    width: 34px;
+    height: 34px;
+    background: var(--surface-tint);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  #sidebar.open + .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 25; /* 蓋住內容（z-index 預設層），墊在 .sidebar（30）下面 */
+    background: rgba(0, 0, 0, 0.4);
+  }
+  body.menu-open { overflow: hidden; }
 }

@@ -39,6 +39,8 @@
 
   tabs.forEach((t) => t.btn.addEventListener("click", () => showTab(t.key)));
 
+  window.MapleGuides = { showTab };
+
   // 網址錨點 #guides-<subtab>（例如之後的攻略文連回來的 #guides-boss）
   // 比 localStorage 的舊紀錄優先，跟 nav.js 處理 #calc-*／legacySpots.js
   // 處理 #legacy-* 的規則一致

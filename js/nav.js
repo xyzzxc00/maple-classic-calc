@@ -5,16 +5,20 @@
   const STORAGE_KEY = "maple_classic_nav_v1";
 
   const pages = {
+    home: document.getElementById("pageHome"),
     calc: document.getElementById("pageCalc"),
     guides: document.getElementById("pageGuides"),
     cm: document.getElementById("pageCm"),
     legacy: document.getElementById("pageLegacy"),
+    faq: document.getElementById("pageFaq"),
   };
   const tabs = {
+    home: document.getElementById("navHome"),
     calc: document.getElementById("navCalc"),
     guides: document.getElementById("navGuides"),
     cm: document.getElementById("navCm"),
     legacy: document.getElementById("navLegacy"),
+    faq: document.getElementById("navFaqLink"),
   };
 
   function switchNav(page) {
@@ -30,14 +34,17 @@
         if (window.MapleSpots) window.MapleSpots.render();
       });
     }
+    // 讓側邊欄（sidebar.js）知道現在在哪一頁，不管是誰觸發的切換
+    // （側邊欄點擊、app.js 的「去哪練」跨頁連結、timer.js 的跨頁連結都算）
+    document.dispatchEvent(new CustomEvent("maplenav:pagechange", { detail: { page } }));
   }
 
-  tabs.calc.addEventListener("click", () => switchNav("calc"));
-  tabs.guides.addEventListener("click", () => switchNav("guides"));
-  tabs.cm.addEventListener("click", () => switchNav("cm"));
-  tabs.legacy.addEventListener("click", () => switchNav("legacy"));
+  // 四大群組的標題按鈕（navCalc 等）不在這裡掛切頁監聽——點群組標題
+  // 只展開／收合側邊欄選單（sidebar.js 負責），要點群組底下的子分頁
+  // 才會真的切換頁面（子分頁的切頁監聽也在 sidebar.js 的 SUBTAB_LINKS）
+  tabs.home.addEventListener("click", () => switchNav("home"));
 
-  window.MapleNav = { switchNav };
+  window.MapleNav = { switchNav, showCalcSubtab };
 
   // tabs[saved] 可能因為分頁暫時關閉而點不到，這種情況下不要照 localStorage
   // 的舊紀錄切過去，不然畫面會停在一個使用者找不到分頁按鈕能切走的地方
@@ -51,7 +58,7 @@
       ? hashMain
       : saved && pages[saved] && !tabs[saved].hidden
       ? saved
-      : "calc";
+      : "home";
   switchNav(initialPage);
 
   // 「練等計算」/「攻擊力計算」/「卷軸強化模擬」子分頁切換

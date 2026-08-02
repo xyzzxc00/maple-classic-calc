@@ -160,7 +160,7 @@
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap"></noscript>
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="has-sidebar">
 <script>
   (function () {
     var saved = localStorage.getItem("maple_classic_theme");
@@ -173,41 +173,171 @@
 
 <button class="theme-toggle" id="themeToggle" type="button">暗色</button>
 
-<header class="site-header">
-  <div class="wrap">
-    <p class="eyebrow">MAPLESTORY · CLASSIC · TOOLS</p>
-    <h1 class="title">新楓之谷經典版 練等 × 社群工具</h1>
-    <p class="subtitle">輸入目前等級，馬上知道升級還差多少經驗、大概要練多久</p>
-    <p class="launch-schedule">已於 7/29 下午 2 點正式開服</p>
-    <a class="header-cta-btn" href="https://maplestoryclassic.beanfun.com/Main" target="_blank" rel="noopener">前往官方遊戲頁面</a>
-    <p class="header-cta-hint">開服第一天怎麼練？<a href="guides/launch-leveling-guide/">看 Lv.1~30 開服練功路線 →</a></p>
-  </div>
-</header>
+<!-- 手機版漢堡鈕整合在這條頂欄的左上角（桌機隱藏）；「— 非官方粉絲網站…」
+     後半段在手機版藏起來，只顯示站名 -->
+<div class="top-banner">
+  <button class="menu-btn" id="sidebarMenuBtn" type="button" aria-label="開啟選單" aria-expanded="false">☰</button>
+  <span class="top-banner-text">新楓之谷經典版練等 × 社群工具<span class="top-banner-extra"> — 非官方粉絲網站，資料持續更新中</span></span>
+</div>
 
-<nav class="wrap nav-tabs-wrap" aria-label="工具分頁">
-  <div class="nav-tabs" role="tablist">
-    <button class="nav-tab active" id="navCalc" type="button" role="tab" aria-selected="true" aria-controls="pageCalc">計算工具</button>
-    <button class="nav-tab" id="navGuides" type="button" role="tab" aria-selected="false" aria-controls="pageGuides">玩法攻略</button>
-    <button class="nav-tab" id="navCm" type="button" role="tab" aria-selected="false" aria-controls="pageCm">社群資料</button>
-    <button class="nav-tab" id="navLegacy" type="button" role="tab" aria-selected="false" aria-controls="pageLegacy">過往資料</button>
-  </div>
-</nav>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <button class="sidebar-close" id="sidebarCloseBtn" type="button" aria-label="關閉選單">✕</button>
+    <button class="sidebar-brand" id="navHome" type="button" aria-controls="pageHome">
+      <img class="sidebar-brand-icon" src="icon-192.png" alt="" width="34" height="34">
+      <span class="sidebar-brand-text">
+        <span class="sidebar-brand-name">新楓之谷經典版</span>
+        <span class="sidebar-brand-sub">練等 × 社群工具</span>
+      </span>
+    </button>
+
+    <div class="nav-group">
+      <button class="nav-group-btn nav-tab active" id="navCalc" type="button" role="tab" aria-selected="true" aria-controls="pageCalc">
+        <span>計算工具</span><span class="nav-group-chev">▾</span>
+      </button>
+      <div class="nav-group-links">
+        <button class="sidebar-link subtab active" id="calcSubExp" type="button" role="tab" aria-selected="true" aria-controls="calcExpView">練等計算</button>
+        <!-- 攻擊力計算：公式已查證完成，暫時重新隱藏，等使用者確認要上線再拿掉 hidden -->
+        <button class="sidebar-link subtab" id="calcSubAttack" type="button" role="tab" aria-selected="false" aria-controls="calcAttackView" hidden>攻擊力計算</button>
+        <button class="sidebar-link subtab" id="calcSubScroll" type="button" role="tab" aria-selected="false" aria-controls="calcScrollView">卷軸強化模擬</button>
+        <button class="sidebar-link subtab" id="calcSubGacha" type="button" role="tab" aria-selected="false" aria-controls="calcGachaView">轉蛋模擬</button>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <button class="nav-group-btn nav-tab" id="navGuides" type="button" role="tab" aria-selected="false" aria-controls="pageGuides">
+        <span>玩法攻略</span><span class="nav-group-chev">▾</span>
+      </button>
+      <div class="nav-group-links">
+        <button class="sidebar-link subtab active" id="guidesSubQuests" type="button" role="tab" aria-selected="true" aria-controls="guidesQuestsView">任務攻略</button>
+        <button class="sidebar-link subtab" id="guidesSubJobs" type="button" role="tab" aria-selected="false" aria-controls="guidesJobsView">職業攻略</button>
+        <button class="sidebar-link subtab" id="guidesSubTeamQuest" type="button" role="tab" aria-selected="false" aria-controls="guidesTeamQuestView">組隊任務</button>
+        <button class="sidebar-link subtab" id="guidesSubBoss" type="button" role="tab" aria-selected="false" aria-controls="guidesBossView">BOSS攻略</button>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <button class="nav-group-btn nav-tab" id="navCm" type="button" role="tab" aria-selected="false" aria-controls="pageCm">
+        <span>社群資料</span><span class="nav-group-chev">▾</span>
+      </button>
+      <div class="nav-group-links">
+        <button class="sidebar-link subtab active" id="cmSubSuggest" type="button" role="tab" aria-selected="true" aria-controls="cmSuggestView">練功地點</button>
+        <button class="sidebar-link subtab" id="cmSubRecords" type="button" role="tab" aria-selected="false" aria-controls="cmRecordsView">回報紀錄</button>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <button class="nav-group-btn nav-tab" id="navLegacy" type="button" role="tab" aria-selected="false" aria-controls="pageLegacy">
+        <span>過往資料</span><span class="nav-group-chev">▾</span>
+      </button>
+      <div class="nav-group-links">
+        <button class="sidebar-link subtab active" id="legacySubSpots" type="button" role="tab" aria-selected="true" aria-controls="legacySpotsView">練功地點</button>
+        <button class="sidebar-link subtab" id="legacySubJobBuilds" type="button" role="tab" aria-selected="false" aria-controls="legacyJobBuildsView">職業配點</button>
+        <button class="sidebar-link subtab" id="legacySubBosses" type="button" role="tab" aria-selected="false" aria-controls="legacyBossView">野王地點</button>
+        <button class="sidebar-link subtab" id="legacySubBossPrequests" type="button" role="tab" aria-selected="false" aria-controls="legacyBossPrequestView">BOSS前置</button>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <a class="sidebar-link" href="guides/">攻略文章</a>
+      <button class="sidebar-link" id="navFaqLink" type="button" data-nav-page="faq">常見問題</button>
+      <a class="sidebar-link" href="https://maplestoryclassic.beanfun.com/Main" target="_blank" rel="noopener">官方遊戲頁面</a>
+
+      <div class="sidebar-footer-actions">
+        <a class="sidebar-link" href="https://forms.gle/VnQnL6o9V4nNqshk6" target="_blank" rel="noopener">意見回饋 / 錯誤回報</a>
+        <a class="sidebar-link" href="https://vocus.cc/pay/donate/6a5ccb37961410430daba993?donateSourceType=exclusiveLink" id="donateLink" target="_blank" rel="noopener">請站長喝杯飲料</a>
+        <a class="sidebar-link" href="https://p.opay.tw/D4ujJ" id="donateLinkAllpay" target="_blank" rel="noopener">贊助支持（歐付寶）</a>
+        <a class="sidebar-link" href="privacy/">隱私政策</a>
+      </div>
+    </div>
+  </aside>
+  <!-- 手機版側邊欄展開時的半透明背景遮罩，點一下就關閉選單；
+       CSS 用 #sidebar.open + .sidebar-backdrop 相鄰選擇器控制顯示 -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <div class="app-main">
+    <div class="topbar">
+      <span class="status-pill"><span class="status-dot"></span>已於 7/29 正式開服</span>
+    </div>
 
 <main>
-<div class="wrap" id="pageCalc" role="tabpanel" aria-labelledby="navCalc">
+<div class="wrap" id="pageHome" role="tabpanel" aria-labelledby="navHome">
+
+  <section class="panel dashboard-hero">
+    <p class="eyebrow">MAPLESTORY · CLASSIC · TOOLS</p>
+    <h1 class="title">新楓之谷經典版 練等 × 社群工具</h1>
+    <p class="subtitle">輸入目前等級，馬上知道升級還差多少經驗、大概要練多久。內附卷軸強化模擬、轉蛋機率模擬、任務／職業攻略、社群練功地點回報，非官方粉絲製作。</p>
+    <div class="dashboard-hero-actions">
+      <button class="btn btn-primary" type="button" data-nav-page="calc" data-nav-subtab="exp">開始試算經驗值</button>
+      <a class="btn btn-ghost" href="https://maplestoryclassic.beanfun.com/Main" target="_blank" rel="noopener">前往官方遊戲頁面 ↗</a>
+    </div>
+    <p class="header-cta-hint">開服第一天怎麼練？<a href="guides/launch-leveling-guide/">看 Lv.1~30 開服練功路線 →</a></p>
+  </section>
+
+  <div class="section-head"><h2>快速工具</h2></div>
+  <div class="tool-card-grid">
+    <button class="tool-card" type="button" data-nav-page="calc" data-nav-subtab="exp">
+      <span class="tool-card-title">練等計算</span>
+      <span class="tool-card-desc">輸入等級試算升級所需經驗與時間，支援加倍卷試算與計時器。</span>
+    </button>
+    <button class="tool-card" type="button" data-nav-page="calc" data-nav-subtab="scroll">
+      <span class="tool-card-title">卷軸強化模擬</span>
+      <span class="tool-card-desc">模擬卷軸強化成功率，練習花錢前先花心理準備。</span>
+    </button>
+    <button class="tool-card" type="button" data-nav-page="calc" data-nav-subtab="gacha">
+      <span class="tool-card-title">轉蛋機率模擬</span>
+      <span class="tool-card-desc">用官方公告的機率跑轉蛋模擬，看看歐洲人跟非洲人的差距。</span>
+    </button>
+    <button class="tool-card" type="button" data-nav-page="guides" data-nav-subtab="quests">
+      <span class="tool-card-title">任務攻略</span>
+      <span class="tool-card-desc">17 個任務整理，CP 值高的新手任務、獎勵好但偏難的任務都收錄。</span>
+    </button>
+    <button class="tool-card" type="button" data-nav-page="guides" data-nav-subtab="jobs">
+      <span class="tool-card-title">職業攻略</span>
+      <span class="tool-card-desc">五大職業逐級技能點法、AP 配點、分支現況評價一次看。</span>
+    </button>
+    <button class="tool-card" type="button" data-nav-page="cm" data-nav-subtab="suggest">
+      <span class="tool-card-title">練功地點</span>
+      <span class="tool-card-desc">玩家回報的各等級段練功效率，社群資料庫持續更新中。</span>
+    </button>
+  </div>
+
+  <div class="section-head"><h2>最新更新</h2></div>
+  <div class="feed-list">
+    <button class="feed-item" type="button" data-nav-page="guides" data-nav-subtab="quests">
+      <span class="feed-tag">任務攻略</span>
+      <span class="feed-text">
+        <span class="feed-title">任務攻略擴充到 17 張卡片，新增伊卡路斯任務鏈、鯨魚號特殊料理等內容</span>
+        <span class="feed-desc">來源交叉核對巴哈姆特＋楓葉雨，玩家實測回報隨時修正</span>
+      </span>
+      <span class="feed-date">08/02</span>
+    </button>
+    <button class="feed-item" type="button" data-nav-page="guides" data-nav-subtab="jobs">
+      <span class="feed-tag">職業攻略</span>
+      <span class="feed-text">
+        <span class="feed-title">補齊弓箭手系／盜賊系／海盜系技能點法，五大職業攻略全部完成</span>
+        <span class="feed-desc">AP 配點、逐級點法、分支現況評價一次看</span>
+      </span>
+      <span class="feed-date">08/02</span>
+    </button>
+    <span class="feed-item feed-item--static">
+      <span class="feed-tag">網站更新</span>
+      <span class="feed-text">
+        <span class="feed-title">導覽改成側邊欄排版，玩法攻略子分頁重新排序</span>
+        <span class="feed-desc">任務攻略、職業攻略、組隊任務、BOSS攻略</span>
+      </span>
+      <span class="feed-date">08/02</span>
+    </span>
+  </div>
+
+</div>
+
+<div class="wrap" id="pageCalc" role="tabpanel" aria-labelledby="navCalc" hidden>
 
   <section class="panel">
     <div class="panel-head">
       <h2>計算工具</h2>
       <span class="badge">練等／卷軸試算</span>
-    </div>
-
-    <div class="subtabs" role="tablist">
-      <button class="subtab active" id="calcSubExp" type="button" role="tab" aria-selected="true" aria-controls="calcExpView">練等計算</button>
-      <!-- 攻擊力計算：公式已查證完成，暫時重新隱藏，等使用者確認要上線再拿掉 hidden -->
-      <button class="subtab" id="calcSubAttack" type="button" role="tab" aria-selected="false" aria-controls="calcAttackView" hidden>攻擊力計算</button>
-      <button class="subtab" id="calcSubScroll" type="button" role="tab" aria-selected="false" aria-controls="calcScrollView">卷軸強化模擬</button>
-      <button class="subtab" id="calcSubGacha" type="button" role="tab" aria-selected="false" aria-controls="calcGachaView">轉蛋模擬</button>
     </div>
 
     <div id="calcExpView" role="tabpanel" aria-labelledby="calcSubExp">
@@ -569,7 +699,7 @@
 
     <div id="calcGachaView" role="tabpanel" aria-labelledby="calcSubGacha" hidden>
       <details class="cm-disclaimer-details">
-        <summary>⚠️ 機率商品說明（官方公告）</summary>
+        <summary>機率商品說明（官方公告）</summary>
         <p class="cm-disclaimer">1. 每期商品機率會依照內容物不同調整，依照當下公布的機率為主。<br>
         2. 限定時間販售商品，依照當下公布的機率為主。<br>
         3. 相關機率數據四捨五入，取小數點後兩位數，故機率總和不一定為 100%。<br>
@@ -630,13 +760,6 @@
     <div class="panel-head">
       <h2>玩法攻略</h2>
       <span class="badge">經典版當前內容攻略</span>
-    </div>
-
-    <div class="subtabs" role="tablist">
-      <button class="subtab active" id="guidesSubQuests" type="button" role="tab" aria-selected="true" aria-controls="guidesQuestsView">任務攻略</button>
-      <button class="subtab" id="guidesSubJobs" type="button" role="tab" aria-selected="false" aria-controls="guidesJobsView">職業攻略</button>
-      <button class="subtab" id="guidesSubTeamQuest" type="button" role="tab" aria-selected="false" aria-controls="guidesTeamQuestView">組隊任務</button>
-      <button class="subtab" id="guidesSubBoss" type="button" role="tab" aria-selected="false" aria-controls="guidesBossView">BOSS攻略</button>
     </div>
 
     <div id="guidesTeamQuestView" role="tabpanel" aria-labelledby="guidesSubTeamQuest" hidden>
@@ -1111,11 +1234,6 @@
       <span class="badge">玩家回報練功效率</span>
     </div>
 
-    <div class="subtabs" id="cmSubtabsList" role="tablist">
-      <button class="subtab active" id="cmSubSuggest" type="button" role="tab" aria-selected="true" aria-controls="cmSuggestView">練功地點</button>
-      <button class="subtab" id="cmSubRecords" type="button" role="tab" aria-selected="false" aria-controls="cmRecordsView">回報紀錄</button>
-    </div>
-
     <div id="cmSuggestView" role="tabpanel" aria-labelledby="cmSubSuggest">
       <details class="cm-disclaimer-details">
         <summary>地點資料怎麼來的？底色代表什麼？</summary>
@@ -1222,13 +1340,6 @@
       <span class="badge">過往版本資料，僅供參考</span>
     </div>
 
-    <div class="subtabs" role="tablist">
-      <button class="subtab active" id="legacySubSpots" type="button" role="tab" aria-selected="true" aria-controls="legacySpotsView">練功地點</button>
-      <button class="subtab" id="legacySubJobBuilds" type="button" role="tab" aria-selected="false" aria-controls="legacyJobBuildsView">職業配點</button>
-      <button class="subtab" id="legacySubBosses" type="button" role="tab" aria-selected="false" aria-controls="legacyBossView">野王地點</button>
-      <button class="subtab" id="legacySubBossPrequests" type="button" role="tab" aria-selected="false" aria-controls="legacyBossPrequestView">BOSS前置</button>
-    </div>
-
     <div id="legacySpotsView" role="tabpanel" aria-labelledby="legacySubSpots">
       <details class="cm-disclaimer-details">
         <summary>資料來源與適用範圍說明</summary>
@@ -1270,76 +1381,72 @@
 
 </div>
 
-<!-- 常見問題：放在分頁容器外、所有分頁都看得到。內容跟 head 裡的 FAQPage
-     JSON-LD 一字不差 — Google 要求 FAQ 結構化資料必須有對應的頁面可見內容，
-     改這裡記得同步改 JSON-LD（反之亦然）。 -->
-<div class="wrap">
+<div class="wrap" id="pageFaq" role="tabpanel" aria-labelledby="navFaqLink" hidden>
+  <!-- 常見問題：內容跟 head 裡的 FAQPage JSON-LD 一字不差 — Google 要求
+       FAQ 結構化資料必須有對應的頁面可見內容，改這裡記得同步改 JSON-LD（反之亦然）。 -->
   <section class="panel faq-panel">
-    <details class="faq-outer">
-      <summary class="panel-head">
-        <h2><span class="faq-outer-arrow" aria-hidden="true">▶</span> 常見問題</h2>
-        <span class="badge">FAQ</span>
-      </summary>
-      <details class="faq-item">
-        <summary>新楓之谷經典版要升到幾等需要多少經驗值？</summary>
-        <p>Lv.1 升 Lv.2 需要 15 EXP，Lv.99 升 Lv.100 需要約 969 萬 EXP，Lv.199 升 Lv.200 需要約 20 億 EXP——新楓之谷經典版採用 pre-Big Bang 舊版經驗值表。可使用本工具輸入目前等級與目標等級自動計算，完整表格見本站「<a href="guides/exp-table/">經驗值表 Lv.1~200 完整版</a>」頁面。</p>
-      </details>
-      <details class="faq-item">
-        <summary>新楓之谷經典版加倍卷有什麼效果？</summary>
-        <p>加倍卷可提升經驗值獲得倍率（1.5x、2x、3x、4x），每張加倍卷持續 30 分鐘。本工具可計算全程加倍需要幾張加倍卷，以及持有卷數是否足夠。詳細疊加規則見「<a href="guides/coupon-stacking-guide/">加倍卷解析</a>」。</p>
-      </details>
-      <details class="faq-item">
-        <summary>新楓之谷經典版有哪些職業？</summary>
-        <p>開服提供五大冒險家職業：劍士系（英雄、聖騎士、黑騎士）、法師系（火毒大魔導士、冰雷大魔導士、主教）、弓箭手系（箭神、神射手）、盜賊系（夜使者、暗影神偷）、海盜系（拳霸、槍神）。不知道怎麼選可以看「<a href="guides/job-selection-guide/">新手選職業指南</a>」。</p>
-      </details>
-      <details class="faq-item">
-        <summary>新楓之谷經典版是哪個版本？</summary>
-        <p>台版新楓之谷經典版由橘子遊戲代理，版本以 2007～2008 年 pre-Big Bang 為主，保留原本的經驗值設計，並透過活動與 BUFF 提供加速成長的管道。</p>
-      </details>
-      <details class="faq-item">
-        <summary>新楓之谷經典版什麼時候上線？</summary>
-        <p>新楓之谷經典版已於 2026 年 7 月 29 日（二）下午 2 點正式上線。開服當天怎麼練，可以先看「<a href="guides/launch-leveling-guide/">開服第一天 Lv.1~30 練功路線</a>」。</p>
-      </details>
-      <details class="faq-item">
-        <summary>新楓之谷經典版跟正服差在哪？</summary>
-        <p>經典版以 2007～2008 年 pre-Big Bang 版本為基礎：只有五大冒險家職業、沿用舊版經驗值表（升級較慢）、沒有 Big Bang 之後的新職業與新地圖，整體回到早期慢速成長的玩法；正服（新楓之谷）則是持續更新的現代版本。為什麼後期升級這麼慢，可以看「<a href="guides/exp-curve-guide/">經驗值曲線解析</a>」。</p>
-      </details>
-      <details class="faq-item">
-        <summary>新楓之谷經典版等級上限是幾等？</summary>
-        <p>等級上限設計為 Lv.200，但經典版開服階段目前僅開放至 Lv.100，200 等會隨後續版本更新逐步開放。從 Lv.1 練到 Lv.200 總共需要 38,703,313,816（約 387 億）EXP，各等級所需經驗值可用本工具試算，完整數字見「<a href="guides/exp-table/">經驗值表 Lv.1~200 完整版</a>」。</p>
-      </details>
-      <details class="faq-item">
-        <summary>新楓之谷經典版是官方伺服器嗎？</summary>
-        <p>是。新楓之谷經典版由遊戲橘子（beanfun）官方代理營運，是正式伺服器，不是私服。官方網站：<a href="https://maplestoryclassic.beanfun.com/Main" target="_blank" rel="noopener">maplestoryclassic.beanfun.com</a>。</p>
-      </details>
+    <div class="panel-head">
+      <h2>常見問題</h2>
+      <span class="badge">FAQ</span>
+    </div>
+    <details class="faq-item">
+      <summary>新楓之谷經典版要升到幾等需要多少經驗值？</summary>
+      <p>Lv.1 升 Lv.2 需要 15 EXP，Lv.99 升 Lv.100 需要約 969 萬 EXP，Lv.199 升 Lv.200 需要約 20 億 EXP——新楓之谷經典版採用 pre-Big Bang 舊版經驗值表。可使用本工具輸入目前等級與目標等級自動計算，完整表格見本站「<a href="guides/exp-table/">經驗值表 Lv.1~200 完整版</a>」頁面。</p>
+    </details>
+    <details class="faq-item">
+      <summary>新楓之谷經典版加倍卷有什麼效果？</summary>
+      <p>加倍卷可提升經驗值獲得倍率（1.5x、2x、3x、4x），每張加倍卷持續 30 分鐘。本工具可計算全程加倍需要幾張加倍卷，以及持有卷數是否足夠。詳細疊加規則見「<a href="guides/coupon-stacking-guide/">加倍卷解析</a>」。</p>
+    </details>
+    <details class="faq-item">
+      <summary>新楓之谷經典版有哪些職業？</summary>
+      <p>開服提供五大冒險家職業：劍士系（英雄、聖騎士、黑騎士）、法師系（火毒大魔導士、冰雷大魔導士、主教）、弓箭手系（箭神、神射手）、盜賊系（夜使者、暗影神偷）、海盜系（拳霸、槍神）。不知道怎麼選可以看「<a href="guides/job-selection-guide/">新手選職業指南</a>」。</p>
+    </details>
+    <details class="faq-item">
+      <summary>新楓之谷經典版是哪個版本？</summary>
+      <p>台版新楓之谷經典版由橘子遊戲代理，版本以 2007～2008 年 pre-Big Bang 為主，保留原本的經驗值設計，並透過活動與 BUFF 提供加速成長的管道。</p>
+    </details>
+    <details class="faq-item">
+      <summary>新楓之谷經典版什麼時候上線？</summary>
+      <p>新楓之谷經典版已於 2026 年 7 月 29 日（二）下午 2 點正式上線。開服當天怎麼練，可以先看「<a href="guides/launch-leveling-guide/">開服第一天 Lv.1~30 練功路線</a>」。</p>
+    </details>
+    <details class="faq-item">
+      <summary>新楓之谷經典版跟正服差在哪？</summary>
+      <p>經典版以 2007～2008 年 pre-Big Bang 版本為基礎：只有五大冒險家職業、沿用舊版經驗值表（升級較慢）、沒有 Big Bang 之後的新職業與新地圖，整體回到早期慢速成長的玩法；正服（新楓之谷）則是持續更新的現代版本。為什麼後期升級這麼慢，可以看「<a href="guides/exp-curve-guide/">經驗值曲線解析</a>」。</p>
+    </details>
+    <details class="faq-item">
+      <summary>新楓之谷經典版等級上限是幾等？</summary>
+      <p>等級上限設計為 Lv.200，但經典版開服階段目前僅開放至 Lv.100，200 等會隨後續版本更新逐步開放。從 Lv.1 練到 Lv.200 總共需要 38,703,313,816（約 387 億）EXP，各等級所需經驗值可用本工具試算，完整數字見「<a href="guides/exp-table/">經驗值表 Lv.1~200 完整版</a>」。</p>
+    </details>
+    <details class="faq-item">
+      <summary>新楓之谷經典版是官方伺服器嗎？</summary>
+      <p>是。新楓之谷經典版由遊戲橘子（beanfun）官方代理營運，是正式伺服器，不是私服。官方網站：<a href="https://maplestoryclassic.beanfun.com/Main" target="_blank" rel="noopener">maplestoryclassic.beanfun.com</a>。</p>
     </details>
   </section>
 </div>
+
 </main>
 
-<footer class="site-footer">
-  <div class="wrap">
-  <div class="footer-columns">
-    <div class="footer-left">
+<!-- 免責聲明／贊助說明等固定文字：放在分頁容器外、.app-main 裡面，
+     每個分頁都看得到，但不影響側邊欄的完整一欄（側邊欄是 .app-shell
+     的另一個 flex 子項，跟這裡放什麼內容無關） -->
+<div class="app-main-footer">
+  <div class="app-main-footer-cols">
+    <div class="app-main-footer-col">
       <p class="footer-disclaimer">非官方工具，數值僅供參考，正式數據以遊戲內公告為準。</p>
       <p class="footer-note">贊助僅用於支持本站開發與維運，與遊戲開發商、代理商無任何關係。</p>
       <p class="footer-note">本站使用 Google Analytics 做匿名流量分析。</p>
-      <p class="footer-note">社群資料庫的回報內容為使用者自願填寫並公開顯示，不作其他用途。</p>
-      <p class="footer-contact">© 2026 新楓之谷經典版 練等 × 社群工具　·　<a href="privacy/">隱私政策</a></p>
     </div>
-    <div class="footer-right">
-      <div class="footer-cta-row">
-        <a class="guides-link" href="guides/">攻略文章</a>
-        <a class="feedback-link" href="https://forms.gle/VnQnL6o9V4nNqshk6" target="_blank" rel="noopener">意見回饋 / 錯誤回報</a>
-        <a class="donate-link" href="https://vocus.cc/pay/donate/6a5ccb37961410430daba993?donateSourceType=exclusiveLink" id="donateLink" target="_blank" rel="noopener">請站長喝杯飲料</a>
-        <a class="donate-link" href="https://p.opay.tw/D4ujJ" id="donateLinkAllpay" target="_blank" rel="noopener">贊助支持（歐付寶）</a>
-      </div>
+    <div class="app-main-footer-col">
+      <p class="footer-note">社群資料庫的回報內容為使用者自願填寫並公開顯示，不作其他用途。</p>
       <p class="footer-note">本站申請歐付寶（AllPay）第三方支付服務，會員編號：1996970。</p>
       <p class="footer-contact">也可以透過 <a href="https://www.threads.net/@corey.0_" target="_blank" rel="noopener">Threads</a>　·　Discord：xoyk00 聯絡我</p>
     </div>
   </div>
+  <p class="footer-contact footer-copyright">© 2026 新楓之谷經典版 練等 × 社群工具</p>
+</div>
+
   </div>
-</footer>
+</div>
 
 <!-- Firebase SDK 改為懶載入：只有切到「社群資料庫／建議地點」分頁時才載入（見 js/community.js） -->
 <script defer src="js/data.js"></script>
@@ -1361,6 +1468,7 @@
 <script defer src="js/formGuard.js"></script>
 <script defer src="js/community.js"></script>
 <script defer src="js/nav.js"></script>
+<script defer src="js/sidebar.js"></script>
 <script defer src="js/backToTop.js"></script>
 <script defer src="js/theme.js"></script>
 </body>
