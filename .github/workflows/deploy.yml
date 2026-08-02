@@ -105,7 +105,8 @@ jobs:
           printf '  %s\n' "${JS_FILES[@]}"
           # 保險：script tag 格式哪天漂移（換單引號、加 ?v=、改 type=module），
           # grep 會默默抓不到 → 空清單的 cat 產出空 bundle、照樣過 terser 照樣
-          # 部署，整站 JS 全壞但 CI 全綠。目前實際有 17 個檔，門檻 10 留成長空間
+          # 部署，整站 JS 全壞但 CI 全綠。實際檔數會隨功能成長（上面的
+          # printf 每次 build 都會列出來），門檻 10 只抓「整批漂移」的災難
           if [ "${#JS_FILES[@]}" -lt 10 ]; then
             echo "::error::JS 打包清單只抓到 ${#JS_FILES[@]} 個檔案，index.html 的 script tag 格式可能漂移了"
             exit 1

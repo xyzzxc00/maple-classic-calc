@@ -112,6 +112,14 @@
   }
 
   function calcAndRender() {
+    // 資料檔（data.js）沒載入成功時明講，不要每次輸入都在 console 丟
+    // TypeError、畫面永遠停在「—」讓人以為要再多填什麼（跟 gacha/legacy
+    // 的資料檔兜底比照辦理）
+    if (!window.MapleData || !Array.isArray(window.MapleData.EXP_TABLE) || !window.MapleData.EXP_TABLE.length) {
+      els.inputWarningHint.hidden = false;
+      els.inputWarningHint.textContent = "資料載入失敗，請重新整理頁面";
+      return;
+    }
     // 目標等級還沒填時不要跑計算——直接算會用預設值 1 得出「已達成」，
     // 只填了目前等級的第一次使用者會誤以為工具壞了。這裡顯示中性的空狀態
     //（時間框用「—」不用「尚無效率資料」：這時缺的是等級不是效率，
@@ -363,8 +371,10 @@
       // 用 runCalculation（含 savePrefs）讓分享值寫進 localStorage，
       // 這樣下面把參數從網址列清掉後，重新整理也不會掉回舊資料
       runCalculation();
-      // 分享參數套用完就從網址列清掉，避免使用者改完數字直接複製網址時帶到舊參數
-      history.replaceState(null, "", location.pathname);
+      // 分享參數套用完就從網址列清掉，避免使用者改完數字直接複製網址時帶到舊參數。
+      // hash 要保留——app.js 比 nav.js 先跑，這裡把 hash 一起清掉的話
+      // 「?分享參數 + #子分頁」形式的連結會讓 nav.js 讀不到深連結
+      history.replaceState(null, "", location.pathname + location.hash);
     } else {
       if (hadShareParams) {
         // 有帶參數但解不出可用的等級資料 → 分享連結壞了，不要默默改用舊資料，
@@ -375,7 +385,7 @@
           els.shareHint.hidden = true;
           els.shareHint.textContent = SHARE_HINT_DEFAULT;
         }, 4000);
-        history.replaceState(null, "", location.pathname);
+        history.replaceState(null, "", location.pathname + location.hash);
       }
       const prefs = loadPrefs();
       els.currentLevel.value = prefs.currentLevel || "";

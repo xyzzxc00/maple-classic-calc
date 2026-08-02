@@ -136,6 +136,13 @@
   if (window.MapleJobOptionsHtml) {
     els.filterJob.insertAdjacentHTML("beforeend", window.MapleJobOptionsHtml);
     els.job.insertAdjacentHTML("beforeend", window.MapleJobOptionsHtml);
+  } else {
+    // jobsData.js 沒載到時職業下拉只剩「請選擇職業」placeholder，送出
+    // 永遠卡在「請選擇職業」的錯誤、又沒有選項可選，使用者無從理解。
+    // 明講原因並直接停用送出（跟其他資料檔的兜底比照辦理）
+    els.submitBtn.disabled = true;
+    els.msg.textContent = "職業清單載入失敗，請重新整理頁面後再回報";
+    els.msg.className = "cm-msg err";
   }
 
   // 字數硬上限＋IME 安全裁切（formGuard.js，四板共用）；欄位都短，不掛計數
@@ -405,6 +412,17 @@
       const snap = await query.get();
       // 世代變了＝這批是針對已被重載捨棄的舊清單抓的，丟棄不合併
       if (gen !== loadGen) return;
+      // 離線時 Firestore 的 get() 不會丟錯誤，而是從（空的）本機快取
+      // 「成功」回傳空結果——放著不管會走到「目前還沒有玩家回報紀錄」的
+      // 空狀態文案，把斷線誤報成沒資料。空結果＋來自快取＝根本沒連上
+      // 伺服器，改走連線失敗訊息（快取裡有資料的話照常顯示，那是真資料）
+      if (!append && snap.empty && snap.metadata && snap.metadata.fromCache) {
+        lastLoadFailed = true;
+        lastLoadErrorMsg = "連不上資料庫伺服器，請檢查網路後重新整理頁面";
+        els.list.innerHTML = `<p class="cm-empty">${lastLoadErrorMsg}</p>`;
+        hasMoreFromServer = false;
+        return;
+      }
       const hasExtra = snap.docs.length > PAGE_SIZE;
       const pageDocs = hasExtra ? snap.docs.slice(0, PAGE_SIZE) : snap.docs;
       const newRecords = pageDocs.map((d) => ({ id: d.id, ...d.data() }));
@@ -587,10 +605,16 @@
     }
 
     btn.disabled = true;
+    // 寫入期間顯示進行中文案（送出/刪除按鈕都有「…中...」，這顆之前只
+    // disabled 文字不變，慢網路下按了像沒反應）；成功時先還原原字樣再更新
+    // 數字，失敗時 showBtnError 自己會還原
+    const countNow = (btn.querySelector(".cm-helpful-count") || { textContent: "0" }).textContent;
+    btn.innerHTML = `送出中... <span class="cm-helpful-count">${countNow}</span>`;
     withWriteTimeout(db.collection("exp_records").doc(id).update({
       helpful: firebase.firestore.FieldValue.increment(1),
     })).then(() => {
       saveVote(id);
+      btn.innerHTML = originalHtml;
       btn.classList.add("voted");
       const countEl = btn.querySelector(".cm-helpful-count");
       if (countEl) countEl.textContent = parseInt(countEl.textContent || "0") + 1;

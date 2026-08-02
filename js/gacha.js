@@ -22,7 +22,12 @@
   if (!els.poolBox) return;
 
   const BOXES = window.MapleGachaBoxes || [];
-  if (!BOXES.length) return;
+  if (!BOXES.length) {
+    // 資料檔（gachaData.js）沒載入成功時不要整頁靜默死掉——下拉選單全空、
+    // 按鈕沒反應會讓使用者以為功能壞了。跟 legacySpots.js 的兜底比照辦理
+    els.poolBox.innerHTML = '<p class="cm-empty">資料載入失敗，請重新整理頁面</p>';
+    return;
+  }
 
   // 稀有度對應的顯示樣式（跟現有的 --accent/--warning/--danger 三個色階
   // 對應，不另外引入新顏色）：C 用預設灰、B 用主題色、A 用警示黃、

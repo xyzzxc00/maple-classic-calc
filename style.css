@@ -34,8 +34,8 @@
      .app-main 好幾個地方都要對齊同一組值，才不會露出縫隙或蓋到內容 */
   --top-banner-h: 40px;
   --sidebar-w: 260px;
-  /* 浮動元素（目前只有 .back-to-top）的陰影色，跟著明暗模式各自調深淺，
-     不要整份 CSS 唯一一處寫死 rgba() 字面值 */
+  /* 浮動元素（.back-to-top、手機版側邊欄抽屜）的陰影色，跟著明暗模式
+     各自調深淺，不要在個別元件寫死 rgba() 字面值 */
   --shadow-color: rgba(0, 0, 0, 0.18);
   /* 告訴瀏覽器目前的明暗模式，讓原生控件（下拉選單、捲軸、number 增減鈕、
      placeholder 預設色）跟著主題走——沒有這行，深色模式下這些原生元件
@@ -126,9 +126,8 @@ a:hover { text-decoration-color: var(--accent-hover); }
 .site-header {
   padding: 48px 0 32px;
   text-align: center;
-  /* 跟頁尾呼應，用同一條線把「頁首大標」跟下面的分頁導覽切開；下面的
-     .nav-tabs-wrap 本來就有 border-bottom 把分頁導覽跟內容切開，這樣
-     整條動線是 頁首｜分頁導覽｜內容，兩條線各自框住分頁導覽這一段 */
+  /* 用一條線把「頁首大標」跟下面的內容切開（只剩 guides/、privacy/
+     這些獨立頁在用；主站已改側邊欄排版，沒有 site-header） */
   border-bottom: 1px solid var(--border);
 }
 /* 次要頁（攻略列表／文章／隱私政策）的頁首沒有首頁那顆 CTA 按鈕墊在下面，
@@ -498,7 +497,6 @@ a:hover { text-decoration-color: var(--accent-hover); }
   font-size: 13px;
   color: var(--ink-soft);
 }
-.stat-row[hidden] { display: none; }
 .stat-row:last-child { border-bottom: none; }
 .stat-row span:first-child { flex: 1 1 auto; }
 .stat-row span:last-child { flex-shrink: 0; font-weight: 700; color: var(--ink); text-align: right; }
@@ -541,13 +539,10 @@ a:hover { text-decoration-color: var(--accent-hover); }
   -webkit-user-select: all;
 }
 
-/* ---------- Nav tabs ---------- */
-.nav-tabs-wrap { margin-bottom: 22px; border-bottom: 1px solid var(--border); }
-.nav-tabs {
-  display: flex;
-  gap: 4px;
-  width: 100%;
-}
+/* ---------- Nav tabs ----------
+   舊版橫向分頁列的容器 .nav-tabs-wrap/.nav-tabs 已隨側邊欄改版移除；
+   .nav-tab 本身還在用——側邊欄群組標題 .nav-group-btn 同時掛著這個
+   class 給 nav.js 的 .active 切換邏輯用 */
 .nav-tab {
   flex: 1;
   background: transparent;
@@ -573,7 +568,6 @@ a:hover { text-decoration-color: var(--accent-hover); }
   .nav-tab { padding: 10px 8px; font-size: 12.5px; min-height: 44px; }
 }
 @media (max-width: 420px) {
-  .nav-tabs { gap: 2px; }
   .nav-tab { padding: 10px 4px; font-size: 11.5px; min-height: 44px; }
 }
 
@@ -1683,7 +1677,9 @@ body.has-sidebar .theme-toggle {
 }
 .nav-group-btn:hover { color: var(--ink); background: var(--surface-tint); }
 .nav-group-btn.active { color: var(--accent-text); border-bottom: none; }
-.nav-group-chev { font-size: 10px; opacity: 0.65; transition: transform 0.15s ease; flex-shrink: 0; }
+/* 箭頭顏色直接指定，不用 opacity 淡化——opacity 會把對比一起稀釋到
+   3:1 以下（亮色模式實算 2.84:1），跟 token 註解記過的教訓同一類 */
+.nav-group-chev { font-size: 10px; color: var(--ink-soft); transition: transform 0.15s ease; flex-shrink: 0; }
 .nav-group.collapsed .nav-group-chev { transform: rotate(-90deg); }
 
 /* 展開/收合用 max-height 動畫（實際數值由 sidebar.js 量測 scrollHeight
@@ -1908,10 +1904,11 @@ body.has-sidebar .theme-toggle {
     left: -280px;
     z-index: 30;
     height: calc(100vh - var(--top-banner-h));
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.25);
+    /* 陰影色走 --shadow-color token（明暗模式自動換深淺），不另外寫死
+       rgba——token 註解明言全站陰影集中管理 */
+    box-shadow: 0 0 40px var(--shadow-color);
     transition: left 0.2s ease;
   }
-  body.dark .sidebar { box-shadow: 0 0 40px rgba(0, 0, 0, 0.5); }
   #sidebar.open { left: 0; }
   .dashboard-hero { padding: 20px; }
   .tool-card-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
