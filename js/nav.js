@@ -37,6 +37,11 @@
     // 讓側邊欄（sidebar.js）知道現在在哪一頁，不管是誰觸發的切換
     // （側邊欄點擊、app.js 的「去哪練」跨頁連結、timer.js 的跨頁連結都算）
     document.dispatchEvent(new CustomEvent("maplenav:pagechange", { detail: { page } }));
+    // 換頁一律回到頁面最上方——不這麼做的話，捲到底部時點別的分頁，
+    // 瀏覽器會保留原本的捲動高度，新頁面直接從中段/底部開始顯示。
+    // 需要捲到特定區塊的流程（例如「設好計時器」）會在呼叫 switchNav
+    // 之後自己再 scrollIntoView，不受影響
+    window.scrollTo(0, 0);
   }
 
   // 四大群組的標題按鈕（navCalc 等）不在這裡掛切頁監聽——點群組標題

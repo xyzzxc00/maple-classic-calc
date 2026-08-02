@@ -121,6 +121,14 @@
     if (btn) btn.addEventListener("click", () => window.MapleNav && window.MapleNav.switchNav(page));
   });
 
+  // ---------- 頂欄站名：點了回首頁 ----------
+  // 手機版側邊欄收合時，畫面上要有一個隨時可點的回首頁入口；桌機版
+  // 點站名回首頁也是常見慣例，行為跟側邊欄品牌區一致
+  const bannerHomeBtn = document.getElementById("topBannerHomeBtn");
+  if (bannerHomeBtn) {
+    bannerHomeBtn.addEventListener("click", () => window.MapleNav && window.MapleNav.switchNav("home"));
+  }
+
   // ---------- 首頁儀表板：卡片／CTA／最新更新清單的跳轉 ----------
   const SUBTAB_SETTERS = {
     calc: (key) => window.MapleNav && window.MapleNav.showCalcSubtab(key),
@@ -138,9 +146,9 @@
       const page = el.dataset.navPage;
       const subtab = el.dataset.navSubtab;
       if (!window.MapleNav) return;
+      // switchNav 自己會捲回頁面最上方，這裡不用再捲一次
       window.MapleNav.switchNav(page);
       if (subtab && SUBTAB_SETTERS[page]) SUBTAB_SETTERS[page](subtab);
-      window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
     });
   });
 })();

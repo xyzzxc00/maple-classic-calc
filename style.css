@@ -1501,12 +1501,35 @@ body.has-sidebar .theme-toggle {
    40px 是因為內文第一段 .article-body p 的上邊界是 margin:0（見下面），
    完全沒留白，緊貼著頁首那條分隔線，這裡補回間距 */
 .article-wrap { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
-.article-breadcrumb { font-size: 13px; margin: 28px 0 20px; color: var(--ink-soft); }
-/* 行內連結加垂直 padding 擴大點擊目標（原本只有 ~19px 高）：inline 元素的
-   垂直 padding 只擴大可點範圍、不會推開行距，排版完全不動。11px 是實測
-   13px 字級 + 10px padding 量出來只有 39px、差 1px 沒到 40px 門檻，才加到 11px */
-.article-breadcrumb a { color: var(--accent-text); text-decoration: none; font-weight: 700; padding: 11px 0; }
-.article-breadcrumb a:hover { text-decoration: underline; }
+.article-breadcrumb {
+  font-size: 13px;
+  margin: 28px 0 20px;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+/* 麵包屑裡的連結（首頁／攻略文章）做成明顯的膠囊按鈕——原本只是一小段
+   行內文字，不容易發現可以點；做成按鈕外觀後點擊目標也夠大（≥40px 高） */
+.article-breadcrumb a {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--accent-text);
+  text-decoration: none;
+  font-weight: 700;
+}
+.article-breadcrumb a:hover {
+  border-color: var(--accent-text);
+  background: var(--surface-tint);
+  text-decoration: none;
+}
+/* 第一顆（首頁）加個返回箭頭，更直覺 */
+.article-breadcrumb a:first-of-type::before { content: "←"; margin-right: 6px; }
 .notice-body a { padding: 11px 0; }
 .article-title { font-size: clamp(24px, 4vw, 32px); font-weight: 900; margin: 0 0 12px; color: var(--ink); letter-spacing: -0.01em; }
 .article-meta { font-size: 13px; color: var(--ink-soft); margin: 0 0 24px; }
@@ -1598,10 +1621,19 @@ body.has-sidebar .theme-toggle {
   padding: 0 60px 0 16px;
   overflow: hidden;
 }
+/* 文字本身是一顆隱形按鈕：點了回首頁（跟側邊欄品牌區同一個行為），
+   外觀維持純文字，繼承公告條的字級字重顏色 */
 .top-banner-text {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
 }
 
 /* ---------- App shell：側邊欄 + 主內容 ---------- */
@@ -1918,17 +1950,20 @@ body.has-sidebar .theme-toggle {
      給疊在頂欄裡的暗色切換鈕 */
   .top-banner {
     left: 0;
-    justify-content: flex-start;
-    text-align: left;
+    /* 站名置中；漢堡鈕改成絕對定位貼在最左邊，不佔 flex 版位，左右各留
+       52px padding（左邊給漢堡、右邊給主題鈕）讓置中不歪 */
+    justify-content: center;
     font-size: 12px;
-    gap: 4px;
-    padding: 0 52px 0 4px;
+    padding: 0 52px;
   }
   .top-banner-extra { display: none; }
   .menu-btn {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: absolute;
+    left: 4px;
+    top: 4px;
     width: 32px;
     height: 32px;
     background: transparent;
