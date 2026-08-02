@@ -106,6 +106,12 @@ body {
 a { color: var(--accent-text); }
 a:hover { text-decoration-color: var(--accent-hover); }
 
+/* HTML 的 hidden 屬性一律真的隱藏：瀏覽器預設的 [hidden]{display:none}
+   權重很低，只要元素身上有任何自訂的 display 規則（例如 .sidebar-link
+   的 display:flex）就會被蓋掉、hidden 形同虛設——攻擊力計算子分頁和
+   之前 .stat-row[hidden] 補丁都是踩到這個坑，用 !important 一次擋掉 */
+[hidden] { display: none !important; }
+
 /* ---------- 版面容器 ---------- */
 .wrap {
   max-width: 1200px;
