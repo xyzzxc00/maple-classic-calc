@@ -1510,26 +1510,17 @@ body.has-sidebar .theme-toggle {
   gap: 8px;
   flex-wrap: wrap;
 }
-/* 麵包屑裡的連結（首頁／攻略文章）做成明顯的膠囊按鈕——原本只是一小段
-   行內文字，不容易發現可以點；做成按鈕外觀後點擊目標也夠大（≥40px 高） */
 .article-breadcrumb a {
-  display: inline-flex;
-  align-items: center;
-  padding: 10px 16px;
-  border: 1px solid var(--border-strong);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--accent-text);
+  color: var(--ink-soft);
   text-decoration: none;
-  font-weight: 700;
+  font-weight: 600;
 }
 .article-breadcrumb a:hover {
-  border-color: var(--accent-text);
-  background: var(--surface-tint);
-  text-decoration: none;
+  color: var(--accent-text);
+  text-decoration: underline;
 }
 /* 第一顆（首頁）加個返回箭頭，更直覺 */
-.article-breadcrumb a:first-of-type::before { content: "←"; margin-right: 6px; }
+.article-breadcrumb a:first-of-type::before { content: "←"; margin-right: 4px; }
 .notice-body a { padding: 11px 0; }
 .article-title { font-size: clamp(24px, 4vw, 32px); font-weight: 900; margin: 0 0 12px; color: var(--ink); letter-spacing: -0.01em; }
 .article-meta { font-size: 13px; color: var(--ink-soft); margin: 0 0 24px; }
