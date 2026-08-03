@@ -110,6 +110,7 @@
     { id: "guidesSubTeamQuest", page: "guides" },
     { id: "guidesSubBoss", page: "guides" },
     { id: "cmSubSuggest", page: "cm" },
+    { id: "cmSubPicks", page: "cm" },
     { id: "cmSubRecords", page: "cm" },
     { id: "legacySubSpots", page: "legacy" },
     { id: "legacySubJobBuilds", page: "legacy" },

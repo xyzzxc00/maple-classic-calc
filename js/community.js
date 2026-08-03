@@ -691,6 +691,7 @@
   const CM_SUBTAB_KEY = "maple_classic_cm_subtab";
   const cmSubtabs = [
     { key: "suggest", btn: document.getElementById("cmSubSuggest"), view: document.getElementById("cmSuggestView") },
+    { key: "picks", btn: document.getElementById("cmSubPicks"), view: document.getElementById("cmPicksView") },
     { key: "records", btn: document.getElementById("cmSubRecords"), view: document.getElementById("cmRecordsView") },
   ];
 
