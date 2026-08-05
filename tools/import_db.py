@@ -620,6 +620,101 @@ def build_map_index(details):
     ]
 
 
+def build_npc_details(maps, quests, items, map_ids, quest_ids, item_ids):
+    """NPC：任務跟商店都掛在 NPC 身上，做了它「這個任務去找誰、他站在哪張圖、
+    他賣什麼」才串得起來。只收站在開放地圖上、而且有名字的"""
+    npcs = {}
+    for m in maps:
+        if m["id"] not in map_ids:
+            continue
+        for n in m.get("npcSpawns") or []:
+            if n.get("unnamed") or not n.get("name"):
+                continue
+            e = npcs.setdefault(
+                n["npcId"],
+                {"id": n["npcId"], "name": n["name"], "maps": [], "quests": [], "shop": []},
+            )
+            label = " / ".join(x for x in (m.get("street"), m.get("name")) if x)
+            if not any(x["id"] == m["id"] for x in e["maps"]):
+                e["maps"].append({
+                    "id": m["id"],
+                    "label": label or m.get("name") or "",
+                    "region": m.get("regionName") or "",
+                })
+
+    for q in quests:
+        if str(q["id"]) not in quest_ids:
+            continue
+        for key, role in (("startNpc", "接取"), ("endNpc", "繳交")):
+            n = q.get(key) or {}
+            e = npcs.get(n.get("id"))
+            if not e:
+                continue
+            row = {"id": str(q["id"]), "name": q.get("name") or "", "role": role}
+            if not any(x["id"] == row["id"] and x["role"] == role for x in e["quests"]):
+                e["quests"].append(row)
+
+    for it in items:
+        if it.get("unnamed") or it["id"] not in item_ids:
+            continue
+        for s in (it.get("sources") or {}).get("shops") or []:
+            npc = s.get("npc") or {}
+            e = npcs.get(npc.get("id"))
+            if not e or not any(m.get("id") in map_ids for m in (npc.get("maps") or [])):
+                continue
+            if not any(x["id"] == it["id"] for x in e["shop"]):
+                e["shop"].append({
+                    "id": it["id"],
+                    "name": it.get("name") or "",
+                    "price": s.get("price") or 0,
+                    "currency": s.get("currency") or "楓幣",
+                })
+
+    # 製作 NPC（像易德、辛德）身上沒有商店也沒有任務，但他們能做東西——
+    # 不列出來的話那些 NPC 的頁面會是空的，看起來像資料缺漏
+    for it in items:
+        if it.get("unnamed") or it["id"] not in item_ids:
+            continue
+        for c in (it.get("sources") or {}).get("crafts") or []:
+            for n in c.get("npcs") or []:
+                e = npcs.get(n.get("id"))
+                if not e or not any(m.get("id") in map_ids for m in (n.get("maps") or [])):
+                    continue
+                prod = c.get("primaryOutput") or {}
+                if not prod.get("id") or prod.get("unnamed"):
+                    continue
+                e.setdefault("crafts", [])
+                if not any(x["id"] == prod["id"] for x in e["crafts"]):
+                    e["crafts"].append({
+                        "id": prod["id"],
+                        "name": prod.get("name") or "",
+                        "meso": c.get("meso") or 0,
+                    })
+
+    out = list(npcs.values())
+    for e in out:
+        e.setdefault("crafts", [])
+        e["shop"].sort(key=lambda x: x["price"])
+        e["quests"].sort(key=lambda x: x["name"])
+        e["crafts"].sort(key=lambda x: x["meso"])
+    out.sort(key=lambda e: ((e["maps"][0]["region"] if e["maps"] else ""), e["name"]))
+    return out
+
+
+def build_npc_index(details):
+    return [
+        {
+            "id": d["id"],
+            "name": d["name"],
+            "region": d["maps"][0]["region"] if d["maps"] else "",
+            "where": d["maps"][0]["label"] if d["maps"] else "",
+            "quests": len(d["quests"]),
+            "shop": len(d["shop"]) + len(d["crafts"]),
+        }
+        for d in details
+    ]
+
+
 def build_index(details):
     """列表用的索引，欄位越少越好——這是進站就會載的檔案"""
     return [
@@ -722,6 +817,31 @@ def main():
                   encoding="utf-8") as f:
             json.dump(d, f, ensure_ascii=False, separators=(",", ":"))
 
+    # NPC
+    npc_details = build_npc_details(
+        maps_db["maps"], quests_db["quests"], items_db["items"], map_ids, quest_ids, item_ids
+    )
+    os.makedirs(os.path.join(OUT_DATA, "npcs"), exist_ok=True)
+    with open(os.path.join(OUT_DATA, "npcs.json"), "w", encoding="utf-8") as f:
+        json.dump(build_npc_index(npc_details), f, ensure_ascii=False, separators=(",", ":"))
+    for d in npc_details:
+        with open(os.path.join(OUT_DATA, "npcs", f"{d['id']}.json"), "w",
+                  encoding="utf-8") as f:
+            json.dump(d, f, ensure_ascii=False, separators=(",", ":"))
+    # 地圖上的 NPC 記錄沒有圖片路徑，圖只出現在任務與商店那邊的 NPC 物件裡
+    npc_ids = {d["id"] for d in npc_details}
+    npc_img_paths = {}
+    for q in quests_db["quests"]:
+        for key in ("startNpc", "endNpc"):
+            n = q.get(key) or {}
+            if n.get("id") in npc_ids and n.get("image"):
+                npc_img_paths[n["id"]] = n["image"]
+    for it in items_db["items"]:
+        for s in (it.get("sources") or {}).get("shops") or []:
+            n = s.get("npc") or {}
+            if n.get("id") in npc_ids and n.get("image"):
+                npc_img_paths.setdefault(n["id"], n["image"])
+
     # 地圖
     map_details = build_map_details(maps_db["maps"], map_ids, monster_ids)
     os.makedirs(os.path.join(OUT_DATA, "maps"), exist_ok=True)
@@ -766,6 +886,8 @@ def main():
                      for s in kept_skills)
     map_imgs = sum(copy_image(src, p, os.path.join(OUT_ASSETS, "maps"))
                    for p in map_img_paths.values())
+    npc_imgs = sum(copy_image(src, p, os.path.join(OUT_ASSETS, "npcs"))
+                   for p in npc_img_paths.values())
 
     # 報告
     def dirsize(path):
@@ -780,6 +902,11 @@ def main():
     print(f"  詳情檔   {detail_kb:.0f} KB（平均 {detail_kb / len(kept):.1f} KB）")
     print(f"  掉落     {sum(len(d['drops']) for d in details)} 筆，{len(item_paths)} 種道具")
     print(f"  相關任務 {sum(len(d['quests']) for d in details)} 筆")
+    npc_kb = dirsize(os.path.join(OUT_DATA, "npcs")) / 1024
+    print(f"NPC        {len(npc_details)} 個"
+          f"（索引 {os.path.getsize(os.path.join(OUT_DATA, 'npcs.json')) / 1024:.0f} KB、"
+          f"詳情 {npc_kb:.0f} KB、"
+          f"有任務或商店 {sum(1 for d in npc_details if d['quests'] or d['shop'])} 個）")
     map_kb = dirsize(os.path.join(OUT_DATA, "maps")) / 1024
     print(f"地圖       {len(map_details)} 張"
           f"（索引 {os.path.getsize(os.path.join(OUT_DATA, 'maps.json')) / 1024:.0f} KB、"
@@ -796,7 +923,8 @@ def main():
     print(f"技能       {len(kept_skills)} 個"
           f"（索引 {os.path.getsize(os.path.join(OUT_DATA, 'skills.json')) / 1024:.0f} KB、"
           f"詳情 {skill_kb:.0f} KB）")
-    print(f"圖片       怪物 {mon_imgs}、道具 {item_imgs}、技能 {skill_imgs}、小地圖 {map_imgs} 張，"
+    print(f"圖片       怪物 {mon_imgs}、道具 {item_imgs}、技能 {skill_imgs}、"
+          f"小地圖 {map_imgs}、NPC {npc_imgs} 張，"
           f"共 {dirsize(OUT_ASSETS) / 1024 / 1024:.1f} MB")
     missing = len(kept) - mon_imgs
     if missing:

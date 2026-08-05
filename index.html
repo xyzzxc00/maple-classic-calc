@@ -217,6 +217,7 @@
         <button class="sidebar-link subtab active" id="dbSubMonsters" type="button" role="tab" aria-selected="true" aria-controls="dbMonstersView">怪物</button>
         <button class="sidebar-link subtab" id="dbSubMaps" type="button" role="tab" aria-selected="false" aria-controls="dbMapsView">地圖</button>
         <button class="sidebar-link subtab" id="dbSubItems" type="button" role="tab" aria-selected="false" aria-controls="dbItemsView">道具</button>
+        <button class="sidebar-link subtab" id="dbSubNpcs" type="button" role="tab" aria-selected="false" aria-controls="dbNpcsView">NPC</button>
         <button class="sidebar-link subtab" id="dbSubQuests" type="button" role="tab" aria-selected="false" aria-controls="dbQuestsView">任務</button>
         <button class="sidebar-link subtab" id="dbSubSkills" type="button" role="tab" aria-selected="false" aria-controls="dbSkillsView">技能</button>
       </div>
@@ -920,6 +921,45 @@
     </section>
 
     <section class="panel" id="dbItemDetail" hidden></section>
+  </div>
+
+  <div id="dbNpcsView" role="tabpanel" aria-labelledby="dbSubNpcs" hidden>
+    <section class="panel" id="dbNpcListPanel">
+      <div class="panel-head">
+        <h2>NPC 資料</h2>
+        <span class="badge" id="dbNpcCount">—</span>
+      </div>
+
+      <details class="cm-disclaimer-details">
+        <summary>收錄範圍說明</summary>
+        <p class="cm-disclaimer">只收錄站在已開放地圖上、而且遊戲資料裡有名字的 NPC。任務與商店都掛在 NPC 身上，所以這裡可以反查「他有什麼任務、賣什麼」。有些 NPC 只是站在那裡沒有功能，一樣會列出來，方便你確認某個村子有誰。</p>
+      </details>
+
+      <div class="cm-toolbar">
+        <div class="cm-filter-row">
+          <input class="cm-filter-input" id="dbNpcSearch" type="search" placeholder="搜尋 NPC 名稱" autocomplete="off">
+          <select class="cm-filter-input" id="dbNpcRegion" aria-label="依地區篩選 NPC">
+            <option value="">全部地區</option>
+          </select>
+          <select class="cm-filter-input" id="dbNpcHas" aria-label="依功能篩選 NPC">
+            <option value="">全部 NPC</option>
+            <option value="quests">有任務</option>
+            <option value="shop">有商店</option>
+          </select>
+        </div>
+        <div class="cm-actions">
+          <div class="cm-sort-btns"><span class="cm-group-label">排序</span>
+            <button class="cm-sort-btn active" data-db-sort="region" data-db-set="npc" type="button">地區</button>
+            <button class="cm-sort-btn" data-db-sort="quests" data-db-set="npc" type="button">任務數</button>
+            <button class="cm-sort-btn" data-db-sort="name" data-db-set="npc" type="button">名稱</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="dbNpcList"><p class="cm-loading">載入中...</p></div>
+    </section>
+
+    <section class="panel" id="dbNpcDetail" hidden></section>
   </div>
 
   <div id="dbQuestsView" role="tabpanel" aria-labelledby="dbSubQuests" hidden>

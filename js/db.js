@@ -897,6 +897,110 @@
     },
   });
 
+  // ------------------------------------------------------------- NPC
+
+  function npcImg(id, size) {
+    return `<img class="db-row-icon db-row-icon--skill" src="assets/db/npcs/${encodeURIComponent(id)}.png"
+      alt="" loading="lazy" decoding="async" width="${size}" height="${size}">`;
+  }
+
+  const npcs = makeSet({
+    key: "npcs",
+    route: "npc",
+    dir: "npcs",
+    prefix: "dbNpc",
+    label: "NPC",
+    unit: "個",
+    filters: [
+      { id: "Search", test: (r, v) => !v || r.name.toLowerCase().includes(v.trim().toLowerCase()) },
+      { id: "Region", test: (r, v) => !v || r.region === v },
+      { id: "Has", test: (r, v) => !v || (v === "quests" ? r.quests > 0 : r.shop > 0) },
+    ],
+    sorts: [
+      { key: "region", cmp: (a, b) => a.region.localeCompare(b.region, "zh-TW") || a.where.localeCompare(b.where, "zh-TW") || a.name.localeCompare(b.name, "zh-TW") },
+      { key: "quests", cmp: (a, b) => (b.quests || 0) - (a.quests || 0) },
+      { key: "name", cmp: (a, b) => a.name.localeCompare(b.name, "zh-TW") },
+    ],
+    searchRow: (r) => [r.region, r.where].filter(Boolean).join(" · "),
+    fillFilters(index, els) {
+      [...new Set(index.map((n) => n.region))].filter(Boolean).sort().forEach((r) => {
+        const o = document.createElement("option");
+        o.value = r;
+        o.textContent = r;
+        els.Region.appendChild(o);
+      });
+    },
+    renderRow(n) {
+      return `<button class="db-row" type="button" data-db-id="${esc(n.id)}">
+        ${npcImg(n.id, 44)}
+        <div class="db-row-main">
+          <div class="db-row-title"><span class="db-row-name">${esc(n.name)}</span></div>
+          <div class="db-row-meta">${esc([n.region, n.where].filter(Boolean).join(" · "))}</div>
+        </div>
+        <dl class="db-row-stats">
+          <div><dt>任務</dt><dd>${n.quests}</dd></div>
+          <div><dt>商品</dt><dd>${n.shop}</dd></div>
+        </dl>
+      </button>`;
+    },
+    renderDetail(d) {
+      const where = d.maps.length
+        ? `<div class="db-chip-row">${d.maps
+            .map((m) => linkChip("map", m.id, m.label, m.region))
+            .join("")}</div>`
+        : '<p class="cm-empty">沒有出沒地圖資料</p>';
+      const quests = d.quests.length
+        ? `<section class="db-section">
+            <h3 class="db-section-title">任務<span class="db-sub-num">${d.quests.length}</span></h3>
+            <div class="db-chip-row">${d.quests
+              .map((q) => linkChip("quest", q.id, q.name, q.role))
+              .join("")}</div>
+          </section>`
+        : "";
+      const shop = d.shop.length
+        ? `<section class="db-section">
+            <h3 class="db-section-title">商店<span class="db-sub-num">${d.shop.length} 項</span></h3>
+            <div class="db-sub-list">${d.shop
+              .map(
+                (s) => `<button class="db-sub-item db-sub-item--link" type="button"
+                          data-db-goto="item" data-db-id="${esc(s.id)}">
+                  <span class="db-sub-name">${esc(s.name)}</span>
+                  <span class="db-sub-meta"></span>
+                  <span class="db-sub-num">${num(s.price)} ${esc(s.currency)}</span>
+                </button>`
+              )
+              .join("")}</div>
+          </section>`
+        : "";
+      const crafts = (d.crafts || []).length
+        ? `<section class="db-section">
+            <h3 class="db-section-title">可以製作<span class="db-sub-num">${d.crafts.length} 種</span></h3>
+            <div class="db-chip-row">${d.crafts
+              .map((c) => linkChip("item", c.id, c.name, c.meso ? `${num(c.meso)} 楓幣` : ""))
+              .join("")}</div>
+          </section>`
+        : "";
+      const empty = !d.quests.length && !d.shop.length && !(d.crafts || []).length;
+      return `<button class="db-back" type="button" data-db-back>← 回到 NPC 列表</button>
+        <div class="db-detail-head">
+          ${npcImg(d.id, 64)}
+          <div>
+            <div class="db-row-title"><h2 class="db-detail-name">${esc(d.name)}</h2></div>
+          </div>
+        </div>
+        <section class="db-section">
+          <h3 class="db-section-title">出沒地圖<span class="db-sub-num">${d.maps.length}</span></h3>
+          ${where}
+        </section>
+        ${quests}
+        ${shop}
+        ${crafts}
+        ${empty
+          ? '<p class="db-section-note">這個 NPC 在遊戲資料裡沒有任務、商店或製作功能。</p>'
+          : ""}`;
+    },
+  });
+
   // ------------------------------------------------------------- 任務
 
   function linkChip(set, id, name, extra) {
@@ -1164,7 +1268,7 @@
 
   // ------------------------------------------------------------- 組裝
 
-  const SETS = [monsters, maps, items, quests, skills].filter(Boolean);
+  const SETS = [monsters, maps, items, npcs, quests, skills].filter(Boolean);
 
   SETS.forEach((s) => {
     const btn = document.getElementById("dbSub" + s.key.charAt(0).toUpperCase() + s.key.slice(1));

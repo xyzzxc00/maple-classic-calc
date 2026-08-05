@@ -1217,6 +1217,17 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 }
 .db-sub-item:last-child { border-bottom: none; }
 .db-sub-name { font-weight: 700; color: var(--ink); }
+/* 商店品項整列可點（開該道具的頁面），要壓掉 button 的預設樣式 */
+.db-sub-item--link {
+  width: 100%;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 13px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.db-sub-item--link:hover { background: var(--surface-tint); }
 .db-sub-meta { color: var(--ink-soft); font-size: 12px; flex: 1; }
 
 .db-meso { font-size: 15px; font-weight: 700; color: var(--ink); margin: 0; }
