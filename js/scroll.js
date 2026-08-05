@@ -89,7 +89,13 @@
     // *Filled 用來分辨「使用者真的填了無效值」跟「欄位是空的」，避免空欄位
     // 也跳出「已改用 1 計算」的警告
     const rawRateStr = els.rate.value.trim();
-    const rawRate = parseFloat(els.rate.value) || 0;
+    const rawRateNum = parseFloat(els.rate.value);
+    // 打非數字文字時 parseFloat 是 NaN，跟「填 0%」的 fallback 值撞在一起——
+    // slots/target/giveup 下限是 1，NaN 落到 0 剛好會被「< 1」的下限檢查抓到；
+    // rate 的合法下限是 0，NaN 落到 0 反而落在合法範圍內，下面單純比大小的
+    // 警告判斷抓不到，要另外記一個 rawRateInvalid 給 renderWarning 用
+    const rawRateInvalid = rawRateStr !== "" && isNaN(rawRateNum);
+    const rawRate = isNaN(rawRateNum) ? 0 : rawRateNum;
     const rawSlotsStr = els.slots.value.trim();
     const rawSlots = parseInt(els.slots.value, 10) || 0;
     const rawTargetStr = els.target.value.trim();
@@ -108,7 +114,7 @@
     const price = parseExpVal(els.price.value);
     return {
       rate, slots, target, giveup, equipPrice, price,
-      rawRate, rawRateFilled: !!rawRateStr,
+      rawRate, rawRateFilled: !!rawRateStr, rawRateInvalid,
       rawSlots, rawSlotsFilled: !!rawSlotsStr,
       rawTarget, rawTargetFilled: !!rawTargetStr,
       rawGiveup, rawGiveupFilled: !!rawGiveupStr,
@@ -165,7 +171,9 @@
     } else if (cfg.rawGiveup > cfg.slots) {
       msgs.push(`失敗報廢張數不能超過裝備衝捲數，已改用 ${cfg.slots} 張計算。`);
     }
-    if (cfg.rawRateFilled && cfg.rawRate < 0) {
+    if (cfg.rawRateInvalid) {
+      msgs.push("成功率請輸入 0~100 之間的數字，已改用 0% 計算。");
+    } else if (cfg.rawRateFilled && cfg.rawRate < 0) {
       msgs.push("成功率不能是負數，已改用 0% 計算。");
     } else if (cfg.rawRate > 100) {
       msgs.push("成功率最高 100%，已改用 100% 計算。");

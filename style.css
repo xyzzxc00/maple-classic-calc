@@ -37,6 +37,10 @@
   /* 浮動元素（.back-to-top、手機版側邊欄抽屜）的陰影色，跟著明暗模式
      各自調深淺，不要在個別元件寫死 rgba() 字面值 */
   --shadow-color: rgba(0, 0, 0, 0.18);
+  /* 手機版側邊欄開啟時蓋住內容的遮罩層，同樣走 token 而不是在 .sidebar-backdrop
+     裡寫死 rgba()——深色模式的值刻意比淺色深（跟 --shadow-color 同一個邏輯），
+     深色底本身已經很暗，同樣的透明度疊上去視覺上幾乎沒有加深效果 */
+  --overlay-color: rgba(0, 0, 0, 0.4);
   /* 告訴瀏覽器目前的明暗模式，讓原生控件（下拉選單、捲軸、number 增減鈕、
      placeholder 預設色）跟著主題走——沒有這行，深色模式下這些原生元件
      全部維持亮色系外觀，而且預設 placeholder 灰在深底上只有 3.35:1。 */
@@ -77,6 +81,8 @@ body.dark {
   /* 深色背景上黑色陰影本來就融進底色、幾乎看不出來，加深不透明度讓浮動
      按鈕邊緣還是能跟頁面分出層次 */
   --shadow-color: rgba(0, 0, 0, 0.45);
+  /* 同樣道理：深色底本身已經很暗，遮罩層要比淺色模式更不透明才有實際效果 */
+  --overlay-color: rgba(0, 0, 0, 0.6);
   color-scheme: dark;
 }
 
@@ -164,29 +170,6 @@ a:hover { text-decoration-color: var(--accent-hover); }
   color: var(--ink-soft);
   margin: 0;
 }
-.launch-schedule {
-  display: block;
-  margin: 10px 0 0;
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--accent-text);
-}
-
-/* header 的主要 CTA（開服前是事前預約按鈕，現在連官方遊戲頁）＋下方提示行 */
-.header-cta-btn {
-  display: inline-block;
-  margin-top: 20px;
-  font-weight: 700;
-  font-size: 15px;
-  text-decoration: none;
-  color: var(--on-accent);
-  background: var(--accent);
-  padding: 13px 30px;
-  border-radius: var(--radius-md);
-  transition: background 0.15s;
-}
-.header-cta-btn:hover,
-.header-cta-btn:active { background: var(--accent-hover); }
 .header-cta-hint {
   font-size: 13px;
   color: var(--ink-soft);
@@ -324,6 +307,13 @@ a:hover { text-decoration-color: var(--accent-hover); }
   outline-offset: 1px;
   border-color: var(--accent);
 }
+/* 表單欄位字數計數（formGuard.js 掛上去的，超過上限文字會變色示警） */
+.field-count {
+  align-self: flex-end;
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+.field-count.near-limit { color: var(--warning); }
 .field-inline {
   display: flex;
   align-items: center;
@@ -990,6 +980,11 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   .cm-helpful-btn { min-height: 40px; padding: 8px 14px; }
 }
 .cm-empty, .cm-loading { color: var(--ink-soft); text-align: center; padding: 32px 0; font-size: 14px; }
+/* 讀取失敗跟「真的沒有資料」共用 .cm-empty 的置中版型，但語意完全不同——
+   前者是壞掉、後者是正常狀態，只看文字不容易一眼分辨，加個警示色跟
+   前綴符號區分，跟 .cm-msg.err 用同一種顏色語言 */
+.cm-empty--error { color: var(--danger); font-weight: 700; }
+.cm-empty--error::before { content: "⚠ "; }
 .cm-pagination { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 16px; flex-wrap: wrap; }
 .cm-page-btn {
   background: var(--surface);
@@ -1202,210 +1197,8 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 .boss-prequest-step-title { font-weight: 700; color: var(--ink); font-size: 14px; }
 .boss-prequest-step-desc { font-size: 13px; color: var(--ink-soft); margin-top: 4px; line-height: 1.6; }
 
-/* ---------- Footer ---------- */
-.site-footer {
-  border-top: 1px solid var(--border);
-  /* 左右留白交給裡面那層 .wrap 去對齊全站內容欄寬（跟上面 FAQ 卡片同一
-     條邊界），這裡只管上下間距，不能再自己疊一層水平 padding，不然寬螢幕
-     時 footer 會比 FAQ 卡片還寬，兩者右邊界對不齊 */
-  padding: 32px 0 50px;
-  font-size: 12px;
-  color: var(--ink-soft);
-}
-/* 左邊放站方免責聲明／版權這類長文字，右邊放行動呼籲（按鈕列＋聯絡方式）；
-   兩欄等寬對切，各自的內容在「自己那一半」裡置中——之前兩欄都靠左對齊，
-   footer-left 又比較短，會在畫面正中間留一大截空白，看起來像排版沒對齊；
-   兩欄等寬 + 各自置中，兩塊視覺重心都落在半版中央，中間的留白就變成兩邊
-   對稱的間距，而不是一塊突兀的空白 */
-.footer-columns {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 40px;
-  /* 刻意不用 flex-wrap:wrap——那是照兩欄「基準寬度」加總來決定要不要
-     換行，不是等真的擠不下才換，會在還沒到下面 700px 斷點前就提早跳成
-     上下排。兩欄靠 flex-shrink 收到 min-width 為止，斷點交給下面的
-     media query 統一處理 */
-  flex-wrap: nowrap;
-}
-.footer-left,
-.footer-right {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  text-align: center;
-  min-width: 260px;
-  /* 原本是 flex:1 1 0（兩欄各自撐滿一半寬度、各自置中內容），現在
-     .footer-right 的按鈕格縮小了很多，撐滿半版寬只會讓中間空出一大截
-     看不見的空白；改成 flex:0 1 auto 讓兩欄各自收到內容的實際寬度，
-     .footer-columns 的 gap:40px + justify-content:center 才會是兩欄
-     之間真正看得到的間距，不會被額外撐開。 */
-  flex: 0 1 auto;
-}
-.footer-disclaimer { margin: 0; text-align: center; }
-/* 固定用 grid 排 2 欄，而不是靠 flex-wrap 自然換行——4 顆按鈕用 flex-wrap
-   在中等寬度常常擠成「3 顆 + 1 顆」，第二排只剩一顆孤伶伶置中，寬度跟
-   第一排對不齊，看起來像沒排好；grid 兩欄固定住，永遠是工整的 2 排 2 顆，
-   兩排寬度也會一致 */
-.footer-cta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.feedback-link,
-.donate-link,
-.guides-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--accent-text);
-  background: transparent;
-  border: 1px solid var(--accent-text);
-  font-size: 12.5px;
-  font-weight: 700;
-  text-decoration: none;
-  text-align: center;
-  /* 垂直 padding 撐住 ≥40px 觸控高度不能再縮（原 7px padding 只有 35px，
-     手機易誤觸，這是踩過的坑）；水平 padding 從 18px 收到 14px 純粹是
-     視覺上不要那麼寬，不影響觸控高度 */
-  padding: 11px 14px;
-  border-radius: 999px;
-  transition: background 0.15s;
-  /* 桌面版四顆按鈕等寬：交給 .footer-cta-row 的 grid 兩欄自動撐滿，
-     不再自己固定寬度，兩排的寬度才會跟著欄寬走、彼此對齊 */
-  width: 100%;
-  box-sizing: border-box;
-}
-.donate-link:hover,
-.guides-link:hover { background: var(--accent-tint); }
-.feedback-link {
-  color: var(--on-accent);
-  background: var(--accent);
-  border-color: var(--accent);
-}
-.feedback-link:hover {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
-}
-.footer-contact { font-size: 12px; margin: 0; }
-/* 內文連結用 padding + 負 margin 把觸控範圍撐到 ≥40px 高，版面行距不變 */
-.footer-contact a {
-  color: var(--ink-soft);
-  text-decoration: underline;
-  display: inline-block;
-  padding: 12px 6px;
-  margin: -11px -4px;
-}
-.footer-contact a:hover { color: var(--ink); }
-/* max-width 拿掉——之前限制 480px 是單欄置左排版時代怕整行太長不好讀，
-   但欄寬本身已經被 .footer-left 收窄了；留著這個 max-width 會讓這幾段
-   文字的框比同欄位裡 disclaimer／contact 的框窄，置中軸線對不齊，三段文字
-   看起來偏左、跟上下兩行沒對齊 */
-.footer-note { font-size: 12px; line-height: 1.6; margin: 0; }
-@media (max-width: 480px) {
-  /* 右下角有個 fixed 定位的回到頂端按鈕（bottom:20px、高 46px，算下來
-     要淨空到 66px 才不會壓到），原本 40px 不夠，最後一行「隱私政策」
-     連結會被蓋到／擠在一起，留寬一點的緩衝 */
-  .site-footer { padding-bottom: 90px; }
-}
-/* 兩欄置左排版是桌機專屬的改版，手機版維持改版前的樣子：整塊置中、
-   按鈕列在最上面——所以除了改成上下疊放，還要把置左蓋回置中，並用
-   order 讓 .footer-right（按鈕列＋贊助/聯絡方式）排到 .footer-left
-   （免責聲明等長文字）前面，視覺上跟改版前一樣「按鈕先、文字後」。 */
-@media (max-width: 700px) {
-  /* justify-content 明確蓋回 flex-start——桌機版設的是 space-between，
-     不覆寫的話手機版疊成單欄時如果容器高度被撐高（例如手機瀏覽器網址列
-     動態收合改變可視高度），兩塊中間會被硬塞出一大截空白 */
-  .footer-columns { flex-direction: column; justify-content: flex-start; align-items: center; gap: 20px; }
-  .footer-left,
-  .footer-right {
-    /* 桌機版 .footer-left 是 flex:1 1 320px（會長大吃滿剩餘空間），
-       .footer-right 是 flex:0 1 380px。手機版只覆寫掉 min-width，沒清
-       flex-grow，容器只要哪天被撐高（例如手機瀏覽器網址列動態收合造成
-       的可視高度變化），footer-left 就會被拉伸撐開，中間出現一大截空白
-       ——就算前面已經把 justify-content 蓋回 flex-start 也擋不住，因為
-       flex-grow 跟 justify-content 是各自獨立的機制。這裡直接歸零，兩塊
-       在手機版永遠照內容自然高度顯示，不會被撐大。 */
-    flex: none;
-    min-width: 0;
-    width: 100%;
-    align-items: center;
-    text-align: center;
-    gap: 10px;
-  }
-  .footer-right { order: -1; }
-  /* 按鈕列跟下面的免責聲明中間加一條分隔線，視覺上分開「行動呼籲」跟
-     「條款說明」兩塊；線放在 footer-left 上緣，因為 order:-1 讓
-     footer-right 排到前面，footer-left 視覺上永遠是第二塊 */
-  .footer-left {
-    border-top: 1px solid var(--border);
-    padding-top: 20px;
-  }
-  .footer-disclaimer,
-  .footer-note,
-  .footer-contact { text-align: center; }
-  .footer-cta-row { justify-content: center; }
-}
-@media (min-width: 701px) {
-  /* 斷點要跟 .footer-columns 疊成單欄的 700px 對齊，不能用比較窄的
-     641px——中間這段（641~700px）原本會同時吃到「桌機瘦身按鈕」跟
-     「手機單欄堆疊版面」，桌機瘦身版的 padding 縮到只剩 34px 高，
-     但這段寬度其實已經是手機版面了，比全站其他地方統一的 ≥40px
-     觸控標準還小，是這次健檢抓到的真實 bug，修正對齊到 700px。
-     桌機版縮小這四顆按鈕：手機版維持原本的 padding/字級/滿版寬不動——
-     那是為了 ≥40px 觸控高度特別留的（見上面的踩坑註解），縮小只在桌機
-     這個滑鼠操作、不用顧慮誤觸的範圍做，不動手機版的安全邊界。
-     光縮 padding 沒用——.feedback-link 等原本靠 width:100% 撐滿 grid
-     欄寬，padding 縮再多，外框還是頂著欄寬邊界不會變窄；改成固定寬度
-     （155px，含 padding 放得下最長的「意見回饋 / 錯誤回報」不換行）
-     + justify-items:center，四顆按鈕才會等寬、又比原本撐滿欄寬窄。
-     但欄寬（grid-template-columns: 1fr 1fr）還是照 .footer-right 容器
-     寬度平分，容器比按鈕寬很多時，兩顆按鈕各自置中在很寬的欄位裡，中間
-     反而空出一大截——欄寬改成 max-content（跟著按鈕實際寬度走，不是
-     容器寬度）+ justify-content:center 讓整排置中，兩顆按鈕間距才會是
-     單純的 gap 值，不會被欄寬撐開。 */
-  .footer-cta-row {
-    grid-template-columns: max-content max-content;
-    justify-content: center;
-    justify-items: center;
-  }
-  .feedback-link,
-  .donate-link,
-  .guides-link {
-    width: 155px;
-    padding: 8px 12px;
-    font-size: 11.5px;
-  }
-}
-@media (max-width: 640px) {
-  /* 桌機是 grid 兩欄，手機版收回單欄堆疊，蓋回原本的樣子 */
-  .footer-cta-row { display: flex; flex-direction: column; width: 100%; align-items: stretch; flex-wrap: nowrap; }
-  .feedback-link,
-  .donate-link,
-  .guides-link { width: 100%; text-align: center; box-sizing: border-box; }
-}
-
 /* ---------- FAQ ---------- */
 .faq-panel { margin-top: 24px; }
-/* 常見問題整個區塊也收合起來（盒中盒：外層收合面板，裡面每一題各自
-   也是收合項目）——手機滑到這裡常常一大片問題列表全展開佔滿畫面，收合後
-   一眼掃過去只有一行標題，想找答案再點開。外層 summary 直接沿用
-   .panel-head 的排版（h2 + badge 左右對齊，display:flex），但 <summary>
-   原生的展開三角形是靠 display:list-item 生成的 ::marker，一旦蓋成
-   display:flex 那個原生三角形就直接消失，使用者看不出這行可以點——
-   所以 list-style:none 把原生的關掉，改在 h2 前面自己塞一個 ▶，跟
-   .faq-item 裡每一題的展開三角形是同一種視覺語言，點開時用 transform
-   轉 90 度變成 ▼，效果也跟原生三角形展開時一致。 */
-.faq-outer > summary {
-  cursor: pointer;
-  list-style: none;
-}
-.faq-outer > summary::-webkit-details-marker { display: none; }
-.faq-outer > summary:hover h2 { color: var(--accent-text); }
-.faq-outer:not([open]) > summary { margin-bottom: 0; }
-.faq-outer-arrow {
-  display: inline-block;
-  font-size: 12px;
-  color: var(--ink-soft);
-  transition: transform 0.15s;
-}
-.faq-outer[open] .faq-outer-arrow { transform: rotate(90deg); }
 .faq-item { border-bottom: 1px solid var(--border); }
 .faq-item:last-child { border-bottom: none; }
 .faq-item summary {
@@ -1988,7 +1781,7 @@ body.has-sidebar .theme-toggle {
     position: fixed;
     inset: 0;
     z-index: 25; /* 蓋住內容（z-index 預設層），墊在 .sidebar（30）下面 */
-    background: rgba(0, 0, 0, 0.4);
+    background: var(--overlay-color);
   }
   body.menu-open { overflow: hidden; }
 }

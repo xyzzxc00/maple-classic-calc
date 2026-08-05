@@ -121,10 +121,12 @@
     form: document.getElementById("cmForm"),
     job: document.getElementById("cmJob"),
     map: document.getElementById("cmMap"),
+    mapCount: document.getElementById("cmMapCount"),
     level: document.getElementById("cmLevel"),
     expPer10Min: document.getElementById("cmExpPer10Min"),
     mode: document.getElementById("cmMode"),
     note: document.getElementById("cmNote"),
+    noteCount: document.getElementById("cmNoteCount"),
     submitBtn: document.getElementById("cmSubmitBtn"),
     cancelBtn: document.getElementById("cmCancelBtn"),
     msg: document.getElementById("cmMsg"),
@@ -145,9 +147,11 @@
     els.msg.className = "cm-msg err";
   }
 
-  // 字數硬上限＋IME 安全裁切（formGuard.js，四板共用）；欄位都短，不掛計數
-  MapleFormGuard.attach(els.map, 40);
-  MapleFormGuard.attach(els.note, 60);
+  // 字數硬上限＋IME 安全裁切（formGuard.js，四板共用）；掛上計數器讓使用者
+  // 知道快到上限了，不然超過的部分會被靜默裁掉，使用者不會發現自己的
+  // 地圖名稱或備註被截斷
+  const updateMapCount = MapleFormGuard.attach(els.map, 40, els.mapCount);
+  const updateNoteCount = MapleFormGuard.attach(els.note, 60, els.noteCount);
 
   let allRecords = [];
   let lastDoc = null;
@@ -333,6 +337,7 @@
       els.msg.className = "cm-msg ok";
       els.job.value = ""; els.map.value = "";
       els.level.value = ""; els.expPer10Min.value = ""; els.mode.value = "solo"; els.note.value = "";
+      updateMapCount(); updateNoteCount();
       allRecords = []; lastDoc = null;
       await loadRecords();
       if (window.MapleSpots) window.MapleSpots.render();
@@ -391,12 +396,12 @@
     } catch {
       lastLoadFailed = true;
       lastLoadErrorMsg = "連線失敗，請檢查網路後重新整理頁面";
-      els.list.innerHTML = `<p class="cm-empty">${lastLoadErrorMsg}</p>`;
+      els.list.innerHTML = `<p class="cm-empty cm-empty--error">${lastLoadErrorMsg}</p>`;
       hasMoreFromServer = false;
       return;
     }
     if (!db) {
-      els.list.innerHTML = '<p class="cm-empty">社群資料庫目前無法連線，請稍後再試。</p>';
+      els.list.innerHTML = '<p class="cm-empty cm-empty--error">社群資料庫目前無法連線，請稍後再試。</p>';
       hasMoreFromServer = false;
       return;
     }
@@ -419,7 +424,7 @@
       if (!append && snap.empty && snap.metadata && snap.metadata.fromCache) {
         lastLoadFailed = true;
         lastLoadErrorMsg = "連不上資料庫伺服器，請檢查網路後重新整理頁面";
-        els.list.innerHTML = `<p class="cm-empty">${lastLoadErrorMsg}</p>`;
+        els.list.innerHTML = `<p class="cm-empty cm-empty--error">${lastLoadErrorMsg}</p>`;
         hasMoreFromServer = false;
         return;
       }
@@ -458,10 +463,10 @@
       if (append && allRecords.length) {
         hasMoreFromServer = false;
         renderRecords();
-        els.pagination.innerHTML = `<p class="cm-empty">${msg}</p>`;
+        els.pagination.innerHTML = `<p class="cm-empty cm-empty--error">${msg}</p>`;
         return;
       }
-      els.list.innerHTML = `<p class="cm-empty">${msg}</p>`;
+      els.list.innerHTML = `<p class="cm-empty cm-empty--error">${msg}</p>`;
     }
   }
 

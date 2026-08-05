@@ -21,7 +21,7 @@
 
   // 資料檔（legacySpotsData.js）沒載入成功時，`|| []` 會渲染出整片空白、只剩
   // 免責聲明孤零零掛著。跟 jobs.js 的兜底比照辦理，明講載入失敗
-  const DATA_MISSING_MSG = '<p class="cm-empty">資料載入失敗，請重新整理頁面</p>';
+  const DATA_MISSING_MSG = '<p class="cm-empty cm-empty--error">資料載入失敗，請重新整理頁面</p>';
 
   const spotsList = document.getElementById("legacySpotsList");
   if (spotsList) {

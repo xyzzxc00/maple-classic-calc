@@ -143,21 +143,25 @@
       return;
     }
 
-    const currentLevel = parseInt(els.currentLevel.value, 10) || 1;
+    const currentLevelRaw = parseInt(els.currentLevel.value, 10);
+    const currentLevel = isNaN(currentLevelRaw) ? 1 : currentLevelRaw;
     let currentExp = parseInt(els.currentExp.value, 10) || 0;
-    const targetLevel = parseInt(els.targetLevel.value, 10) || 1;
+    const targetLevelRaw = parseInt(els.targetLevel.value, 10);
+    const targetLevel = isNaN(targetLevelRaw) ? 1 : targetLevelRaw;
 
     // 超出範圍的等級/倍率之前是直接靜默夾在合法值內去算，使用者不會知道自己
-    // 打的數字沒被採用，這裡把原因講出來，計算結果本身還是照樣算給他看
+    // 打的數字沒被採用，這裡把原因講出來，計算結果本身還是照樣算給他看。
+    // 打非數字文字時 parseInt 會是 NaN，fallback 成 1 剛好落在合法範圍內，
+    // 只看 currentLevel/targetLevel 的範圍判斷不出來，所以要另外檢查 isNaN
     const warnings = [];
     if (!els.currentLevel.value.trim()) {
       // 只填目標沒填目前時默默從 Lv.1 起算大致符合直覺，但要講出來，
       // 跟其他欄位「fallback 都明講」的風格一致
       warnings.push("目前等級未填，先以 Lv.1 起算");
-    } else if (currentLevel < 1 || currentLevel > 200) {
+    } else if (isNaN(currentLevelRaw) || currentLevel < 1 || currentLevel > 200) {
       warnings.push("目前等級請輸入 1~200 之間的整數");
     }
-    if (els.targetLevel.value.trim() && (targetLevel < 1 || targetLevel > 200)) {
+    if (els.targetLevel.value.trim() && (isNaN(targetLevelRaw) || targetLevel < 1 || targetLevel > 200)) {
       warnings.push("目標等級請輸入 1~200 之間的整數");
     }
     // 填反（目標比目前低）最常見的原因是兩欄填顛倒了，畫面只顯示「已達成」

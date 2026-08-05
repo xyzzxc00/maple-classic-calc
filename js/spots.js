@@ -97,7 +97,7 @@
         : window.MapleCommunity.hasLoadFailed()
         // 失敗原因沿用 community.js 分好的訊息（離線／被拒絕／額度用完…），
         // 同一次失敗在「回報紀錄」跟這裡才不會講兩種粒度的話
-        ? `<p class="cm-empty">${window.MapleCommunity.loadErrorMsg() || "載入失敗，請重新整理頁面"}</p>`
+        ? `<p class="cm-empty cm-empty--error">${window.MapleCommunity.loadErrorMsg() || "載入失敗，請重新整理頁面"}</p>`
         : allRecords.length
           ? '<p class="cm-empty">這個職業目前還沒有練功地點回報，可以切換其他職業看看，或到「回報紀錄」子分頁貢獻第一筆！</p>'
           : '<p class="cm-empty">目前還沒有玩家回報練功地點。去「回報紀錄」子分頁回報，這裡就會自動整理出建議。</p>';

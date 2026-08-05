@@ -147,6 +147,12 @@ jobs:
           }
           stamp_lastmod "$BASE/" "$TODAY"
 
+          # privacy/ 跟 guides/ 各篇文章一樣戳真實 git 修改日期，不是整批蓋今天
+          privacy_last_mod=$(git log -1 --format=%cd --date=short -- privacy/index.html)
+          if [ -n "$privacy_last_mod" ]; then
+            stamp_lastmod "$BASE/privacy/" "$privacy_last_mod"
+          fi
+
           # guides/ 底下每篇文章各自戳「這篇真正最後一次被 git 改動的日期」，
           # 不能比照 index.html 整批蓋成當天——那樣沒被這次部署動到的舊文章
           # 也會被寫成「今天更新」，對 SEO/GEO 反而是誤導的新鮮度訊號。用
