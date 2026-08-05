@@ -1054,15 +1054,24 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
    而不是純文字串接，是為了讓「HP」「EXP」這些標籤在小螢幕上換行後還看得
    出哪個數字是什麼 */
 #dbMonsterList { display: flex; flex-direction: column; gap: 8px; }
+/* 整列是一顆按鈕（點了看詳情）。<button> 不繼承 body 字體會掉回 Arial，
+   中文再掉到系統備援字型，所以 font-family 一定要明寫——側邊欄站名就是
+   踩過這個坑 */
 .db-row {
   display: flex;
   align-items: center;
   gap: 12px;
+  width: 100%;
+  text-align: left;
+  font-family: 'Noto Sans TC', sans-serif;
   background: var(--surface);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   padding: 10px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
 }
+.db-row:hover { border-color: var(--accent-text); background: var(--surface-tint); }
 /* 怪物圖是原始尺寸不一的貼圖，用固定框 + contain 對齊，不然每一列的
    高度會被個別圖片撐得參差不齊 */
 .db-row-icon {
@@ -1096,6 +1105,109 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   .db-row-stats { width: 100%; justify-content: space-between; gap: 8px; }
   .db-row-stats > div { text-align: left; }
 }
+
+/* ---------- 資料庫：怪物詳情 ---------- */
+.db-back {
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-text);
+  background: transparent;
+  border: none;
+  padding: 0 0 12px;
+  cursor: pointer;
+}
+.db-back:hover { text-decoration: underline; }
+.db-detail-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 4px; }
+.db-detail-head .db-row-icon { width: 64px; height: 64px; }
+.db-detail-name { font-size: 20px; font-weight: 900; margin: 0; color: var(--ink); }
+.db-detail-desc { font-size: 13px; color: var(--ink-soft); line-height: 1.7; margin: 6px 0 0; }
+
+.db-section { margin-top: 22px; }
+.db-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.db-section-note { font-size: 12px; color: var(--ink-soft); margin: -4px 0 10px; }
+.db-sub-num { font-size: 11.5px; font-weight: 700; color: var(--ink-faint); }
+
+/* 數值用固定欄寬的網格：每一格「標籤在上、數字在下」，比一長串頓號串接
+   好掃，換行時也不會把某個數字孤零零留在下一行 */
+.db-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+.db-stat-grid dt { font-size: 11px; color: var(--ink-faint); font-weight: 700; }
+.db-stat-grid dd { margin: 2px 0 0; font-size: 14px; font-weight: 700; color: var(--ink); }
+
+/* 五個屬性一排。弱點是「這隻怕什麼」，抗性／免疫是「別用什麼打」，
+   兩者對玩家的意義相反，用顏色分開比只寫文字快得多 */
+.db-el-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.db-el {
+  flex: 1 1 76px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 8px 6px;
+}
+.db-el-name { display: block; font-size: 13px; font-weight: 700; color: var(--ink); }
+.db-el-value { display: block; font-size: 11.5px; color: var(--ink-faint); margin-top: 2px; }
+.db-el--weak { border-color: var(--accent-border); background: var(--accent-tint); }
+.db-el--weak .db-el-value { color: var(--accent-text); font-weight: 700; }
+.db-el--resist .db-el-value,
+.db-el--immune .db-el-value { color: var(--danger); font-weight: 700; }
+.db-el--immune { border-color: var(--danger); }
+
+.db-sub-list { display: flex; flex-direction: column; }
+.db-sub-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.db-sub-item:last-child { border-bottom: none; }
+.db-sub-name { font-weight: 700; color: var(--ink); }
+.db-sub-meta { color: var(--ink-soft); font-size: 12px; flex: 1; }
+
+.db-meso { font-size: 15px; font-weight: 700; color: var(--ink); margin: 0; }
+.db-drop-group { margin-bottom: 16px; }
+.db-drop-cat {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent-text);
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+/* 掉落物常常幾十筆，用多欄網格才不會拉成一條長清單 */
+.db-drop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 6px 12px;
+}
+.db-drop-item { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.db-drop-icon { width: 32px; height: 32px; flex-shrink: 0; object-fit: contain; }
+.db-drop-text { min-width: 0; }
+.db-drop-name {
+  display: block;
+  font-size: 13px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.db-drop-meta { display: block; font-size: 11px; color: var(--ink-faint); }
 
 /* ---------- Legacy job builds (職業配點) ----------
    十二條路線如果攤平列卡片會糊成一片，所以先照職業系分組、組跟組之間留

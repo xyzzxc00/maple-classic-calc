@@ -364,9 +364,14 @@
   });
 
   function init() {
-    // 記下網址列本來就有查詢參數，等一下用來判斷「這是壞掉的分享連結」
-    // 還是「本來就沒帶參數」，兩者都會落到 else 分支，但只有前者該提示使用者
-    const hadShareParams = location.search.length > 1;
+    // 記下網址列本來就有分享參數，等一下用來判斷「這是壞掉的分享連結」
+    // 還是「本來就沒帶參數」，兩者都會落到 else 分支，但只有前者該提示使用者。
+    // 只認分享連結自己的參數名：原本寫成「網址列有任何查詢字串就算」，結果
+    // 資料庫的 ?db=monster&id=... 這種完全無關的參數會被誤判成壞掉的分享
+    // 連結，跳出「解析失敗」還把參數從網址列清掉
+    const hadShareParams = ["cl", "ce", "tl", "epm", "mult", "daily", "owned"].some((k) =>
+      new URLSearchParams(location.search).has(k)
+    );
     const shared = MapleCalculator.decodeShareParams(location.search);
     if (shared.currentLevel && shared.targetLevel) {
       els.currentLevel.value = shared.currentLevel;

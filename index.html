@@ -787,7 +787,9 @@
 <div class="wrap" id="pageDb" role="tabpanel" aria-labelledby="navDb" hidden>
 
   <div id="dbMonstersView" role="tabpanel" aria-labelledby="dbSubMonsters">
-    <section class="panel">
+    <!-- 列表與詳情是同一個分頁裡的兩個狀態，互相取代（不是並排的主從版面）：
+         手機上並排會把兩邊都壓到不能看，而這站的流量一半以上來自手機 -->
+    <section class="panel" id="dbMonsterListPanel">
       <div class="panel-head">
         <h2>怪物資料</h2>
         <span class="badge" id="dbMonsterCount">—</span>
@@ -822,6 +824,9 @@
 
       <div id="dbMonsterList"><p class="cm-loading">載入中...</p></div>
     </section>
+
+    <!-- 單隻怪的詳情，內容由 db.js 依 data/db/monsters/<id>.json 產生 -->
+    <section class="panel" id="dbMonsterDetail" hidden></section>
   </div>
 
 </div>

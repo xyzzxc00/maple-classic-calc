@@ -64,8 +64,15 @@
   // 這種「主分頁-子分頁」格式）優先於 localStorage 的舊紀錄，這樣外部連結
   // 才能準確跳到指定分頁，而不是停在使用者上次逛到的地方
   const [hashMain, hashSub] = location.hash.slice(1).split("-");
+  // 資料庫的單筆詳情用查詢參數當網址（?db=monster&id=…），因為它跟錨點不同：
+  // 錨點是「開哪個分頁」的一次性指令、用完就抹掉，詳情網址則是要能分享、
+  // 能重新整理、能加書籤的，得留在網址列上。這裡只負責認出「要開資料庫頁」，
+  // 實際開哪一筆由 db.js 自己讀參數處理
+  const hasDbRoute = new URLSearchParams(location.search).has("db");
   const initialPage =
-    hashMain && pages[hashMain] && !tabs[hashMain].hidden
+    hasDbRoute && pages.db
+      ? "db"
+      : hashMain && pages[hashMain] && !tabs[hashMain].hidden
       ? hashMain
       : saved && pages[saved] && !tabs[saved].hidden
       ? saved
