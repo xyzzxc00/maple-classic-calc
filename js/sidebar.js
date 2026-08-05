@@ -135,11 +135,7 @@
   const SUBTAB_SETTERS = {
     calc: (key) => window.MapleNav && window.MapleNav.showCalcSubtab(key),
     guides: (key) => window.MapleGuides && window.MapleGuides.showTab(key),
-    cm: (key) => {
-      if (!window.MapleCommunity) return;
-      if (key === "records") window.MapleCommunity.showRecordsTab();
-      else window.MapleCommunity.showSuggestTab();
-    },
+    cm: (key) => window.MapleCommunity && window.MapleCommunity.showCmSubtab(key),
     legacy: (key) => window.MapleLegacy && window.MapleLegacy.showTab(key),
   };
 

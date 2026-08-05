@@ -748,6 +748,10 @@
     // 計算機結果區的「看 Lv.X 附近的推薦練功地點」導流用，跟 showRecordsTab
     // 同一套包裝
     showSuggestTab: (skipSave) => showCmSubtab("suggest", skipSave),
+    // 首頁卡片／最新更新清單的 [data-nav-subtab] 通用入口。原本 sidebar.js
+    // 只能靠 showRecordsTab／showSuggestTab 兩個包裝去猜，結果「推薦地點」
+    // （picks）永遠會被導到建議練功地點
+    showCmSubtab,
     // nav.js 補觸發子分頁 render 時要讀同一個 localStorage key——鍵名只在
     // 這裡定義一次，nav.js 透過這個屬性拿，避免兩邊字面量各自漂移
     cmSubtabKey: CM_SUBTAB_KEY,
