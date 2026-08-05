@@ -512,6 +512,152 @@
     },
   });
 
+  // ------------------------------------------------------------- 地圖
+
+  const maps = makeSet({
+    key: "maps",
+    route: "map",
+    dir: "maps",
+    prefix: "dbMap",
+    label: "地圖",
+    unit: "張",
+    filters: [
+      { id: "Search", test: (r, v) => !v || r.name.toLowerCase().includes(v.trim().toLowerCase()) },
+      { id: "Region", test: (r, v) => !v || r.region === v },
+      { id: "Street", test: (r, v) => !v || r.street === v },
+    ],
+    sorts: [
+      { key: "region", cmp: (a, b) => a.region.localeCompare(b.region, "zh-TW") || a.street.localeCompare(b.street, "zh-TW") || a.name.localeCompare(b.name, "zh-TW") },
+      { key: "spawns", cmp: (a, b) => (b.spawns || 0) - (a.spawns || 0) },
+      { key: "name", cmp: (a, b) => a.name.localeCompare(b.name, "zh-TW") },
+    ],
+    fillFilters(index, els) {
+      [...new Set(index.map((m) => m.region))].filter(Boolean).sort().forEach((r) => {
+        const o = document.createElement("option");
+        o.value = r;
+        o.textContent = r;
+        els.Region.appendChild(o);
+      });
+      // 區域選單跟著地區連動：維多利亞島底下就有二十幾個城鎮，全部混在一起選不動
+      const byStreet = new Map();
+      index.forEach((m) => {
+        if (!byStreet.has(m.region)) byStreet.set(m.region, new Set());
+        byStreet.get(m.region).add(m.street);
+      });
+      const fill = () => {
+        const region = els.Region.value;
+        const streets = region
+          ? [...(byStreet.get(region) || [])]
+          : [...new Set(index.map((m) => m.street))];
+        els.Street.innerHTML = '<option value="">全部區域</option>';
+        streets.filter(Boolean).sort().forEach((s) => {
+          const o = document.createElement("option");
+          o.value = s;
+          o.textContent = s;
+          els.Street.appendChild(o);
+        });
+      };
+      fill();
+      els.Region.addEventListener("change", fill);
+    },
+    renderRow(m) {
+      return `<button class="db-row db-row--text" type="button" data-db-id="${esc(m.id)}">
+        <div class="db-row-main">
+          <div class="db-row-title">
+            <span class="db-row-name">${esc(m.name)}</span>
+          </div>
+          <div class="db-row-meta">${esc([m.region, m.street].filter(Boolean).join(" · "))}</div>
+        </div>
+        <dl class="db-row-stats">
+          <div><dt>怪物</dt><dd>${m.mobs}</dd></div>
+          <div><dt>重生點</dt><dd>${m.spawns}</dd></div>
+          <div><dt>傳送</dt><dd>${m.portals}</dd></div>
+        </dl>
+      </button>`;
+    },
+    renderDetail(d) {
+      // 小地圖上的標記：位置在匯入時就換算成百分比，這裡直接套，畫面縮放
+      // 也不會跑掉。原圖只有一百多像素寬，放大時保留鋸齒比糊掉好看
+      const markers = d.hasMini
+        ? [
+            ...d.spawns.map(
+              (s) => `<span class="db-marker db-marker--mob" style="left:${s.x}%;top:${s.y}%"></span>`
+            ),
+            ...d.npcs
+              .filter((n) => n.x != null)
+              .map((n) => `<span class="db-marker db-marker--npc" style="left:${n.x}%;top:${n.y}%"></span>`),
+            ...d.portals
+              .filter((p) => p.x != null)
+              .map((p) => `<span class="db-marker db-marker--portal" style="left:${p.x}%;top:${p.y}%"></span>`),
+          ].join("")
+        : "";
+
+      const figure = d.hasMini
+        ? `<div class="db-map-figure">
+             <img class="db-map-img" src="assets/db/maps/${encodeURIComponent(d.id)}.png"
+                  alt="${esc(d.name)} 小地圖" loading="lazy" decoding="async">
+             ${markers}
+           </div>
+           <div class="db-map-legend">
+             <span><i class="db-marker db-marker--mob"></i>怪物重生點</span>
+             <span><i class="db-marker db-marker--npc"></i>NPC</span>
+             <span><i class="db-marker db-marker--portal"></i>傳送點</span>
+           </div>`
+        : '<p class="cm-empty">這張地圖沒有小地圖資料</p>';
+
+      const mobs = d.mobs.length
+        ? `<div class="db-chip-row">${d.mobs
+            .map((m) =>
+              m.link
+                ? linkChip("monster", m.id, `${m.name} Lv.${m.level}`, `${m.count} 點`)
+                : plainChip(`${m.name} Lv.${m.level}`, `${m.count} 點`)
+            )
+            .join("")}</div>`
+        : '<p class="cm-empty">這張地圖沒有怪物</p>';
+
+      const portals = d.portals.length
+        ? `<div class="db-chip-row">${d.portals
+            .map((p) =>
+              p.link ? linkChip("map", p.id, p.name) : plainChip(p.name, p.region)
+            )
+            .join("")}</div>`
+        : "";
+
+      const npcs = d.npcs.filter((n) => n.name).length
+        ? `<div class="db-chip-row">${[...new Set(d.npcs.map((n) => n.name))]
+            .filter(Boolean)
+            .map((n) => plainChip(n))
+            .join("")}</div>`
+        : "";
+
+      return `<button class="db-back" type="button" data-db-back>← 回到地圖列表</button>
+        <div class="db-detail-head">
+          <div>
+            <div class="db-row-title">
+              <h2 class="db-detail-name">${esc(d.name)}</h2>
+            </div>
+            <p class="db-detail-desc">${esc([d.region, d.street].filter(Boolean).join(" · "))}</p>
+          </div>
+        </div>
+        <section class="db-section">
+          <h3 class="db-section-title">小地圖</h3>
+          ${figure}
+        </section>
+        <section class="db-section">
+          <h3 class="db-section-title">出沒怪物<span class="db-sub-num">${d.mobs.length} 種</span></h3>
+          ${mobs}
+        </section>
+        ${portals ? `<section class="db-section">
+          <h3 class="db-section-title">通往<span class="db-sub-num">${d.portals.length}</span></h3>
+          ${portals}
+        </section>` : ""}
+        ${npcs ? `<section class="db-section">
+          <h3 class="db-section-title">NPC</h3>
+          ${npcs}
+        </section>` : ""}`;
+    },
+  });
+
   // ------------------------------------------------------------- 道具
 
   const EQUIP_REQ = [
@@ -928,7 +1074,7 @@
 
   // ------------------------------------------------------------- 組裝
 
-  const SETS = [monsters, items, quests, skills].filter(Boolean);
+  const SETS = [monsters, maps, items, quests, skills].filter(Boolean);
 
   SETS.forEach((s) => {
     const btn = document.getElementById("dbSub" + s.key.charAt(0).toUpperCase() + s.key.slice(1));

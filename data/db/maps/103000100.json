@@ -1,0 +1,1 @@
+{"id":103000100,"name":"地鐵售票處","street":"墮落城市地鐵","region":"維多利亞島","hasMini":false,"spawns":[],"mobs":[],"npcs":[{"name":"地鐵站 服務員","x":null,"y":null},{"name":"檢票口","x":null,"y":null}],"portals":[{"id":103000000,"name":"維多利亞 / 墮落城市","region":"維多利亞島","link":true,"x":null,"y":null},{"id":103000101,"name":"墮落城市地鐵 / 地鐵一號線[地區01]","region":"維多利亞島","link":true,"x":null,"y":null}]}

@@ -1276,6 +1276,50 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   cursor: default;
 }
 
+/* 小地圖：原圖只有一百多像素寬，放大時用 pixelated 保留鋸齒，比模糊插值
+   好看也比較像遊戲內。標記位置在匯入時就換算成百分比，所以圖怎麼縮放都對得上 */
+/* 容器要有寬度，圖才放得大：原圖只有一兩百像素寬，用 inline-block 會被
+   縮到原尺寸，在桌機上小到看不清楚重生點分布 */
+.db-map-figure {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  background: var(--surface-tint);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.db-map-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+.db-marker {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-sizing: border-box;
+}
+.db-marker--mob { background: var(--danger); }
+.db-marker--npc { background: var(--accent-text); }
+.db-marker--portal { background: var(--warning); }
+.db-map-legend {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.db-map-legend span { display: inline-flex; align-items: center; gap: 5px; }
+/* 圖例裡的標記是靜態的，不要吃到絕對定位 */
+.db-map-legend .db-marker { position: static; margin: 0; }
+
 /* 任務說明是遊戲原文，段落之間要分得開才讀得下去 */
 .db-text-block { padding: 8px 0; border-bottom: 1px solid var(--border); }
 .db-text-block:last-child { border-bottom: none; }

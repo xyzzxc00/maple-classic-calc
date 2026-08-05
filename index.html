@@ -215,6 +215,7 @@
       </button>
       <div class="nav-group-links">
         <button class="sidebar-link subtab active" id="dbSubMonsters" type="button" role="tab" aria-selected="true" aria-controls="dbMonstersView">怪物</button>
+        <button class="sidebar-link subtab" id="dbSubMaps" type="button" role="tab" aria-selected="false" aria-controls="dbMapsView">地圖</button>
         <button class="sidebar-link subtab" id="dbSubItems" type="button" role="tab" aria-selected="false" aria-controls="dbItemsView">道具</button>
         <button class="sidebar-link subtab" id="dbSubQuests" type="button" role="tab" aria-selected="false" aria-controls="dbQuestsView">任務</button>
         <button class="sidebar-link subtab" id="dbSubSkills" type="button" role="tab" aria-selected="false" aria-controls="dbSkillsView">技能</button>
@@ -830,6 +831,43 @@
 
     <!-- 單隻怪的詳情，內容由 db.js 依 data/db/monsters/<id>.json 產生 -->
     <section class="panel" id="dbMonsterDetail" hidden></section>
+  </div>
+
+  <div id="dbMapsView" role="tabpanel" aria-labelledby="dbSubMaps" hidden>
+    <section class="panel" id="dbMapListPanel">
+      <div class="panel-head">
+        <h2>地圖資料</h2>
+        <span class="badge" id="dbMapCount">—</span>
+      </div>
+
+      <details class="cm-disclaimer-details">
+        <summary>收錄範圍說明</summary>
+        <p class="cm-disclaimer">只收錄目前已開放的三塊大陸（楓之島、維多利亞島、奇幻村）的地圖。小地圖與怪物重生點位置取自遊戲資料檔，<strong>重生點數量不等於實際刷新速度</strong>，實際練功效率請看社群回報。</p>
+      </details>
+
+      <div class="cm-toolbar">
+        <div class="cm-filter-row">
+          <input class="cm-filter-input" id="dbMapSearch" type="search" placeholder="搜尋地圖名稱" autocomplete="off">
+          <select class="cm-filter-input" id="dbMapRegion">
+            <option value="">全部地區</option>
+          </select>
+          <select class="cm-filter-input" id="dbMapStreet">
+            <option value="">全部區域</option>
+          </select>
+        </div>
+        <div class="cm-actions">
+          <div class="cm-sort-btns"><span class="cm-group-label">排序</span>
+            <button class="cm-sort-btn active" data-db-sort="region" data-db-set="map" type="button">地區</button>
+            <button class="cm-sort-btn" data-db-sort="spawns" data-db-set="map" type="button">重生點</button>
+            <button class="cm-sort-btn" data-db-sort="name" data-db-set="map" type="button">名稱</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="dbMapList"><p class="cm-loading">載入中...</p></div>
+    </section>
+
+    <section class="panel" id="dbMapDetail" hidden></section>
   </div>
 
   <div id="dbItemsView" role="tabpanel" aria-labelledby="dbSubItems" hidden>

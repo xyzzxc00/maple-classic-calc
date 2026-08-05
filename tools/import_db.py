@@ -421,6 +421,103 @@ def build_item_index(details):
     ]
 
 
+def build_map_details(maps, map_ids, monster_ids):
+    """地圖：小地圖上的標記位置用百分比存，畫面才能隨寬度縮放。
+    換算方式是 (座標 + center) / 世界範圍——驗證過所有重生點都會落在圖內；
+    miniMap.width/height 記的是世界範圍不是圖檔尺寸，直接拿來當像素會全部歪掉"""
+    out = []
+    for m in maps:
+        if m["id"] not in map_ids:
+            continue
+        mm = m.get("miniMap") or {}
+        has_mini = bool(mm.get("width") and mm.get("height") and m.get("miniMapImage"))
+
+        def pct(v, center, span):
+            return round((v + center) / span * 100, 3) if span else None
+
+        spawns = []
+        mobs = {}
+        for s in m.get("monsterSpawns") or []:
+            mid = str(s.get("monsterId"))
+            if mid not in mobs:
+                mobs[mid] = {
+                    "id": mid,
+                    "name": s.get("name") or "",
+                    "level": s.get("level"),
+                    "count": 0,
+                    "link": mid in monster_ids,
+                }
+            mobs[mid]["count"] += 1
+            if has_mini and s.get("x") is not None and s.get("y") is not None:
+                spawns.append({
+                    "id": mid,
+                    "x": pct(s["x"], mm["centerX"], mm["width"]),
+                    "y": pct(s["y"], mm["centerY"], mm["height"]),
+                })
+
+        npcs = [
+            {
+                "name": n.get("name") or "",
+                "x": pct(n["x"], mm["centerX"], mm["width"]) if has_mini else None,
+                "y": pct(n["y"], mm["centerY"], mm["height"]) if has_mini else None,
+            }
+            for n in (m.get("npcSpawns") or [])
+            if n.get("x") is not None
+        ]
+
+        portals = []
+        for p in m.get("portals") or []:
+            tid = p.get("targetMapId")
+            if not tid or p.get("sameMap"):
+                continue  # 同圖內的傳送點對讀者沒有意義，只留跨地圖的
+            # targetMapName 有時已經是「區域 / 地圖」的完整格式，再前綴一次
+            # 街道名會變成「迷霧森林 / 迷霧森林 / 螞蟻洞Ⅱ」
+            t_name = p.get("targetMapName") or ""
+            t_street = p.get("targetMapStreet") or ""
+            portals.append({
+                "id": tid,
+                "name": (t_name if (not t_street or t_street in t_name)
+                         else f"{t_street} / {t_name}") or f"地圖 {tid}",
+                "region": p.get("targetRegionName") or "",
+                "link": tid in map_ids,
+                "x": pct(p["x"], mm["centerX"], mm["width"]) if has_mini and p.get("x") is not None else None,
+                "y": pct(p["y"], mm["centerY"], mm["height"]) if has_mini and p.get("y") is not None else None,
+            })
+        # 同一張目標地圖可能有好幾個入口，列表只留一筆
+        seen = set()
+        portals = [p for p in portals if not (p["id"] in seen or seen.add(p["id"]))]
+
+        out.append({
+            "id": m["id"],
+            "name": m.get("name") or "",
+            "street": m.get("street") or "",
+            "region": m.get("regionName") or "",
+            "hasMini": has_mini,
+            "spawns": spawns,
+            "mobs": sorted(mobs.values(), key=lambda x: -x["count"]),
+            "npcs": npcs,
+            "portals": portals,
+        })
+    out.sort(key=lambda d: (d["region"], d["street"], d["name"]))
+    return out
+
+
+def build_map_index(details):
+    return [
+        {
+            "id": d["id"],
+            "name": d["name"],
+            "street": d["street"],
+            "region": d["region"],
+            "mobs": len(d["mobs"]),
+            "spawns": sum(x["count"] for x in d["mobs"]),
+            "npcs": len(d["npcs"]),
+            "portals": len(d["portals"]),
+        }
+        for d in details
+    ]
+
+
 def build_index(details):
     """列表用的索引，欄位越少越好——這是進站就會載的檔案"""
     return [
@@ -510,6 +607,21 @@ def main():
                   encoding="utf-8") as f:
             json.dump(d, f, ensure_ascii=False, separators=(",", ":"))
 
+    # 地圖
+    map_details = build_map_details(maps_db["maps"], map_ids, monster_ids)
+    os.makedirs(os.path.join(OUT_DATA, "maps"), exist_ok=True)
+    with open(os.path.join(OUT_DATA, "maps.json"), "w", encoding="utf-8") as f:
+        json.dump(build_map_index(map_details), f, ensure_ascii=False, separators=(",", ":"))
+    for d in map_details:
+        with open(os.path.join(OUT_DATA, "maps", f"{d['id']}.json"), "w",
+                  encoding="utf-8") as f:
+            json.dump(d, f, ensure_ascii=False, separators=(",", ":"))
+    map_img_paths = {
+        m["id"]: m["miniMapImage"]
+        for m in maps_db["maps"]
+        if m["id"] in map_ids and m.get("miniMapImage")
+    }
+
     # 道具
     items_db = load(src, "items-data.js")
     item_details = build_item_details(items_db["items"], monster_ids, map_ids, quest_ids)
@@ -540,6 +652,8 @@ def main():
                     for p in item_paths.values())
     skill_imgs = sum(copy_image(src, s.get("image"), os.path.join(OUT_ASSETS, "skills"))
                      for s in kept_skills)
+    map_imgs = sum(copy_image(src, p, os.path.join(OUT_ASSETS, "maps"))
+                   for p in map_img_paths.values())
 
     # 報告
     def dirsize(path):
@@ -554,6 +668,10 @@ def main():
     print(f"  詳情檔   {detail_kb:.0f} KB（平均 {detail_kb / len(kept):.1f} KB）")
     print(f"  掉落     {sum(len(d['drops']) for d in details)} 筆，{len(item_paths)} 種道具")
     print(f"  相關任務 {sum(len(d['quests']) for d in details)} 筆")
+    map_kb = dirsize(os.path.join(OUT_DATA, "maps")) / 1024
+    print(f"地圖       {len(map_details)} 張"
+          f"（索引 {os.path.getsize(os.path.join(OUT_DATA, 'maps.json')) / 1024:.0f} KB、"
+          f"詳情 {map_kb:.0f} KB、有小地圖 {sum(1 for d in map_details if d['hasMini'])} 張）")
     item_kb = dirsize(os.path.join(OUT_DATA, "items")) / 1024
     print(f"道具       {len(item_details)} 個"
           f"（索引 {os.path.getsize(os.path.join(OUT_DATA, 'items.json')) / 1024:.0f} KB、"
@@ -566,7 +684,7 @@ def main():
     print(f"技能       {len(kept_skills)} 個"
           f"（索引 {os.path.getsize(os.path.join(OUT_DATA, 'skills.json')) / 1024:.0f} KB、"
           f"詳情 {skill_kb:.0f} KB）")
-    print(f"圖片       怪物 {mon_imgs} 張、道具 {item_imgs} 張、技能 {skill_imgs} 張，"
+    print(f"圖片       怪物 {mon_imgs}、道具 {item_imgs}、技能 {skill_imgs}、小地圖 {map_imgs} 張，"
           f"共 {dirsize(OUT_ASSETS) / 1024 / 1024:.1f} MB")
     missing = len(kept) - mon_imgs
     if missing:
