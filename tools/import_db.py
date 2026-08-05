@@ -83,20 +83,53 @@ def open_map_ids(maps):
     }
 
 
-def open_quest_ids(quests, map_ids):
-    """開放任務：等級門檻沒超過上限，而且起訖 NPC 站在開放地圖上。
-    只看等級會漏掉一堆——未開放地區也有 Lv.20 的任務"""
+def open_quest_ids(quests, map_ids, monster_ids, skill_ids, job_open):
+    """開放任務。只看等級跟「有一端 NPC 在開放地圖」遠遠不夠——四轉技能任務的
+    NPC 就站在維多利亞島跟奇幻村，等級需求還是空的，照樣會被放進來（實際看到
+    270 萬經驗的四轉任務混在列表裡）。四道關卡：
+
+    1. 等級門檻沒超過上限
+    2. 起訖 NPC「都」要在開放地圖上（只要一端在，會混進一堆內容在未開放地區的）
+    3. 限定職業的任務，指定職業本服至少要有一個開放（四轉專屬的就擋在這裡）
+    4. 要打的怪、獎勵的技能都要在收錄範圍內——做不完或給不了的任務不該列出
+    """
     out = set()
     for q in quests:
         if (q.get("minLevel") or 0) > LEVEL_CAP:
             continue
-        npc_maps = []
-        for key in ("startNpc", "endNpc"):
-            npc = q.get(key) or {}
-            npc_maps += [mp.get("id") for mp in (npc.get("maps") or [])]
-        if npc_maps and any(i in map_ids for i in npc_maps):
-            out.add(str(q["id"]))
+        npcs = {
+            key: [mp.get("id") for mp in ((q.get(key) or {}).get("maps") or [])]
+            for key in ("startNpc", "endNpc")
+        }
+        if not (npcs["startNpc"] or npcs["endNpc"]):
+            continue
+        if any(ids and not any(i in map_ids for i in ids) for ids in npcs.values()):
+            continue
+
+        jobs = (q.get("startRequirements") or {}).get("jobs") or []
+        if jobs and not any(job_open.get(j, False) for j in jobs):
+            continue
+
+        comp = q.get("completeRequirements") or {}
+        if any(str(m.get("id")) not in monster_ids for m in (comp.get("monsters") or [])):
+            continue
+        rewards = ((q.get("completeRewards") or {}).get("skills") or []) + (
+            (q.get("startRewards") or {}).get("skills") or []
+        )
+        if any(r.get("id") not in skill_ids for r in rewards):
+            continue
+        out.add(str(q["id"]))
     return out
+
+
+def open_job_codes(skills_db):
+    """職業代碼 → 本服是否已開放。直接用技能資料自己的職業表推導，不要自己
+    寫「代碼尾數 2 就是四轉」這種規則——那是猜的，而且新職業一加就會錯"""
+    return {
+        j["id"]: (j.get("jobGroup") in OPEN_SKILL_GROUPS
+                  and j.get("advancement") not in CLOSED_ADVANCEMENTS)
+        for j in ((skills_db.get("filters") or {}).get("skillJobs") or [])
+    }
 
 
 def pick_monsters(monsters, map_ids):
@@ -170,6 +203,9 @@ def trim_quest(q):
 def build_detail(m, map_ids, quest_ids, item_ids):
     """單隻怪的詳情。出沒地圖要再過濾一次——有些怪同時住在開放與未開放地區
     （例如蝴蝶精在維多利亞島也在冰原雪域），只能列出進得去的那些"""
+    all_drops = m.get("drops") or []
+    drops = [trim_drop(d, item_ids) for d in all_drops if d["id"] in item_ids]
+    hidden_drops = len(all_drops) - len(drops)
     maps = [trim_map(mp) for mp in (m.get("maps") or []) if mp.get("id") in map_ids]
     quests = [
         trim_quest(q)
@@ -191,8 +227,12 @@ def build_detail(m, map_ids, quest_ids, item_ids):
             "note": meso.get("sourceLabel") or "",
         },
         "maps": sorted(maps, key=lambda x: -x["spawns"]),
-        # 拆包資料只有「會掉什麼」，沒有掉落率——畫面上不能顯示機率
-        "drops": [trim_drop(d, item_ids) for d in (m.get("drops") or [])],
+        # 拆包資料只有「會掉什麼」，沒有掉落率——畫面上不能顯示機率。
+        # 未命名道具（遊戲資料裡沒名字沒圖的，顯示成「未命名道具 2040824」）
+        # 不列出來——讀者看了也不知道那是什麼，只是雜訊；但筆數要另外標，
+        # 不然掉落表看起來像被砍過
+        "drops": drops,
+        "hiddenDrops": hidden_drops,
         "quests": quests,
     }
 
@@ -499,6 +539,12 @@ def build_map_details(maps, map_ids, monster_ids):
         seen = set()
         portals = [p for p in portals if not (p["id"] in seen or seen.add(p["id"]))]
 
+        # 沒有怪物、沒有 NPC、也沒有跨地圖傳送點的地圖，畫面上什麼都給不出來。
+        # 這些多半是遊戲內部的隱藏圖（「未命名地圖 910320011」）或測試用的圖
+        # （真的有一張就叫「測試」），列出來只是把列表灌水
+        if not (mobs or npcs or portals):
+            continue
+
         out.append({
             "id": m["id"],
             "name": m.get("name") or "",
@@ -574,12 +620,17 @@ def main():
     skills_db = load(src, "skills-data.js")
 
     map_ids = open_map_ids(maps_db["maps"])
-    quest_ids = open_quest_ids(quests_db["quests"], map_ids)
     kept = pick_monsters(monsters_db["monsters"], map_ids)
     if not kept:
         fail("過濾之後一隻怪都不剩，OPEN_REGIONS 是不是打錯了？")
 
     monster_ids = {str(m["id"]) for m in kept}
+    kept_skills = pick_skills(skills_db["skills"])
+    skill_ids = {s["id"] for s in kept_skills}
+    quest_ids = open_quest_ids(
+        quests_db["quests"], map_ids, monster_ids, skill_ids,
+        open_job_codes(skills_db),
+    )
 
     # 道具要先算：怪物與任務詳情裡的道具要不要做成連結，取決於那筆道具有沒有
     # 被收錄（未命名道具會被濾掉）。反過來，道具的收錄條件只看怪物／任務／
@@ -600,8 +651,7 @@ def main():
                   encoding="utf-8") as f:
             json.dump(d, f, ensure_ascii=False, separators=(",", ":"))
 
-    # 技能
-    kept_skills = pick_skills(skills_db["skills"])
+    # 技能（清單在最前面就算好了，任務過濾要用）
     skill_details = [build_skill_detail(s) for s in kept_skills]
     os.makedirs(os.path.join(OUT_DATA, "skills"), exist_ok=True)
     with open(os.path.join(OUT_DATA, "skills.json"), "w", encoding="utf-8") as f:

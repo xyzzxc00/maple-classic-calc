@@ -1,1 +1,1 @@
-{"id":1302013,"name":"紅色鞭子","desc":"","cat":"裝備","sub":"單手劍","sell":1,"equip":{"attackSpeed":4,"incPAD":48,"incSpeed":15,"price":1,"reqLevel":35,"tuc":7},"drops":[{"id":"4230102","name":"大幽靈","level":48}],"shops":[],"quests":[{"id":"6000","name":"流浪煉金術師的新技術","kind":"需求","count":1}]}
+{"id":1302013,"name":"紅色鞭子","desc":"","cat":"裝備","sub":"單手劍","sell":1,"equip":{"attackSpeed":4,"incPAD":48,"incSpeed":15,"price":1,"reqLevel":35,"tuc":7},"drops":[{"id":"4230102","name":"大幽靈","level":48}],"shops":[],"quests":[]}

@@ -529,7 +529,11 @@
         </section>
         <section class="db-section">
           <h3 class="db-section-title">掉落物品<span class="db-sub-num">${d.drops.length}</span></h3>
-          <p class="db-section-note">遊戲資料檔沒有記錄掉落機率，這裡只列出「會掉什麼」。</p>
+          <p class="db-section-note">遊戲資料檔沒有記錄掉落機率，這裡只列出「會掉什麼」。${
+            d.hiddenDrops
+              ? `另有 ${d.hiddenDrops} 項在遊戲資料裡沒有名稱與圖示，未列出。`
+              : ""
+          }</p>
           ${drops}
         </section>
         ${quests}`;
