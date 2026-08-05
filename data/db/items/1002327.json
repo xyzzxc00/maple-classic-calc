@@ -1,1 +1,1 @@
-{"id":1002327,"name":"褐色海盜帽","desc":"","cat":"裝備","sub":"帽子","sell":100000,"equip":{"incLUK":2,"incPDD":51,"incSTR":3,"price":100000,"reqDEX":120,"reqJob":8,"reqLUK":220,"reqLevel":80,"tuc":7},"drops":[{"id":"7130101","name":"長槍牛魔王","level":75}],"shops":[],"quests":[]}
+{"id":1002327,"name":"褐色海盜帽","desc":"","cat":"裝備","sub":"帽子","sell":100000,"equip":{"incLUK":2,"incPDD":51,"incSTR":3,"price":100000,"reqDEX":120,"reqJob":8,"reqLUK":220,"reqLevel":80,"tuc":7},"drops":[{"id":"7130101","name":"長槍牛魔王","level":75}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

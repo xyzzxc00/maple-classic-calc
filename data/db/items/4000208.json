@@ -1,1 +1,1 @@
-{"id":4000208,"name":"馬頭骨","desc":"骷髏指揮官騎的馬頭骨。","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"drops":[{"id":"7130103","name":"骷髏指揮官","level":73}],"shops":[],"quests":[{"id":"2119","name":"遺跡發掘隊的公告","kind":"需求","count":20}]}
+{"id":4000208,"name":"馬頭骨","desc":"骷髏指揮官騎的馬頭骨。","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"drops":[{"id":"7130103","name":"骷髏指揮官","level":73}],"shops":[],"quests":[{"id":"2119","name":"遺跡發掘隊的公告","kind":"需求","count":20}],"crafts":[],"usedIn":[]}

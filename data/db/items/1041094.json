@@ -1,1 +1,1 @@
-{"id":1041094,"name":"灰飛影之服","desc":"","cat":"裝備","sub":"上衣","sell":90000,"equip":{"incDEX":4,"incLUK":1,"incPDD":50,"price":90000,"reqDEX":100,"reqJob":8,"reqLUK":170,"reqLevel":60,"tuc":7},"drops":[{"id":"5150000","name":"混種石巨人","level":59}],"shops":[],"quests":[]}
+{"id":1041094,"name":"灰飛影之服","desc":"","cat":"裝備","sub":"上衣","sell":90000,"equip":{"incDEX":4,"incLUK":1,"incPDD":50,"price":90000,"reqDEX":100,"reqJob":8,"reqLUK":170,"reqLevel":60,"tuc":7},"drops":[{"id":"5150000","name":"混種石巨人","level":59}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

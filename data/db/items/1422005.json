@@ -1,1 +1,1 @@
-{"id":1422005,"name":"黃金錘","desc":"","cat":"裝備","sub":"雙手鈍器","sell":150000,"equip":{"attackSpeed":7,"incPAD":72,"price":150000,"reqJob":1,"reqLevel":50,"reqSTR":160,"tuc":7},"drops":[{"id":"5220002","name":"殭屍猴王","level":50}],"shops":[],"quests":[]}
+{"id":1422005,"name":"黃金錘","desc":"","cat":"裝備","sub":"雙手鈍器","sell":150000,"equip":{"attackSpeed":7,"incPAD":72,"price":150000,"reqJob":1,"reqLevel":50,"reqSTR":160,"tuc":7},"drops":[{"id":"5220002","name":"殭屍猴王","level":50}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

@@ -416,7 +416,49 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids):
                      if str(q.get("questId")) in quest_ids]
         q_reqs = [q for q in (src.get("questRequirements") or [])
                   if str(q.get("questId")) in quest_ids]
-        if not (drops or shops or q_rewards or q_reqs):
+        # 製作：只留製作 NPC 站在開放地圖上的配方。拆包檔裡 1757 個配方有
+        # 八成集中在納希沙漠、路德斯湖那些還沒開的地方，列出來等於叫人去
+        # 進不去的城鎮找 NPC
+        def craft_open(c):
+            return any(
+                m.get("id") in map_ids
+                for n in (c.get("npcs") or [])
+                for m in (n.get("maps") or [])
+            )
+
+        def craft_row(c):
+            npc = (c.get("npcs") or [{}])[0]
+            return {
+                "npc": npc.get("name") or "",
+                "maps": [
+                    m.get("label") or m.get("name") or ""
+                    for m in (npc.get("maps") or [])
+                    if m.get("id") in map_ids
+                ],
+                "meso": c.get("meso") or 0,
+                "materials": [
+                    {"id": mt["id"], "name": mt.get("name") or "",
+                     "count": mt.get("count") or 1}
+                    for mt in (c.get("materials") or [])
+                ],
+                "out": {
+                    "id": (c.get("primaryOutput") or {}).get("id"),
+                    "name": (c.get("primaryOutput") or {}).get("name") or "",
+                    "count": (c.get("primaryOutput") or {}).get("count") or 1,
+                },
+            }
+
+        crafts = [craft_row(c) for c in (src.get("crafts") or []) if craft_open(c)]
+        # 這個道具被拿去做什麼（同一個產出只留一筆）
+        used_in = {}
+        for c in (src.get("craftRequirements") or []):
+            if not craft_open(c):
+                continue
+            prod = c.get("primaryOutput") or {}
+            if prod.get("id") and not prod.get("unnamed"):
+                used_in[prod["id"]] = {"id": prod["id"], "name": prod.get("name") or ""}
+
+        if not (drops or shops or q_rewards or q_reqs or crafts):
             continue
 
         equip = it.get("equipStats") or {}
@@ -453,6 +495,8 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids):
                 for kind, rows in (("獎勵", q_rewards), ("需求", q_reqs))
                 for q in rows
             ],
+            "crafts": crafts,
+            "usedIn": sorted(used_in.values(), key=lambda x: x["name"]),
         })
     out.sort(key=lambda d: (d["cat"], d["sub"], d["name"]))
     return out
@@ -467,7 +511,7 @@ def build_item_index(details):
             "sub": d["sub"],
             "lv": (d["equip"] or {}).get("reqLevel") or 0,
             "sell": d["sell"],
-            "from": len(d["drops"]) + len(d["shops"]) + len(d["quests"]),
+            "from": len(d["drops"]) + len(d["shops"]) + len(d["quests"]) + len(d["crafts"]),
         }
         for d in details
     ]

@@ -1,1 +1,1 @@
-{"id":1050000,"name":"白十字鎖子甲","desc":"","cat":"裝備","sub":"套服","sell":37500,"equip":{"incMDD":20,"incMHP":5,"incPDD":60,"incSTR":4,"price":37500,"reqJob":1,"reqLevel":35,"reqSTR":110,"tuc":10},"drops":[{"id":"3230102","name":"紅螃蟹","level":37}],"shops":[],"quests":[]}
+{"id":1050000,"name":"白十字鎖子甲","desc":"","cat":"裝備","sub":"套服","sell":37500,"equip":{"incMDD":20,"incMHP":5,"incPDD":60,"incSTR":4,"price":37500,"reqJob":1,"reqLevel":35,"reqSTR":110,"tuc":10},"drops":[{"id":"3230102","name":"紅螃蟹","level":37}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

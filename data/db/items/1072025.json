@@ -1,1 +1,1 @@
-{"id":1072025,"name":"鹿毛鞋","desc":"","cat":"裝備","sub":"鞋子","sell":4500,"equip":{"incPDD":10,"price":4500,"reqDEX":45,"reqJob":4,"reqLevel":20,"reqSTR":20,"tuc":5},"drops":[],"shops":[{"npc":"山姆","price":9000,"currency":"楓幣","maps":["維多利亞 / 弓箭手村武器店"]}],"quests":[]}
+{"id":1072025,"name":"鹿毛鞋","desc":"","cat":"裝備","sub":"鞋子","sell":4500,"equip":{"incPDD":10,"price":4500,"reqDEX":45,"reqJob":4,"reqLevel":20,"reqSTR":20,"tuc":5},"drops":[],"shops":[{"npc":"山姆","price":9000,"currency":"楓幣","maps":["維多利亞 / 弓箭手村武器店"]}],"quests":[],"crafts":[],"usedIn":[]}

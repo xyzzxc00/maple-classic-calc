@@ -1,1 +1,1 @@
-{"id":1040013,"name":"青色運動T恤","desc":"","cat":"裝備","sub":"上衣","sell":1500,"equip":{"incPDD":11,"price":1500,"reqLevel":11,"tuc":7},"drops":[{"id":"100101","name":"藍寶","level":2}],"shops":[{"npc":"娜塔莎","price":3000,"currency":"楓幣","maps":["維多利亞 / 維多利亞防具店"]}],"quests":[]}
+{"id":1040013,"name":"青色運動T恤","desc":"","cat":"裝備","sub":"上衣","sell":1500,"equip":{"incPDD":11,"price":1500,"reqLevel":11,"tuc":7},"drops":[{"id":"100101","name":"藍寶","level":2}],"shops":[{"npc":"娜塔莎","price":3000,"currency":"楓幣","maps":["維多利亞 / 維多利亞防具店"]}],"quests":[],"crafts":[],"usedIn":[]}

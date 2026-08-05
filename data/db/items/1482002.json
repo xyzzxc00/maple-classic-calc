@@ -1,1 +1,1 @@
-{"id":1482002,"name":"雙棘指虎","desc":"","cat":"裝備","sub":"指虎","sell":5000,"equip":{"attackSpeed":5,"incPAD":26,"price":5000,"reqDEX":20,"reqJob":16,"reqLevel":20,"reqSTR":30,"tuc":7},"drops":[{"id":"2130103","name":"青蛇","level":21}],"shops":[],"quests":[]}
+{"id":1482002,"name":"雙棘指虎","desc":"","cat":"裝備","sub":"指虎","sell":5000,"equip":{"attackSpeed":5,"incPAD":26,"price":5000,"reqDEX":20,"reqJob":16,"reqLevel":20,"reqSTR":30,"tuc":7},"drops":[{"id":"2130103","name":"青蛇","level":21}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

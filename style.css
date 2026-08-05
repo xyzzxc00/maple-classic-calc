@@ -1362,6 +1362,20 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 /* 圖例裡的標記是靜態的，不要吃到絕對定位 */
 .db-map-legend .db-marker { position: static; margin: 0; }
 
+/* 製作配方：一個配方一塊，上面是做的人跟花費、下面是材料 */
+.db-craft { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.db-craft:last-child { border-bottom: none; }
+.db-craft-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
 /* 任務說明是遊戲原文，段落之間要分得開才讀得下去 */
 .db-text-block { padding: 8px 0; border-bottom: 1px solid var(--border); }
 .db-text-block:last-child { border-bottom: none; }

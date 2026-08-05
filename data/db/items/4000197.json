@@ -1,1 +1,1 @@
-{"id":4000197,"name":"石板","desc":"石面怪人所帶在臉上的石板。","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"drops":[{"id":"2230111","name":"石面怪人","level":24}],"shops":[],"quests":[{"id":"2117","name":"挖掘隊員杉峰的請託","kind":"需求","count":5}]}
+{"id":4000197,"name":"石板","desc":"石面怪人所帶在臉上的石板。","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"drops":[{"id":"2230111","name":"石面怪人","level":24}],"shops":[],"quests":[{"id":"2117","name":"挖掘隊員杉峰的請託","kind":"需求","count":5}],"crafts":[],"usedIn":[]}

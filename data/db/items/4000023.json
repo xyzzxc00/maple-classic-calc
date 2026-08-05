@@ -1,1 +1,1 @@
-{"id":4000023,"name":"冰獨眼獸之尾巴","desc":"冰獨眼獸的尾巴","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"drops":[{"id":"4230100","name":"冰獨眼獸","level":40}],"shops":[],"quests":[{"id":"2042","name":"瑪亞的第三個收集品","kind":"需求","count":50}]}
+{"id":4000023,"name":"冰獨眼獸之尾巴","desc":"冰獨眼獸的尾巴","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"drops":[{"id":"4230100","name":"冰獨眼獸","level":40}],"shops":[],"quests":[{"id":"2042","name":"瑪亞的第三個收集品","kind":"需求","count":50}],"crafts":[],"usedIn":[]}

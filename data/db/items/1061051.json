@@ -1,1 +1,1 @@
-{"id":1061051,"name":"黑遊俠裙","desc":"","cat":"裝備","sub":"褲裙","sell":22000,"equip":{"incMMP":10,"incPDD":21,"price":22000,"reqDEX":100,"reqJob":4,"reqLevel":30,"tuc":7},"drops":[],"shops":[{"npc":"山姆","price":44000,"currency":"楓幣","maps":["維多利亞 / 弓箭手村武器店"]}],"quests":[]}
+{"id":1061051,"name":"黑遊俠裙","desc":"","cat":"裝備","sub":"褲裙","sell":22000,"equip":{"incMMP":10,"incPDD":21,"price":22000,"reqDEX":100,"reqJob":4,"reqLevel":30,"tuc":7},"drops":[],"shops":[{"npc":"山姆","price":44000,"currency":"楓幣","maps":["維多利亞 / 弓箭手村武器店"]}],"quests":[],"crafts":[],"usedIn":[]}

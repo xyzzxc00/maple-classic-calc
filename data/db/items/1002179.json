@@ -1,1 +1,1 @@
-{"id":1002179,"name":"褐防風帽","desc":"","cat":"裝備","sub":"帽子","sell":25000,"equip":{"incPDD":24,"incSTR":1,"price":25000,"reqDEX":70,"reqJob":8,"reqLUK":95,"reqLevel":35,"tuc":7},"drops":[{"id":"4230103","name":"鋼之肥肥","level":42}],"shops":[],"quests":[]}
+{"id":1002179,"name":"褐防風帽","desc":"","cat":"裝備","sub":"帽子","sell":25000,"equip":{"incPDD":24,"incSTR":1,"price":25000,"reqDEX":70,"reqJob":8,"reqLUK":95,"reqLevel":35,"tuc":7},"drops":[{"id":"4230103","name":"鋼之肥肥","level":42}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

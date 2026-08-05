@@ -1,1 +1,1 @@
-{"id":1492005,"name":"流星","desc":"","cat":"裝備","sub":"火槍","sell":40000,"equip":{"attackSpeed":6,"incPAD":36,"price":40000,"reqDEX":90,"reqJob":16,"reqLevel":35,"reqSTR":35,"tuc":7},"drops":[{"id":"3230101","name":"小幽靈","level":35}],"shops":[],"quests":[]}
+{"id":1492005,"name":"流星","desc":"","cat":"裝備","sub":"火槍","sell":40000,"equip":{"attackSpeed":6,"incPAD":36,"price":40000,"reqDEX":90,"reqJob":16,"reqLevel":35,"reqSTR":35,"tuc":7},"drops":[{"id":"3230101","name":"小幽靈","level":35}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

@@ -1,1 +1,1 @@
-{"id":1082095,"name":"青銅名譽手套","desc":"","cat":"裝備","sub":"手套","sell":150000,"equip":{"incLUK":2,"incPDD":26,"price":150000,"reqDEX":110,"reqJob":8,"reqLUK":200,"reqLevel":70,"tuc":5},"drops":[{"id":"6230600","name":"冰龍","level":64}],"shops":[],"quests":[]}
+{"id":1082095,"name":"青銅名譽手套","desc":"","cat":"裝備","sub":"手套","sell":150000,"equip":{"incLUK":2,"incPDD":26,"price":150000,"reqDEX":110,"reqJob":8,"reqLUK":200,"reqLevel":70,"tuc":5},"drops":[{"id":"6230600","name":"冰龍","level":64}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

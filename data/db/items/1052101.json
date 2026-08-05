@@ -1,1 +1,1 @@
-{"id":1052101,"name":"褐色加勒比套裝","desc":"","cat":"裝備","sub":"套服","sell":8000,"equip":{"incMMP":10,"incPDD":25,"incSTR":1,"price":8000,"reqDEX":20,"reqJob":16,"reqLevel":20,"reqSTR":20,"tuc":10},"drops":[{"id":"2300100","name":"蝙蝠","level":20}],"shops":[],"quests":[]}
+{"id":1052101,"name":"褐色加勒比套裝","desc":"","cat":"裝備","sub":"套服","sell":8000,"equip":{"incMMP":10,"incPDD":25,"incSTR":1,"price":8000,"reqDEX":20,"reqJob":16,"reqLevel":20,"reqSTR":20,"tuc":10},"drops":[{"id":"2300100","name":"蝙蝠","level":20}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

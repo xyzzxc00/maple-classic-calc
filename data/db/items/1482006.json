@@ -1,1 +1,1 @@
-{"id":1482006,"name":"尼奧札德毀滅拳套","desc":"","cat":"裝備","sub":"指虎","sell":60000,"equip":{"attackSpeed":6,"incPAD":42,"price":60000,"reqDEX":40,"reqJob":16,"reqLevel":40,"reqSTR":90,"tuc":7},"drops":[{"id":"3230102","name":"紅螃蟹","level":37}],"shops":[],"quests":[]}
+{"id":1482006,"name":"尼奧札德毀滅拳套","desc":"","cat":"裝備","sub":"指虎","sell":60000,"equip":{"attackSpeed":6,"incPAD":42,"price":60000,"reqDEX":40,"reqJob":16,"reqLevel":40,"reqSTR":90,"tuc":7},"drops":[{"id":"3230102","name":"紅螃蟹","level":37}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

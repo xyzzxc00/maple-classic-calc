@@ -845,6 +845,27 @@
         </div>`
       );
 
+      // 製作：材料點得進各自的道具頁（材料本身也是道具，多半在收錄範圍內；
+      // 不在的就維持純文字）
+      const crafts = (d.crafts || []).length
+        ? `<section class="db-section">
+            <h3 class="db-section-title">怎麼做<span class="db-sub-num">${d.crafts.length}</span></h3>
+            ${d.crafts
+              .map(
+                (c) => `<div class="db-craft">
+                  <div class="db-craft-head">${esc(c.npc)}
+                    <span class="db-sub-meta">${esc(c.maps.join("、"))}</span>
+                    ${c.meso ? `<span class="db-sub-num">${num(c.meso)} 楓幣</span>` : ""}</div>
+                  <div class="db-chip-row">${c.materials
+                    .map((m) => linkChip("item", m.id, m.name, m.count ? `×${m.count}` : ""))
+                    .join("")}</div>
+                </div>`
+              )
+              .join("")}
+          </section>`
+        : "";
+      const usedInBits = (d.usedIn || []).map((u) => linkChip("item", u.id, u.name));
+
       return `<button class="db-back" type="button" data-db-back>← 回到道具列表</button>
         <div class="db-detail-head">
           ${itemImg(d.id, 64)}
@@ -870,7 +891,9 @@
           <h3 class="db-section-title">哪裡買得到<span class="db-sub-num">${shopRows.length}</span></h3>
           <div class="db-sub-list">${shopRows.join("")}</div>
         </section>` : ""}
-        ${sourceSection("相關任務", questBits)}`;
+        ${sourceSection("相關任務", questBits)}
+        ${crafts}
+        ${sourceSection("拿來做什麼", usedInBits)}`;
     },
   });
 

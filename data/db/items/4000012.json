@@ -1,1 +1,1 @@
-{"id":4000012,"name":"綠菇菇傘","desc":"綠菇菇的傘蓋","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"drops":[{"id":"1110100","name":"綠菇菇","level":15}],"shops":[],"quests":[{"id":"2029","name":"瑪帕的請託","kind":"需求","count":50},{"id":"2009","name":"皮亞和藍菇菇","kind":"需求","count":40}]}
+{"id":4000012,"name":"綠菇菇傘","desc":"綠菇菇的傘蓋","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"drops":[{"id":"1110100","name":"綠菇菇","level":15}],"shops":[],"quests":[{"id":"2029","name":"瑪帕的請託","kind":"需求","count":50},{"id":"2009","name":"皮亞和藍菇菇","kind":"需求","count":40}],"crafts":[],"usedIn":[]}

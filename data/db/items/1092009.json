@@ -1,1 +1,1 @@
-{"id":1092009,"name":"古老木盾","desc":"","cat":"裝備","sub":"盾牌","sell":180000,"equip":{"incMDD":20,"incPDD":52,"price":180000,"reqJob":1,"reqLevel":60,"reqSTR":190,"tuc":7},"drops":[{"id":"5130103","name":"黑鱷魚","level":52}],"shops":[],"quests":[]}
+{"id":1092009,"name":"古老木盾","desc":"","cat":"裝備","sub":"盾牌","sell":180000,"equip":{"incMDD":20,"incPDD":52,"price":180000,"reqJob":1,"reqLevel":60,"reqSTR":190,"tuc":7},"drops":[{"id":"5130103","name":"黑鱷魚","level":52}],"shops":[],"quests":[],"crafts":[],"usedIn":[{"id":1092011,"name":"古老朱礦盾"},{"id":1092010,"name":"古老銀盾"}]}

@@ -1,1 +1,1 @@
-{"id":1050018,"name":"藍色桑那服","desc":"在桑那房穿這件衣服，可以增快恢復1．5倍。","cat":"裝備","sub":"套服","sell":15000,"equip":{"incEVA":10,"incPDD":30,"price":15000,"reqLevel":30,"tuc":10},"drops":[],"shops":[],"quests":[{"id":"2023","name":"找回神秘書","kind":"獎勵","count":1}]}
+{"id":1050018,"name":"藍色桑那服","desc":"在桑那房穿這件衣服，可以增快恢復1．5倍。","cat":"裝備","sub":"套服","sell":15000,"equip":{"incEVA":10,"incPDD":30,"price":15000,"reqLevel":30,"tuc":10},"drops":[],"shops":[],"quests":[{"id":"2023","name":"找回神秘書","kind":"獎勵","count":1}],"crafts":[],"usedIn":[]}

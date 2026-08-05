@@ -1,1 +1,1 @@
-{"id":1092003,"name":"木盾","desc":"","cat":"裝備","sub":"盾牌","sell":1000,"equip":{"incPDD":5,"price":1000,"reqLevel":5,"tuc":7},"drops":[{"id":"1110101","name":"黑木妖","level":10}],"shops":[{"npc":"娜塔莎","price":2000,"currency":"楓幣","maps":["維多利亞 / 維多利亞防具店"]}],"quests":[]}
+{"id":1092003,"name":"木盾","desc":"","cat":"裝備","sub":"盾牌","sell":1000,"equip":{"incPDD":5,"price":1000,"reqLevel":5,"tuc":7},"drops":[{"id":"1110101","name":"黑木妖","level":10}],"shops":[{"npc":"娜塔莎","price":2000,"currency":"楓幣","maps":["維多利亞 / 維多利亞防具店"]}],"quests":[],"crafts":[],"usedIn":[]}

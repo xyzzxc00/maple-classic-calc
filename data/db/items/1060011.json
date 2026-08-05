@@ -1,1 +1,1 @@
-{"id":1060011,"name":"紫礦軍官裙","desc":"","cat":"裝備","sub":"褲裙","sell":7000,"equip":{"incPDD":24,"incSTR":1,"price":7000,"reqJob":1,"reqLevel":25,"reqSTR":80,"tuc":7},"drops":[],"shops":[{"npc":"海里","price":14000,"currency":"楓幣","maps":["維多利亞 / 勇士之村武器店"]}],"quests":[]}
+{"id":1060011,"name":"紫礦軍官裙","desc":"","cat":"裝備","sub":"褲裙","sell":7000,"equip":{"incPDD":24,"incSTR":1,"price":7000,"reqJob":1,"reqLevel":25,"reqSTR":80,"tuc":7},"drops":[],"shops":[{"npc":"海里","price":14000,"currency":"楓幣","maps":["維多利亞 / 勇士之村武器店"]}],"quests":[],"crafts":[],"usedIn":[]}

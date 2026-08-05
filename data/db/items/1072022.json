@@ -1,1 +1,1 @@
-{"id":1072022,"name":"黑漆皮鞋","desc":"","cat":"裝備","sub":"鞋子","sell":4500,"equip":{"incPDD":10,"price":4500,"reqDEX":40,"reqJob":8,"reqLUK":50,"reqLevel":20,"tuc":5},"drops":[],"shops":[{"npc":"瑪帕","price":9000,"currency":"楓幣","maps":["維多利亞 / 墮落城市武器店"]}],"quests":[]}
+{"id":1072022,"name":"黑漆皮鞋","desc":"","cat":"裝備","sub":"鞋子","sell":4500,"equip":{"incPDD":10,"price":4500,"reqDEX":40,"reqJob":8,"reqLUK":50,"reqLevel":20,"tuc":5},"drops":[],"shops":[{"npc":"瑪帕","price":9000,"currency":"楓幣","maps":["維多利亞 / 墮落城市武器店"]}],"quests":[],"crafts":[],"usedIn":[]}

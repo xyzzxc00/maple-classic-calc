@@ -1,1 +1,1 @@
-{"id":1492007,"name":"拉斯菲特之槍","desc":"","cat":"裝備","sub":"火槍","sell":140000,"equip":{"attackSpeed":5,"incPAD":49,"price":140000,"reqDEX":140,"reqJob":16,"reqLevel":50,"reqSTR":50,"tuc":7},"drops":[{"id":"5220002","name":"殭屍猴王","level":50}],"shops":[],"quests":[]}
+{"id":1492007,"name":"拉斯菲特之槍","desc":"","cat":"裝備","sub":"火槍","sell":140000,"equip":{"attackSpeed":5,"incPAD":49,"price":140000,"reqDEX":140,"reqJob":16,"reqLevel":50,"reqSTR":50,"tuc":7},"drops":[{"id":"5220002","name":"殭屍猴王","level":50}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

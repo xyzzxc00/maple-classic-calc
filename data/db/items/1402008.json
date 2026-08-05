@@ -1,1 +1,1 @@
-{"id":1402008,"name":"鋼鐵劍","desc":"","cat":"裝備","sub":"雙手劍","sell":11000,"equip":{"attackSpeed":6,"incPAD":45,"price":11000,"reqJob":1,"reqLevel":25,"reqSTR":85,"tuc":7},"drops":[],"shops":[{"npc":"利伯","price":22000,"currency":"楓幣","maps":["維多利亞 / 勇士之村武器店"]}],"quests":[]}
+{"id":1402008,"name":"鋼鐵劍","desc":"","cat":"裝備","sub":"雙手劍","sell":11000,"equip":{"attackSpeed":6,"incPAD":45,"price":11000,"reqJob":1,"reqLevel":25,"reqSTR":85,"tuc":7},"drops":[],"shops":[{"npc":"利伯","price":22000,"currency":"楓幣","maps":["維多利亞 / 勇士之村武器店"]}],"quests":[],"crafts":[],"usedIn":[]}

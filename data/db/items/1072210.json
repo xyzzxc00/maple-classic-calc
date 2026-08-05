@@ -1,1 +1,1 @@
-{"id":1072210,"name":"紅色水晶靴","desc":"","cat":"裝備","sub":"鞋子","sell":110000,"equip":{"incDEX":3,"incPDD":48,"incSTR":2,"price":110000,"reqJob":1,"reqLevel":80,"reqSTR":270,"tuc":5},"drops":[{"id":"7130103","name":"骷髏指揮官","level":73}],"shops":[],"quests":[]}
+{"id":1072210,"name":"紅色水晶靴","desc":"","cat":"裝備","sub":"鞋子","sell":110000,"equip":{"incDEX":3,"incPDD":48,"incSTR":2,"price":110000,"reqJob":1,"reqLevel":80,"reqSTR":270,"tuc":5},"drops":[{"id":"7130103","name":"骷髏指揮官","level":73}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

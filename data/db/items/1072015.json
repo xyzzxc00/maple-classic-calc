@@ -1,1 +1,1 @@
-{"id":1072015,"name":"褐硬皮鞋","desc":"","cat":"裝備","sub":"鞋子","sell":900,"equip":{"incPDD":4,"price":900,"reqJob":4,"reqLevel":10,"tuc":5},"drops":[{"id":"1210102","name":"菇菇寶貝","level":8}],"shops":[{"npc":"山姆","price":1800,"currency":"楓幣","maps":["維多利亞 / 弓箭手村武器店"]}],"quests":[]}
+{"id":1072015,"name":"褐硬皮鞋","desc":"","cat":"裝備","sub":"鞋子","sell":900,"equip":{"incPDD":4,"price":900,"reqJob":4,"reqLevel":10,"tuc":5},"drops":[{"id":"1210102","name":"菇菇寶貝","level":8}],"shops":[{"npc":"山姆","price":1800,"currency":"楓幣","maps":["維多利亞 / 弓箭手村武器店"]}],"quests":[],"crafts":[],"usedIn":[]}

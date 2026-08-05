@@ -1,1 +1,1 @@
-{"id":1492000,"name":"火槍","desc":"","cat":"裝備","sub":"火槍","sell":1500,"equip":{"attackSpeed":5,"incPAD":13,"price":1500,"reqJob":16,"reqLevel":10,"tuc":7},"drops":[{"id":"130100","name":"木妖","level":4},{"id":"1210101","name":"緞帶肥肥","level":10}],"shops":[],"quests":[]}
+{"id":1492000,"name":"火槍","desc":"","cat":"裝備","sub":"火槍","sell":1500,"equip":{"attackSpeed":5,"incPAD":13,"price":1500,"reqJob":16,"reqLevel":10,"tuc":7},"drops":[{"id":"130100","name":"木妖","level":4},{"id":"1210101","name":"緞帶肥肥","level":10}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

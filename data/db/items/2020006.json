@@ -1,1 +1,1 @@
-{"id":2020006,"name":"熱狗堡","desc":"好吃的美國熱狗。恢復HP約500","cat":"消耗","sub":"食物","sell":0,"equip":{},"drops":[],"shops":[{"npc":"24小時 排擋","price":530,"currency":"楓幣","maps":["迷霧森林 / 螞蟻礦坑"]},{"npc":"拜倫","price":530,"currency":"楓幣","maps":["黃金海岸 / 黃金海灘"]}],"quests":[]}
+{"id":2020006,"name":"熱狗堡","desc":"好吃的美國熱狗。恢復HP約500","cat":"消耗","sub":"食物","sell":0,"equip":{},"drops":[],"shops":[{"npc":"24小時 排擋","price":530,"currency":"楓幣","maps":["迷霧森林 / 螞蟻礦坑"]},{"npc":"拜倫","price":530,"currency":"楓幣","maps":["黃金海岸 / 黃金海灘"]}],"quests":[],"crafts":[],"usedIn":[]}

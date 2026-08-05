@@ -1,1 +1,1 @@
-{"id":1082201,"name":"黑色舒爾特手套","desc":"","cat":"裝備","sub":"手套","sell":110000,"equip":{"incDEX":1,"incPDD":24,"incSTR":1,"price":110000,"reqDEX":60,"reqJob":16,"reqLevel":60,"reqSTR":60,"tuc":5},"drops":[{"id":"5220000","name":"巨居蟹","level":55}],"shops":[],"quests":[]}
+{"id":1082201,"name":"黑色舒爾特手套","desc":"","cat":"裝備","sub":"手套","sell":110000,"equip":{"incDEX":1,"incPDD":24,"incSTR":1,"price":110000,"reqDEX":60,"reqJob":16,"reqLevel":60,"reqSTR":60,"tuc":5},"drops":[{"id":"5220000","name":"巨居蟹","level":55}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

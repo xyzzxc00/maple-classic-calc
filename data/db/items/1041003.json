@@ -1,1 +1,1 @@
-{"id":1041003,"name":"紅色旗袍","desc":"","cat":"裝備","sub":"上衣","sell":4500,"equip":{"incDEX":1,"incPDD":18,"price":4500,"reqDEX":40,"reqJob":8,"reqLUK":50,"reqLevel":20,"tuc":7},"drops":[],"shops":[{"npc":"瑪帕","price":9000,"currency":"楓幣","maps":["維多利亞 / 墮落城市武器店"]}],"quests":[]}
+{"id":1041003,"name":"紅色旗袍","desc":"","cat":"裝備","sub":"上衣","sell":4500,"equip":{"incDEX":1,"incPDD":18,"price":4500,"reqDEX":40,"reqJob":8,"reqLUK":50,"reqLevel":20,"tuc":7},"drops":[],"shops":[{"npc":"瑪帕","price":9000,"currency":"楓幣","maps":["維多利亞 / 墮落城市武器店"]}],"quests":[],"crafts":[],"usedIn":[]}

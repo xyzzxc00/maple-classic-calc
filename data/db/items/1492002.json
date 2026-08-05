@@ -1,1 +1,1 @@
-{"id":1492002,"name":"格蘭德火槍","desc":"","cat":"裝備","sub":"火槍","sell":5000,"equip":{"attackSpeed":5,"incPAD":22,"price":5000,"reqDEX":35,"reqJob":16,"reqLevel":20,"reqSTR":20,"tuc":7},"drops":[{"id":"2110200","name":"刺菇菇","level":22}],"shops":[],"quests":[]}
+{"id":1492002,"name":"格蘭德火槍","desc":"","cat":"裝備","sub":"火槍","sell":5000,"equip":{"attackSpeed":5,"incPAD":22,"price":5000,"reqDEX":35,"reqJob":16,"reqLevel":20,"reqSTR":20,"tuc":7},"drops":[{"id":"2110200","name":"刺菇菇","level":22}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

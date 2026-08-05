@@ -1,1 +1,1 @@
-{"id":1442006,"name":"藍鐵錘","desc":"","cat":"裝備","sub":"矛","sell":4000,"equip":{"attackSpeed":7,"incPAD":37,"price":4000,"reqJob":1,"reqLevel":15,"reqSTR":15,"tuc":7},"drops":[],"shops":[{"npc":"利伯","price":8000,"currency":"楓幣","maps":["維多利亞 / 勇士之村武器店"]}],"quests":[]}
+{"id":1442006,"name":"藍鐵錘","desc":"","cat":"裝備","sub":"矛","sell":4000,"equip":{"attackSpeed":7,"incPAD":37,"price":4000,"reqJob":1,"reqLevel":15,"reqSTR":15,"tuc":7},"drops":[],"shops":[{"npc":"利伯","price":8000,"currency":"楓幣","maps":["維多利亞 / 勇士之村武器店"]}],"quests":[],"crafts":[],"usedIn":[]}

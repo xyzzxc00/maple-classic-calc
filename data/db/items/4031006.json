@@ -1,1 +1,1 @@
-{"id":4031006,"name":"奇怪的藥水","desc":"內容不確定的奇怪的藥水。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"drops":[],"shops":[],"quests":[{"id":"2008","name":"遞送奇怪的藥水","kind":"獎勵","count":1},{"id":"2008","name":"遞送奇怪的藥水","kind":"需求","count":1}]}
+{"id":4031006,"name":"奇怪的藥水","desc":"內容不確定的奇怪的藥水。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"drops":[],"shops":[],"quests":[{"id":"2008","name":"遞送奇怪的藥水","kind":"獎勵","count":1},{"id":"2008","name":"遞送奇怪的藥水","kind":"需求","count":1}],"crafts":[],"usedIn":[]}

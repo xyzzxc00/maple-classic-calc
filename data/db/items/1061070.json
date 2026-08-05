@@ -1,1 +1,1 @@
-{"id":1061070,"name":"滄海之褲","desc":"","cat":"裝備","sub":"褲裙","sell":41000,"equip":{"incDEX":1,"incMMP":10,"incPDD":27,"price":41000,"reqDEX":80,"reqJob":8,"reqLUK":110,"reqLevel":40,"tuc":7},"drops":[{"id":"4230100","name":"冰獨眼獸","level":40}],"shops":[],"quests":[]}
+{"id":1061070,"name":"滄海之褲","desc":"","cat":"裝備","sub":"褲裙","sell":41000,"equip":{"incDEX":1,"incMMP":10,"incPDD":27,"price":41000,"reqDEX":80,"reqJob":8,"reqLUK":110,"reqLevel":40,"tuc":7},"drops":[{"id":"4230100","name":"冰獨眼獸","level":40}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

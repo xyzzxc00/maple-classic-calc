@@ -1,1 +1,1 @@
-{"id":1072005,"name":"皮製涼鞋","desc":"","cat":"裝備","sub":"鞋子","sell":1,"equip":{"incPDD":2,"price":1,"tuc":5},"drops":[],"shops":[{"npc":"娜塔莎","price":50,"currency":"楓幣","maps":["維多利亞 / 維多利亞防具店"]},{"npc":"潘","price":50,"currency":"楓幣","maps":["楓之島 / 楓之港防具店"]}],"quests":[]}
+{"id":1072005,"name":"皮製涼鞋","desc":"","cat":"裝備","sub":"鞋子","sell":1,"equip":{"incPDD":2,"price":1,"tuc":5},"drops":[],"shops":[{"npc":"娜塔莎","price":50,"currency":"楓幣","maps":["維多利亞 / 維多利亞防具店"]},{"npc":"潘","price":50,"currency":"楓幣","maps":["楓之島 / 楓之港防具店"]}],"quests":[],"crafts":[],"usedIn":[]}

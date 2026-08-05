@@ -1,1 +1,1 @@
-{"id":2030006,"name":"奇幻村卷軸","desc":"直接回到奇幻村的卷軸，用一次就消失。","cat":"消耗","sub":"傳送卷軸","sell":0,"equip":{},"drops":[],"shops":[{"npc":"豪素夫","price":600,"currency":"楓幣","maps":["迷霧森林 / 桑那房"]}],"quests":[{"id":"2055","name":"休咪遺失的硬幣","kind":"獎勵","count":30}]}
+{"id":2030006,"name":"奇幻村卷軸","desc":"直接回到奇幻村的卷軸，用一次就消失。","cat":"消耗","sub":"傳送卷軸","sell":0,"equip":{},"drops":[],"shops":[{"npc":"豪素夫","price":600,"currency":"楓幣","maps":["迷霧森林 / 桑那房"]}],"quests":[{"id":"2055","name":"休咪遺失的硬幣","kind":"獎勵","count":30}],"crafts":[],"usedIn":[]}

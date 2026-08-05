@@ -1,1 +1,1 @@
-{"id":4000207,"name":"骨盆","desc":"骷髏士官的骨盆。","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"drops":[{"id":"6230602","name":"骷髏士官","level":63}],"shops":[],"quests":[{"id":"2119","name":"遺跡發掘隊的公告","kind":"需求","count":40}]}
+{"id":4000207,"name":"骨盆","desc":"骷髏士官的骨盆。","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"drops":[{"id":"6230602","name":"骷髏士官","level":63}],"shops":[],"quests":[{"id":"2119","name":"遺跡發掘隊的公告","kind":"需求","count":40}],"crafts":[],"usedIn":[]}

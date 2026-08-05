@@ -1,1 +1,1 @@
-{"id":1072167,"name":"黑箭魂鞋","desc":"","cat":"裝備","sub":"鞋子","sell":90000,"equip":{"incDEX":3,"incEVA":1,"incPDD":40,"incSTR":1,"price":90000,"reqDEX":220,"reqJob":4,"reqLevel":70,"tuc":5},"drops":[{"id":"7130101","name":"長槍牛魔王","level":75}],"shops":[],"quests":[]}
+{"id":1072167,"name":"黑箭魂鞋","desc":"","cat":"裝備","sub":"鞋子","sell":90000,"equip":{"incDEX":3,"incEVA":1,"incPDD":40,"incSTR":1,"price":90000,"reqDEX":220,"reqJob":4,"reqLevel":70,"tuc":5},"drops":[{"id":"7130101","name":"長槍牛魔王","level":75}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

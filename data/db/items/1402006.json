@@ -1,1 +1,1 @@
-{"id":1402006,"name":"高原之劍","desc":"","cat":"裝備","sub":"雙手劍","sell":140000,"equip":{"attackSpeed":4,"incPAD":55,"price":140000,"reqJob":1,"reqLevel":35,"reqSTR":115,"tuc":7},"drops":[{"id":"2230102","name":"黑肥肥","level":25}],"shops":[],"quests":[]}
+{"id":1402006,"name":"高原之劍","desc":"","cat":"裝備","sub":"雙手劍","sell":140000,"equip":{"attackSpeed":4,"incPAD":55,"price":140000,"reqJob":1,"reqLevel":35,"reqSTR":115,"tuc":7},"drops":[{"id":"2230102","name":"黑肥肥","level":25}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

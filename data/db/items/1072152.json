@@ -1,1 +1,1 @@
-{"id":1072152,"name":"黑無痕之鞋","desc":"","cat":"裝備","sub":"鞋子","sell":65000,"equip":{"incDEX":1,"incLUK":3,"incPDD":34,"price":65000,"reqDEX":100,"reqJob":8,"reqLUK":170,"reqLevel":60,"tuc":5},"drops":[{"id":"5220000","name":"巨居蟹","level":55}],"shops":[],"quests":[]}
+{"id":1072152,"name":"黑無痕之鞋","desc":"","cat":"裝備","sub":"鞋子","sell":65000,"equip":{"incDEX":1,"incLUK":3,"incPDD":34,"price":65000,"reqDEX":100,"reqJob":8,"reqLUK":170,"reqLevel":60,"tuc":5},"drops":[{"id":"5220000","name":"巨居蟹","level":55}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

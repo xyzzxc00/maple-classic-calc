@@ -1,1 +1,1 @@
-{"id":4000196,"name":"木板","desc":"木面怪人所帶在臉上的木板。","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"drops":[{"id":"2230110","name":"木面怪人","level":23}],"shops":[],"quests":[{"id":"2117","name":"挖掘隊員杉峰的請託","kind":"需求","count":5}]}
+{"id":4000196,"name":"木板","desc":"木面怪人所帶在臉上的木板。","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"drops":[{"id":"2230110","name":"木面怪人","level":23}],"shops":[],"quests":[{"id":"2117","name":"挖掘隊員杉峰的請託","kind":"需求","count":5}],"crafts":[],"usedIn":[]}

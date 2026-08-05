@@ -1,1 +1,1 @@
-{"id":1040071,"name":"草色旅行服","desc":"","cat":"裝備","sub":"上衣","sell":1600,"equip":{"incPDD":10,"price":1600,"reqJob":4,"reqLevel":10,"tuc":7},"drops":[],"shops":[{"npc":"山姆","price":3200,"currency":"楓幣","maps":["維多利亞 / 弓箭手村武器店"]}],"quests":[]}
+{"id":1040071,"name":"草色旅行服","desc":"","cat":"裝備","sub":"上衣","sell":1600,"equip":{"incPDD":10,"price":1600,"reqJob":4,"reqLevel":10,"tuc":7},"drops":[],"shops":[{"npc":"山姆","price":3200,"currency":"楓幣","maps":["維多利亞 / 弓箭手村武器店"]}],"quests":[],"crafts":[],"usedIn":[]}

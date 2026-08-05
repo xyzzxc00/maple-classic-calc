@@ -1,1 +1,1 @@
-{"id":1082096,"name":"銀名譽手套","desc":"","cat":"裝備","sub":"手套","sell":160000,"equip":{"incEVA":1,"incLUK":3,"incPDD":27,"price":160000,"reqDEX":110,"reqJob":8,"reqLUK":200,"reqLevel":70,"tuc":5},"drops":[{"id":"6230602","name":"骷髏士官","level":63}],"shops":[],"quests":[]}
+{"id":1082096,"name":"銀名譽手套","desc":"","cat":"裝備","sub":"手套","sell":160000,"equip":{"incEVA":1,"incLUK":3,"incPDD":27,"price":160000,"reqDEX":110,"reqJob":8,"reqLUK":200,"reqLevel":70,"tuc":5},"drops":[{"id":"6230602","name":"骷髏士官","level":63}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

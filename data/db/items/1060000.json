@@ -1,1 +1,1 @@
-{"id":1060000,"name":"黑金褲","desc":"","cat":"裝備","sub":"褲裙","sell":42500,"equip":{"incMMP":10,"incPDD":36,"incSTR":1,"price":42500,"reqJob":1,"reqLevel":40,"reqPOP":20,"reqSTR":130,"tuc":7},"drops":[{"id":"5300100","name":"巫婆","level":55}],"shops":[],"quests":[]}
+{"id":1060000,"name":"黑金褲","desc":"","cat":"裝備","sub":"褲裙","sell":42500,"equip":{"incMMP":10,"incPDD":36,"incSTR":1,"price":42500,"reqJob":1,"reqLevel":40,"reqPOP":20,"reqSTR":130,"tuc":7},"drops":[{"id":"5300100","name":"巫婆","level":55}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}
