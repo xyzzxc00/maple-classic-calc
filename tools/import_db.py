@@ -21,6 +21,7 @@ import_db.py — 把拆包出來的遊戲資料匯入成本站資料庫要用的
 
 import json
 import os
+import re
 import shutil
 import sys
 
@@ -237,12 +238,34 @@ def build_detail(m, map_ids, quest_ids, item_ids):
     }
 
 
+# 拆包檔的技能表混了一堆玩家看不到的東西，尤其零轉那一段：騎乘技能、道具
+# 潛在技能、2009 年的期間限定活動技能。判斷依據都取客觀訊號，不靠猜：
+HANGUL = re.compile(r"[가-힣]")
+EXPIRY = re.compile(r"有效(時間|期間)[：:]\s*\d{4}")
+
+
+def skill_noise(s):
+    """回傳排除原因；不該排除就回 None"""
+    text = (s.get("description") or "") + (s.get("formula") or "")
+    if s.get("maxLevel") is None:
+        return "沒有等級上限，資料本身不完整"
+    if HANGUL.search(text):
+        # 說明還是韓文原文＝這個技能沒有被在地化，也就沒有真的上線
+        return "說明未在地化（韓文原文）"
+    if "[道具潛在技能]" in text:
+        return "道具潛在技能，不是角色學得到的技能"
+    if EXPIRY.search(text):
+        return "帶到期日的期間限定活動技能"
+    return None
+
+
 def pick_skills(skills):
     return [
         s
         for s in skills
         if s.get("jobGroup") in OPEN_SKILL_GROUPS
         and s.get("advancement") not in CLOSED_ADVANCEMENTS
+        and not skill_noise(s)
     ]
 
 
