@@ -813,9 +813,15 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   border-radius: var(--radius-md) var(--radius-md) 0 0;
   border-bottom: none;
 }
+/* 展開後的說明要跟上面的標題列接成同一個框：拿掉上緣邊框、只讓最後一段
+   收圓角。原本這裡寫死「每一段都收下緣圓角」，說明只有一段時看不出問題，
+   但放兩段以上時，前一段的圓角下緣會跟下一段的方角上緣撞出一條接縫 */
 .cm-disclaimer-details > .cm-disclaimer {
   margin: 0;
   border-top: none;
+  border-radius: 0;
+}
+.cm-disclaimer-details > .cm-disclaimer:last-child {
   border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 .cm-toolbar { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
@@ -1042,6 +1048,54 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 .legacy-entry-locations { font-size: 13px; color: var(--ink-soft); margin-top: 2px; line-height: 1.6; }
 .legacy-entry-respawn { font-size: 12px; color: var(--accent-text); margin-top: 4px; }
 .legacy-spot-note { font-size: 12px; color: var(--ink-soft); margin-top: 8px; }
+
+/* ---------- 資料庫：怪物列表 ----------
+   一列一隻怪：左邊圖示、中間名稱與出沒地區、右邊四個數字。數字用 <dl>
+   而不是純文字串接，是為了讓「HP」「EXP」這些標籤在小螢幕上換行後還看得
+   出哪個數字是什麼 */
+#dbMonsterList { display: flex; flex-direction: column; gap: 8px; }
+.db-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+}
+/* 怪物圖是原始尺寸不一的貼圖，用固定框 + contain 對齊，不然每一列的
+   高度會被個別圖片撐得參差不齊 */
+.db-row-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  object-fit: contain;
+  image-rendering: pixelated; /* 原始就是點陣圖，放大時保留鋸齒比糊掉好看 */
+}
+.db-row-main { flex: 1 1 160px; min-width: 0; }
+.db-row-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.db-row-name { font-weight: 700; font-size: 14.5px; color: var(--ink); }
+.db-row-level { font-weight: 700; font-size: 12px; color: var(--accent-text); }
+.db-row-meta { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+.db-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-text);
+  background: var(--accent-tint);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+.db-row-stats { display: flex; gap: 16px; margin: 0; flex-shrink: 0; }
+.db-row-stats > div { text-align: right; }
+.db-row-stats dt { font-size: 10.5px; color: var(--ink-faint); font-weight: 700; }
+.db-row-stats dd { margin: 0; font-size: 13px; font-weight: 700; color: var(--ink); }
+@media (max-width: 560px) {
+  /* 窄螢幕把數字整排移到名稱下方，不然四組數字會把名稱擠成一個字一行 */
+  .db-row { flex-wrap: wrap; }
+  .db-row-main { flex-basis: calc(100% - 56px); }
+  .db-row-stats { width: 100%; justify-content: space-between; gap: 8px; }
+  .db-row-stats > div { text-align: left; }
+}
 
 /* ---------- Legacy job builds (職業配點) ----------
    十二條路線如果攤平列卡片會糊成一片，所以先照職業系分組、組跟組之間留

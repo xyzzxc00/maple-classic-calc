@@ -7,6 +7,7 @@
   const pages = {
     home: document.getElementById("pageHome"),
     calc: document.getElementById("pageCalc"),
+    db: document.getElementById("pageDb"),
     guides: document.getElementById("pageGuides"),
     cm: document.getElementById("pageCm"),
     legacy: document.getElementById("pageLegacy"),
@@ -15,6 +16,7 @@
   const tabs = {
     home: document.getElementById("navHome"),
     calc: document.getElementById("navCalc"),
+    db: document.getElementById("navDb"),
     guides: document.getElementById("navGuides"),
     cm: document.getElementById("navCm"),
     legacy: document.getElementById("navLegacy"),
@@ -34,6 +36,10 @@
         if (window.MapleSpots) window.MapleSpots.render();
       });
     }
+    // 資料庫的資料檔切到這一頁才抓（第一次抓完就留著）。跟社群資料一樣，
+    // 初次渲染由這裡觸發，不要讓 db.js 自己判斷「現在是不是在資料庫頁」——
+    // 那種自檢寫法踩過兩次 script 載入順序的race
+    if (page === "db" && window.MapleDb) window.MapleDb.load();
     // 讓側邊欄（sidebar.js）知道現在在哪一頁，不管是誰觸發的切換
     // （側邊欄點擊、app.js 的「去哪練」跨頁連結、timer.js 的跨頁連結都算）
     document.dispatchEvent(new CustomEvent("maplenav:pagechange", { detail: { page } }));

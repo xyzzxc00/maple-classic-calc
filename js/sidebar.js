@@ -105,6 +105,7 @@
     { id: "calcSubAttack", page: "calc" },
     { id: "calcSubScroll", page: "calc" },
     { id: "calcSubGacha", page: "calc" },
+    { id: "dbSubMonsters", page: "db" },
     { id: "guidesSubQuests", page: "guides" },
     { id: "guidesSubJobs", page: "guides" },
     { id: "guidesSubTeamQuest", page: "guides" },

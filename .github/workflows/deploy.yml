@@ -95,6 +95,11 @@ jobs:
           # （上面 cp 那行已經複製了），這裡另外複製新資料夾
           cp -r privacy dist/
 
+          # 資料庫的資料檔與圖片。這兩包是 tools/import_db.py 從拆包資料產生後
+          # 直接進版控的成品，build 階段不做任何處理，原樣複製
+          cp -r data dist/
+          cp -r assets dist/
+
           # Bundle all JS in load order → single minified file.
           # 檔案清單直接從 index.html 現有的 <script defer src="js/...">
           # 標籤解析出來，不再手動維護一份清單——新增 js 檔案只要記得在

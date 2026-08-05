@@ -207,6 +207,17 @@
       </div>
     </div>
 
+    <!-- 資料庫：拆包出來的遊戲原始資料。子分頁會隨著各個資料集陸續做完才加，
+         不先擺「整理中」的空殼進來 -->
+    <div class="nav-group">
+      <button class="nav-group-btn nav-tab" id="navDb" type="button" role="tab" aria-selected="false" aria-controls="pageDb">
+        <span>資料庫</span><span class="nav-group-chev">▾</span>
+      </button>
+      <div class="nav-group-links">
+        <button class="sidebar-link subtab active" id="dbSubMonsters" type="button" role="tab" aria-selected="true" aria-controls="dbMonstersView">怪物</button>
+      </div>
+    </div>
+
     <div class="nav-group">
       <button class="nav-group-btn nav-tab" id="navGuides" type="button" role="tab" aria-selected="false" aria-controls="pageGuides">
         <span>玩法攻略</span><span class="nav-group-chev">▾</span>
@@ -757,6 +768,50 @@
     </div>
 
   </section>
+
+</div>
+
+<!-- 資料庫：資料檔放在 data/db/ 底下，切到這個分頁才載（見 js/db.js），
+     不進主 bundle——索引雖然只有 9 KB，但沒進來看資料庫的人不該為它付流量 -->
+<div class="wrap" id="pageDb" role="tabpanel" aria-labelledby="navDb" hidden>
+
+  <div id="dbMonstersView" role="tabpanel" aria-labelledby="dbSubMonsters">
+    <section class="panel">
+      <div class="panel-head">
+        <h2>怪物資料</h2>
+        <span class="badge" id="dbMonsterCount">—</span>
+      </div>
+
+      <details class="cm-disclaimer-details">
+        <summary>這些資料怎麼來的？為什麼沒有掉落率？</summary>
+        <p class="cm-disclaimer">數值、屬性抗性、出沒地圖與掉落清單取自遊戲本身的資料檔，不是玩家回報或站長推測。<strong>只收錄目前已開放的地區</strong>（楓之島、維多利亞島、奇幻村），還沒開放的大陸與怪物不會出現在這裡。</p>
+        <p class="cm-disclaimer">遊戲資料檔只記錄「這隻怪會掉什麼」，<strong>沒有記錄掉落機率</strong>，所以本站不提供掉落率——網路上流傳的機率多半是估算值，本站不轉載未經查證的數字。</p>
+      </details>
+
+      <div class="cm-toolbar">
+        <div class="cm-filter-row">
+          <input class="cm-filter-input" id="dbMonsterSearch" type="search" placeholder="搜尋怪物名稱" autocomplete="off">
+          <select class="cm-filter-input" id="dbMonsterRegion">
+            <option value="">全部地區</option>
+          </select>
+          <div class="cm-filter-lv-group">
+            <input class="cm-filter-input cm-filter-lv" id="dbMonsterLvMin" type="number" min="1" max="200" placeholder="最低等">
+            <span class="cm-filter-sep">~</span>
+            <input class="cm-filter-input cm-filter-lv" id="dbMonsterLvMax" type="number" min="1" max="200" placeholder="最高等">
+          </div>
+        </div>
+        <div class="cm-actions">
+          <div class="cm-sort-btns"><span class="cm-group-label">排序</span>
+            <button class="cm-sort-btn active" data-db-sort="level" type="button">等級</button>
+            <button class="cm-sort-btn" data-db-sort="exp" type="button">經驗值</button>
+            <button class="cm-sort-btn" data-db-sort="hp" type="button">HP</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="dbMonsterList"><p class="cm-loading">載入中...</p></div>
+    </section>
+  </div>
 
 </div>
 
@@ -1683,6 +1738,7 @@
 <script defer src="js/timer.js"></script>
 <script defer src="js/formGuard.js"></script>
 <script defer src="js/community.js"></script>
+<script defer src="js/db.js"></script>
 <script defer src="js/nav.js"></script>
 <script defer src="js/sidebar.js"></script>
 <script defer src="js/backToTop.js"></script>
