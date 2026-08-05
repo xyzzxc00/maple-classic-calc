@@ -140,12 +140,15 @@ def trim_map(mp):
     }
 
 
-def trim_drop(d):
+def trim_drop(d, item_ids):
     out = {
         "id": d["id"],
         "name": d["name"],
         "cat": d.get("category") or "",
         "sub": d.get("subcategory") or "",
+        # 未命名道具不會進道具資料集（沒名字沒圖，列出來只是雜訊），但牠們
+        # 確實在掉落表裡，所以照列、只是不做成連結，掉落筆數才不會失真
+        "link": d["id"] in item_ids,
     }
     if d.get("sellPrice"):
         out["sell"] = d["sellPrice"]
@@ -164,7 +167,7 @@ def trim_quest(q):
     }
 
 
-def build_detail(m, map_ids, quest_ids):
+def build_detail(m, map_ids, quest_ids, item_ids):
     """單隻怪的詳情。出沒地圖要再過濾一次——有些怪同時住在開放與未開放地區
     （例如蝴蝶精在維多利亞島也在冰原雪域），只能列出進得去的那些"""
     maps = [trim_map(mp) for mp in (m.get("maps") or []) if mp.get("id") in map_ids]
@@ -189,7 +192,7 @@ def build_detail(m, map_ids, quest_ids):
         },
         "maps": sorted(maps, key=lambda x: -x["spawns"]),
         # 拆包資料只有「會掉什麼」，沒有掉落率——畫面上不能顯示機率
-        "drops": [trim_drop(d) for d in (m.get("drops") or [])],
+        "drops": [trim_drop(d, item_ids) for d in (m.get("drops") or [])],
         "quests": quests,
     }
 
@@ -241,7 +244,7 @@ def build_skill_index(details):
     ]
 
 
-def build_quest_detail(q, map_ids, monster_ids, skill_ids, quest_ids):
+def build_quest_detail(q, map_ids, monster_ids, skill_ids, quest_ids, item_ids):
     """任務詳情。NPC 的所在地圖只留開放的那些；提到的怪物與技能若本站也收錄了，
     就帶上 id 讓畫面可以互連"""
 
@@ -257,7 +260,12 @@ def build_quest_detail(q, map_ids, monster_ids, skill_ids, quest_ids):
 
     def items(rows):
         return [
-            {"id": r["id"], "name": r.get("name") or "", "count": r.get("count") or 0}
+            {
+                "id": r["id"],
+                "name": r.get("name") or "",
+                "count": r.get("count") or 0,
+                "link": r["id"] in item_ids,
+            }
             for r in (rows or [])
         ]
 
@@ -352,6 +360,10 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids):
     或收錄任務給的／要的。拿不到的東西列出來只會讓人白找"""
     out = []
     for it in items:
+        # 未命名道具：遊戲資料裡沒有名字也沒有圖示（顯示成「未命名道具
+        # 4004000」），多半是內部用或未啟用的東西，列出來只是雜訊＋破圖
+        if it.get("unnamed"):
+            continue
         src = it.get("sources") or {}
         drops = [d for d in (src.get("monsterDrops") or [])
                  if str(d.get("monsterId")) in kept_monster_ids]
@@ -567,7 +579,16 @@ def main():
     if not kept:
         fail("過濾之後一隻怪都不剩，OPEN_REGIONS 是不是打錯了？")
 
-    details = [build_detail(m, map_ids, quest_ids) for m in kept]
+    monster_ids = {str(m["id"]) for m in kept}
+
+    # 道具要先算：怪物與任務詳情裡的道具要不要做成連結，取決於那筆道具有沒有
+    # 被收錄（未命名道具會被濾掉）。反過來，道具的收錄條件只看怪物／任務／
+    # 地圖的成員資格，不需要它們的詳情，所以先算道具不會有循環相依
+    items_db = load(src, "items-data.js")
+    item_details = build_item_details(items_db["items"], monster_ids, map_ids, quest_ids)
+    item_ids = {d["id"] for d in item_details}
+
+    details = [build_detail(m, map_ids, quest_ids, item_ids) for m in kept]
 
     # 產出
     shutil.rmtree(OUT_DATA, ignore_errors=True)
@@ -592,11 +613,11 @@ def main():
             json.dump(d, f, ensure_ascii=False, separators=(",", ":"))
 
     # 任務
-    monster_ids = {str(m["id"]) for m in kept}
     skill_names = {s["id"]: s["name"] for s in kept_skills}
     kept_quests = [q for q in quests_db["quests"] if str(q["id"]) in quest_ids]
     quest_details = [
-        build_quest_detail(q, map_ids, monster_ids, skill_names, quest_ids) for q in kept_quests
+        build_quest_detail(q, map_ids, monster_ids, skill_names, quest_ids, item_ids)
+        for q in kept_quests
     ]
     quest_details.sort(key=lambda d: (d["category"], d["minLevel"] or 0, d["name"]))
     os.makedirs(os.path.join(OUT_DATA, "quests"), exist_ok=True)
@@ -622,9 +643,7 @@ def main():
         if m["id"] in map_ids and m.get("miniMapImage")
     }
 
-    # 道具
-    items_db = load(src, "items-data.js")
-    item_details = build_item_details(items_db["items"], monster_ids, map_ids, quest_ids)
+    # 道具（清單在最前面就算好了，這裡只負責寫檔）
     os.makedirs(os.path.join(OUT_DATA, "items"), exist_ok=True)
     with open(os.path.join(OUT_DATA, "items.json"), "w", encoding="utf-8") as f:
         json.dump(build_item_index(item_details), f, ensure_ascii=False, separators=(",", ":"))
@@ -632,11 +651,10 @@ def main():
         with open(os.path.join(OUT_DATA, "items", f"{d['id']}.json"), "w",
                   encoding="utf-8") as f:
             json.dump(d, f, ensure_ascii=False, separators=(",", ":"))
-    kept_item_ids = {d["id"] for d in item_details}
     item_img_paths = {
         i["id"]: i["image"]
         for i in items_db["items"]
-        if i.get("image") and i["id"] in kept_item_ids
+        if i.get("image") and i["id"] in item_ids
     }
 
     # 圖片：怪物本體 + 牠們會掉的道具 + 技能圖示

@@ -125,7 +125,9 @@
       loading = getJson(`data/db/${cfg.dir}.json`)
         .then((data) => {
           index = Array.isArray(data) ? data : [];
-          if (cfg.fillFilters) cfg.fillFilters(index, filterEls);
+          // fillFilters 裡的連動選單（分類→類型、地區→區域）在重設下層選單
+          // 之後要能重畫，不然畫面會顯示「全部類型」但列表還套著舊的篩選
+          if (cfg.fillFilters) cfg.fillFilters(index, filterEls, render);
           render();
           const route = currentRoute();
           if (route && route.set === cfg.route) showDetail(route.id);
@@ -141,9 +143,18 @@
       return loading;
     }
 
+    // 文字搜尋每按一鍵就重建整份列表，道具有 1300 多筆、每列還有一張圖，
+    // 手機上會頓；下拉選單則要立即反應，不用延遲
+    let typingTimer = null;
+    const renderSoon = () => {
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(render, 150);
+    };
     Object.keys(filterEls).forEach((k) => {
       const el = filterEls[k];
-      if (el) el.addEventListener(el.tagName === "SELECT" ? "change" : "input", render);
+      if (!el) return;
+      if (el.tagName === "SELECT") el.addEventListener("change", render);
+      else el.addEventListener("input", renderSoon);
     });
     page.querySelectorAll(`[data-db-sort][data-db-set="${cfg.route}"]`).forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -168,6 +179,19 @@
     });
     if (cfg.onDetailInput) els.detail.addEventListener("input", cfg.onDetailInput);
 
+    // 圖片載不到就整個藏起來，不要留一個破圖圖示。理論上每一筆都有圖
+    // （匯入時就過濾掉沒圖的），這是防呆——資料補得比圖片快的時候不該
+    // 整頁看起來像壞掉。error 事件不會冒泡，要用捕獲階段
+    [els.list, els.detail].forEach((box) =>
+      box.addEventListener(
+        "error",
+        (e) => {
+          if (e.target.tagName === "IMG") e.target.style.visibility = "hidden";
+        },
+        true
+      )
+    );
+
     return { load, showList, showDetail, route: cfg.route, key: cfg.key };
   }
 
@@ -189,7 +213,12 @@
   function openDetail(set, id, push) {
     const s = SETS.find((x) => x.route === set);
     if (!s) return;
+    // 跨資料集跳轉（任務→怪物、怪物→道具…）時，目標資料集的索引可能還沒
+    // 載過。不補這一下的話，讀者按「回到列表」會看到永遠停在「載入中」的
+    // 空列表——詳情本身是各自抓單筆 JSON，所以不會露餡
+    if (window.MapleNav) window.MapleNav.switchNav("db");
     showTab(s.key, true);
+    s.load();
     if (push) history.pushState({ db: set, id: String(id) }, "", routeUrl(set, id));
     s.showDetail(id).then(() => window.scrollTo(0, 0));
   }
@@ -272,8 +301,10 @@
     const kills = Math.ceil(need / exp);
     const minutes = kills / rate;
     const per10 = exp * rate * 10;
-    const hh = Math.floor(minutes / 60);
-    const mm = Math.round(minutes % 60);
+    // 先四捨五入成整數分鐘再拆時分，不然 59.7 分會變成「0 小時 60 分」
+    const totalMin = Math.round(minutes);
+    const hh = Math.floor(totalMin / 60);
+    const mm = totalMin % 60;
     out.innerHTML = `<dl class="db-stat-grid">
         <div><dt>升到 Lv.${level + 1} 要打</dt><dd>${num(kills)} 隻</dd></div>
         <div><dt>大約耗時</dt><dd>${hh ? hh + " 小時 " : ""}${mm} 分</dd></div>
@@ -423,16 +454,20 @@
                   const bits = [];
                   if (x.equip && x.equip.reqLevel) bits.push(`需求 Lv.${x.equip.reqLevel}`);
                   if (x.sell) bits.push(`賣店 ${num(x.sell)}`);
-                  // 掉落物一定在道具資料集裡（「被收錄的怪掉的」本來就是收錄
-                  // 條件之一），所以可以直接連過去
-                  return `<button class="db-drop-item" type="button" data-db-goto="item" data-db-id="${esc(x.id)}">
+                  // 未命名道具不在道具資料集裡（沒名字沒圖），照列但不能點，
+                  // 不然會開到不存在的頁面
+                  const tag = x.link ? "button" : "div";
+                  const attrs = x.link
+                    ? ` type="button" data-db-goto="item" data-db-id="${esc(x.id)}"`
+                    : "";
+                  return `<${tag} class="db-drop-item${x.link ? "" : " db-drop-item--plain"}"${attrs}>
                     <img class="db-drop-icon" src="assets/db/items/${encodeURIComponent(x.id)}.png"
                          alt="" loading="lazy" decoding="async" width="32" height="32">
                     <span class="db-drop-text">
                       <span class="db-drop-name">${esc(x.name)}</span>
                       <span class="db-drop-meta">${esc([x.sub, ...bits].filter(Boolean).join(" · "))}</span>
                     </span>
-                  </button>`;
+                  </${tag}>`;
                 })
                 .join("")}</div>
             </div>`;
@@ -531,7 +566,7 @@
       { key: "spawns", cmp: (a, b) => (b.spawns || 0) - (a.spawns || 0) },
       { key: "name", cmp: (a, b) => a.name.localeCompare(b.name, "zh-TW") },
     ],
-    fillFilters(index, els) {
+    fillFilters(index, els, render) {
       [...new Set(index.map((m) => m.region))].filter(Boolean).sort().forEach((r) => {
         const o = document.createElement("option");
         o.value = r;
@@ -544,7 +579,7 @@
         if (!byStreet.has(m.region)) byStreet.set(m.region, new Set());
         byStreet.get(m.region).add(m.street);
       });
-      const fill = () => {
+      const fill = (rerender) => {
         const region = els.Region.value;
         const streets = region
           ? [...(byStreet.get(region) || [])]
@@ -556,9 +591,12 @@
           o.textContent = s;
           els.Street.appendChild(o);
         });
+        // 下層選單被重設成「全部區域」了，列表要跟著重畫，不然畫面顯示的
+        // 篩選條件跟實際套用的對不起來
+        if (rerender) render();
       };
-      fill();
-      els.Region.addEventListener("change", fill);
+      fill(false);
+      els.Region.addEventListener("change", () => fill(true));
     },
     renderRow(m) {
       return `<button class="db-row db-row--text" type="button" data-db-id="${esc(m.id)}">
@@ -705,7 +743,7 @@
       { key: "level", cmp: (a, b) => (b.lv || 0) - (a.lv || 0) },
       { key: "sell", cmp: (a, b) => (b.sell || 0) - (a.sell || 0) },
     ],
-    fillFilters(index, els) {
+    fillFilters(index, els, render) {
       [...new Set(index.map((i) => i.cat))].filter(Boolean).sort().forEach((c) => {
         const o = document.createElement("option");
         o.value = c;
@@ -718,7 +756,7 @@
         if (!bySub.has(i.cat)) bySub.set(i.cat, new Set());
         bySub.get(i.cat).add(i.sub);
       });
-      const fillSub = () => {
+      const fillSub = (rerender) => {
         const cat = els.Cat.value;
         const subs = cat
           ? [...(bySub.get(cat) || [])]
@@ -730,9 +768,11 @@
           o.textContent = s;
           els.Sub.appendChild(o);
         });
+        // 同上：類型被重設了，列表要重畫才不會停在舊的篩選結果
+        if (rerender) render();
       };
-      fillSub();
-      els.Cat.addEventListener("change", fillSub);
+      fillSub(false);
+      els.Cat.addEventListener("change", () => fillSub(true));
     },
     renderRow(i) {
       return `<button class="db-row" type="button" data-db-id="${esc(i.id)}">
@@ -875,9 +915,11 @@
             </div>`
           : "";
 
-      // 任務要的／給的道具一定在道具資料集裡（收錄任務的道具本來就是收錄
-      // 條件之一），可以直接連過去
-      const itemChip = (i) => linkChip("item", i.id, i.name, i.count ? `×${i.count}` : "");
+      // 未命名道具不在道具資料集裡，照列但不做成連結
+      const itemChip = (i) =>
+        i.link
+          ? linkChip("item", i.id, i.name, i.count ? `×${i.count}` : "")
+          : plainChip(i.name, i.count ? `×${i.count}` : "");
       const startBits = [];
       if (d.start.level) startBits.push(plainChip(`Lv.${d.start.level} 以上`));
       (d.start.items || []).forEach((i) => startBits.push(itemChip(i)));
@@ -1096,7 +1138,11 @@
     if (route) {
       const s = SETS.find((x) => x.route === route.set);
       if (s) {
+        // 使用者可能已經切到別的主分頁了（例如去了練等計算再按上一頁），
+        // 只切子分頁的話網址變了但畫面還停在原地，看起來像上一頁壞掉
+        if (window.MapleNav) window.MapleNav.switchNav("db");
         showTab(s.key, true);
+        s.load();
         s.showDetail(route.id);
         return;
       }
@@ -1129,5 +1175,13 @@
     if (target) target.load();
   }
 
-  window.MapleDb = { load, showTab };
+  // showSet 給外部（首頁卡片、sidebar.js 的 [data-nav-subtab]）用：切子分頁
+  // 順便把該資料集的索引載起來，不然會看到空列表
+  function showSet(key) {
+    showTab(key);
+    const s = SETS.find((x) => x.key === key);
+    if (s) s.load();
+  }
+
+  window.MapleDb = { load, showTab: showSet };
 })();

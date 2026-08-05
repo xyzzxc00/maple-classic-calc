@@ -1235,6 +1235,9 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   cursor: pointer;
 }
 .db-drop-item:hover { background: var(--surface-tint); }
+/* 沒有對應詳情頁的掉落物（遊戲資料裡未命名的那些）：照列但不可點 */
+.db-drop-item--plain { cursor: default; }
+.db-drop-item--plain:hover { background: none; }
 .db-drop-icon { width: 32px; height: 32px; flex-shrink: 0; object-fit: contain; }
 .db-drop-text { min-width: 0; }
 .db-drop-name {
