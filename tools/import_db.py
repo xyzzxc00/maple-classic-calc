@@ -242,11 +242,21 @@ def build_detail(m, map_ids, quest_ids, item_ids):
 # 潛在技能、2009 年的期間限定活動技能。判斷依據都取客觀訊號，不靠猜：
 HANGUL = re.compile(r"[가-힣]")
 EXPIRY = re.compile(r"有效(時間|期間)[：:]\s*\d{4}")
+# 沒有客觀訊號可以判定、但使用者在遊戲裡確認過不存在的技能。它們的說明、圖示、
+# 每級資料都跟正常技能一樣（活動技能的殘留），只能逐一列出來
+SKILL_BLOCKLIST = {
+    1009,  # 竹竿天擊
+    1010,  # 金剛不壞
+    1011,  # 地火天爆
+    1020,  # 法老的憤怒攻擊（效果是清空金字塔，而金字塔在還沒開放的納希沙漠）
+}
 
 
 def skill_noise(s):
     """回傳排除原因；不該排除就回 None"""
     text = (s.get("description") or "") + (s.get("formula") or "")
+    if s.get("id") in SKILL_BLOCKLIST:
+        return "遊戲內確認不存在（活動技能殘留）"
     if s.get("maxLevel") is None:
         return "沒有等級上限，資料本身不完整"
     if HANGUL.search(text):
@@ -565,8 +575,12 @@ def build_map_details(maps, map_ids, monster_ids):
                     "level": s.get("level"),
                     "count": 0,
                     "link": mid in monster_ids,
+                    # 原始座標：畫面上照著列出來，玩家在遊戲裡對得起來
+                    "points": [],
                 }
             mobs[mid]["count"] += 1
+            if s.get("x") is not None and s.get("y") is not None:
+                mobs[mid]["points"].append([s["x"], s["y"]])
             if has_mini and s.get("x") is not None and s.get("y") is not None:
                 spawns.append({
                     "id": mid,
@@ -584,27 +598,37 @@ def build_map_details(maps, map_ids, monster_ids):
             if n.get("x") is not None
         ]
 
+        # 傳送點分兩種：跨地圖（通往別張圖）與同地圖（同一張圖裡的上下樓梯、
+        # 傳送台）。同地圖的對「這張圖長怎樣」還是有意義，畫在圖上但用不同
+        # 顏色，跟跨地圖的分開
         portals = []
+        seen = set()
         for p in m.get("portals") or []:
             tid = p.get("targetMapId")
-            if not tid or p.get("sameMap"):
-                continue  # 同圖內的傳送點對讀者沒有意義，只留跨地圖的
+            same = bool(p.get("sameMap"))
+            if not tid and not same:
+                continue
             # targetMapName 有時已經是「區域 / 地圖」的完整格式，再前綴一次
             # 街道名會變成「迷霧森林 / 迷霧森林 / 螞蟻洞Ⅱ」
             t_name = p.get("targetMapName") or ""
             t_street = p.get("targetMapStreet") or ""
+            key = ("same", p.get("x"), p.get("y")) if same else ("to", tid)
+            # 跨地圖：同一張目標圖有好幾個入口只留一筆；同地圖：按座標去重
+            if key in seen:
+                continue
+            seen.add(key)
             portals.append({
                 "id": tid,
+                "same": same,
                 "name": (t_name if (not t_street or t_street in t_name)
-                         else f"{t_street} / {t_name}") or f"地圖 {tid}",
+                         else f"{t_street} / {t_name}") or (f"地圖 {tid}" if tid else "同圖傳送"),
                 "region": p.get("targetRegionName") or "",
-                "link": tid in map_ids,
+                "link": bool(tid) and tid in map_ids and not same,
+                "tx": p.get("x"),
+                "ty": p.get("y"),
                 "x": pct(p["x"], mm["centerX"], mm["width"]) if has_mini and p.get("x") is not None else None,
                 "y": pct(p["y"], mm["centerY"], mm["height"]) if has_mini and p.get("y") is not None else None,
             })
-        # 同一張目標地圖可能有好幾個入口，列表只留一筆
-        seen = set()
-        portals = [p for p in portals if not (p["id"] in seen or seen.add(p["id"]))]
 
         # 沒有怪物、沒有 NPC、也沒有跨地圖傳送點的地圖，畫面上什麼都給不出來。
         # 這些多半是遊戲內部的隱藏圖（「未命名地圖 910320011」）或測試用的圖
@@ -637,7 +661,7 @@ def build_map_index(details):
             "mobs": len(d["mobs"]),
             "spawns": sum(x["count"] for x in d["mobs"]),
             "npcs": len(d["npcs"]),
-            "portals": len(d["portals"]),
+            "portals": sum(1 for p in d["portals"] if not p["same"]),
         }
         for d in details
     ]

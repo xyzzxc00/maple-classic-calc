@@ -1351,16 +1351,47 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 }
 .db-marker {
   position: absolute;
-  width: 7px;
-  height: 7px;
-  margin: -3.5px 0 0 -3.5px;
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
   box-sizing: border-box;
+  padding: 0;
 }
-.db-marker--mob { background: var(--danger); }
+/* 怪物標記直接放該怪的圖示：一顆點只說得出「這裡有怪」，圖示能一眼分辨
+   是哪一種。整顆是按鈕，點了看那隻怪的資料 */
+.db-marker--mob {
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border: none;
+  border-radius: 0;
+  background: none;
+  cursor: pointer;
+  line-height: 0;
+}
+.db-marker--mob img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+  /* 深色地圖上的深色怪會糊在背景裡，加一圈描邊撐出輪廓 */
+  filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 2px rgba(0, 0, 0, 0.6));
+}
+.db-marker--mob:hover img { filter: drop-shadow(0 0 2px var(--accent-text)); }
 .db-marker--npc { background: var(--accent-text); }
-.db-marker--portal { background: var(--warning); }
+/* 傳送點用菱形跟圓點區隔：跨地圖是藍的（會離開這張圖），同圖是橘的 */
+.db-marker--portal,
+.db-marker--portal-same {
+  width: 13px;
+  height: 13px;
+  margin: -6.5px 0 0 -6.5px;
+  border-radius: 2px;
+  transform: rotate(45deg);
+}
+.db-marker--portal { background: #4a90d9; }
+.db-marker--portal-same { background: var(--warning); }
 .db-map-legend {
   display: flex;
   gap: 14px;
@@ -1369,9 +1400,39 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   font-size: 12px;
   color: var(--ink-soft);
 }
-.db-map-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.db-map-legend span { display: inline-flex; align-items: center; gap: 6px; }
 /* 圖例裡的標記是靜態的，不要吃到絕對定位 */
-.db-map-legend .db-marker { position: static; margin: 0; }
+.db-map-legend .db-marker { position: static; margin: 0; transform: none; }
+.db-map-legend .db-marker--portal,
+.db-map-legend .db-marker--portal-same { transform: rotate(45deg); }
+
+@media (max-width: 560px) {
+  /* 手機的圖只有三百多像素寬，26px 的怪物圖示會把整張圖蓋滿，縮一號 */
+  .db-marker--mob { width: 18px; height: 18px; margin: -9px 0 0 -9px; }
+  .db-marker--portal,
+  .db-marker--portal-same { width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; }
+}
+
+/* 標記類別的顯示開關 */
+.db-map-toggles { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.db-map-toggles .cm-sort-btn {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 6px 12px;
+  font-size: 12px;
+}
+.db-map-toggles .cm-sort-btn:not(.active) { opacity: 0.55; }
+
+/* 怪物座標：玩家在遊戲裡對得起來的原始數字 */
+.db-map-mob { padding: 8px 0; border-bottom: 1px solid var(--border); }
+.db-map-mob:last-child { border-bottom: none; }
+.db-map-coords {
+  margin: 6px 0 0;
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  line-height: 1.7;
+  word-break: break-all;
+}
 
 /* 製作配方：一個配方一塊，上面是做的人跟花費、下面是材料 */
 .db-craft { padding: 10px 0; border-bottom: 1px solid var(--border); }

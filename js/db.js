@@ -635,48 +635,88 @@
     },
     renderDetail(d) {
       // 小地圖上的標記：位置在匯入時就換算成百分比，這裡直接套，畫面縮放
-      // 也不會跑掉。原圖只有一百多像素寬，放大時保留鋸齒比糊掉好看
+      // 也不會跑掉。原圖只有一百多像素寬，放大時保留鋸齒比糊掉好看。
+      // 怪物標記直接用該怪的圖示——一顆紅點只能告訴你「這裡有怪」，圖示
+      // 能一眼看出是哪一種，密度分布也更好認
       const markers = d.hasMini
         ? [
             ...d.spawns.map(
-              (s) => `<span class="db-marker db-marker--mob" style="left:${s.x}%;top:${s.y}%"></span>`
+              (s) => `<button class="db-marker db-marker--mob" type="button"
+                        data-db-goto="monster" data-db-id="${esc(s.id)}"
+                        style="left:${s.x}%;top:${s.y}%"
+                        title="${esc((d.mobs.find((m) => m.id === s.id) || {}).name || "")}">
+                        <img src="assets/db/monsters/${encodeURIComponent(s.id)}.png" alt=""
+                             loading="lazy" decoding="async"></button>`
             ),
             ...d.npcs
               .filter((n) => n.x != null)
-              .map((n) => `<span class="db-marker db-marker--npc" style="left:${n.x}%;top:${n.y}%"></span>`),
+              .map(
+                (n) => `<span class="db-marker db-marker--npc" style="left:${n.x}%;top:${n.y}%"
+                          title="${esc(n.name)}"></span>`
+              ),
             ...d.portals
               .filter((p) => p.x != null)
-              .map((p) => `<span class="db-marker db-marker--portal" style="left:${p.x}%;top:${p.y}%"></span>`),
+              .map(
+                (p) => `<span class="db-marker db-marker--${p.same ? "portal-same" : "portal"}"
+                          style="left:${p.x}%;top:${p.y}%" title="${esc(p.same ? "同圖傳送" : p.name)}"></span>`
+              ),
           ].join("")
         : "";
 
+      const hasSame = d.portals.some((p) => p.same && p.x != null);
       const figure = d.hasMini
-        ? `<div class="db-map-figure">
+        ? `<div class="db-map-figure" id="dbMapFigure">
              <img class="db-map-img" src="assets/db/maps/${encodeURIComponent(d.id)}.png"
                   alt="${esc(d.name)} 小地圖" loading="lazy" decoding="async">
              ${markers}
            </div>
            <div class="db-map-legend">
-             <span><i class="db-marker db-marker--mob"></i>怪物重生點</span>
              <span><i class="db-marker db-marker--npc"></i>NPC</span>
-             <span><i class="db-marker db-marker--portal"></i>傳送點</span>
-           </div>`
+             <span><i class="db-marker db-marker--portal"></i>跨地圖傳送</span>
+             ${hasSame ? '<span><i class="db-marker db-marker--portal-same"></i>同圖傳送</span>' : ""}
+           </div>
+           <div class="db-map-toggles">
+             ${d.spawns.length ? '<button class="cm-sort-btn active" type="button" data-map-toggle="mob">怪物</button>' : ""}
+             ${d.npcs.some((n) => n.x != null) ? '<button class="cm-sort-btn active" type="button" data-map-toggle="npc">NPC</button>' : ""}
+             ${d.portals.some((p) => !p.same && p.x != null) ? '<button class="cm-sort-btn active" type="button" data-map-toggle="portal">跨地圖傳送</button>' : ""}
+             ${hasSame ? '<button class="cm-sort-btn active" type="button" data-map-toggle="portal-same">同圖傳送</button>' : ""}
+           </div>
+           <p class="db-section-note">點小地圖上的怪物圖示可以直接看那隻怪的資料；上面的按鈕可以切換要顯示哪一類標記。</p>`
         : '<p class="cm-empty">這張地圖沒有小地圖資料</p>';
 
+      // 怪物列表帶上實際座標，玩家在遊戲裡按住 F1（座標顯示）對得起來
       const mobs = d.mobs.length
-        ? `<div class="db-chip-row">${d.mobs
-            .map((m) =>
-              m.link
-                ? linkChip("monster", m.id, `${m.name} Lv.${m.level}`, `${m.count} 點`)
-                : plainChip(`${m.name} Lv.${m.level}`, `${m.count} 點`)
-            )
+        ? `<div class="db-sub-list">${d.mobs
+            .map((m) => {
+              const pts = (m.points || [])
+                .slice(0, 8)
+                .map((p) => `(${p[0]}, ${p[1]})`)
+                .join("、");
+              const more = (m.points || []).length > 8 ? ` …等 ${m.points.length} 處` : "";
+              const name = `${m.name} Lv.${m.level}`;
+              return `<div class="db-map-mob">
+                <div class="db-map-mob-head">
+                  ${m.link
+                    ? linkChip("monster", m.id, name, `${m.count} 點`)
+                    : plainChip(name, `${m.count} 點`)}
+                </div>
+                ${pts ? `<p class="db-map-coords">${esc(pts)}${esc(more)}</p>` : ""}
+              </div>`;
+            })
             .join("")}</div>`
         : '<p class="cm-empty">這張地圖沒有怪物</p>';
 
-      const portals = d.portals.length
-        ? `<div class="db-chip-row">${d.portals
-            .map((p) =>
-              p.link ? linkChip("map", p.id, p.name) : plainChip(p.name, p.region)
+      const crossPortals = d.portals.filter((p) => !p.same);
+      const portals = crossPortals.length
+        ? `<div class="db-sub-list">${crossPortals
+            .map(
+              (p) => `<div class="db-sub-item">
+                <span class="db-sub-name">${p.link
+                  ? `<button class="db-inline-link" type="button" data-db-goto="map" data-db-id="${esc(p.id)}">${esc(p.name)}</button>`
+                  : esc(p.name)}</span>
+                <span class="db-sub-meta">${esc(p.region)}</span>
+                <span class="db-sub-num">${p.tx != null ? `(${p.tx}, ${p.ty})` : ""}</span>
+              </div>`
             )
             .join("")}</div>`
         : "";
@@ -705,14 +745,24 @@
           <h3 class="db-section-title">出沒怪物<span class="db-sub-num">${d.mobs.length} 種</span></h3>
           ${mobs}
         </section>
+        <!-- 標記切換：純顯示控制，交給下面的 onDetailClick 處理 -->
         ${portals ? `<section class="db-section">
-          <h3 class="db-section-title">通往<span class="db-sub-num">${d.portals.length}</span></h3>
+          <h3 class="db-section-title">通往<span class="db-sub-num">${crossPortals.length}</span></h3>
           ${portals}
         </section>` : ""}
         ${npcs ? `<section class="db-section">
           <h3 class="db-section-title">NPC</h3>
           ${npcs}
         </section>` : ""}`;
+    },
+    onDetailClick(e) {
+      const toggle = e.target.closest("[data-map-toggle]");
+      if (!toggle) return;
+      const kind = toggle.dataset.mapToggle;
+      const on = toggle.classList.toggle("active");
+      document
+        .querySelectorAll(`#dbMapFigure .db-marker--${kind}`)
+        .forEach((el) => (el.hidden = !on));
     },
   });
 

@@ -1,1 +1,1 @@
-{"id":910320000,"name":"拋棄的捷運歷史","street":"隱藏地圖","region":"維多利亞島","hasMini":false,"spawns":[],"mobs":[],"npcs":[{"name":"林車長","x":null,"y":null}],"portals":[{"id":102040000,"name":"維多利亞 / 墮落城市北方工地","region":"維多利亞島","link":true,"x":null,"y":null}]}
+{"id":910320000,"name":"拋棄的捷運歷史","street":"隱藏地圖","region":"維多利亞島","hasMini":false,"spawns":[],"mobs":[],"npcs":[{"name":"林車長","x":null,"y":null}],"portals":[{"id":102040000,"same":false,"name":"維多利亞 / 墮落城市北方工地","region":"維多利亞島","link":true,"tx":-209,"ty":-167,"x":null,"y":null}]}
