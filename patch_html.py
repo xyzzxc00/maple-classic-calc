@@ -29,6 +29,39 @@ DIST = os.environ.get("DIST_DIR", "dist")
 # 就默默產出空東西」的 bug 不會有任何錯誤訊息，CI 照樣全綠、網站照樣上線
 MIN_SIDEBAR_LINKS = 10
 
+# 每次部署給 js/css 蓋一個版本戳，網址變了瀏覽器才會重新抓。沒有這個的話，
+# 回訪的使用者會拿快取裡的舊 JS 去跑新的資料檔——2026-08-05 部署完在正式站
+# 上實測就撞到：新功能的程式碼明明在線上，瀏覽器卻還在跑上一版。
+# CI 用該次 commit 的 SHA（GITHUB_SHA），本機沒有就用檔案內容雜湊，都拿不到
+# 就退回時間戳
+def build_stamp():
+    sha = os.environ.get("GITHUB_SHA", "").strip()
+    if sha:
+        return sha[:8]
+    try:
+        import hashlib
+
+        h = hashlib.sha1()
+        for name in ("index.html", "style.css"):
+            p = os.path.join(DIST, name)
+            if os.path.exists(p):
+                with open(p, "rb") as f:
+                    h.update(f.read())
+        return h.hexdigest()[:8]
+    except Exception:
+        import time
+
+        return str(int(time.time()))
+
+
+VERSION = None  # main() 決定，讓下面的改寫函式都拿得到
+
+
+def stamp_assets(html, root=""):
+    """幫本站自己的 js/css 加上 ?v=版本。只動相對路徑，外部 CDN 不碰"""
+    pattern = r'(src|href)="(' + re.escape(root) + r'(?:js/[^"?]+\.js|style\.css))"'
+    return re.sub(pattern, lambda m: f'{m.group(1)}="{m.group(2)}?v={VERSION}"', html)
+
 
 def read(path):
     with open(path, encoding="utf-8") as f:
@@ -53,6 +86,7 @@ def patch_index():
     html = read(path)
     html = re.sub(r'\s*<script defer src="js/[^"]+"></script>', "", html)
     html = html.replace("</body>", '<script defer src="js/bundle.js"></script>\n</body>')
+    html = stamp_assets(html)
     write(path, html)
     return html
 
@@ -237,7 +271,8 @@ def inject_shell(html, parts, root):
     ):
         if needle not in html:
             fail(f"注入外殼後找不到{what}，注入失敗")
-    return html
+    # 版本戳要最後蓋：上面剛注入的 sidebar.js 也要一起帶到
+    return stamp_assets(html, root)
 
 
 def shell_pages():
@@ -253,6 +288,9 @@ def shell_pages():
 
 
 def main():
+    global VERSION
+    VERSION = build_stamp()
+    print(f"asset version = {VERSION}")
     index_html = patch_index()
     shell = extract_shell(index_html)
 
