@@ -1,0 +1,1 @@
+{"id":1432007,"name":"銀龍槍","desc":"","cat":"裝備","sub":"槍","sell":250000,"equip":{"attackSpeed":8,"incACC":3,"incPAD":87,"price":250000,"reqJob":1,"reqLevel":70,"reqSTR":220,"tuc":7},"drops":[{"id":"6220000","name":"沼澤巨鱷","level":65},{"id":"6230601","name":"黑龍","level":68},{"id":"8130100","name":"巴洛古","level":80}],"shops":[],"quests":[]}

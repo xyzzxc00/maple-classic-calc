@@ -1,0 +1,1 @@
+{"id":1452001,"name":"打獵弓","desc":"","cat":"裝備","sub":"弓","sell":5000,"equip":{"attackSpeed":6,"incDEX":1,"incPAD":35,"knockback":32,"price":5000,"reqDEX":65,"reqJob":4,"reqLevel":20,"reqSTR":25,"tuc":7},"drops":[{"id":"2230101","name":"殭屍菇菇","level":24}],"shops":[{"npc":"克爾","price":10000,"currency":"楓幣","maps":["維多利亞 / 弓箭手村武器店"]}],"quests":[]}

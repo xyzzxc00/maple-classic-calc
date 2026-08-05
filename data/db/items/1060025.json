@@ -1,0 +1,1 @@
+{"id":1060025,"name":"青夜褲","desc":"","cat":"裝備","sub":"褲裙","sell":2400,"equip":{"incMMP":5,"incPDD":12,"price":2400,"reqDEX":30,"reqJob":8,"reqLUK":35,"reqLevel":15,"tuc":7},"drops":[{"id":"1210103","name":"藍水靈","level":15}],"shops":[{"npc":"瑪帕","price":4800,"currency":"楓幣","maps":["維多利亞 / 墮落城市武器店"]}],"quests":[]}

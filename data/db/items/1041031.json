@@ -1,0 +1,1 @@
+{"id":1041031,"name":"紫伽藍","desc":"","cat":"裝備","sub":"上衣","sell":4250,"equip":{"incMDD":10,"incMMP":10,"incPDD":15,"price":4250,"reqINT":55,"reqJob":2,"reqLUK":20,"reqLevel":18,"tuc":7},"drops":[{"id":"2130103","name":"青蛇","level":21}],"shops":[{"npc":"妖精 舍拉比","price":8500,"currency":"楓幣","maps":["維多利亞 / 魔法森林武器店"]}],"quests":[]}

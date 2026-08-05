@@ -1,0 +1,1 @@
+{"id":1432003,"name":"刺槍","desc":"","cat":"裝備","sub":"槍","sell":70000,"equip":{"attackSpeed":8,"incPAD":57,"price":70000,"reqJob":1,"reqLevel":35,"reqSTR":115,"tuc":7},"drops":[{"id":"2230102","name":"黑肥肥","level":25},{"id":"3230100","name":"風獨眼獸","level":35}],"shops":[],"quests":[]}

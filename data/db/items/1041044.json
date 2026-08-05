@@ -1,0 +1,1 @@
+{"id":1041044,"name":"赤夜","desc":"","cat":"裝備","sub":"上衣","sell":2500,"equip":{"incLUK":1,"incPDD":14,"price":2500,"reqDEX":30,"reqJob":8,"reqLUK":35,"reqLevel":15,"tuc":7},"drops":[{"id":"1110100","name":"綠菇菇","level":15}],"shops":[{"npc":"瑪帕","price":5000,"currency":"楓幣","maps":["維多利亞 / 墮落城市武器店"]}],"quests":[]}

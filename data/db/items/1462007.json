@@ -1,0 +1,1 @@
+{"id":1462007,"name":"炎弩","desc":"","cat":"裝備","sub":"弩","sell":170000,"equip":{"attackSpeed":6,"incPAD":68,"knockback":42,"price":170000,"reqDEX":160,"reqJob":4,"reqLevel":50,"reqSTR":50,"tuc":7},"drops":[{"id":"4230101","name":"天使猴","level":40},{"id":"5220002","name":"殭屍猴王","level":50}],"shops":[],"quests":[]}

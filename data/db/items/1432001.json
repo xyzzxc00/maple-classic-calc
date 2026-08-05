@@ -1,0 +1,1 @@
+{"id":1432001,"name":"叉槍","desc":"","cat":"裝備","sub":"槍","sell":3500,"equip":{"attackSpeed":8,"incPAD":37,"price":3500,"reqJob":13,"reqLevel":15,"reqSTR":15,"tuc":7},"drops":[{"id":"210100","name":"綠水靈","level":6}],"shops":[{"npc":"利伯","price":7000,"currency":"楓幣","maps":["維多利亞 / 勇士之村武器店"]},{"npc":"曼斯塔","price":7000,"currency":"楓幣","maps":["維多利亞 / 墮落城市武器店"]}],"quests":[]}

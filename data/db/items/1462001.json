@@ -1,0 +1,1 @@
+{"id":1462001,"name":"弩弓","desc":"","cat":"裝備","sub":"弩","sell":2000,"equip":{"attackSpeed":6,"incPAD":29,"knockback":28,"price":2000,"reqJob":4,"reqLevel":12,"tuc":7},"drops":[],"shops":[{"npc":"克爾","price":4000,"currency":"楓幣","maps":["維多利亞 / 弓箭手村武器店"]}],"quests":[]}

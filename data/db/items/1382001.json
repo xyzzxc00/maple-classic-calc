@@ -1,0 +1,1 @@
+{"id":1382001,"name":"精靈長杖","desc":"","cat":"裝備","sub":"長杖","sell":100000,"equip":{"attackSpeed":8,"incMAD":60,"incPAD":41,"price":100000,"reqINT":138,"reqJob":2,"reqLUK":48,"reqLevel":45,"tuc":7},"drops":[{"id":"4230101","name":"天使猴","level":40},{"id":"4130100","name":"土龍","level":45},{"id":"4230104","name":"青螃蟹","level":48}],"shops":[],"quests":[]}

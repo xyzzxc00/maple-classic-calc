@@ -1,0 +1,1 @@
+{"id":1041021,"name":"褐十字軍甲","desc":"","cat":"裝備","sub":"上衣","sell":4500,"equip":{"incPDD":25,"incSTR":1,"price":4500,"reqJob":1,"reqLevel":20,"reqSTR":65,"tuc":7},"drops":[{"id":"2130103","name":"青蛇","level":21}],"shops":[{"npc":"海里","price":9000,"currency":"楓幣","maps":["維多利亞 / 勇士之村武器店"]}],"quests":[]}

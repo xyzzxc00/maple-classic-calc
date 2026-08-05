@@ -1,0 +1,1 @@
+{"id":1061024,"name":"綠硬皮裙","desc":"","cat":"裝備","sub":"褲裙","sell":4500,"equip":{"incMHP":3,"incMMP":2,"incPDD":15,"price":4500,"reqDEX":65,"reqJob":4,"reqLevel":20,"tuc":7},"drops":[{"id":"2230102","name":"黑肥肥","level":25}],"shops":[{"npc":"山姆","price":9000,"currency":"楓幣","maps":["維多利亞 / 弓箭手村武器店"]}],"quests":[]}

@@ -1,0 +1,1 @@
+{"id":1412001,"name":"鐵斧","desc":"","cat":"裝備","sub":"雙手斧","sell":1500,"equip":{"attackSpeed":6,"incPAD":32,"price":1500,"reqJob":13,"reqLevel":10,"tuc":7},"drops":[{"id":"210100","name":"綠水靈","level":6}],"shops":[{"npc":"利伯","price":3000,"currency":"楓幣","maps":["維多利亞 / 勇士之村武器店"]},{"npc":"曼斯塔","price":3000,"currency":"楓幣","maps":["維多利亞 / 墮落城市武器店"]}],"quests":[]}

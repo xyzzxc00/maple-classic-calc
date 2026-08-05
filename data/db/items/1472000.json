@@ -1,0 +1,1 @@
+{"id":1472000,"name":"拳套","desc":"","cat":"裝備","sub":"拳套","sell":1500,"equip":{"attackSpeed":6,"incPAD":10,"price":1500,"reqJob":8,"reqLevel":10,"tuc":7},"drops":[{"id":"1210100","name":"肥肥","level":7}],"shops":[{"npc":"曼斯塔","price":3000,"currency":"楓幣","maps":["維多利亞 / 墮落城市武器店"]}],"quests":[]}

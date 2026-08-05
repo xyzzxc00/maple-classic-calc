@@ -1,0 +1,1 @@
+{"id":1051010,"name":"黑護身鎧甲","desc":"","cat":"裝備","sub":"套服","sell":30000,"equip":{"incPDD":52,"incSTR":3,"price":30000,"reqJob":1,"reqLevel":30,"reqSTR":100,"tuc":10},"drops":[{"id":"3230101","name":"小幽靈","level":35}],"shops":[{"npc":"海里","price":60000,"currency":"楓幣","maps":["維多利亞 / 勇士之村武器店"]}],"quests":[]}

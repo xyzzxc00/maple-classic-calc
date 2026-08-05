@@ -1,0 +1,1 @@
+{"id":1002127,"name":"紅色自由帽","desc":"","cat":"裝備","sub":"帽子","sell":6000,"equip":{"incMHP":5,"incPDD":15,"price":6000,"reqDEX":40,"reqJob":8,"reqLUK":50,"reqLevel":20,"tuc":7},"drops":[{"id":"2220100","name":"藍菇菇","level":20}],"shops":[{"npc":"瑪帕","price":12000,"currency":"楓幣","maps":["維多利亞 / 墮落城市武器店"]}],"quests":[]}

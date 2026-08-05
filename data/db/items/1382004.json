@@ -1,0 +1,1 @@
+{"id":1382004,"name":"古樹長杖","desc":"","cat":"裝備","sub":"長杖","sell":5000,"equip":{"attackSpeed":8,"incMAD":35,"incPAD":26,"price":5000,"reqINT":62,"reqJob":2,"reqLUK":23,"reqLevel":20,"tuc":7},"drops":[{"id":"1130100","name":"斧木妖","level":17}],"shops":[{"npc":"妖精 佛羅拉","price":10000,"currency":"楓幣","maps":["維多利亞 / 魔法森林武器店"]}],"quests":[]}

@@ -1,0 +1,1 @@
+{"id":1051013,"name":"黃護身鎧甲","desc":"","cat":"裝備","sub":"套服","sell":30000,"equip":{"incDEX":3,"incPDD":52,"price":30000,"reqJob":1,"reqLevel":30,"reqSTR":100,"tuc":10},"drops":[{"id":"3110100","name":"鱷魚","level":32}],"shops":[{"npc":"海里","price":60000,"currency":"楓幣","maps":["維多利亞 / 勇士之村武器店"]}],"quests":[]}

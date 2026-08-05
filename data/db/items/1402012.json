@@ -1,0 +1,1 @@
+{"id":1402012,"name":"霸王劍","desc":"","cat":"裝備","sub":"雙手劍","sell":260000,"equip":{"attackSpeed":6,"incPAD":85,"price":260000,"reqJob":1,"reqLevel":70,"reqSTR":220,"tuc":7},"drops":[{"id":"6220000","name":"沼澤巨鱷","level":65},{"id":"8130100","name":"巴洛古","level":80}],"shops":[],"quests":[]}

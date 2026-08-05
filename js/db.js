@@ -423,14 +423,16 @@
                   const bits = [];
                   if (x.equip && x.equip.reqLevel) bits.push(`需求 Lv.${x.equip.reqLevel}`);
                   if (x.sell) bits.push(`賣店 ${num(x.sell)}`);
-                  return `<div class="db-drop-item">
+                  // 掉落物一定在道具資料集裡（「被收錄的怪掉的」本來就是收錄
+                  // 條件之一），所以可以直接連過去
+                  return `<button class="db-drop-item" type="button" data-db-goto="item" data-db-id="${esc(x.id)}">
                     <img class="db-drop-icon" src="assets/db/items/${encodeURIComponent(x.id)}.png"
                          alt="" loading="lazy" decoding="async" width="32" height="32">
                     <span class="db-drop-text">
                       <span class="db-drop-name">${esc(x.name)}</span>
                       <span class="db-drop-meta">${esc([x.sub, ...bits].filter(Boolean).join(" · "))}</span>
                     </span>
-                  </div>`;
+                  </button>`;
                 })
                 .join("")}</div>
             </div>`;
@@ -510,6 +512,160 @@
     },
   });
 
+  // ------------------------------------------------------------- 道具
+
+  const EQUIP_REQ = [
+    ["reqLevel", "等級"], ["reqSTR", "力量"], ["reqDEX", "敏捷"],
+    ["reqINT", "智力"], ["reqLUK", "幸運"], ["reqPOP", "人氣"],
+  ];
+  const EQUIP_INC = [
+    ["incPAD", "物理攻擊"], ["incMAD", "魔法攻擊"],
+    ["incPDD", "物理防禦"], ["incMDD", "魔法防禦"],
+    ["incSTR", "力量"], ["incDEX", "敏捷"], ["incINT", "智力"], ["incLUK", "幸運"],
+    ["incMHP", "HP"], ["incMMP", "MP"],
+    ["incACC", "命中"], ["incEVA", "迴避"], ["incSpeed", "移動速度"],
+    ["tuc", "可升級次數"],
+  ];
+  // reqJob 是位元旗標，0 代表所有職業都能用
+  const JOB_BITS = [[1, "劍士"], [2, "法師"], [4, "弓箭手"], [8, "盜賊"], [16, "海盜"]];
+
+  function jobText(bits) {
+    if (!bits) return "全職業";
+    const names = JOB_BITS.filter(([b]) => bits & b).map(([, n]) => n);
+    return names.length ? names.join("、") : "全職業";
+  }
+
+  function itemImg(id, size) {
+    return `<img class="db-row-icon db-row-icon--skill" src="assets/db/items/${encodeURIComponent(id)}.png"
+      alt="" loading="lazy" decoding="async" width="${size}" height="${size}">`;
+  }
+
+  const items = makeSet({
+    key: "items",
+    route: "item",
+    dir: "items",
+    prefix: "dbItem",
+    label: "道具",
+    unit: "個",
+    filters: [
+      { id: "Search", test: (r, v) => !v || r.name.toLowerCase().includes(v.trim().toLowerCase()) },
+      { id: "Cat", test: (r, v) => !v || r.cat === v },
+      { id: "Sub", test: (r, v) => !v || r.sub === v },
+      { id: "LvMin", test: (r, v) => !v || (r.lv || 0) >= parseInt(v, 10) },
+      { id: "LvMax", test: (r, v) => !v || (r.lv || 0) <= parseInt(v, 10) },
+    ],
+    sorts: [
+      { key: "cat", cmp: (a, b) => a.cat.localeCompare(b.cat, "zh-TW") || a.sub.localeCompare(b.sub, "zh-TW") || a.name.localeCompare(b.name, "zh-TW") },
+      { key: "level", cmp: (a, b) => (b.lv || 0) - (a.lv || 0) },
+      { key: "sell", cmp: (a, b) => (b.sell || 0) - (a.sell || 0) },
+    ],
+    fillFilters(index, els) {
+      [...new Set(index.map((i) => i.cat))].filter(Boolean).sort().forEach((c) => {
+        const o = document.createElement("option");
+        o.value = c;
+        o.textContent = c;
+        els.Cat.appendChild(o);
+      });
+      // 類型選單跟著分類連動，不然「裝備」的三十幾種子類會跟藥水混在一起
+      const bySub = new Map();
+      index.forEach((i) => {
+        if (!bySub.has(i.cat)) bySub.set(i.cat, new Set());
+        bySub.get(i.cat).add(i.sub);
+      });
+      const fillSub = () => {
+        const cat = els.Cat.value;
+        const subs = cat
+          ? [...(bySub.get(cat) || [])]
+          : [...new Set(index.map((i) => i.sub))];
+        els.Sub.innerHTML = '<option value="">全部類型</option>';
+        subs.filter(Boolean).sort().forEach((s) => {
+          const o = document.createElement("option");
+          o.value = s;
+          o.textContent = s;
+          els.Sub.appendChild(o);
+        });
+      };
+      fillSub();
+      els.Cat.addEventListener("change", fillSub);
+    },
+    renderRow(i) {
+      return `<button class="db-row" type="button" data-db-id="${esc(i.id)}">
+        ${itemImg(i.id, 44)}
+        <div class="db-row-main">
+          <div class="db-row-title">
+            <span class="db-row-name">${esc(i.name)}</span>
+            ${i.lv ? `<span class="db-row-level">Lv.${i.lv}</span>` : ""}
+            <span class="db-tag">${esc(i.sub || i.cat)}</span>
+          </div>
+          <div class="db-row-meta">${esc(i.cat)}</div>
+        </div>
+        <dl class="db-row-stats">
+          <div><dt>賣店</dt><dd>${i.sell ? shortNum(i.sell) : "—"}</dd></div>
+          <div><dt>來源</dt><dd>${i.from}</dd></div>
+        </dl>
+      </button>`;
+    },
+    renderDetail(d) {
+      const eq = d.equip || {};
+      const reqs = EQUIP_REQ.filter(([k]) => eq[k]).map(
+        ([k, label]) => `<div><dt>${label}</dt><dd>${num(eq[k])}</dd></div>`
+      );
+      if (eq.reqJob != null) reqs.push(`<div><dt>職業</dt><dd>${jobText(eq.reqJob)}</dd></div>`);
+      const incs = EQUIP_INC.filter(([k]) => eq[k]).map(
+        ([k, label]) => `<div><dt>${label}</dt><dd>+${num(eq[k])}</dd></div>`
+      );
+
+      const sourceSection = (title, bits) =>
+        bits.length
+          ? `<section class="db-section">
+              <h3 class="db-section-title">${title}<span class="db-sub-num">${bits.length}</span></h3>
+              <div class="db-chip-row">${bits.join("")}</div>
+            </section>`
+          : "";
+
+      const dropBits = (d.drops || []).map((m) =>
+        linkChip("monster", m.id, m.name, m.level ? `Lv.${m.level}` : "")
+      );
+      const questBits = (d.quests || []).map((q) =>
+        linkChip("quest", q.id, q.name, q.kind + (q.count ? ` ×${q.count}` : ""))
+      );
+      const shopRows = (d.shops || []).map(
+        (s) => `<div class="db-sub-item">
+          <span class="db-sub-name">${esc(s.npc)}</span>
+          <span class="db-sub-meta">${esc(s.maps.join("、"))}</span>
+          <span class="db-sub-num">${num(s.price)} ${esc(s.currency)}</span>
+        </div>`
+      );
+
+      return `<button class="db-back" type="button" data-db-back>← 回到道具列表</button>
+        <div class="db-detail-head">
+          ${itemImg(d.id, 64)}
+          <div>
+            <div class="db-row-title">
+              <h2 class="db-detail-name">${esc(d.name)}</h2>
+              <span class="db-tag">${esc(d.sub || d.cat)}</span>
+            </div>
+            <p class="db-detail-desc">${esc(d.cat)}${d.sell ? ` · 賣店價 ${num(d.sell)}` : ""}</p>
+            ${d.desc ? `<p class="db-detail-desc">${esc(d.desc)}</p>` : ""}
+          </div>
+        </div>
+        ${reqs.length ? `<section class="db-section">
+          <h3 class="db-section-title">裝備需求</h3>
+          <dl class="db-stat-grid">${reqs.join("")}</dl>
+        </section>` : ""}
+        ${incs.length ? `<section class="db-section">
+          <h3 class="db-section-title">裝備加成</h3>
+          <dl class="db-stat-grid">${incs.join("")}</dl>
+        </section>` : ""}
+        ${sourceSection("哪些怪會掉", dropBits)}
+        ${shopRows.length ? `<section class="db-section">
+          <h3 class="db-section-title">哪裡買得到<span class="db-sub-num">${shopRows.length}</span></h3>
+          <div class="db-sub-list">${shopRows.join("")}</div>
+        </section>` : ""}
+        ${sourceSection("相關任務", questBits)}`;
+    },
+  });
+
   // ------------------------------------------------------------- 任務
 
   function linkChip(set, id, name, extra) {
@@ -573,11 +729,12 @@
             </div>`
           : "";
 
+      // 任務要的／給的道具一定在道具資料集裡（收錄任務的道具本來就是收錄
+      // 條件之一），可以直接連過去
+      const itemChip = (i) => linkChip("item", i.id, i.name, i.count ? `×${i.count}` : "");
       const startBits = [];
       if (d.start.level) startBits.push(plainChip(`Lv.${d.start.level} 以上`));
-      (d.start.items || []).forEach((i) =>
-        startBits.push(plainChip(i.name, i.count ? `×${i.count}` : ""))
-      );
+      (d.start.items || []).forEach((i) => startBits.push(itemChip(i)));
       (d.start.quests || []).forEach((q) =>
         startBits.push(
           q.link ? linkChip("quest", q.id, q.name, q.state) : plainChip(q.name, q.state)
@@ -585,9 +742,7 @@
       );
 
       const compBits = [];
-      (d.complete.items || []).forEach((i) =>
-        compBits.push(plainChip(i.name, i.count ? `×${i.count}` : ""))
-      );
+      (d.complete.items || []).forEach((i) => compBits.push(itemChip(i)));
       (d.complete.monsters || []).forEach((m) =>
         compBits.push(
           m.link
@@ -601,7 +756,7 @@
       if (rw.exp) rwBits.push(plainChip("經驗值", num(rw.exp)));
       if (rw.money) rwBits.push(plainChip("楓幣", num(rw.money)));
       if (rw.pop) rwBits.push(plainChip("人氣", num(rw.pop)));
-      (rw.items || []).forEach((i) => rwBits.push(plainChip(i.name, i.count ? `×${i.count}` : "")));
+      (rw.items || []).forEach((i) => rwBits.push(itemChip(i)));
       (rw.skills || []).forEach((s) =>
         rwBits.push(s.link ? linkChip("skill", s.id, s.name || "技能") : plainChip(s.name || "技能"))
       );
@@ -773,7 +928,7 @@
 
   // ------------------------------------------------------------- 組裝
 
-  const SETS = [monsters, quests, skills].filter(Boolean);
+  const SETS = [monsters, items, quests, skills].filter(Boolean);
 
   SETS.forEach((s) => {
     const btn = document.getElementById("dbSub" + s.key.charAt(0).toUpperCase() + s.key.slice(1));

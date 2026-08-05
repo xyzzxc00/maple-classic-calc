@@ -347,6 +347,80 @@ def build_quest_index(details):
     ]
 
 
+def build_item_details(items, kept_monster_ids, map_ids, quest_ids):
+    """道具：只收「在開放範圍內拿得到」的——被收錄的怪掉的、開放地圖的商店賣的、
+    或收錄任務給的／要的。拿不到的東西列出來只會讓人白找"""
+    out = []
+    for it in items:
+        src = it.get("sources") or {}
+        drops = [d for d in (src.get("monsterDrops") or [])
+                 if str(d.get("monsterId")) in kept_monster_ids]
+        shops = [
+            s
+            for s in (src.get("shops") or [])
+            if any(m.get("id") in map_ids for m in ((s.get("npc") or {}).get("maps") or []))
+        ]
+        q_rewards = [q for q in (src.get("questRewards") or [])
+                     if str(q.get("questId")) in quest_ids]
+        q_reqs = [q for q in (src.get("questRequirements") or [])
+                  if str(q.get("questId")) in quest_ids]
+        if not (drops or shops or q_rewards or q_reqs):
+            continue
+
+        equip = it.get("equipStats") or {}
+        out.append({
+            "id": it["id"],
+            "name": it.get("name") or "",
+            "desc": (it.get("desc") or "").strip(),
+            "cat": it.get("category") or "",
+            "sub": it.get("subcategory") or "",
+            "sell": it.get("sellPrice") or 0,
+            "equip": {k: v for k, v in equip.items()
+                      if k not in ("islot", "vslot", "cash") and v},
+            "drops": [
+                {"id": str(d["monsterId"]), "name": d.get("monsterName") or "",
+                 "level": d.get("level")}
+                for d in drops
+            ],
+            "shops": [
+                {
+                    "npc": (s.get("npc") or {}).get("name") or s.get("merchantName") or "",
+                    "price": s.get("price") or 0,
+                    "currency": s.get("currency") or "楓幣",
+                    "maps": [
+                        m.get("label") or m.get("name") or ""
+                        for m in ((s.get("npc") or {}).get("maps") or [])
+                        if m.get("id") in map_ids
+                    ],
+                }
+                for s in shops
+            ],
+            "quests": [
+                {"id": str(q["questId"]), "name": q.get("questName") or "",
+                 "kind": kind, "count": q.get("count") or 0}
+                for kind, rows in (("獎勵", q_rewards), ("需求", q_reqs))
+                for q in rows
+            ],
+        })
+    out.sort(key=lambda d: (d["cat"], d["sub"], d["name"]))
+    return out
+
+
+def build_item_index(details):
+    return [
+        {
+            "id": d["id"],
+            "name": d["name"],
+            "cat": d["cat"],
+            "sub": d["sub"],
+            "lv": (d["equip"] or {}).get("reqLevel") or 0,
+            "sell": d["sell"],
+            "from": len(d["drops"]) + len(d["shops"]) + len(d["quests"]),
+        }
+        for d in details
+    ]
+
+
 def build_index(details):
     """列表用的索引，欄位越少越好——這是進站就會載的檔案"""
     return [
@@ -436,11 +510,28 @@ def main():
                   encoding="utf-8") as f:
             json.dump(d, f, ensure_ascii=False, separators=(",", ":"))
 
+    # 道具
+    items_db = load(src, "items-data.js")
+    item_details = build_item_details(items_db["items"], monster_ids, map_ids, quest_ids)
+    os.makedirs(os.path.join(OUT_DATA, "items"), exist_ok=True)
+    with open(os.path.join(OUT_DATA, "items.json"), "w", encoding="utf-8") as f:
+        json.dump(build_item_index(item_details), f, ensure_ascii=False, separators=(",", ":"))
+    for d in item_details:
+        with open(os.path.join(OUT_DATA, "items", f"{d['id']}.json"), "w",
+                  encoding="utf-8") as f:
+            json.dump(d, f, ensure_ascii=False, separators=(",", ":"))
+    kept_item_ids = {d["id"] for d in item_details}
+    item_img_paths = {
+        i["id"]: i["image"]
+        for i in items_db["items"]
+        if i.get("image") and i["id"] in kept_item_ids
+    }
+
     # 圖片：怪物本體 + 牠們會掉的道具 + 技能圖示
     shutil.rmtree(OUT_ASSETS, ignore_errors=True)
     mon_imgs = sum(copy_image(src, m.get("image"), os.path.join(OUT_ASSETS, "monsters"))
                    for m in kept)
-    item_paths = {}
+    item_paths = dict(item_img_paths)
     for m in kept:
         for d in m.get("drops") or []:
             if d.get("image"):
@@ -463,6 +554,10 @@ def main():
     print(f"  詳情檔   {detail_kb:.0f} KB（平均 {detail_kb / len(kept):.1f} KB）")
     print(f"  掉落     {sum(len(d['drops']) for d in details)} 筆，{len(item_paths)} 種道具")
     print(f"  相關任務 {sum(len(d['quests']) for d in details)} 筆")
+    item_kb = dirsize(os.path.join(OUT_DATA, "items")) / 1024
+    print(f"道具       {len(item_details)} 個"
+          f"（索引 {os.path.getsize(os.path.join(OUT_DATA, 'items.json')) / 1024:.0f} KB、"
+          f"詳情 {item_kb:.0f} KB）")
     quest_kb = dirsize(os.path.join(OUT_DATA, "quests")) / 1024
     print(f"任務       {len(quest_details)} 個"
           f"（索引 {os.path.getsize(os.path.join(OUT_DATA, 'quests.json')) / 1024:.0f} KB、"

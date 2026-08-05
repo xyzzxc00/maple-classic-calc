@@ -1,0 +1,1 @@
+{"id":1302000,"name":"劍","desc":"","cat":"裝備","sub":"單手劍","sell":1,"equip":{"attackSpeed":4,"incPAD":17,"price":1,"tuc":7},"drops":[],"shops":[{"npc":"賽德","price":50,"currency":"楓幣","maps":["彩虹之地 / 楓葉村武器店"]},{"npc":"賽爾文","price":50,"currency":"楓幣","maps":["維多利亞 / 維多利亞港武器店"]}],"quests":[]}

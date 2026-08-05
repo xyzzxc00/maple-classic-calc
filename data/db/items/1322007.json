@@ -1,0 +1,1 @@
+{"id":1322007,"name":"皮製手提包","desc":"","cat":"裝備","sub":"單手鈍器","sell":3000,"equip":{"attackSpeed":5,"incPAD":34,"price":3000,"reqLevel":15,"reqSTR":20,"tuc":7},"drops":[{"id":"130101","name":"紅寶","level":4}],"shops":[{"npc":"克爾","price":6000,"currency":"楓幣","maps":["維多利亞 / 弓箭手村武器店"]}],"quests":[]}

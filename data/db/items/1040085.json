@@ -1,0 +1,1 @@
+{"id":1040085,"name":"紫金鎧甲","desc":"","cat":"裝備","sub":"上衣","sell":50000,"equip":{"incMMP":10,"incPDD":45,"incSTR":3,"price":50000,"reqJob":1,"reqLevel":40,"reqPOP":20,"reqSTR":130,"tuc":7},"drops":[{"id":"3220000","name":"樹妖王","level":35},{"id":"4230102","name":"大幽靈","level":48},{"id":"5130102","name":"黑曜石巨人","level":58}],"shops":[],"quests":[]}
