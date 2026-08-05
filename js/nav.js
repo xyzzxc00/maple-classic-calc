@@ -66,13 +66,17 @@
       : "home";
   switchNav(initialPage);
 
-  // #home 純粹是「請忽略 localStorage、給我首頁」的指令（guides/、privacy/
-  // 那些獨立頁的站名與麵包屑都連這個），本身沒有分享價值，用完就從網址列
-  // 抹掉，不然使用者接著切到別的分頁再重整，又會被這個舊錨點拉回首頁。
-  // 這段要放在所有讀 location.hash 的模組之後——guides.js／community.js／
-  // legacySpots.js 的 script tag 都排在 nav.js 前面，載入時已經讀完了。
-  // 其他錨點（#calc-scroll 之類）是有意義的深層連結，留在網址列不動
-  if (location.hash === "#home") {
+  // 錨點的任務到這裡就結束了：它是「忽略上次的記憶、開這一頁」的一次性
+  // 指令（guides/ 與 privacy/ 的站名、麵包屑、「用練等計算機試算」都靠它），
+  // 套用完就從網址列抹掉。
+  // 留著的話網址會跟畫面分岔——站內切分頁不換頁、也就沒有人更新網址，於是
+  // 人在轉蛋模擬、網址卻還寫著 #calc-exp；這時按重整，舊錨點的優先權高於
+  // localStorage，使用者就被丟回練等計算。抹掉之後重整改由 localStorage 接手，
+  // 跟畫面永遠一致。
+  // 這段必須放在所有讀 location.hash 的模組之後——app.js／guides.js／
+  // community.js／legacySpots.js 的 script tag 都排在 nav.js 前面，載入時
+  // 已經讀完了。search 要保留：app.js 處理分享連結的參數時有自己的清法
+  if (location.hash) {
     history.replaceState(null, "", location.pathname + location.search);
   }
 

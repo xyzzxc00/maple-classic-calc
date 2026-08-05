@@ -307,7 +307,11 @@
       dailyHours: parseFloat(els.dailyHours.value) || 0,
       ownedCoupons: parseInt(els.ownedCoupons.value, 10) || 0,
     });
-    return `${location.origin}${location.pathname}?${params}`;
+    // 一定要帶 #calc-exp：收到連結的人如果上次逛的是社群資料或轉蛋模擬，
+    // 沒有錨點的話 nav.js 會照 localStorage 把他丟回那一頁——數字其實已經
+    // 填好也算好了，但他看到的是完全不相干的分頁，只會覺得連結壞了。
+    // 錨點套用完 nav.js 就會把它從網址列清掉，不影響他之後自己複製網址
+    return `${location.origin}${location.pathname}?${params}#calc-exp`;
   }
 
   els.shareBtn.addEventListener("click", async () => {
