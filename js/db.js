@@ -1160,13 +1160,20 @@
     }
   });
 
-  // 決定初始子分頁：網址指定的優先，其次記住的，最後預設第一個
+  // 決定初始子分頁：詳情網址（?db=…）最優先，其次錨點（#db-skills，guides/
+  // 文章頁的側邊欄連的就是這種），再來才是記住的，最後預設第一個。
+  // 錨點要在 nav.js 把它從網址列抹掉之前讀——nav.js 是先呼叫 switchNav
+  // （會觸發這裡的 load）才抹，所以讀得到
   function load() {
     const route = currentRoute();
     const routed = route && SETS.find((s) => s.route === route.set);
+    const hashSub = location.hash.slice(1).split("-")[1];
+    const hashed = SETS.find((s) => s.key === hashSub);
     const saved = localStorage.getItem(TAB_KEY);
     const initial = routed
       ? routed.key
+      : hashed
+      ? hashed.key
       : SETS.some((s) => s.key === saved)
       ? saved
       : SETS[0] && SETS[0].key;
