@@ -192,7 +192,21 @@
       )
     );
 
-    return { load, showList, showDetail, route: cfg.route, key: cfg.key };
+    return {
+      load,
+      showList,
+      showDetail,
+      route: cfg.route,
+      key: cfg.key,
+      label: cfg.label,
+      unit: cfg.unit,
+      // 全站搜尋要拿索引來找，但不該逼使用者先切到那個子分頁才載得到
+      search(q) {
+        return (index || []).filter((r) => r.name.toLowerCase().includes(q));
+      },
+      ensure: load,
+      searchRow: cfg.searchRow,
+    };
   }
 
   // ------------------------------------------------------------- 網址路由
@@ -376,6 +390,7 @@
       { key: "exp", cmp: (a, b) => (b.exp || 0) - (a.exp || 0) },
       { key: "hp", cmp: (a, b) => (b.hp || 0) - (a.hp || 0) },
     ],
+    searchRow: (r) => `Lv.${r.level} · ${(r.regions || []).join("、")}`,
     fillFilters(index, els) {
       const all = new Set();
       index.forEach((m) => (m.regions || []).forEach((r) => all.add(r)));
@@ -570,6 +585,7 @@
       { key: "spawns", cmp: (a, b) => (b.spawns || 0) - (a.spawns || 0) },
       { key: "name", cmp: (a, b) => a.name.localeCompare(b.name, "zh-TW") },
     ],
+    searchRow: (r) => [r.region, r.street].filter(Boolean).join(" · "),
     fillFilters(index, els, render) {
       [...new Set(index.map((m) => m.region))].filter(Boolean).sort().forEach((r) => {
         const o = document.createElement("option");
@@ -747,6 +763,8 @@
       { key: "level", cmp: (a, b) => (b.lv || 0) - (a.lv || 0) },
       { key: "sell", cmp: (a, b) => (b.sell || 0) - (a.sell || 0) },
     ],
+    searchRow: (r) =>
+      [r.cat, r.sub, r.lv ? `需求 Lv.${r.lv}` : ""].filter(Boolean).join(" · "),
     fillFilters(index, els, render) {
       [...new Set(index.map((i) => i.cat))].filter(Boolean).sort().forEach((c) => {
         const o = document.createElement("option");
@@ -887,6 +905,8 @@
       { key: "exp", cmp: (a, b) => (b.exp || 0) - (a.exp || 0) },
       { key: "name", cmp: (a, b) => a.name.localeCompare(b.name, "zh-TW") },
     ],
+    searchRow: (r) =>
+      [r.cat, r.lv ? `Lv.${r.lv}` : "", r.npc ? `NPC：${r.npc}` : ""].filter(Boolean).join(" · "),
     fillFilters(index, els) {
       [...new Set(index.map((q) => q.cat))].filter(Boolean).sort().forEach((c) => {
         const o = document.createElement("option");
@@ -1031,6 +1051,7 @@
       { key: "job", cmp: (a, b) => a.group.localeCompare(b.group, "zh-TW") || a.job.localeCompare(b.job, "zh-TW") || a.name.localeCompare(b.name, "zh-TW") },
       { key: "name", cmp: (a, b) => a.name.localeCompare(b.name, "zh-TW") },
     ],
+    searchRow: (r) => [r.group, r.job, r.adv].filter(Boolean).join(" · "),
     fillFilters(index, els) {
       const groups = [...new Set(index.map((s) => s.group))].filter(Boolean);
       const advs = [...new Set(index.map((s) => s.adv))].filter(Boolean);
@@ -1136,6 +1157,64 @@
       });
     }
   });
+
+  // ------------------------------------------------------------- 全站搜尋
+
+  const searchEls = {
+    input: document.getElementById("dbGlobalSearch"),
+    results: document.getElementById("dbGlobalResults"),
+  };
+  const SEARCH_MIN = 1; // 中文一個字就有意義，不用等到兩個字
+  const PER_SET = 6; // 每個資料集先列幾筆，太多會把其他類別擠掉
+
+  function runGlobalSearch() {
+    const q = (searchEls.input.value || "").trim().toLowerCase();
+    if (q.length < SEARCH_MIN) {
+      searchEls.results.innerHTML = "";
+      return;
+    }
+    // 索引各自才幾十 KB，搜尋時才一次全載；載完就留著
+    Promise.all(SETS.map((s) => s.ensure())).then(() => {
+      const blocks = SETS.map((s) => {
+        const hits = s.search(q);
+        if (!hits.length) return "";
+        const rows = hits
+          .slice(0, PER_SET)
+          .map(
+            (r) => `<button class="db-search-hit" type="button"
+                      data-db-goto="${s.route}" data-db-id="${esc(r.id)}">
+              <span class="db-search-name">${esc(r.name)}</span>
+              <span class="db-search-meta">${esc(s.searchRow ? s.searchRow(r) : "")}</span>
+            </button>`
+          )
+          .join("");
+        const more =
+          hits.length > PER_SET
+            ? `<p class="db-section-note">還有 ${hits.length - PER_SET} 筆，到「${esc(s.label)}」子分頁用同樣的關鍵字可以看完整清單。</p>`
+            : "";
+        return `<div class="db-search-group">
+          <div class="db-drop-cat">${esc(s.label)}<span class="db-sub-num">${hits.length} ${esc(s.unit)}</span></div>
+          ${rows}${more}
+        </div>`;
+      }).filter(Boolean);
+
+      searchEls.results.innerHTML = blocks.length
+        ? blocks.join("")
+        : '<p class="cm-empty">找不到符合的資料</p>';
+    });
+  }
+
+  if (searchEls.input) {
+    let searchTimer = null;
+    searchEls.input.addEventListener("input", () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(runGlobalSearch, 180);
+    });
+    searchEls.results.addEventListener("click", (e) => {
+      const hit = e.target.closest("[data-db-goto]");
+      if (hit) openDetail(hit.dataset.dbGoto, hit.dataset.dbId, true);
+    });
+  }
 
   window.addEventListener("popstate", () => {
     const route = currentRoute();

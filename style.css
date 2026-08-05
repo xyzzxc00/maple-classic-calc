@@ -1053,6 +1053,45 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
    一列一隻怪：左邊圖示、中間名稱與出沒地區、右邊四個數字。數字用 <dl>
    而不是純文字串接，是為了讓「HP」「EXP」這些標籤在小螢幕上換行後還看得
    出哪個數字是什麼 */
+/* 資料庫的工具列只有排序這一組按鈕（沒有社群資料庫那種「＋新增紀錄」動作
+   鈕），預設的 flex:0 1 auto 會讓整組縮成文字寬度、擠在左邊，每顆按鈕還各自
+   一個寬度，看起來跟站上其他工具列不是同一套。改成撐滿整列、每顆等寬。
+   min-width 是下限：.cm-sort-btns 有 overflow:hidden（為了圓角乾淨），會讓
+   flex 子項的自動最小寬度失效變成 0，窄螢幕下文字會被裁掉。
+   max-width 是給桌機的上限：內容欄有九百多像素寬，不設限的話三顆按鈕會各自
+   被拉到快 300px，一排大得莫名其妙；手機上寬度本來就不到上限，等於沒作用 */
+#pageDb .cm-sort-btns { flex: 1 1 auto; width: 100%; max-width: 460px; }
+#pageDb .cm-sort-btns .cm-sort-btn { flex: 1; min-width: 76px; padding: 12px 8px; }
+
+/* 全站搜尋：放在子分頁上面，不管現在看哪一類都找得到 */
+.db-search-panel { padding-bottom: 16px; }
+.db-search-label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+.db-search-input { width: 100%; box-sizing: border-box; }
+#dbGlobalResults:not(:empty) { margin-top: 14px; }
+.db-search-group + .db-search-group { margin-top: 14px; }
+.db-search-hit {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  font-family: 'Noto Sans TC', sans-serif;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 4px;
+  cursor: pointer;
+}
+.db-search-hit:hover { background: var(--surface-tint); }
+.db-search-name { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+.db-search-meta { font-size: 12px; color: var(--ink-soft); }
+
 #dbMonsterList { display: flex; flex-direction: column; gap: 8px; }
 /* 整列是一顆按鈕（點了看詳情）。<button> 不繼承 body 字體會掉回 Arial，
    中文再掉到系統備援字型，所以 font-family 一定要明寫——側邊欄站名就是
