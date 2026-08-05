@@ -34,6 +34,19 @@ import sys
 OPEN_REGIONS = {"楓之島", "維多利亞島", "奇幻村"}
 LEVEL_CAP = 100
 
+# 技能：本服只有五大冒險家職業。拆包檔裡還有皇家騎士團、狂狼勇士、龍魔導士、
+# 影武者這些後期版本才有的職業群，以及 GM 專用技能，全部不收。四轉技能要
+# Lv.120 才學得到，等級上限開放前也不該出現
+OPEN_SKILL_GROUPS = {
+    "初心者/共通",
+    "冒險家劍士",
+    "冒險家法師",
+    "冒險家弓箭手",
+    "冒險家盜賊",
+    "冒險家海盜",
+}
+CLOSED_ADVANCEMENTS = {"四轉"}
+
 # 怪物數值裡「0 代表沒有這個屬性」的欄位，全 0 的裝備數值不用寫進詳情檔
 EQUIP_SKIP_ZERO = True
 
@@ -181,6 +194,53 @@ def build_detail(m, map_ids, quest_ids):
     }
 
 
+def pick_skills(skills):
+    return [
+        s
+        for s in skills
+        if s.get("jobGroup") in OPEN_SKILL_GROUPS
+        and s.get("advancement") not in CLOSED_ADVANCEMENTS
+    ]
+
+
+def build_skill_detail(s):
+    """技能詳情：留說明、公式、每一級的數值。levels 的 description 是遊戲原文
+    （每級一句），保留原文比自己組句子安全"""
+    return {
+        "id": s["id"],
+        "name": s["name"],
+        "group": s.get("jobGroup") or "",
+        "job": s.get("jobName") or "",
+        "adv": s.get("advancement") or "",
+        "maxLevel": s.get("maxLevel"),
+        "desc": (s.get("description") or "").strip(),
+        "formula": (s.get("formula") or "").strip(),
+        "labels": s.get("valueLabels") or {},
+        "levels": [
+            {
+                "level": lv.get("level"),
+                "desc": (lv.get("description") or "").strip(),
+                "values": lv.get("values") or {},
+            }
+            for lv in (s.get("levels") or [])
+        ],
+    }
+
+
+def build_skill_index(details):
+    return [
+        {
+            "id": d["id"],
+            "name": d["name"],
+            "group": d["group"],
+            "job": d["job"],
+            "adv": d["adv"],
+            "maxLevel": d["maxLevel"],
+        }
+        for d in details
+    ]
+
+
 def build_index(details):
     """列表用的索引，欄位越少越好——這是進站就會載的檔案"""
     return [
@@ -222,6 +282,7 @@ def main():
     monsters_db = load(src, "data.js")
     maps_db = load(src, "maps-data.js")
     quests_db = load(src, "quests-data.js")
+    skills_db = load(src, "skills-data.js")
 
     map_ids = open_map_ids(maps_db["maps"])
     quest_ids = open_quest_ids(quests_db["quests"], map_ids)
@@ -241,7 +302,19 @@ def main():
                   encoding="utf-8") as f:
             json.dump(d, f, ensure_ascii=False, separators=(",", ":"))
 
-    # 圖片：怪物本體 + 牠們會掉的道具
+    # 技能
+    kept_skills = pick_skills(skills_db["skills"])
+    skill_details = [build_skill_detail(s) for s in kept_skills]
+    os.makedirs(os.path.join(OUT_DATA, "skills"), exist_ok=True)
+    with open(os.path.join(OUT_DATA, "skills.json"), "w", encoding="utf-8") as f:
+        json.dump(build_skill_index(skill_details), f, ensure_ascii=False,
+                  separators=(",", ":"))
+    for d in skill_details:
+        with open(os.path.join(OUT_DATA, "skills", f"{d['id']}.json"), "w",
+                  encoding="utf-8") as f:
+            json.dump(d, f, ensure_ascii=False, separators=(",", ":"))
+
+    # 圖片：怪物本體 + 牠們會掉的道具 + 技能圖示
     shutil.rmtree(OUT_ASSETS, ignore_errors=True)
     mon_imgs = sum(copy_image(src, m.get("image"), os.path.join(OUT_ASSETS, "monsters"))
                    for m in kept)
@@ -252,6 +325,8 @@ def main():
                 item_paths[d["id"]] = d["image"]
     item_imgs = sum(copy_image(src, p, os.path.join(OUT_ASSETS, "items"))
                     for p in item_paths.values())
+    skill_imgs = sum(copy_image(src, s.get("image"), os.path.join(OUT_ASSETS, "skills"))
+                     for s in kept_skills)
 
     # 報告
     def dirsize(path):
@@ -266,7 +341,11 @@ def main():
     print(f"  詳情檔   {detail_kb:.0f} KB（平均 {detail_kb / len(kept):.1f} KB）")
     print(f"  掉落     {sum(len(d['drops']) for d in details)} 筆，{len(item_paths)} 種道具")
     print(f"  相關任務 {sum(len(d['quests']) for d in details)} 筆")
-    print(f"圖片       怪物 {mon_imgs} 張、道具 {item_imgs} 張，"
+    skill_kb = dirsize(os.path.join(OUT_DATA, "skills")) / 1024
+    print(f"技能       {len(kept_skills)} 個"
+          f"（索引 {os.path.getsize(os.path.join(OUT_DATA, 'skills.json')) / 1024:.0f} KB、"
+          f"詳情 {skill_kb:.0f} KB）")
+    print(f"圖片       怪物 {mon_imgs} 張、道具 {item_imgs} 張、技能 {skill_imgs} 張，"
           f"共 {dirsize(OUT_ASSETS) / 1024 / 1024:.1f} MB")
     missing = len(kept) - mon_imgs
     if missing:

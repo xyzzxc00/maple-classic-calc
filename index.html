@@ -215,6 +215,7 @@
       </button>
       <div class="nav-group-links">
         <button class="sidebar-link subtab active" id="dbSubMonsters" type="button" role="tab" aria-selected="true" aria-controls="dbMonstersView">怪物</button>
+        <button class="sidebar-link subtab" id="dbSubSkills" type="button" role="tab" aria-selected="false" aria-controls="dbSkillsView">技能</button>
       </div>
     </div>
 
@@ -815,9 +816,9 @@
         </div>
         <div class="cm-actions">
           <div class="cm-sort-btns"><span class="cm-group-label">排序</span>
-            <button class="cm-sort-btn active" data-db-sort="level" type="button">等級</button>
-            <button class="cm-sort-btn" data-db-sort="exp" type="button">經驗值</button>
-            <button class="cm-sort-btn" data-db-sort="hp" type="button">HP</button>
+            <button class="cm-sort-btn active" data-db-sort="level" data-db-set="monster" type="button">等級</button>
+            <button class="cm-sort-btn" data-db-sort="exp" data-db-set="monster" type="button">經驗值</button>
+            <button class="cm-sort-btn" data-db-sort="hp" data-db-set="monster" type="button">HP</button>
           </div>
         </div>
       </div>
@@ -827,6 +828,42 @@
 
     <!-- 單隻怪的詳情，內容由 db.js 依 data/db/monsters/<id>.json 產生 -->
     <section class="panel" id="dbMonsterDetail" hidden></section>
+  </div>
+
+  <div id="dbSkillsView" role="tabpanel" aria-labelledby="dbSubSkills" hidden>
+    <section class="panel" id="dbSkillListPanel">
+      <div class="panel-head">
+        <h2>技能資料</h2>
+        <span class="badge" id="dbSkillCount">—</span>
+      </div>
+
+      <details class="cm-disclaimer-details">
+        <summary>收錄範圍說明</summary>
+        <p class="cm-disclaimer">只收錄<strong>本服現有的五大冒險家職業</strong>（劍士、法師、弓箭手、盜賊、海盜）與共通技能。拆包檔裡還有皇家騎士團、狂狼勇士、龍魔導士等後期版本職業，以及要 Lv.120 才學得到的四轉技能，本服還沒有，不列在這裡。</p>
+      </details>
+
+      <div class="cm-toolbar">
+        <div class="cm-filter-row">
+          <input class="cm-filter-input" id="dbSkillSearch" type="search" placeholder="搜尋技能名稱" autocomplete="off">
+          <select class="cm-filter-input" id="dbSkillGroup">
+            <option value="">全部職業</option>
+          </select>
+          <select class="cm-filter-input" id="dbSkillAdv">
+            <option value="">全部轉職</option>
+          </select>
+        </div>
+        <div class="cm-actions">
+          <div class="cm-sort-btns"><span class="cm-group-label">排序</span>
+            <button class="cm-sort-btn active" data-db-sort="job" data-db-set="skill" type="button">職業</button>
+            <button class="cm-sort-btn" data-db-sort="name" data-db-set="skill" type="button">名稱</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="dbSkillList"><p class="cm-loading">載入中...</p></div>
+    </section>
+
+    <section class="panel" id="dbSkillDetail" hidden></section>
   </div>
 
 </div>

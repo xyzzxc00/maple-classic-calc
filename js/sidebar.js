@@ -106,6 +106,7 @@
     { id: "calcSubScroll", page: "calc" },
     { id: "calcSubGacha", page: "calc" },
     { id: "dbSubMonsters", page: "db" },
+    { id: "dbSubSkills", page: "db" },
     { id: "guidesSubQuests", page: "guides" },
     { id: "guidesSubJobs", page: "guides" },
     { id: "guidesSubTeamQuest", page: "guides" },
@@ -136,6 +137,7 @@
     calc: (key) => window.MapleNav && window.MapleNav.showCalcSubtab(key),
     guides: (key) => window.MapleGuides && window.MapleGuides.showTab(key),
     cm: (key) => window.MapleCommunity && window.MapleCommunity.showCmSubtab(key),
+    db: (key) => window.MapleDb && window.MapleDb.showTab(key),
     legacy: (key) => window.MapleLegacy && window.MapleLegacy.showTab(key),
   };
 
