@@ -808,7 +808,7 @@
       <div class="cm-toolbar">
         <div class="cm-filter-row">
           <input class="cm-filter-input" id="dbMonsterSearch" type="search" placeholder="搜尋怪物名稱" autocomplete="off">
-          <select class="cm-filter-input" id="dbMonsterRegion">
+          <select class="cm-filter-input" id="dbMonsterRegion" aria-label="依地區篩選怪物">
             <option value="">全部地區</option>
           </select>
           <div class="cm-filter-lv-group">
@@ -848,10 +848,10 @@
       <div class="cm-toolbar">
         <div class="cm-filter-row">
           <input class="cm-filter-input" id="dbMapSearch" type="search" placeholder="搜尋地圖名稱" autocomplete="off">
-          <select class="cm-filter-input" id="dbMapRegion">
+          <select class="cm-filter-input" id="dbMapRegion" aria-label="依地區篩選地圖">
             <option value="">全部地區</option>
           </select>
-          <select class="cm-filter-input" id="dbMapStreet">
+          <select class="cm-filter-input" id="dbMapStreet" aria-label="依區域篩選地圖">
             <option value="">全部區域</option>
           </select>
         </div>
@@ -886,10 +886,10 @@
       <div class="cm-toolbar">
         <div class="cm-filter-row">
           <input class="cm-filter-input" id="dbItemSearch" type="search" placeholder="搜尋道具名稱" autocomplete="off">
-          <select class="cm-filter-input" id="dbItemCat">
+          <select class="cm-filter-input" id="dbItemCat" aria-label="依分類篩選道具">
             <option value="">全部分類</option>
           </select>
-          <select class="cm-filter-input" id="dbItemSub">
+          <select class="cm-filter-input" id="dbItemSub" aria-label="依類型篩選道具">
             <option value="">全部類型</option>
           </select>
           <div class="cm-filter-lv-group">
@@ -928,7 +928,7 @@
       <div class="cm-toolbar">
         <div class="cm-filter-row">
           <input class="cm-filter-input" id="dbQuestSearch" type="search" placeholder="搜尋任務名稱" autocomplete="off">
-          <select class="cm-filter-input" id="dbQuestCat">
+          <select class="cm-filter-input" id="dbQuestCat" aria-label="依分類篩選任務">
             <option value="">全部分類</option>
           </select>
           <div class="cm-filter-lv-group">
@@ -967,10 +967,10 @@
       <div class="cm-toolbar">
         <div class="cm-filter-row">
           <input class="cm-filter-input" id="dbSkillSearch" type="search" placeholder="搜尋技能名稱" autocomplete="off">
-          <select class="cm-filter-input" id="dbSkillGroup">
+          <select class="cm-filter-input" id="dbSkillGroup" aria-label="依職業篩選技能">
             <option value="">全部職業</option>
           </select>
-          <select class="cm-filter-input" id="dbSkillAdv">
+          <select class="cm-filter-input" id="dbSkillAdv" aria-label="依轉職階段篩選技能">
             <option value="">全部轉職</option>
           </select>
         </div>
@@ -1499,7 +1499,7 @@
       </details>
       <div class="cm-toolbar">
         <div class="cm-filter-row">
-          <select class="cm-filter-input" id="spotsFilterJob">
+          <select class="cm-filter-input" id="spotsFilterJob" aria-label="依職業篩選練功地點">
             <option value="">全部職業</option>
           </select>
           <!-- 高亮基準等級：預設跟著「練等計算」填的目前等級走，但直接
@@ -1522,7 +1522,7 @@
       </details>
       <div class="cm-toolbar">
         <div class="cm-filter-row">
-          <select class="cm-filter-input" id="cmFilterJob">
+          <select class="cm-filter-input" id="cmFilterJob" aria-label="依職業篩選回報紀錄">
             <option value="">全部職業</option>
           </select>
           <input class="cm-filter-input" id="cmFilterMap" placeholder="篩選地圖">
