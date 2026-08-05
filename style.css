@@ -1413,7 +1413,10 @@ body.has-sidebar .theme-toggle {
   overflow: hidden;
 }
 /* 文字本身是一顆隱形按鈕：點了回首頁（跟側邊欄品牌區同一個行為），
-   外觀維持純文字，繼承公告條的字級字重顏色 */
+   外觀維持純文字，繼承公告條的字級字重顏色。
+   主站是 <button>，guides/ 與 privacy/ 由 patch_html.py 注入的同一份外殼
+   裡是 <a>（那些頁面沒有分頁可切，只能真的連回首頁），所以兩種標籤的
+   預設樣式都要壓掉——底線是 <a> 才有的 */
 .top-banner-text {
   overflow: hidden;
   white-space: nowrap;
@@ -1424,6 +1427,7 @@ body.has-sidebar .theme-toggle {
   font: inherit;
   color: inherit;
   letter-spacing: inherit;
+  text-decoration: none;
   cursor: pointer;
 }
 
@@ -1485,6 +1489,8 @@ body.has-sidebar .theme-toggle {
 .app-main > main { flex: 1 0 auto; }
 
 /* ---------- 側邊欄品牌區（同時是 Home 連結） ---------- */
+/* 跟 .top-banner-text 一樣，主站是 <button>、注入到 guides/ 與 privacy/
+   的外殼裡是 <a>，兩種標籤的預設樣式都要壓掉 */
 .sidebar-brand {
   width: 100%;
   display: flex;
@@ -1494,6 +1500,7 @@ body.has-sidebar .theme-toggle {
   border: none;
   border-bottom: 1px solid var(--border);
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
   padding: 8px 8px 16px;
   margin-bottom: 10px;

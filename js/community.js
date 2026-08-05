@@ -725,7 +725,11 @@
   const hashSubtab = cmHashMain === "cm" && cmSubtabs.some((t) => t.key === cmHashSub) ? cmHashSub : null;
   const savedSubtab = localStorage.getItem(CM_SUBTAB_KEY);
   const initialSubtab = hashSubtab || savedSubtab;
-  if (initialSubtab === "records") showCmSubtab(initialSubtab, true);
+  // "suggest" 不用特別切——它本來就是 HTML 裡預設亮著的那個子分頁，再呼叫
+  // 一次只是白跑一次 MapleSpots.render()。其餘的都要真的切過去：原本這裡
+  // 只認 records，導致 guides/ 文章側邊欄連過來的 #cm-picks 會停在建議
+  // 練功地點（2026-08-05 文章頁注入側邊欄時抓到）
+  if (initialSubtab && initialSubtab !== "suggest") showCmSubtab(initialSubtab, true);
 
   window.MapleCommunity = {
     loadRecords,

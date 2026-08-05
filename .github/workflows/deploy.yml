@@ -115,10 +115,13 @@ jobs:
           terser dist/js/bundle.raw.js --compress --mangle --output dist/js/bundle.js
           rm dist/js/bundle.raw.js
 
-          # guides/ 頁面不吃主站的 bundle.js（元素 id 對不上），只需要主題
-          # 切換跟回到頂端這兩個小功能，單獨壓縮給它們用
+          # guides/ 與 privacy/ 頁面不吃主站的 bundle.js（元素 id 對不上），
+          # 只需要主題切換、回到頂端，以及注入外殼後那支側邊欄的展開收合／
+          # 手機版抽屜（sidebar.js 找不到主站的分頁容器時會自己跳過那幾段，
+          # 所以能原封不動共用），三支單獨壓縮給它們用
           terser js/theme.js --compress --mangle --output dist/js/theme.js
           terser js/backToTop.js --compress --mangle --output dist/js/backToTop.js
+          terser js/sidebar.js --compress --mangle --output dist/js/sidebar.js
 
           # Minify CSS
           cleancss -o dist/style.css style.css
