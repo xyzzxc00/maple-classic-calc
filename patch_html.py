@@ -67,12 +67,30 @@ def extract(pattern, html, what):
     return m.group(0)
 
 
+def extract_div(html, opening, what):
+    """從 opening 這個開頭標籤起算，數 <div>／</div> 的層數找到真正的結尾。
+    不能用非貪婪的正則：那會在第一個 </div> 就收手，碰到有巢狀 div 的區塊
+    （頁尾就是兩欄結構）會只擷取到一半，注入後整頁的標籤層數對不起來，而且
+    不會有任何錯誤訊息——版面歪掉才會發現"""
+    start = html.find(opening)
+    if start < 0:
+        fail(f"從 index.html 擷取「{what}」失敗，主站的外殼結構可能改過了")
+    depth = 0
+    for m in re.finditer(r"<div\b|</div>", html[start:]):
+        depth += 1 if m.group(0) == "<div" else -1
+        if depth == 0:
+            return html[start : start + m.end()]
+    fail(f"index.html 的「{what}」區塊 <div> 沒有正確收尾")
+
+
 def extract_shell(index_html):
-    """回傳 (頂欄, 側邊欄, 手機版遮罩) 三段原封不動的 HTML"""
-    top = extract(r'<div class="top-banner">.*?</div>', index_html, "頂欄")
-    side = extract(r'<aside class="sidebar" id="sidebar">.*?</aside>', index_html, "側邊欄")
-    backdrop = extract(r'<div class="sidebar-backdrop"[^>]*></div>', index_html, "手機版遮罩")
-    return top, side, backdrop
+    """回傳外殼的四個區塊，原封不動的 HTML"""
+    return {
+        "top": extract_div(index_html, '<div class="top-banner">', "頂欄"),
+        "side": extract(r'<aside class="sidebar" id="sidebar">.*?</aside>', index_html, "側邊欄"),
+        "backdrop": extract(r'<div class="sidebar-backdrop"[^>]*></div>', index_html, "手機版遮罩"),
+        "footer": extract_div(index_html, '<div class="app-main-footer">', "頁尾免責聲明"),
+    }
 
 
 # --------------------------------------------- 把外殼改寫成「文章頁版本」
@@ -88,8 +106,9 @@ def subtab_hash(el_id):
     return f"{page}-{rest[0].lower()}{rest[1:]}"
 
 
-def to_static_shell(top, side, backdrop, root):
+def to_static_shell(shell, root):
     """root 是這一頁回到站台根目錄的相對路徑（例如 ../../）"""
+    top, side, backdrop, footer = (shell[k] for k in ("top", "side", "backdrop", "footer"))
 
     # 先把原本相對於根目錄的網址（guides/、privacy/、icon-192.png）補上前綴。
     # 一定要在下面產生 href="{root}#..." 那些新連結「之前」做，否則新連結會
@@ -100,6 +119,7 @@ def to_static_shell(top, side, backdrop, root):
     rel = r'(href|src)="(?!https?:|//|#|mailto:)([^"]+)"'
     side = re.sub(rel, reroot, side)
     top = re.sub(rel, reroot, top)
+    footer = re.sub(rel, reroot, footer)
 
     # 站名（首頁按鈕）→ 回首頁的連結
     side = re.sub(
@@ -159,7 +179,7 @@ def to_static_shell(top, side, backdrop, root):
     # 文章頁上會變成「點了完全沒反應」的死元件，寧可讓 CI 當場失敗
     leftover = [
         b
-        for b in re.findall(r"<button[^>]*>", side + top)
+        for b in re.findall(r"<button[^>]*>", side + top + footer)
         if "nav-group-btn" not in b and "sidebar-close" not in b and "menu-btn" not in b
     ]
     if leftover:
@@ -172,7 +192,7 @@ def to_static_shell(top, side, backdrop, root):
     if links < MIN_SIDEBAR_LINKS:
         fail(f"改寫後的側邊欄只剩 {links} 個連結，改寫規則可能跟主站結構脫節了")
 
-    return top, side, backdrop
+    return {"top": top, "side": side, "backdrop": backdrop, "footer": footer}
 
 
 # ------------------------------------------------------- 注入到獨立頁面
@@ -180,7 +200,7 @@ def to_static_shell(top, side, backdrop, root):
 THEME_TOGGLE = '<button class="theme-toggle" id="themeToggle" type="button">暗色</button>\n'
 
 
-def inject_shell(html, top, side, backdrop, root):
+def inject_shell(html, parts, root):
     if 'http-equiv="refresh"' in html:
         return None  # 舊網址的轉址 stub，沒有版面可言，跳過
     if THEME_TOGGLE not in html or "</main>" not in html:
@@ -189,13 +209,15 @@ def inject_shell(html, top, side, backdrop, root):
     html = html.replace("<body>", '<body class="has-sidebar">', 1)
     html = html.replace(
         THEME_TOGGLE,
-        THEME_TOGGLE
-        + f'\n{top}\n\n<div class="app-shell">\n{side}\n{backdrop}\n\n<div class="app-main">\n',
+        THEME_TOGGLE + f'\n{parts["top"]}\n\n<div class="app-shell">\n{parts["side"]}\n'
+        f'{parts["backdrop"]}\n\n<div class="app-main">\n',
         1,
     )
-    # 原本的 <header class="site-header"> 跟 <main> 都落在 .app-main 裡面，
-    # 所以收尾的兩個 </div> 補在 </main> 之後
-    html = html.replace("</main>", "</main>\n</div>\n</div>", 1)
+    # 原本的 <header class="site-header"> 跟 <main> 都落在 .app-main 裡面；
+    # 免責聲明頁尾跟主站一樣接在 </main> 後面、還在 .app-main 內（.app-main
+    # 的 min-height:100vh 加上 main 的 flex:1 會把它推到畫面最底），最後才是
+    # 收尾的兩個 </div>
+    html = html.replace("</main>", f'</main>\n\n{parts["footer"]}\n\n</div>\n</div>', 1)
     # 側邊欄的展開收合與手機版抽屜都靠 sidebar.js；它讀不到主站的分頁容器
     # 時每一段都會自己跳過（見 sidebar.js 各處的 null 檢查），可以原封不動共用
     html = html.replace(
@@ -206,6 +228,7 @@ def inject_shell(html, top, side, backdrop, root):
         ('<body class="has-sidebar">', "body 的 has-sidebar class"),
         ('<div class="app-shell">', "app-shell 外框"),
         ('<div class="app-main">', "app-main 內容區"),
+        ('<div class="app-main-footer">', "頁尾免責聲明"),
         ("js/sidebar.js", "sidebar.js"),
     ):
         if needle not in html:
@@ -231,7 +254,7 @@ def main():
 
     patched = 0
     for path, root in shell_pages():
-        html = inject_shell(read(path), *to_static_shell(*shell, root=root), root=root)
+        html = inject_shell(read(path), to_static_shell(shell, root), root)
         if html is None:
             continue
         write(path, html)

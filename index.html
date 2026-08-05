@@ -243,16 +243,19 @@
     </div>
     </div>
 
+    <!-- 兩組，中間一條分隔線：上面是站內的內容分頁，下面是離站的連結
+         （官方頁面／表單／贊助）。同一組裡的項目性質一致，使用者掃過去
+         才不用每一條都重讀一次 -->
     <div class="sidebar-footer">
       <a class="sidebar-link" href="guides/">攻略文章</a>
       <button class="sidebar-link" id="navFaqLink" type="button" data-nav-page="faq">常見問題</button>
-      <a class="sidebar-link" href="https://maplestoryclassic.beanfun.com/Main" target="_blank" rel="noopener">官方遊戲頁面</a>
+      <a class="sidebar-link" href="privacy/">隱私政策</a>
 
-      <div class="sidebar-footer-actions">
+      <div class="sidebar-footer-group">
+        <a class="sidebar-link" href="https://maplestoryclassic.beanfun.com/Main" target="_blank" rel="noopener">官方遊戲頁面</a>
         <a class="sidebar-link" href="https://forms.gle/VnQnL6o9V4nNqshk6" target="_blank" rel="noopener">意見回饋 / 錯誤回報</a>
         <a class="sidebar-link" href="https://vocus.cc/pay/donate/6a5ccb37961410430daba993?donateSourceType=exclusiveLink" id="donateLink" target="_blank" rel="noopener">請站長喝杯飲料</a>
         <a class="sidebar-link" href="https://p.opay.tw/D4ujJ" id="donateLinkAllpay" target="_blank" rel="noopener">贊助支持（歐付寶）</a>
-        <a class="sidebar-link" href="privacy/">隱私政策</a>
       </div>
     </div>
   </aside>
@@ -261,10 +264,6 @@
   <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
   <div class="app-main">
-    <div class="topbar">
-      <span class="status-pill"><span class="status-dot"></span>已於 7/29 正式開服</span>
-    </div>
-
 <main>
 <div class="wrap" id="pageHome" role="tabpanel" aria-labelledby="navHome">
 
@@ -1588,14 +1587,23 @@
 
 </div>
 
-<div class="wrap" id="pageFaq" role="tabpanel" aria-labelledby="navFaqLink" hidden>
-  <!-- 常見問題：內容跟 head 裡的 FAQPage JSON-LD 一字不差 — Google 要求
-       FAQ 結構化資料必須有對應的頁面可見內容，改這裡記得同步改 JSON-LD（反之亦然）。 -->
-  <section class="panel faq-panel">
-    <div class="panel-head">
-      <h2>常見問題</h2>
-      <span class="badge">FAQ</span>
+<!-- 常見問題：內容跟 head 裡的 FAQPage JSON-LD 一字不差 — Google 要求
+     FAQ 結構化資料必須有對應的頁面可見內容，改這裡記得同步改 JSON-LD（反之亦然）。
+     這個分頁容器本身「不是」.wrap（其他五個分頁都是）：頁首直接共用
+     guides/、privacy/ 那套 .site-header，分隔線要橫跨整個內容欄才跟那些
+     頁面一致，套上 .wrap 的 max-width 會把線夾在中間、看起來就是兩種格式。
+     版面寬度改由內層的 .wrap 負責 -->
+<div id="pageFaq" role="tabpanel" aria-labelledby="navFaqLink" hidden>
+  <!-- 維持 h2 不升成 h1：整份 index.html 只有首頁儀表板那一顆 h1，
+       這裡升級會多出第二顆 -->
+  <header class="site-header site-header--short">
+    <div class="wrap">
+      <h2 class="title">常見問題</h2>
     </div>
+  </header>
+
+  <div class="wrap">
+  <section class="panel faq-panel">
     <details class="faq-item">
       <summary>新楓之谷經典版要升到幾等需要多少經驗值？</summary>
       <p>Lv.1 升 Lv.2 需要 15 EXP，Lv.99 升 Lv.100 需要約 969 萬 EXP，Lv.199 升 Lv.200 需要約 20 億 EXP——新楓之谷經典版採用 pre-Big Bang 舊版經驗值表。可使用本工具輸入目前等級與目標等級自動計算，完整表格見本站「<a href="guides/exp-table/">經驗值表 Lv.1~200 完整版</a>」頁面。</p>
@@ -1629,6 +1637,7 @@
       <p>是。新楓之谷經典版由遊戲橘子（beanfun）官方代理營運，是正式伺服器，不是私服。官方網站：<a href="https://maplestoryclassic.beanfun.com/Main" target="_blank" rel="noopener">maplestoryclassic.beanfun.com</a>。</p>
     </details>
   </section>
+  </div>
 </div>
 
 </main>

@@ -1487,10 +1487,25 @@ body.has-sidebar .theme-toggle {
   box-sizing: border-box;
 }
 .app-main > main { flex: 1 0 auto; }
+/* 原本分頁內容上方隔著一條 .topbar（開服狀態藥丸）當留白，那條移除後
+   內容會直接黏在固定公告條下緣，改由分頁容器自己留這段上緣空間。只挑
+   role="tabpanel" 是為了不波及 guides/、privacy/ 的頁首——那些頁面的
+   .site-header 自己就有 48px 上內距，再加一層會空得太誇張 */
+.app-main > main > .wrap[role="tabpanel"] { padding-top: 24px; }
+
+/* 常見問題分頁直接共用 guides/、privacy/ 那套 .site-header 頁首，格式才會
+   一致（同樣的置中大標、同樣的上下內距、分隔線同樣橫跨整個內容欄）。
+   #pageFaq 因此不掛 .wrap（分隔線不能被 max-width 夾住），版面寬度交給
+   內層的 .wrap，標題與內容之間留一段跟獨立頁相近的距離 */
+#pageFaq > .wrap { padding-top: 32px; }
 
 /* ---------- 側邊欄品牌區（同時是 Home 連結） ---------- */
 /* 跟 .top-banner-text 一樣，主站是 <button>、注入到 guides/ 與 privacy/
-   的外殼裡是 <a>，兩種標籤的預設樣式都要壓掉 */
+   的外殼裡是 <a>，兩種標籤的預設樣式都要壓掉。
+   font-family 一定要明寫（.sidebar-link 也是為了同一個理由才寫）：<button>
+   不繼承 body 的字體，會掉回瀏覽器預設的 Arial，中文再從 Arial 掉到系統
+   備援字型——結果就是主站的站名跟文章頁的站名長得不一樣，字重與字形都差
+   一點點 */
 .sidebar-brand {
   width: 100%;
   display: flex;
@@ -1500,6 +1515,7 @@ body.has-sidebar .theme-toggle {
   border: none;
   border-bottom: 1px solid var(--border);
   text-align: left;
+  font-family: 'Noto Sans TC', sans-serif;
   text-decoration: none;
   cursor: pointer;
   padding: 8px 8px 16px;
@@ -1604,13 +1620,11 @@ body.has-sidebar .theme-toggle {
 }
 .sidebar-footer .sidebar-link { padding-left: 10px; font-size: 12.5px; color: var(--ink-faint); }
 
-/* 官方遊戲頁面／隱私政策／常見問題／攻略文章／贊助連結／免責聲明原本
-   各自散落在每個頁面底部或連到舊版獨立頁面，現在常見問題／攻略文章／
-   隱私政策都改成側邊欄按鈕，點了直接在右側切換成應用內的分頁（用跟
-   #pageHome/#pageCalc 等一樣的 switchNav 機制），不再連到 guides/、
-   privacy/ 那兩個舊版 UI 的獨立頁面。免責聲明段落用一條分隔線隔開，
-   不然全部黏在一起看起來很擠 */
-.sidebar-footer-actions {
+/* 側邊欄底部分兩組，中間一條分隔線：上面是站內的內容分頁（攻略文章／
+   常見問題／隱私政策），下面這組是離站的連結（官方頁面／意見回饋／兩個
+   贊助）。不分組全部黏在一起會擠成一團，而且「點了會離開本站」跟「點了
+   還在站內」混在一起，使用者每一條都要重讀才知道自己在看什麼 */
+.sidebar-footer-group {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -1647,17 +1661,9 @@ body.has-sidebar .theme-toggle {
 .app-main-footer a { color: var(--ink-soft); text-decoration: underline; }
 .app-main-footer a:hover { color: var(--accent-text); }
 
-/* ---------- Topbar（手機漢堡選單 + 開服狀態） ---------- */
-.topbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 14px 24px;
-  /* 不畫 border-bottom 分隔線：上面已經有固定的公告條當視覺分界，
-     這裡再畫一條顯得多餘又不明顯 */
-}
+/* 漢堡鈕（手機版）。原本它跟「已於 7/29 正式開服」狀態藥丸一起放在一條
+   .topbar 裡；開服一週後那顆藥丸的資訊價值已經消失，整條移除，漢堡鈕現在
+   直接住在固定公告條（.top-banner）左上角 */
 .menu-btn {
   display: none;
   background: var(--surface-tint);
@@ -1670,20 +1676,6 @@ body.has-sidebar .theme-toggle {
   cursor: pointer;
   flex-shrink: 0;
 }
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--accent-text);
-  background: var(--accent-tint);
-  border: 1px solid var(--accent-border);
-  padding: 5px 12px;
-  border-radius: 999px;
-}
-.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-text); }
-
 /* ---------- 首頁儀表板 hero ---------- */
 .dashboard-hero {
   background: radial-gradient(circle at 12% 15%, var(--accent-tint), transparent 55%), var(--surface);
