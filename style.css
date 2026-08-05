@@ -1181,6 +1181,29 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 .db-sub-meta { color: var(--ink-soft); font-size: 12px; flex: 1; }
 
 .db-meso { font-size: 15px; font-weight: 700; color: var(--ink); margin: 0; }
+
+/* 練等試算：兩個小輸入欄各自帶標籤，不然使用者看不出哪格填等級、哪格填隻數 */
+.db-calc-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+#dbKillResult { margin-top: 12px; }
+#dbKillResult .btn { width: auto; margin-top: 4px; }
+/* 內文裡的行內按鈕：外觀就是一條連結，但行為是切分頁而不是換頁 */
+.db-inline-link {
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: inherit;
+  color: var(--accent-text);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
 .db-drop-group { margin-bottom: 16px; }
 .db-drop-cat {
   font-size: 12.5px;

@@ -198,6 +198,98 @@
       .join("");
   }
 
+  // ---------------------------------------------- 練等試算（接既有計算機）
+
+  const CALC_PREFS_KEY = "maple_classic_v3";
+  const DB_RATE_KEY = "maple_classic_db_kill_rate";
+
+  function calcPrefs() {
+    try {
+      return JSON.parse(localStorage.getItem(CALC_PREFS_KEY)) || {};
+    } catch {
+      return {};
+    }
+  }
+
+  function expToNext(level) {
+    const table = (window.MapleData || {}).EXP_TABLE;
+    // index 0 = Lv.1 升 Lv.2，所以 Lv.N 升級所需在 index N-1
+    return Array.isArray(table) && level >= 1 && level <= table.length
+      ? table[level - 1]
+      : null;
+  }
+
+  function renderKillCalc(d) {
+    const exp = (d.stats || {}).exp;
+    if (!exp) return "";
+    const lv = parseInt(calcPrefs().currentLevel, 10);
+    const level = lv >= 1 && lv <= 199 ? lv : 1;
+    const rate = parseInt(localStorage.getItem(DB_RATE_KEY), 10) || 10;
+    return `<section class="db-section" id="dbKillCalc" data-exp="${exp}">
+      <h3 class="db-section-title">練等試算</h3>
+      <div class="cm-filter-row">
+        <label class="db-calc-field">目前等級
+          <input class="cm-filter-input cm-filter-lv" id="dbCalcLevel" type="number"
+                 min="1" max="199" value="${level}" inputmode="numeric">
+        </label>
+        <label class="db-calc-field">每分鐘打幾隻
+          <input class="cm-filter-input cm-filter-lv" id="dbCalcRate" type="number"
+                 min="1" max="999" value="${rate}" inputmode="numeric">
+        </label>
+      </div>
+      <div id="dbKillResult"></div>
+    </section>`;
+  }
+
+  function renderKillResult() {
+    const box = document.getElementById("dbKillCalc");
+    const out = document.getElementById("dbKillResult");
+    if (!box || !out) return;
+    const exp = parseInt(box.dataset.exp, 10);
+    const level = parseInt(document.getElementById("dbCalcLevel").value, 10);
+    const rate = parseInt(document.getElementById("dbCalcRate").value, 10);
+    const need = expToNext(level);
+    if (!need || !(rate > 0)) {
+      out.innerHTML = '<p class="db-section-note">填入 1~199 的等級與每分鐘隻數就會算出來。</p>';
+      return;
+    }
+    localStorage.setItem(DB_RATE_KEY, String(rate));
+    const kills = Math.ceil(need / exp);
+    const minutes = kills / rate;
+    const per10 = exp * rate * 10;
+    const hh = Math.floor(minutes / 60);
+    const mm = Math.round(minutes % 60);
+    out.innerHTML = `<dl class="db-stat-grid">
+        <div><dt>升到 Lv.${level + 1} 要打</dt><dd>${kills.toLocaleString("zh-TW")} 隻</dd></div>
+        <div><dt>大約耗時</dt><dd>${hh ? hh + " 小時 " : ""}${mm} 分</dd></div>
+        <div><dt>每 10 分鐘經驗</dt><dd>${per10.toLocaleString("zh-TW")}</dd></div>
+      </dl>
+      <p class="db-section-note">純理論值：只算怪物經驗，沒有扣掉移動、補血、撿裝備的時間，也沒有計入加倍卷。想要含加倍卷、每日時數的完整估算，用下面的按鈕把數字帶進練等計算機。</p>
+      <button class="btn btn-ghost" type="button" id="dbToCalc">把每 10 分鐘 ${per10.toLocaleString("zh-TW")} EXP 帶進練等計算機 →</button>`;
+  }
+
+  // 把算出來的效率寫進計算機的欄位、跑一次計算，再切過去。用 MapleApp
+  // 現成的 runCalculation（它內部會存 prefs），不另外碰 localStorage
+  function sendToCalculator() {
+    const out = document.getElementById("dbKillResult");
+    const box = document.getElementById("dbKillCalc");
+    if (!out || !box) return;
+    const exp = parseInt(box.dataset.exp, 10);
+    const rate = parseInt(document.getElementById("dbCalcRate").value, 10);
+    const level = parseInt(document.getElementById("dbCalcLevel").value, 10);
+    const per10 = exp * rate * 10;
+    const lvInput = document.getElementById("currentLevel");
+    const expInput = document.getElementById("expPer10Min");
+    if (!lvInput || !expInput) return;
+    if (level >= 1 && level <= 199) lvInput.value = level;
+    expInput.value = per10;
+    if (window.MapleApp) window.MapleApp.runCalculation();
+    if (window.MapleNav) {
+      window.MapleNav.switchNav("calc");
+      window.MapleNav.showCalcSubtab("exp");
+    }
+  }
+
   function renderQuests(d) {
     if (!d.quests.length) return "";
     return `<section class="db-section">
@@ -247,6 +339,8 @@
         ${renderStats(d)}
       </section>
 
+      ${renderKillCalc(d)}
+
       <section class="db-section">
         <h3 class="db-section-title">屬性抗性</h3>
         ${renderElemental(d)}
@@ -257,6 +351,8 @@
       <section class="db-section">
         <h3 class="db-section-title">出沒地圖<span class="db-sub-num">${d.maps.length}</span></h3>
         ${renderMaps(d)}
+        <p class="db-section-note">上面是遊戲資料檔記錄的重生點數量，不等於實際練功效率。
+          <button class="db-inline-link" type="button" id="dbToSpots">看玩家實測的練功效率 →</button></p>
       </section>
 
       <section class="db-section">
@@ -282,6 +378,7 @@
     const cached = detailCache.get(String(id));
     if (cached) {
       els.detail.innerHTML = renderDetail(cached);
+      renderKillResult();
       return Promise.resolve();
     }
     els.detail.innerHTML = '<p class="cm-loading">載入中...</p>';
@@ -293,6 +390,7 @@
       .then((d) => {
         detailCache.set(String(id), d);
         els.detail.innerHTML = renderDetail(d);
+        renderKillResult();
       })
       .catch(() => {
         els.detail.innerHTML =
@@ -387,8 +485,18 @@
     if (row) openDetail(row.dataset.dbId, true);
   });
 
+  // 詳情是每次重新產生的，所以事件掛在容器上做委派，不逐個綁
   els.detail.addEventListener("click", (e) => {
     if (e.target.closest("#dbBackBtn")) closeDetail(true);
+    else if (e.target.closest("#dbToCalc")) sendToCalculator();
+    else if (e.target.closest("#dbToSpots") && window.MapleNav && window.MapleCommunity) {
+      window.MapleNav.switchNav("cm");
+      window.MapleCommunity.showCmSubtab("suggest");
+    }
+  });
+
+  els.detail.addEventListener("input", (e) => {
+    if (e.target.id === "dbCalcLevel" || e.target.id === "dbCalcRate") renderKillResult();
   });
 
   window.addEventListener("popstate", () => {
