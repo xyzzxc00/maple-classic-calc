@@ -121,10 +121,13 @@ def to_static_shell(shell, root):
     top = re.sub(rel, reroot, top)
     footer = re.sub(rel, reroot, footer)
 
-    # 站名（首頁按鈕）→ 回首頁的連結
+    # 站名（首頁按鈕）→ 回首頁的連結。一定要帶 #home，不能只連到根目錄：
+    # index.html 會從 localStorage 還原「上次看的分頁」，光連 / 的話，剛剛
+    # 逛過常見問題的人按「回首頁」會落在常見問題，要再按一次才真的回首頁。
+    # 錨點的優先權高於 localStorage（見 nav.js）
     side = re.sub(
         r'<button class="sidebar-brand"[^>]*>(.*?)</button>',
-        lambda m: f'<a class="sidebar-brand" href="{root}">{m.group(1)}</a>',
+        lambda m: f'<a class="sidebar-brand" href="{root}#home">{m.group(1)}</a>',
         side,
         flags=re.S,
     )
@@ -167,9 +170,10 @@ def to_static_shell(shell, root):
         flags=re.S,
     )
 
+    # 頂欄站名同樣是「回首頁」，跟上面的品牌區走同一組錨點
     top = re.sub(
         r'<button class="top-banner-text"[^>]*>(.*?)</button>',
-        lambda m: f'<a class="top-banner-text" href="{root}">{m.group(1)}</a>',
+        lambda m: f'<a class="top-banner-text" href="{root}#home">{m.group(1)}</a>',
         top,
         flags=re.S,
     )

@@ -66,6 +66,16 @@
       : "home";
   switchNav(initialPage);
 
+  // #home 純粹是「請忽略 localStorage、給我首頁」的指令（guides/、privacy/
+  // 那些獨立頁的站名與麵包屑都連這個），本身沒有分享價值，用完就從網址列
+  // 抹掉，不然使用者接著切到別的分頁再重整，又會被這個舊錨點拉回首頁。
+  // 這段要放在所有讀 location.hash 的模組之後——guides.js／community.js／
+  // legacySpots.js 的 script tag 都排在 nav.js 前面，載入時已經讀完了。
+  // 其他錨點（#calc-scroll 之類）是有意義的深層連結，留在網址列不動
+  if (location.hash === "#home") {
+    history.replaceState(null, "", location.pathname + location.search);
+  }
+
   // 「練等計算」/「攻擊力計算」/「卷軸強化模擬」子分頁切換
   // （攻擊力計算資料還在核對，先隱藏，見 index.html 上的 hidden 屬性）
   const CALC_SUBTAB_KEY = "maple_classic_calc_subtab";
