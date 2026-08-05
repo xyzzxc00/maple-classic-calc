@@ -1438,8 +1438,22 @@ body.has-sidebar .theme-toggle {
   position: sticky;
   top: 0;
   height: 100vh;
+  /* 側邊欄本身不捲動：改成上（站名）／中（分頁選單，可捲）／下（連結區）
+     三段式版面，捲動只發生在中間那段。這樣滑桿不會從最上緣一路貫穿到
+     最下緣，站名與贊助／隱私政策等連結也永遠看得到，不用捲到底才找得到 */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+/* 站名（.sidebar-brand）與底部連結區（.sidebar-footer）固定不動，
+   只有中間這段吃剩餘高度並在需要時才出現滑桿 */
+.sidebar-brand, .sidebar-footer { flex-shrink: 0; }
+.sidebar-scroll {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  /* 細滑桿只套在側邊欄，不做成全站通用——主內容區的長頁面（經驗值表、
+  /* 細滑桿只套在這一段，不做成全站通用——主內容區的長頁面（經驗值表、
      攻略卡片列表）還是用系統預設滑桿比較好抓、也符合使用者對長文捲動的
      肌肉記憶。Firefox 與 Chrome 121+ 吃這兩行標準屬性；舊版 WebKit 走
      下面的 ::-webkit-scrollbar，兩套視覺結果一致 */
@@ -1448,14 +1462,14 @@ body.has-sidebar .theme-toggle {
 }
 /* 舊版 WebKit（Chrome 120 以下／Safari）用的等效寫法：拿掉軌道底色與
    上下箭頭按鈕，只留一根圓角滑塊 */
-.sidebar::-webkit-scrollbar { width: 6px; }
-.sidebar::-webkit-scrollbar-track { background: transparent; }
-.sidebar::-webkit-scrollbar-thumb {
+.sidebar-scroll::-webkit-scrollbar { width: 6px; }
+.sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+.sidebar-scroll::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
   border-radius: 999px;
 }
-.sidebar::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
-.sidebar::-webkit-scrollbar-button { display: none; }
+.sidebar-scroll::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
+.sidebar-scroll::-webkit-scrollbar-button { display: none; }
 /* .app-main 撐滿整個視窗高度、footer 用 main 的 flex:1 推到最底：
    內容不夠長的分頁（例如 BOSS 攻略）footer 也會固定貼在畫面最下方，
    不會懸在半空留一大塊空白 */

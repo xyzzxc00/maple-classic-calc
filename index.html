@@ -191,6 +191,9 @@
       </span>
     </button>
 
+    <!-- 只有這一段（四個主分頁選單）會捲動，站名跟下面的連結區固定不動，
+         滑桿才不會從側邊欄最上緣一路貫穿到最下緣 -->
+    <div class="sidebar-scroll">
     <div class="nav-group">
       <button class="nav-group-btn nav-tab active" id="navCalc" type="button" role="tab" aria-selected="true" aria-controls="pageCalc">
         <span>計算工具</span><span class="nav-group-chev">▾</span>
@@ -237,6 +240,7 @@
         <button class="sidebar-link subtab" id="legacySubBosses" type="button" role="tab" aria-selected="false" aria-controls="legacyBossView">野王地點</button>
         <button class="sidebar-link subtab" id="legacySubBossPrequests" type="button" role="tab" aria-selected="false" aria-controls="legacyBossPrequestView">BOSS前置</button>
       </div>
+    </div>
     </div>
 
     <div class="sidebar-footer">
