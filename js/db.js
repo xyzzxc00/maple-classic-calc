@@ -159,7 +159,11 @@
       if (row) openDetail(cfg.route, row.dataset.dbId, true);
     });
     els.detail.addEventListener("click", (e) => {
+      const goto = e.target.closest("[data-db-goto]");
       if (e.target.closest("[data-db-back]")) closeDetail(true);
+      // 詳情裡跨資料集的連結（任務→怪物、任務→技能…）：只有本站真的收錄
+      // 那一筆時才會產生這種元素，不然點了會開到 404
+      else if (goto) openDetail(goto.dataset.dbGoto, goto.dataset.dbId, true);
       else if (cfg.onDetailClick) cfg.onDetailClick(e);
     });
     if (cfg.onDetailInput) els.detail.addEventListener("input", cfg.onDetailInput);
@@ -506,6 +510,157 @@
     },
   });
 
+  // ------------------------------------------------------------- 任務
+
+  function linkChip(set, id, name, extra) {
+    const tail = extra ? `<span class="db-sub-num">${esc(extra)}</span>` : "";
+    return `<button class="db-chip" type="button" data-db-goto="${set}" data-db-id="${esc(id)}">
+      ${esc(name)}${tail}</button>`;
+  }
+
+  function plainChip(name, extra) {
+    const tail = extra ? `<span class="db-sub-num">${esc(extra)}</span>` : "";
+    return `<span class="db-chip db-chip--plain">${esc(name)}${tail}</span>`;
+  }
+
+  const quests = makeSet({
+    key: "quests",
+    route: "quest",
+    dir: "quests",
+    prefix: "dbQuest",
+    label: "任務",
+    unit: "個",
+    filters: [
+      { id: "Search", test: (r, v) => !v || r.name.toLowerCase().includes(v.trim().toLowerCase()) },
+      { id: "Cat", test: (r, v) => !v || r.cat === v },
+      { id: "LvMin", test: (r, v) => !v || (r.lv || 0) >= parseInt(v, 10) },
+      { id: "LvMax", test: (r, v) => !v || (r.lv || 0) <= parseInt(v, 10) },
+    ],
+    sorts: [
+      { key: "level", cmp: (a, b) => (a.lv || 0) - (b.lv || 0) || a.name.localeCompare(b.name, "zh-TW") },
+      { key: "exp", cmp: (a, b) => (b.exp || 0) - (a.exp || 0) },
+      { key: "name", cmp: (a, b) => a.name.localeCompare(b.name, "zh-TW") },
+    ],
+    fillFilters(index, els) {
+      [...new Set(index.map((q) => q.cat))].filter(Boolean).sort().forEach((c) => {
+        const o = document.createElement("option");
+        o.value = c;
+        o.textContent = c;
+        els.Cat.appendChild(o);
+      });
+    },
+    renderRow(q) {
+      return `<button class="db-row db-row--text" type="button" data-db-id="${esc(q.id)}">
+        <div class="db-row-main">
+          <div class="db-row-title">
+            <span class="db-row-name">${esc(q.name)}</span>
+            ${q.lv ? `<span class="db-row-level">Lv.${q.lv}</span>` : ""}
+            <span class="db-tag">${esc(q.cat)}</span>
+          </div>
+          <div class="db-row-meta">${esc([q.parent, q.npc && "NPC：" + q.npc].filter(Boolean).join(" · "))}</div>
+        </div>
+        <dl class="db-row-stats">
+          <div><dt>EXP</dt><dd>${q.exp ? shortNum(q.exp) : "—"}</dd></div>
+        </dl>
+      </button>`;
+    },
+    renderDetail(d) {
+      const npcLine = (n, label) =>
+        n && n.name
+          ? `<div class="db-sub-item">
+              <span class="db-sub-name">${label}</span>
+              <span class="db-sub-meta">${esc(n.name)}${n.maps.length ? "（" + esc(n.maps.map((m) => m.label).join("、")) + "）" : ""}</span>
+            </div>`
+          : "";
+
+      const startBits = [];
+      if (d.start.level) startBits.push(plainChip(`Lv.${d.start.level} 以上`));
+      (d.start.items || []).forEach((i) =>
+        startBits.push(plainChip(i.name, i.count ? `×${i.count}` : ""))
+      );
+      (d.start.quests || []).forEach((q) =>
+        startBits.push(
+          q.link ? linkChip("quest", q.id, q.name, q.state) : plainChip(q.name, q.state)
+        )
+      );
+
+      const compBits = [];
+      (d.complete.items || []).forEach((i) =>
+        compBits.push(plainChip(i.name, i.count ? `×${i.count}` : ""))
+      );
+      (d.complete.monsters || []).forEach((m) =>
+        compBits.push(
+          m.link
+            ? linkChip("monster", m.id, m.name, m.count ? `×${m.count}` : "")
+            : plainChip(m.name, m.count ? `×${m.count}` : "")
+        )
+      );
+
+      const rw = d.rewards;
+      const rwBits = [];
+      if (rw.exp) rwBits.push(plainChip("經驗值", num(rw.exp)));
+      if (rw.money) rwBits.push(plainChip("楓幣", num(rw.money)));
+      if (rw.pop) rwBits.push(plainChip("人氣", num(rw.pop)));
+      (rw.items || []).forEach((i) => rwBits.push(plainChip(i.name, i.count ? `×${i.count}` : "")));
+      (rw.skills || []).forEach((s) =>
+        rwBits.push(s.link ? linkChip("skill", s.id, s.name || "技能") : plainChip(s.name || "技能"))
+      );
+
+      const section = (title, bits) =>
+        bits.length
+          ? `<section class="db-section">
+              <h3 class="db-section-title">${title}</h3>
+              <div class="db-chip-row">${bits.join("")}</div>
+            </section>`
+          : "";
+
+      // nextQuest 通常也會出現在 dependentQuests 裡，同一筆列兩次很奇怪
+      const nextBits = [];
+      const seenNext = new Set();
+      [d.next, ...(d.deps || [])].filter(Boolean).forEach((q) => {
+        if (seenNext.has(q.id)) return;
+        seenNext.add(q.id);
+        nextBits.push(q.link ? linkChip("quest", q.id, q.name) : plainChip(q.name));
+      });
+
+      return `<button class="db-back" type="button" data-db-back>← 回到任務列表</button>
+        <div class="db-detail-head">
+          <div>
+            <div class="db-row-title">
+              <h2 class="db-detail-name">${esc(d.name)}</h2>
+              ${d.minLevel ? `<span class="db-row-level">Lv.${d.minLevel}</span>` : ""}
+              <span class="db-tag">${esc(d.category)}</span>
+            </div>
+            ${d.parent ? `<p class="db-detail-desc">系列：${esc(d.parent)}</p>` : ""}
+          </div>
+        </div>
+        <section class="db-section">
+          <h3 class="db-section-title">接取與繳交</h3>
+          <div class="db-sub-list">
+            ${npcLine(d.startNpc, "接取")}
+            ${npcLine(d.endNpc, "繳交")}
+          </div>
+        </section>
+        ${section("接取條件", startBits)}
+        ${section("完成條件", compBits)}
+        ${section("獎勵", rwBits)}
+        ${section("後續任務", nextBits)}
+        ${d.texts.length
+          ? `<section class="db-section">
+              <h3 class="db-section-title">任務說明</h3>
+              <div class="db-sub-list">${d.texts
+                .map(
+                  (t) => `<div class="db-text-block">
+                    <div class="db-text-label">${esc(t.label)}</div>
+                    <p class="db-text-body">${esc(t.text)}</p>
+                  </div>`
+                )
+                .join("")}</div>
+            </section>`
+          : ""}`;
+    },
+  });
+
   // ------------------------------------------------------------- 技能
 
   function skillImg(id, size) {
@@ -618,7 +773,7 @@
 
   // ------------------------------------------------------------- 組裝
 
-  const SETS = [monsters, skills].filter(Boolean);
+  const SETS = [monsters, quests, skills].filter(Boolean);
 
   SETS.forEach((s) => {
     const btn = document.getElementById("dbSub" + s.key.charAt(0).toUpperCase() + s.key.slice(1));

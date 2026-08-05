@@ -1234,6 +1234,38 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 
 /* 技能圖示原始就是 32px 的小圖，放到 44px 框裡不要拉伸變糊 */
 .db-row-icon--skill { object-fit: contain; }
+/* 任務沒有圖示，整列只有文字，不留左邊那格空白 */
+.db-row--text { gap: 0; }
+
+/* 需求／獎勵這種「一堆小項目」用晶片排版，比每項一列省掉大量垂直空間。
+   可以點的（本站也收錄那一筆）跟純文字的長得不一樣，才知道哪些點得動 */
+.db-chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.db-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 12.5px;
+  color: var(--accent-text);
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+.db-chip:hover { border-color: var(--accent-text); }
+.db-chip--plain {
+  color: var(--ink);
+  background: var(--surface-tint);
+  border-color: var(--border);
+  cursor: default;
+}
+
+/* 任務說明是遊戲原文，段落之間要分得開才讀得下去 */
+.db-text-block { padding: 8px 0; border-bottom: 1px solid var(--border); }
+.db-text-block:last-child { border-bottom: none; }
+.db-text-label { font-size: 11.5px; font-weight: 700; color: var(--accent-text); }
+.db-text-body { margin: 4px 0 0; font-size: 13px; color: var(--ink-soft); line-height: 1.75; }
 
 /* 每級數值表：欄數隨技能而異（有的只有消耗 MP，有的七八欄），窄螢幕一定
    會超出，所以整張表自己橫向捲，不要讓頁面產生水平捲軸 */

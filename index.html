@@ -215,6 +215,7 @@
       </button>
       <div class="nav-group-links">
         <button class="sidebar-link subtab active" id="dbSubMonsters" type="button" role="tab" aria-selected="true" aria-controls="dbMonstersView">怪物</button>
+        <button class="sidebar-link subtab" id="dbSubQuests" type="button" role="tab" aria-selected="false" aria-controls="dbQuestsView">任務</button>
         <button class="sidebar-link subtab" id="dbSubSkills" type="button" role="tab" aria-selected="false" aria-controls="dbSkillsView">技能</button>
       </div>
     </div>
@@ -828,6 +829,45 @@
 
     <!-- 單隻怪的詳情，內容由 db.js 依 data/db/monsters/<id>.json 產生 -->
     <section class="panel" id="dbMonsterDetail" hidden></section>
+  </div>
+
+  <div id="dbQuestsView" role="tabpanel" aria-labelledby="dbSubQuests" hidden>
+    <section class="panel" id="dbQuestListPanel">
+      <div class="panel-head">
+        <h2>任務資料</h2>
+        <span class="badge" id="dbQuestCount">—</span>
+      </div>
+
+      <details class="cm-disclaimer-details">
+        <summary>收錄範圍說明</summary>
+        <p class="cm-disclaimer">只收錄<strong>接取與繳交 NPC 都在已開放地區</strong>（楓之島、維多利亞島、奇幻村）、且等級需求在 Lv.100 以內的任務。任務內容、需求與獎勵取自遊戲資料檔，不是玩家整理的攻略；文字敘述保留遊戲原文。</p>
+      </details>
+
+      <div class="cm-toolbar">
+        <div class="cm-filter-row">
+          <input class="cm-filter-input" id="dbQuestSearch" type="search" placeholder="搜尋任務名稱" autocomplete="off">
+          <select class="cm-filter-input" id="dbQuestCat">
+            <option value="">全部分類</option>
+          </select>
+          <div class="cm-filter-lv-group">
+            <input class="cm-filter-input cm-filter-lv" id="dbQuestLvMin" type="number" min="1" max="200" placeholder="最低等">
+            <span class="cm-filter-sep">~</span>
+            <input class="cm-filter-input cm-filter-lv" id="dbQuestLvMax" type="number" min="1" max="200" placeholder="最高等">
+          </div>
+        </div>
+        <div class="cm-actions">
+          <div class="cm-sort-btns"><span class="cm-group-label">排序</span>
+            <button class="cm-sort-btn active" data-db-sort="level" data-db-set="quest" type="button">等級</button>
+            <button class="cm-sort-btn" data-db-sort="exp" data-db-set="quest" type="button">經驗值</button>
+            <button class="cm-sort-btn" data-db-sort="name" data-db-set="quest" type="button">名稱</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="dbQuestList"><p class="cm-loading">載入中...</p></div>
+    </section>
+
+    <section class="panel" id="dbQuestDetail" hidden></section>
   </div>
 
   <div id="dbSkillsView" role="tabpanel" aria-labelledby="dbSubSkills" hidden>

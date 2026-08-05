@@ -241,6 +241,112 @@ def build_skill_index(details):
     ]
 
 
+def build_quest_detail(q, map_ids, monster_ids, skill_ids, quest_ids):
+    """任務詳情。NPC 的所在地圖只留開放的那些；提到的怪物與技能若本站也收錄了，
+    就帶上 id 讓畫面可以互連"""
+
+    def npc(n):
+        if not n:
+            return None
+        maps = [
+            {"id": m.get("id"), "label": m.get("label") or m.get("name") or ""}
+            for m in (n.get("maps") or [])
+            if m.get("id") in map_ids
+        ]
+        return {"id": n.get("id"), "name": n.get("name") or "", "maps": maps}
+
+    def items(rows):
+        return [
+            {"id": r["id"], "name": r.get("name") or "", "count": r.get("count") or 0}
+            for r in (rows or [])
+        ]
+
+    def monsters(rows):
+        return [
+            {
+                "id": str(r["id"]),
+                "name": r.get("name") or "",
+                "count": r.get("count") or 0,
+                # 本站有收錄這隻怪才給連結，不然點了會 404
+                "link": str(r["id"]) in monster_ids,
+            }
+            for r in (rows or [])
+        ]
+
+    def skills(rows):
+        return [
+            {"id": r["id"], "name": skill_ids.get(r["id"], ""), "link": r["id"] in skill_ids}
+            for r in (rows or [])
+        ]
+
+    def quests(rows):
+        return [
+            {
+                "id": str(r["id"]),
+                "name": r.get("name") or "",
+                "state": r.get("stateLabel") or "",
+                "link": str(r["id"]) in quest_ids,
+            }
+            for r in (rows or [])
+        ]
+
+    start = q.get("startRequirements") or {}
+    comp = q.get("completeRequirements") or {}
+    rw = q.get("completeRewards") or {}
+    srw = q.get("startRewards") or {}
+    nxt = q.get("nextQuest")
+    return {
+        "id": str(q["id"]),
+        "name": q.get("name") or "",
+        "category": q.get("category") or "",
+        "parent": q.get("parent") or "",
+        "minLevel": q.get("minLevel"),
+        "maxLevel": q.get("maxLevel"),
+        "startNpc": npc(q.get("startNpc")),
+        "endNpc": npc(q.get("endNpc")),
+        "start": {
+            "level": start.get("minLevel"),
+            "jobs": start.get("jobs") or [],
+            "items": items(start.get("items")),
+            "quests": quests(start.get("quests")),
+        },
+        "complete": {
+            "items": items(comp.get("items")),
+            "monsters": monsters(comp.get("monsters")),
+        },
+        "rewards": {
+            "exp": (rw.get("exp") or 0) + (srw.get("exp") or 0),
+            "money": (rw.get("money") or 0) + (srw.get("money") or 0),
+            "pop": (rw.get("pop") or 0) + (srw.get("pop") or 0),
+            "items": items(rw.get("items")) + items(srw.get("items")),
+            "skills": skills(rw.get("skills")) + skills(srw.get("skills")),
+        },
+        "texts": [
+            {"label": t.get("label") or "", "text": (t.get("text") or "").strip()}
+            for t in (q.get("texts") or [])
+            if (t.get("text") or "").strip()
+        ],
+        "next": {"id": str(nxt["id"]), "name": nxt.get("name") or "",
+                 "link": str(nxt["id"]) in quest_ids} if nxt else None,
+        "deps": quests(q.get("dependentQuests")),
+    }
+
+
+def build_quest_index(details):
+    return [
+        {
+            "id": d["id"],
+            "name": d["name"],
+            "cat": d["category"],
+            "parent": d["parent"],
+            "lv": d["minLevel"],
+            "npc": (d["startNpc"] or {}).get("name") or "",
+            "exp": d["rewards"]["exp"] or 0,
+        }
+        for d in details
+    ]
+
+
 def build_index(details):
     """列表用的索引，欄位越少越好——這是進站就會載的檔案"""
     return [
@@ -314,6 +420,22 @@ def main():
                   encoding="utf-8") as f:
             json.dump(d, f, ensure_ascii=False, separators=(",", ":"))
 
+    # 任務
+    monster_ids = {str(m["id"]) for m in kept}
+    skill_names = {s["id"]: s["name"] for s in kept_skills}
+    kept_quests = [q for q in quests_db["quests"] if str(q["id"]) in quest_ids]
+    quest_details = [
+        build_quest_detail(q, map_ids, monster_ids, skill_names, quest_ids) for q in kept_quests
+    ]
+    quest_details.sort(key=lambda d: (d["category"], d["minLevel"] or 0, d["name"]))
+    os.makedirs(os.path.join(OUT_DATA, "quests"), exist_ok=True)
+    with open(os.path.join(OUT_DATA, "quests.json"), "w", encoding="utf-8") as f:
+        json.dump(build_quest_index(quest_details), f, ensure_ascii=False, separators=(",", ":"))
+    for d in quest_details:
+        with open(os.path.join(OUT_DATA, "quests", f"{d['id']}.json"), "w",
+                  encoding="utf-8") as f:
+            json.dump(d, f, ensure_ascii=False, separators=(",", ":"))
+
     # 圖片：怪物本體 + 牠們會掉的道具 + 技能圖示
     shutil.rmtree(OUT_ASSETS, ignore_errors=True)
     mon_imgs = sum(copy_image(src, m.get("image"), os.path.join(OUT_ASSETS, "monsters"))
@@ -341,6 +463,10 @@ def main():
     print(f"  詳情檔   {detail_kb:.0f} KB（平均 {detail_kb / len(kept):.1f} KB）")
     print(f"  掉落     {sum(len(d['drops']) for d in details)} 筆，{len(item_paths)} 種道具")
     print(f"  相關任務 {sum(len(d['quests']) for d in details)} 筆")
+    quest_kb = dirsize(os.path.join(OUT_DATA, "quests")) / 1024
+    print(f"任務       {len(quest_details)} 個"
+          f"（索引 {os.path.getsize(os.path.join(OUT_DATA, 'quests.json')) / 1024:.0f} KB、"
+          f"詳情 {quest_kb:.0f} KB）")
     skill_kb = dirsize(os.path.join(OUT_DATA, "skills")) / 1024
     print(f"技能       {len(kept_skills)} 個"
           f"（索引 {os.path.getsize(os.path.join(OUT_DATA, 'skills.json')) / 1024:.0f} KB、"
