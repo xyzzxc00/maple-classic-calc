@@ -30,9 +30,9 @@ import sys
 # （四轉技能、Lv.120 任務、還沒開的大陸），照單全收會讓站上列出遊戲裡根本
 # 進不去的東西——本站一向標榜數字查證過，這個信譽不能為了資料量犧牲。
 #
-# 2026-08 現況：世界地圖只有這三塊，等級上限 100。
-# 之後開新地區，改這裡再重跑就好。
-OPEN_REGIONS = {"楓之島", "維多利亞島", "奇幻村"}
+# 2026-08 現況：這四塊，等級上限 100。鯨魚號那 10 張圖沒有怪，但有 NPC，
+# 也是世界地圖的一環。之後開新地區，改這裡再重跑就好。
+OPEN_REGIONS = {"楓之島", "維多利亞島", "奇幻村", "鯨魚號"}
 LEVEL_CAP = 100
 
 # 技能：本服只有五大冒險家職業。拆包檔裡還有皇家騎士團、狂狼勇士、龍魔導士、
@@ -598,7 +598,8 @@ def build_map_details(maps, map_ids, monster_ids):
                 "y": pct(n["y"], mm["centerY"], mm["height"]) if has_mini else None,
             }
             for n in (m.get("npcSpawns") or [])
-            if n.get("x") is not None
+            # 沒有名字的 NPC（隱藏觸發器之類，顯示成「NPC 9050009」）是雜訊
+            if n.get("x") is not None and not n.get("unnamed") and n.get("name")
         ]
 
         # 傳送點分兩種：跨地圖（通往別張圖）與同地圖（同一張圖裡的上下樓梯、
@@ -746,6 +747,58 @@ def build_npc_details(maps, quests, items, map_ids, quest_ids, item_ids):
         e["quests"].sort(key=lambda x: x["name"])
         e["crafts"].sort(key=lambda x: x["meso"])
     out.sort(key=lambda e: ((e["maps"][0]["region"] if e["maps"] else ""), e["name"]))
+    return out
+
+
+def build_world_maps(worldmaps_db, map_page_ids):
+    """世界地圖：四塊區域各一張手繪大圖，圖上的節點連到單張地圖的頁面。
+
+    來源資料的節點座標已經是百分比，跟小地圖同一套定位方式。
+    「子地圖」（worldSubMap，像地鐵一號線的 16 個分層）在世界地圖上跟主圖
+    疊在同一個點，全部畫出來只會擠成一團，不畫——反正點進主圖後靠傳送點
+    就能一路走。碰到子地圖的連線也一起略過，跨區的連線由 proxy 節點代替
+    （畫成「前往◯◯」的按鈕，點了切到那塊區域）"""
+    order = {"楓之島": 0, "維多利亞島": 1, "奇幻村": 2, "鯨魚號": 3}
+    out = []
+    for r in worldmaps_db["worldMaps"]["regions"]:
+        if r["name"] not in order:
+            continue
+        nodes = []
+        for n in r.get("nodes") or []:
+            if n.get("unnamed") or n.get("worldSubMap"):
+                continue
+            nodes.append({
+                "id": str(n["mapId"]),
+                "name": n.get("name") or "",
+                "street": n.get("street") or "",
+                "x": n["x"],
+                "y": n["y"],
+                "link": n["mapId"] in map_page_ids,
+            })
+        kept_ids = {n["id"] for n in nodes}
+        edges = [
+            [e["from"], e["to"]]
+            for e in (r.get("edges") or [])
+            if not e.get("cross") and e["from"] in kept_ids and e["to"] in kept_ids
+        ]
+        out.append({
+            "key": r["key"],
+            "name": r["name"],
+            "w": r.get("imageWidth"),
+            "h": r.get("imageHeight"),
+            "nodes": nodes,
+            "edges": edges,
+            "proxies": [
+                {
+                    "region": p["targetRegionKey"],
+                    "name": p.get("targetRegionName") or "",
+                    "x": p["x"],
+                    "y": p["y"],
+                }
+                for p in (r.get("proxyNodes") or [])
+            ],
+        })
+    out.sort(key=lambda r: order[r["name"]])
     return out
 
 
@@ -909,6 +962,17 @@ def main():
         if m["id"] in map_ids and m.get("miniMapImage")
     }
 
+    # 世界地圖
+    worldmaps_db = load(src, "worldmaps-data.js")
+    world_regions = build_world_maps(worldmaps_db, map_page_ids)
+    with open(os.path.join(OUT_DATA, "worldmaps.json"), "w", encoding="utf-8") as f:
+        json.dump(world_regions, f, ensure_ascii=False, separators=(",", ":"))
+    world_img_paths = {
+        r["key"]: r.get("image")
+        for r in worldmaps_db["worldMaps"]["regions"]
+        if r.get("image") and any(w["key"] == r["key"] for w in world_regions)
+    }
+
     # 道具（清單在最前面就算好了，這裡只負責寫檔）
     os.makedirs(os.path.join(OUT_DATA, "items"), exist_ok=True)
     with open(os.path.join(OUT_DATA, "items.json"), "w", encoding="utf-8") as f:
@@ -940,6 +1004,8 @@ def main():
                    for p in map_img_paths.values())
     npc_imgs = sum(copy_image(src, p, os.path.join(OUT_ASSETS, "npcs"))
                    for p in npc_img_paths.values())
+    world_imgs = sum(copy_image(src, p, os.path.join(OUT_ASSETS, "worldmaps"))
+                     for p in world_img_paths.values())
 
     # 報告
     def dirsize(path):
@@ -975,8 +1041,12 @@ def main():
     print(f"技能       {len(kept_skills)} 個"
           f"（索引 {os.path.getsize(os.path.join(OUT_DATA, 'skills.json')) / 1024:.0f} KB、"
           f"詳情 {skill_kb:.0f} KB）")
+    print(f"世界地圖   {len(world_regions)} 塊區域"
+          f"（{os.path.getsize(os.path.join(OUT_DATA, 'worldmaps.json')) / 1024:.0f} KB、"
+          f"節點 {sum(len(r['nodes']) for r in world_regions)}、"
+          f"連線 {sum(len(r['edges']) for r in world_regions)}）")
     print(f"圖片       怪物 {mon_imgs}、道具 {item_imgs}、技能 {skill_imgs}、"
-          f"小地圖 {map_imgs}、NPC {npc_imgs} 張，"
+          f"小地圖 {map_imgs}、NPC {npc_imgs}、世界地圖 {world_imgs} 張，"
           f"共 {dirsize(OUT_ASSETS) / 1024 / 1024:.1f} MB")
     missing = len(kept) - mon_imgs
     if missing:

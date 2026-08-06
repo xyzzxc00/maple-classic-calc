@@ -216,6 +216,7 @@
       <div class="nav-group-links">
         <button class="sidebar-link subtab active" id="dbSubMonsters" type="button" role="tab" aria-selected="true" aria-controls="dbMonstersView">怪物</button>
         <button class="sidebar-link subtab" id="dbSubMaps" type="button" role="tab" aria-selected="false" aria-controls="dbMapsView">地圖</button>
+        <button class="sidebar-link subtab" id="dbSubWorld" type="button" role="tab" aria-selected="false" aria-controls="dbWorldView">世界地圖</button>
         <button class="sidebar-link subtab" id="dbSubItems" type="button" role="tab" aria-selected="false" aria-controls="dbItemsView">道具</button>
         <button class="sidebar-link subtab" id="dbSubNpcs" type="button" role="tab" aria-selected="false" aria-controls="dbNpcsView">NPC</button>
         <button class="sidebar-link subtab" id="dbSubQuests" type="button" role="tab" aria-selected="false" aria-controls="dbQuestsView">任務</button>
@@ -327,6 +328,14 @@
        上線日 -->
   <div class="section-head"><h2>最新更新</h2></div>
   <div class="feed-list">
+    <button class="feed-item" type="button" data-nav-page="db" data-nav-subtab="world">
+      <span class="feed-tag">資料庫</span>
+      <span class="feed-text">
+        <span class="feed-title">新增世界地圖：四塊區域一張張點著走，鯨魚號也開放了</span>
+        <span class="feed-desc">楓之島、維多利亞島、奇幻村、鯨魚號的全區地圖，點名字直接看那張地圖；小地圖也能點圖放大檢視</span>
+      </span>
+      <span class="feed-date">08/06</span>
+    </button>
     <button class="feed-item" type="button" data-nav-page="db" data-nav-subtab="maps">
       <span class="feed-tag">資料庫</span>
       <span class="feed-text">
@@ -351,14 +360,6 @@
       </span>
       <span class="feed-date">08/05</span>
     </span>
-    <button class="feed-item" type="button" data-nav-page="guides" data-nav-subtab="jobs">
-      <span class="feed-tag">職業攻略</span>
-      <span class="feed-text">
-        <span class="feed-title">職業攻略擴充，火焰之地補上等級資料</span>
-        <span class="feed-desc">五大職業 AP 配點、逐級點法、分支現況評價一次看</span>
-      </span>
-      <span class="feed-date">08/05</span>
-    </button>
   </div>
 
 </div>
@@ -811,7 +812,7 @@
 
       <details class="cm-disclaimer-details">
         <summary>這些資料怎麼來的？為什麼沒有掉落率？</summary>
-        <p class="cm-disclaimer">數值、屬性抗性、出沒地圖與掉落清單取自遊戲本身的資料檔，不是玩家回報或站長推測。<strong>只收錄目前已開放的地區</strong>（楓之島、維多利亞島、奇幻村），還沒開放的大陸與怪物不會出現在這裡。</p>
+        <p class="cm-disclaimer">數值、屬性抗性、出沒地圖與掉落清單取自遊戲本身的資料檔，不是玩家回報或站長推測。<strong>只收錄目前已開放的地區</strong>（楓之島、維多利亞島、奇幻村、鯨魚號），還沒開放的大陸與怪物不會出現在這裡。</p>
         <p class="cm-disclaimer">遊戲資料檔只記錄「這隻怪會掉什麼」，<strong>沒有記錄掉落機率</strong>，所以本站不提供掉落率——網路上流傳的機率多半是估算值，本站不轉載未經查證的數字。</p>
       </details>
 
@@ -852,7 +853,7 @@
 
       <details class="cm-disclaimer-details">
         <summary>收錄範圍說明</summary>
-        <p class="cm-disclaimer">只收錄目前已開放的三塊大陸（楓之島、維多利亞島、奇幻村）的地圖。小地圖與怪物重生點位置取自遊戲資料檔，<strong>重生點數量不等於實際刷新速度</strong>，實際練功效率請看社群回報。</p>
+        <p class="cm-disclaimer">只收錄目前已開放地區（楓之島、維多利亞島、奇幻村、鯨魚號）的地圖。小地圖與怪物重生點位置取自遊戲資料檔，<strong>重生點數量不等於實際刷新速度</strong>，實際練功效率請看社群回報。</p>
       </details>
 
       <div class="cm-toolbar">
@@ -878,6 +879,23 @@
     </section>
 
     <section class="panel" id="dbMapDetail" hidden></section>
+  </div>
+
+  <div id="dbWorldView" role="tabpanel" aria-labelledby="dbSubWorld" hidden>
+    <section class="panel">
+      <div class="panel-head">
+        <h2>世界地圖</h2>
+        <span class="badge" id="dbWorldCount">—</span>
+      </div>
+
+      <details class="cm-disclaimer-details">
+        <summary>收錄範圍說明</summary>
+        <p class="cm-disclaimer">世界地圖取自遊戲本身的資料檔，只收錄目前已開放的四塊區域（楓之島、維多利亞島、奇幻村、鯨魚號）。同一個點底下的分層地圖（例如地鐵的各個區間）不會另外畫出來，點進主地圖後沿著傳送點就能走到。</p>
+      </details>
+
+      <div class="cm-sort-btns db-world-tabs" id="dbWorldTabs" role="tablist" aria-label="選擇世界地圖區域"></div>
+      <div id="dbWorldBox"><p class="cm-loading">載入中...</p></div>
+    </section>
   </div>
 
   <div id="dbItemsView" role="tabpanel" aria-labelledby="dbSubItems" hidden>

@@ -46,6 +46,46 @@
 
   const LOAD_ERROR = '<p class="cm-empty cm-empty--error">資料載入失敗，請重新整理頁面</p>';
 
+  // ------------------------------------------------------ 小地圖放大檢視
+  // 有些小地圖原檔只有一百多像素寬，內嵌大小看不清楚。點圖開一層放大的
+  // 燈箱，再點一下（或 Esc）關掉。只放大圖本身，不帶標記——標記在原圖上
+  // 就能點，燈箱是「看清楚地形」用的
+  let lightbox = null;
+
+  function closeLightbox() {
+    if (!lightbox || lightbox.hidden) return;
+    lightbox.hidden = true;
+    document.body.style.overflow = "";
+  }
+
+  function openLightbox(img) {
+    if (!img.naturalWidth) return; // 圖還沒載好，放大也只是一片空白
+    if (!lightbox) {
+      lightbox = document.createElement("div");
+      lightbox.className = "db-lightbox";
+      lightbox.setAttribute("role", "button");
+      lightbox.setAttribute("aria-label", "關閉放大檢視");
+      lightbox.innerHTML = '<img alt="">';
+      lightbox.addEventListener("click", closeLightbox);
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeLightbox();
+      });
+      document.body.appendChild(lightbox);
+    }
+    const target = lightbox.querySelector("img");
+    target.src = img.currentSrc || img.src;
+    target.alt = img.alt || "";
+    // 放大到視窗放得下的最大整數倍，最多 4 倍——像素圖放太大反而全是格子
+    const scale = Math.min(
+      (window.innerWidth * 0.92) / img.naturalWidth,
+      (window.innerHeight * 0.85) / img.naturalHeight,
+      4
+    );
+    target.style.width = Math.round(img.naturalWidth * Math.max(scale, 1)) + "px";
+    lightbox.hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+
   // ---------------------------------------------------------- 資料集框架
 
   /**
@@ -692,7 +732,7 @@
              ${d.portals.some((p) => !p.same && p.x != null) ? '<button class="cm-sort-btn active" type="button" data-map-toggle="portal">跨地圖傳送</button>' : ""}
              ${hasSame ? '<button class="cm-sort-btn active" type="button" data-map-toggle="portal-same">同圖傳送</button>' : ""}
            </div>
-           <p class="db-section-note">點小地圖上的怪物圖示可以看那隻怪的資料，點紫色的傳送點可以直接前往那張地圖；上面的按鈕可以切換要顯示哪一類標記。</p>`
+           <p class="db-section-note">點小地圖上的怪物圖示可以看那隻怪的資料，點紫色的傳送點可以直接前往那張地圖，點地圖空白處可以放大檢視；上面的按鈕可以切換要顯示哪一類標記。</p>`
         : '<p class="cm-empty">這張地圖沒有小地圖資料</p>';
 
       const mobs = d.mobs.length
@@ -748,6 +788,10 @@
         </section>` : ""}`;
     },
     onDetailClick(e) {
+      if (e.target.classList && e.target.classList.contains("db-map-img")) {
+        openLightbox(e.target);
+        return;
+      }
       const toggle = e.target.closest("[data-map-toggle]");
       if (!toggle) return;
       const kind = toggle.dataset.mapToggle;
@@ -1308,6 +1352,117 @@
     },
   });
 
+  // ------------------------------------------------------------- 世界地圖
+  // 跟其他資料集不同：不是「列表＋詳情」，是四塊區域各一張手繪大圖，圖上的
+  // 節點直接連到地圖詳情。節點座標是匯入時算好的百分比，連線用一層 SVG 畫
+  // （viewBox 0~100 配 preserveAspectRatio="none"，跟節點同一套座標）。
+  // 圖上文字很多，手機塞不下也不該縮到看不清——外層給橫向捲動，圖保持
+  // 讀得了字的最小寬度
+  const world = (() => {
+    const view = document.getElementById("dbWorldView");
+    const tabsBox = document.getElementById("dbWorldTabs");
+    const box = document.getElementById("dbWorldBox");
+    const countEl = document.getElementById("dbWorldCount");
+    if (!view || !tabsBox || !box) return null;
+
+    const REGION_KEY = "maple_classic_db_world_region";
+    let regions = null;
+    let loading = null;
+    let current = null;
+
+    function render() {
+      const r = regions.find((x) => x.key === current) || regions[0];
+      current = r.key;
+      tabsBox.innerHTML = regions
+        .map(
+          (x) => `<button class="cm-sort-btn${x.key === r.key ? " active" : ""}" type="button"
+                    role="tab" aria-selected="${x.key === r.key}"
+                    data-world-region="${esc(x.key)}">${esc(x.name)}</button>`
+        )
+        .join("");
+      if (countEl) countEl.textContent = `${r.nodes.length} 張地圖`;
+
+      const pos = new Map(r.nodes.map((n) => [n.id, n]));
+      const lines = r.edges
+        .map(([a, b]) => {
+          const na = pos.get(a);
+          const nb = pos.get(b);
+          return `<line x1="${na.x}" y1="${na.y}" x2="${nb.x}" y2="${nb.y}"/>`;
+        })
+        .join("");
+      const nodes = r.nodes
+        .map((n) => {
+          const at = `style="left:${n.x}%;top:${n.y}%"`;
+          const dot = "<i></i>";
+          return n.link
+            ? `<button class="db-wnode" type="button" data-db-goto="map"
+                 data-db-id="${esc(n.id)}" ${at}
+                 title="${esc([n.street, n.name].filter(Boolean).join(" / "))}">${dot}${esc(n.name)}</button>`
+            : `<span class="db-wnode db-wnode--plain" ${at}>${dot}${esc(n.name)}</span>`;
+        })
+        .join("");
+      const proxies = r.proxies
+        .map(
+          (p) => `<button class="db-wnode db-wnode--region" type="button"
+                    data-world-region="${esc(p.region)}"
+                    style="left:${p.x}%;top:${p.y}%">前往 ${esc(p.name)} →</button>`
+        )
+        .join("");
+
+      // 藥丸的字不跟著圖縮放，節點一多就會互相蓋住——維多利亞島 129 個節點
+      // 需要比其他三塊大得多的畫布，字才攤得開。超出面板寬度就橫向捲動
+      const minW = r.nodes.length > 80 ? 1200 : 760;
+      box.innerHTML = `<div class="db-world-scroll">
+          <div class="db-world-figure" style="min-width:${minW}px">
+            <img class="db-world-img" src="assets/db/worldmaps/${esc(r.key)}.png"
+                 alt="${esc(r.name)} 世界地圖" decoding="async">
+            <svg class="db-world-lines" viewBox="0 0 100 100" preserveAspectRatio="none"
+                 aria-hidden="true">${lines}</svg>
+            ${nodes}${proxies}
+          </div>
+        </div>
+        <p class="db-section-note">點地圖上的名字可以看那張地圖的資料；「前往◯◯」切到相鄰的區域。地圖比視窗寬的話可以左右捲動。</p>`;
+      const scroller = box.querySelector(".db-world-scroll");
+      if (scroller) scroller.scrollLeft = 0;
+    }
+
+    function show(key, skipSave) {
+      current = key;
+      if (!skipSave) localStorage.setItem(REGION_KEY, key);
+      if (regions) render();
+    }
+
+    function load() {
+      if (regions || loading) return loading || Promise.resolve();
+      loading = getJson("data/db/worldmaps.json")
+        .then((data) => {
+          regions = Array.isArray(data) ? data : [];
+          if (!current) {
+            const saved = localStorage.getItem(REGION_KEY);
+            current = regions.some((x) => x.key === saved) ? saved : regions[0] && regions[0].key;
+          }
+          render();
+        })
+        .catch(() => {
+          if (countEl) countEl.textContent = "—";
+          box.innerHTML = LOAD_ERROR;
+        })
+        .finally(() => {
+          loading = null;
+        });
+      return loading;
+    }
+
+    view.addEventListener("click", (e) => {
+      const reg = e.target.closest("[data-world-region]");
+      const goto = e.target.closest("[data-db-goto]");
+      if (reg) show(reg.dataset.worldRegion);
+      else if (goto) openDetail(goto.dataset.dbGoto, goto.dataset.dbId, true);
+    });
+
+    return { key: "world", load, show };
+  })();
+
   // ------------------------------------------------------------- 組裝
 
   const SETS = [monsters, maps, items, npcs, quests, skills].filter(Boolean);
@@ -1326,6 +1481,22 @@
       });
     }
   });
+
+  // 世界地圖不是列表＋詳情的資料集，不進 SETS（全站搜尋、網址路由都與它
+  // 無關），只註冊成一個子分頁
+  if (world) {
+    const btn = document.getElementById("dbSubWorld");
+    const view = document.getElementById("dbWorldView");
+    if (btn && view) {
+      tabs.push({ key: "world", btn, view });
+      btn.addEventListener("click", () => {
+        showTab("world");
+        world.load();
+        if (currentRoute()) history.replaceState({}, "", routeUrl(null));
+        SETS.forEach((x) => x.showList());
+      });
+    }
+  }
 
   // ------------------------------------------------------------- 全站搜尋
 
@@ -1420,16 +1591,21 @@
     const route = currentRoute();
     const routed = route && SETS.find((s) => s.route === route.set);
     const hashSub = location.hash.slice(1).split("-")[1];
+    // 世界地圖不在 SETS 裡，錨點（#db-world）與記住的子分頁要另外認得它
+    const isWorld = (k) => world && k === "world";
     const hashed = SETS.find((s) => s.key === hashSub);
     const saved = localStorage.getItem(TAB_KEY);
     const initial = routed
       ? routed.key
       : hashed
       ? hashed.key
-      : SETS.some((s) => s.key === saved)
+      : isWorld(hashSub)
+      ? "world"
+      : SETS.some((s) => s.key === saved) || isWorld(saved)
       ? saved
       : SETS[0] && SETS[0].key;
     if (initial) showTab(initial, true);
+    if (isWorld(initial)) world.load();
     const target = SETS.find((s) => s.key === initial);
     if (target) target.load();
   }
@@ -1438,6 +1614,10 @@
   // 順便把該資料集的索引載起來，不然會看到空列表
   function showSet(key) {
     showTab(key);
+    if (world && key === "world") {
+      world.load();
+      return;
+    }
     const s = SETS.find((x) => x.key === key);
     if (s) s.load();
   }

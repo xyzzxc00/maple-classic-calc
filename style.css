@@ -1436,6 +1436,99 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 /* 說明文字預設帶 -4px 是為了貼著區塊標題，接在按鈕後面會太擠 */
 .db-map-toggles + .db-section-note { margin-top: 8px; }
 
+/* 小地圖放大檢視：點圖開燈箱。只放大圖本身（標記在原圖上就能點） */
+.db-map-img { cursor: zoom-in; }
+.db-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(20, 22, 15, 0.78);
+  cursor: zoom-out;
+}
+.db-lightbox[hidden] { display: none; }
+.db-lightbox img {
+  max-width: 96vw;
+  max-height: 90vh;
+  image-rendering: pixelated;
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* 世界地圖：四塊區域各一張手繪大圖。圖上文字多，手機不縮圖，改讓外層
+   橫向捲動，字才讀得了 */
+.db-world-tabs { margin-bottom: 10px; }
+.db-world-scroll { overflow-x: auto; }
+.db-world-figure {
+  position: relative;
+  min-width: 720px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface-tint);
+}
+/* 世界地圖是手繪圖不是像素圖，放大用平滑縮放就好 */
+.db-world-img { display: block; width: 100%; height: auto; }
+.db-world-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.db-world-lines line {
+  stroke: rgba(40, 36, 20, 0.4);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+/* 節點：小藥丸，圓點標實際位置、旁邊帶地圖名。可點的整顆是按鈕 */
+.db-wnode {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 5px 0 4px;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1.7;
+  white-space: nowrap;
+  /* 藥丸疊在手繪地圖圖上，而那張圖永遠是亮的——顏色寫死，不跟深色主題
+     反轉，不然深色模式會變成淺字配淺底 */
+  color: #292a24;
+  background: rgba(255, 253, 245, 0.92);
+  border: 1px solid rgba(90, 86, 60, 0.55);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.db-wnode i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #5c6640;
+  flex-shrink: 0;
+}
+.db-wnode:hover,
+.db-wnode:focus-visible {
+  background: #fffdf5;
+  border-color: #5c6640;
+  z-index: 3;
+}
+.db-wnode--plain { cursor: default; opacity: 0.75; }
+/* 跨區入口：實心配色跟一般節點分開，一看就知道點了會離開這張圖 */
+.db-wnode--region {
+  background: #5c6640;
+  border-color: #5c6640;
+  color: #fffdf5;
+  z-index: 2;
+}
+.db-wnode--region:hover,
+.db-wnode--region:focus-visible { background: #292a24; border-color: #292a24; }
+
 
 /* 製作配方：一個配方一塊，上面是做的人跟花費、下面是材料 */
 .db-craft { padding: 10px 0; border-bottom: 1px solid var(--border); }

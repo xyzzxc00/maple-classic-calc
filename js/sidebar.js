@@ -107,6 +107,7 @@
     { id: "calcSubGacha", page: "calc" },
     { id: "dbSubMonsters", page: "db" },
     { id: "dbSubMaps", page: "db" },
+    { id: "dbSubWorld", page: "db" },
     { id: "dbSubItems", page: "db" },
     { id: "dbSubNpcs", page: "db" },
     { id: "dbSubQuests", page: "db" },
