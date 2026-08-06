@@ -46,44 +46,70 @@
 
   const LOAD_ERROR = '<p class="cm-empty cm-empty--error">資料載入失敗，請重新整理頁面</p>';
 
-  // ------------------------------------------------------ 小地圖放大檢視
-  // 有些小地圖原檔只有一百多像素寬，內嵌大小看不清楚。點圖開一層放大的
-  // 燈箱，再點一下（或 Esc）關掉。只放大圖本身，不帶標記——標記在原圖上
-  // 就能點，燈箱是「看清楚地形」用的
+  // ------------------------------------------------------------ 放大檢視
+  // 點底圖把整個圖組（底圖＋標記）複製一份放進全螢幕燈箱。放大不只是看
+  // 清楚，也是讓小螢幕上十幾像素的傳送點變得點得到——標記在燈箱裡照樣
+  // 可以點，點了收燈箱直接跳過去。比視窗大的部分用拖捲。
+  // 世界地圖在燈箱裡切區域要重新放內容，由 world 模組掛 handler 進來
   let lightbox = null;
+  let lightboxBody = null;
+  let onLightboxRegion = null;
 
   function closeLightbox() {
     if (!lightbox || lightbox.hidden) return;
     lightbox.hidden = true;
+    lightboxBody.innerHTML = "";
     document.body.style.overflow = "";
   }
 
-  function openLightbox(img) {
-    if (!img.naturalWidth) return; // 圖還沒載好，放大也只是一片空白
-    if (!lightbox) {
-      lightbox = document.createElement("div");
-      lightbox.className = "db-lightbox";
-      lightbox.setAttribute("role", "button");
-      lightbox.setAttribute("aria-label", "關閉放大檢視");
-      lightbox.innerHTML = '<img alt="">';
-      lightbox.addEventListener("click", closeLightbox);
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeLightbox();
-      });
-      document.body.appendChild(lightbox);
-    }
-    const target = lightbox.querySelector("img");
-    target.src = img.currentSrc || img.src;
-    target.alt = img.alt || "";
-    // 放大到視窗放得下的最大整數倍，最多 4 倍——像素圖放太大反而全是格子
-    const scale = Math.min(
-      (window.innerWidth * 0.92) / img.naturalWidth,
-      (window.innerHeight * 0.85) / img.naturalHeight,
-      4
-    );
-    target.style.width = Math.round(img.naturalWidth * Math.max(scale, 1)) + "px";
+  function ensureLightbox() {
+    if (lightbox) return;
+    lightbox = document.createElement("div");
+    lightbox.className = "db-lightbox";
+    lightbox.hidden = true;
+    lightbox.innerHTML =
+      '<div class="db-lightbox-pan"><div class="db-lightbox-body"></div></div>' +
+      '<button class="db-lightbox-close" type="button" aria-label="關閉放大檢視">✕</button>';
+    lightboxBody = lightbox.querySelector(".db-lightbox-body");
+    lightbox.addEventListener("click", (e) => {
+      const goto = e.target.closest("[data-db-goto]");
+      const reg = e.target.closest("[data-world-region]");
+      if (goto) {
+        closeLightbox();
+        openDetail(goto.dataset.dbGoto, goto.dataset.dbId, true);
+        return;
+      }
+      if (reg) {
+        if (onLightboxRegion) onLightboxRegion(reg.dataset.worldRegion);
+        return;
+      }
+      // NPC 那類純顯示的標記：點了不做事也不收，避免想看 tooltip 卻把
+      // 燈箱關掉
+      if (e.target.closest(".db-marker")) return;
+      closeLightbox(); // 底圖、背景、右上的 ✕
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeLightbox();
+    });
+    document.body.appendChild(lightbox);
+  }
+
+  function openFigureLightbox(figEl, width) {
+    if (!figEl) return;
+    ensureLightbox();
+    const clone = figEl.cloneNode(true);
+    clone.style.width = width + "px";
+    clone.style.minWidth = "0";
+    clone.style.maxWidth = "none";
+    // 原圖掛著 lazy 的話，燈箱裡要立刻載
+    clone.querySelectorAll("img[loading]").forEach((i) => i.removeAttribute("loading"));
+    lightboxBody.innerHTML = "";
+    lightboxBody.appendChild(clone);
     lightbox.hidden = false;
     document.body.style.overflow = "hidden";
+    const pan = lightbox.querySelector(".db-lightbox-pan");
+    pan.scrollLeft = 0;
+    pan.scrollTop = 0;
   }
 
   // ---------------------------------------------------------- 資料集框架
@@ -789,7 +815,9 @@
     },
     onDetailClick(e) {
       if (e.target.classList && e.target.classList.contains("db-map-img")) {
-        openLightbox(e.target);
+        // 像素圖放 4 倍以內，夠攤開標記又不會全是格子
+        const w = Math.min((e.target.naturalWidth || 320) * 4, 1600);
+        openFigureLightbox(document.getElementById("dbMapFigure"), w);
         return;
       }
       const toggle = e.target.closest("[data-map-toggle]");
@@ -1421,9 +1449,19 @@
             ${nodes}${proxies}
           </div>
         </div>
-        <p class="db-section-note">點地圖上的名字可以看那張地圖的資料；「前往◯◯」切到相鄰的區域。地圖比視窗寬的話可以左右捲動。</p>`;
+        <p class="db-section-note">點地圖上的名字可以看那張地圖的資料；「前往◯◯」切到相鄰的區域。點地圖底圖可以放大檢視，名字攤得更開、更好點。</p>`;
       const scroller = box.querySelector(".db-world-scroll");
       if (scroller) scroller.scrollLeft = 0;
+    }
+
+    // 燈箱裡的畫布再放大一級：藥丸的字是固定大小，畫布越大攤得越開
+    function zoomWidth() {
+      const r = regions && (regions.find((x) => x.key === current) || regions[0]);
+      return r && r.nodes.length > 80 ? 1700 : 1100;
+    }
+
+    function zoom() {
+      openFigureLightbox(box.querySelector(".db-world-figure"), zoomWidth());
     }
 
     function show(key, skipSave) {
@@ -1458,7 +1496,14 @@
       const goto = e.target.closest("[data-db-goto]");
       if (reg) show(reg.dataset.worldRegion);
       else if (goto) openDetail(goto.dataset.dbGoto, goto.dataset.dbId, true);
+      else if (e.target.classList.contains("db-world-img")) zoom();
     });
+
+    // 在燈箱裡按「前往◯◯」：切區域並把燈箱換成新區域的圖，不用先關再開
+    onLightboxRegion = (key) => {
+      show(key);
+      zoom();
+    };
 
     return { key: "world", load, show };
   })();

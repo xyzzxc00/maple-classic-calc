@@ -1075,6 +1075,9 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 .db-search-input { width: 100%; box-sizing: border-box; }
 #dbGlobalResults:not(:empty) { margin-top: 14px; }
 .db-search-group + .db-search-group { margin-top: 14px; }
+/* 「還有 N 筆…」的說明：db-section-note 預設的負上邊距是貼區塊標題用的，
+   接在最後一筆結果底下會黏在一起 */
+.db-search-group .db-section-note { margin-top: 8px; }
 .db-search-hit {
   display: flex;
   align-items: baseline;
@@ -1436,26 +1439,46 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 /* 說明文字預設帶 -4px 是為了貼著區塊標題，接在按鈕後面會太擠 */
 .db-map-toggles + .db-section-note { margin-top: 8px; }
 
-/* 小地圖放大檢視：點圖開燈箱。只放大圖本身（標記在原圖上就能點） */
+/* 放大檢視：點底圖把整個圖組（底圖＋標記）放大到全螢幕燈箱。放大不只是
+   看清楚，也是讓小螢幕上十幾像素的傳送點變得點得到——標記在燈箱裡照樣
+   能點。z-index 要蓋過頂欄（250）與主題鈕（260） */
 .db-map-img { cursor: zoom-in; }
 .db-lightbox {
   position: fixed;
   inset: 0;
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  background: rgba(20, 22, 15, 0.78);
-  cursor: zoom-out;
+  z-index: 400;
+  background: rgba(20, 22, 15, 0.82);
 }
 .db-lightbox[hidden] { display: none; }
-.db-lightbox img {
-  max-width: 96vw;
-  max-height: 90vh;
-  image-rendering: pixelated;
-  border-radius: var(--radius-md);
+/* 圖比視窗大的部分直接拖捲；比視窗小就置中（flex + margin:auto 的老套路） */
+.db-lightbox-pan {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+  display: flex;
+  padding: 28px 16px;
+  cursor: zoom-out;
+  -webkit-overflow-scrolling: touch;
+}
+.db-lightbox-body { margin: auto; }
+.db-lightbox-body .db-map-figure,
+.db-lightbox-body .db-world-figure {
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+}
+.db-lightbox-close {
+  position: fixed;
+  top: calc(10px + env(safe-area-inset-top, 0px));
+  right: 14px;
+  z-index: 401;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 253, 245, 0.92);
+  color: #292a24;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
 }
 
 /* 世界地圖：四塊區域各一張手繪大圖。圖上文字多，手機不縮圖，改讓外層
@@ -1471,7 +1494,7 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   background: var(--surface-tint);
 }
 /* 世界地圖是手繪圖不是像素圖，放大用平滑縮放就好 */
-.db-world-img { display: block; width: 100%; height: auto; }
+.db-world-img { display: block; width: 100%; height: auto; cursor: zoom-in; }
 .db-world-lines {
   position: absolute;
   inset: 0;
@@ -2286,7 +2309,12 @@ body.has-sidebar .theme-toggle {
     top: var(--top-banner-h);
     left: -280px;
     z-index: 30;
+    /* 100vh 在手機瀏覽器含被底部工具列蓋住的區域，側邊欄最底的贊助連結
+       會被吃掉。dvh 跟著「實際看得到的視窗」走；不支援的舊瀏覽器退回
+       vh。再加 iPhone 手勢列的安全區墊底 */
     height: calc(100vh - var(--top-banner-h));
+    height: calc(100dvh - var(--top-banner-h));
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
     /* 陰影色走 --shadow-color token（明暗模式自動換深淺），不另外寫死
        rgba——token 註解明言全站陰影集中管理 */
     box-shadow: 0 0 40px var(--shadow-color);
