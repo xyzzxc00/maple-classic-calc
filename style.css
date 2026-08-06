@@ -1390,6 +1390,16 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   margin: -6.5px 0 0 -6.5px;
 }
 .db-marker--portal { background: #8a5cc4; border-radius: 3px; }
+/* 通往開放地圖的傳送點整顆是按鈕，點了跳過去 */
+.db-marker--portal-link { cursor: pointer; }
+/* 標記只有十來像素，手機上手指點不準。用透明的偽元素把可點範圍往外撐，
+   視覺大小不變。不敢撐太大——旁邊常常就是怪物圖示，會把它的點擊搶走 */
+.db-marker--portal-link::after { content: ""; position: absolute; inset: -6px; }
+.db-marker--portal-link:hover,
+.db-marker--portal-link:focus-visible {
+  background: #a878e0;
+  box-shadow: 0 0 0 2px rgba(138, 92, 196, 0.45);
+}
 .db-marker--portal-same {
   background: transparent;
   border: 3px solid #8a5cc4;
@@ -1423,6 +1433,8 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   font-size: 12px;
 }
 .db-map-toggles .cm-sort-btn:not(.active) { opacity: 0.55; }
+/* 說明文字預設帶 -4px 是為了貼著區塊標題，接在按鈕後面會太擠 */
+.db-map-toggles + .db-section-note { margin-top: 8px; }
 
 
 /* 製作配方：一個配方一塊，上面是做的人跟花費、下面是材料 */

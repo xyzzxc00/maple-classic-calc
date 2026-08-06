@@ -439,15 +439,19 @@
           </div>`;
         })
         .join("");
+      // 整列可以點進那張地圖——看完「這隻怪在哪出沒」，下一步一定是想看那張
+      // 圖長怎樣。link 是 false 的圖沒有頁面，維持不可點，不要給死連結
       const maps = d.maps.length
         ? `<div class="db-sub-list">${d.maps
-            .map(
-              (m) => `<div class="db-sub-item">
-                <span class="db-sub-name">${esc(m.name)}</span>
+            .map((m) => {
+              const inner = `<span class="db-sub-name">${esc(m.name)}</span>
                 <span class="db-sub-meta">${esc([m.region, m.street].filter(Boolean).join(" · "))}</span>
-                <span class="db-sub-num">${m.spawns} 個重生點</span>
-              </div>`
-            )
+                <span class="db-sub-num">${m.spawns} 個重生點</span>`;
+              return m.link
+                ? `<button class="db-sub-item db-sub-item--link" type="button"
+                     data-db-goto="map" data-db-id="${esc(m.id)}">${inner}</button>`
+                : `<div class="db-sub-item">${inner}</div>`;
+            })
             .join("")}</div>`
         : '<p class="cm-empty">沒有出沒地圖資料</p>';
 
@@ -654,12 +658,19 @@
                 (n) => `<span class="db-marker db-marker--npc" style="left:${n.x}%;top:${n.y}%"
                           title="${esc(n.name)}"></span>`
               ),
+            // 跨地圖傳送點整顆是按鈕，點了直接跳到那張圖——在圖上看到出口就
+            // 能一路走下去。同圖傳送沒有目標可跳，維持不可點
             ...d.portals
               .filter((p) => p.x != null)
-              .map(
-                (p) => `<span class="db-marker db-marker--${p.same ? "portal-same" : "portal"}"
-                          style="left:${p.x}%;top:${p.y}%" title="${esc(p.same ? "同圖傳送" : p.name)}"></span>`
-              ),
+              .map((p) => {
+                const pos = `style="left:${p.x}%;top:${p.y}%"`;
+                return p.link
+                  ? `<button class="db-marker db-marker--portal db-marker--portal-link" type="button"
+                       data-db-goto="map" data-db-id="${esc(p.id)}" ${pos}
+                       title="前往 ${esc(p.name)}"></button>`
+                  : `<span class="db-marker db-marker--${p.same ? "portal-same" : "portal"}"
+                       ${pos} title="${esc(p.same ? "同圖傳送" : p.name)}"></span>`;
+              }),
           ].join("")
         : "";
 
@@ -681,7 +692,7 @@
              ${d.portals.some((p) => !p.same && p.x != null) ? '<button class="cm-sort-btn active" type="button" data-map-toggle="portal">跨地圖傳送</button>' : ""}
              ${hasSame ? '<button class="cm-sort-btn active" type="button" data-map-toggle="portal-same">同圖傳送</button>' : ""}
            </div>
-           <p class="db-section-note">點小地圖上的怪物圖示可以直接看那隻怪的資料；上面的按鈕可以切換要顯示哪一類標記。</p>`
+           <p class="db-section-note">點小地圖上的怪物圖示可以看那隻怪的資料，點紫色的傳送點可以直接前往那張地圖；上面的按鈕可以切換要顯示哪一類標記。</p>`
         : '<p class="cm-empty">這張地圖沒有小地圖資料</p>';
 
       const mobs = d.mobs.length

@@ -164,13 +164,16 @@ def trim_equip(stats):
     return out or None
 
 
-def trim_map(mp):
+def trim_map(mp, page_ids):
+    # link：這張圖有沒有自己的頁面。開放地區裡有些圖三樣東西（怪物、NPC、
+    # 跨圖傳送）都沒有，會在 build_map_details 被丟掉，連過去只會是 404
     return {
         "id": mp["id"],
         "street": mp.get("street") or "",
         "name": mp.get("name") or "",
         "region": mp.get("regionName") or "",
         "spawns": mp.get("spawnCount") or 0,
+        "link": mp["id"] in page_ids,
     }
 
 
@@ -201,13 +204,17 @@ def trim_quest(q):
     }
 
 
-def build_detail(m, map_ids, quest_ids, item_ids):
+def build_detail(m, map_ids, quest_ids, item_ids, map_page_ids):
     """單隻怪的詳情。出沒地圖要再過濾一次——有些怪同時住在開放與未開放地區
     （例如蝴蝶精在維多利亞島也在冰原雪域），只能列出進得去的那些"""
     all_drops = m.get("drops") or []
     drops = [trim_drop(d, item_ids) for d in all_drops if d["id"] in item_ids]
     hidden_drops = len(all_drops) - len(drops)
-    maps = [trim_map(mp) for mp in (m.get("maps") or []) if mp.get("id") in map_ids]
+    maps = [
+        trim_map(mp, map_page_ids)
+        for mp in (m.get("maps") or [])
+        if mp.get("id") in map_ids
+    ]
     quests = [
         trim_quest(q)
         for q in (m.get("questRequirements") or [])
@@ -819,7 +826,12 @@ def main():
     item_details = build_item_details(items_db["items"], monster_ids, map_ids, quest_ids)
     item_ids = {d["id"] for d in item_details}
 
-    details = [build_detail(m, map_ids, quest_ids, item_ids) for m in kept]
+    # 地圖詳情要先算：怪物的出沒地圖能不能點進去，取決於那張圖最後有沒有
+    # 留下頁面。地圖只吃 map_ids 與 monster_ids，不需要怪物詳情，不會循環
+    map_details = build_map_details(maps_db["maps"], map_ids, monster_ids)
+    map_page_ids = {d["id"] for d in map_details}
+
+    details = [build_detail(m, map_ids, quest_ids, item_ids, map_page_ids) for m in kept]
 
     # 產出
     shutil.rmtree(OUT_DATA, ignore_errors=True)
@@ -883,8 +895,7 @@ def main():
             if n.get("id") in npc_ids and n.get("image"):
                 npc_img_paths.setdefault(n["id"], n["image"])
 
-    # 地圖
-    map_details = build_map_details(maps_db["maps"], map_ids, monster_ids)
+    # 地圖（詳情在最前面就算好了，怪物的出沒地圖連結要用）
     os.makedirs(os.path.join(OUT_DATA, "maps"), exist_ok=True)
     with open(os.path.join(OUT_DATA, "maps.json"), "w", encoding="utf-8") as f:
         json.dump(build_map_index(map_details), f, ensure_ascii=False, separators=(",", ":"))
