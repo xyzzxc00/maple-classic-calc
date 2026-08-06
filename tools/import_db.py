@@ -378,11 +378,18 @@ def build_quest_detail(q, map_ids, monster_ids, skill_ids, quest_ids, item_ids):
             for r in (rows or [])
         ]
 
+    def gives(reward_block):
+        return [r for r in (reward_block.get("items") or [])
+                if r.get("action") != "remove"]
+
     start = q.get("startRequirements") or {}
     comp = q.get("completeRequirements") or {}
     rw = q.get("completeRewards") or {}
     srw = q.get("startRewards") or {}
     nxt = q.get("nextQuest")
+    consumed = {r["id"] for r in (rw.get("items") or []) if r.get("action") == "remove"}
+    consumed |= {r["id"] for r in (comp.get("items") or [])}
+    start_gives = [r for r in gives(srw) if r["id"] not in consumed]
     return {
         "id": str(q["id"]),
         "name": q.get("name") or "",
@@ -406,7 +413,14 @@ def build_quest_detail(q, map_ids, monster_ids, skill_ids, quest_ids, item_ids):
             "exp": (rw.get("exp") or 0) + (srw.get("exp") or 0),
             "money": (rw.get("money") or 0) + (srw.get("money") or 0),
             "pop": (rw.get("pop") or 0) + (srw.get("pop") or 0),
-            "items": items(rw.get("items")) + items(srw.get("items")),
+            # action=="remove" 是完成時從玩家身上收走的材料（跟完成條件同一批
+            # 東西），不是獎勵——列進來會讓「收走三樣、給一樣」的任務看起來
+            # 獎勵超多。另一種是跑腿任務：接取時給你一封信、繳交時收走，
+            # 這種「接取給、結尾收」的過場道具也不算獎勵。來源資料偶爾還會
+            # 把採集物標成 give 塞在獎勵裡（粉紅花籃的「粉紅花×1」、count 0
+            # 的信），一律用「同時是完成條件的道具不算獎勵」擋掉
+            "items": items([r for r in gives(rw) if r["id"] not in consumed])
+                     + items(start_gives),
             "skills": skills(rw.get("skills")) + skills(srw.get("skills")),
         },
         "texts": [
