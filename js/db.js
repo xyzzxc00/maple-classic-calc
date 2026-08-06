@@ -684,40 +684,21 @@
            <p class="db-section-note">點小地圖上的怪物圖示可以直接看那隻怪的資料；上面的按鈕可以切換要顯示哪一類標記。</p>`
         : '<p class="cm-empty">這張地圖沒有小地圖資料</p>';
 
-      // 怪物列表帶上實際座標，玩家在遊戲裡按住 F1（座標顯示）對得起來
       const mobs = d.mobs.length
-        ? `<div class="db-sub-list">${d.mobs
+        ? `<div class="db-chip-row">${d.mobs
             .map((m) => {
-              const pts = (m.points || [])
-                .slice(0, 8)
-                .map((p) => `(${p[0]}, ${p[1]})`)
-                .join("、");
-              const more = (m.points || []).length > 8 ? ` …等 ${m.points.length} 處` : "";
               const name = `${m.name} Lv.${m.level}`;
-              return `<div class="db-map-mob">
-                <div class="db-map-mob-head">
-                  ${m.link
-                    ? linkChip("monster", m.id, name, `${m.count} 點`)
-                    : plainChip(name, `${m.count} 點`)}
-                </div>
-                ${pts ? `<p class="db-map-coords">${esc(pts)}${esc(more)}</p>` : ""}
-              </div>`;
+              return m.link
+                ? linkChip("monster", m.id, name, `${m.count} 點`)
+                : plainChip(name, `${m.count} 點`);
             })
             .join("")}</div>`
         : '<p class="cm-empty">這張地圖沒有怪物</p>';
 
       const crossPortals = d.portals.filter((p) => !p.same);
       const portals = crossPortals.length
-        ? `<div class="db-sub-list">${crossPortals
-            .map(
-              (p) => `<div class="db-sub-item">
-                <span class="db-sub-name">${p.link
-                  ? `<button class="db-inline-link" type="button" data-db-goto="map" data-db-id="${esc(p.id)}">${esc(p.name)}</button>`
-                  : esc(p.name)}</span>
-                <span class="db-sub-meta">${esc(p.region)}</span>
-                <span class="db-sub-num">${p.tx != null ? `(${p.tx}, ${p.ty})` : ""}</span>
-              </div>`
-            )
+        ? `<div class="db-chip-row">${crossPortals
+            .map((p) => (p.link ? linkChip("map", p.id, p.name) : plainChip(p.name, p.region)))
             .join("")}</div>`
         : "";
 

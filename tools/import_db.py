@@ -575,12 +575,8 @@ def build_map_details(maps, map_ids, monster_ids):
                     "level": s.get("level"),
                     "count": 0,
                     "link": mid in monster_ids,
-                    # 原始座標：畫面上照著列出來，玩家在遊戲裡對得起來
-                    "points": [],
                 }
             mobs[mid]["count"] += 1
-            if s.get("x") is not None and s.get("y") is not None:
-                mobs[mid]["points"].append([s["x"], s["y"]])
             if has_mini and s.get("x") is not None and s.get("y") is not None:
                 spawns.append({
                     "id": mid,
@@ -624,8 +620,6 @@ def build_map_details(maps, map_ids, monster_ids):
                          else f"{t_street} / {t_name}") or (f"地圖 {tid}" if tid else "同圖傳送"),
                 "region": p.get("targetRegionName") or "",
                 "link": bool(tid) and tid in map_ids and not same,
-                "tx": p.get("x"),
-                "ty": p.get("y"),
                 "x": pct(p["x"], mm["centerX"], mm["width"]) if has_mini and p.get("x") is not None else None,
                 "y": pct(p["y"], mm["centerY"], mm["height"]) if has_mini and p.get("y") is not None else None,
             })

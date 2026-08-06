@@ -1381,17 +1381,20 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 }
 .db-marker--mob:hover img { filter: drop-shadow(0 0 2px var(--accent-text)); }
 .db-marker--npc { background: var(--accent-text); }
-/* 傳送點用菱形跟圓點區隔：跨地圖是藍的（會離開這張圖），同圖是橘的 */
+/* 傳送點：跨地圖是實心紫色圓角方塊（會離開這張圖），同圖是同色的空心圓環
+   （還在原地，視覺份量輕一點）。形狀跟顏色都跟圓點的 NPC 分得開 */
 .db-marker--portal,
 .db-marker--portal-same {
   width: 13px;
   height: 13px;
   margin: -6.5px 0 0 -6.5px;
-  border-radius: 2px;
-  transform: rotate(45deg);
 }
-.db-marker--portal { background: #4a90d9; }
-.db-marker--portal-same { background: var(--warning); }
+.db-marker--portal { background: #8a5cc4; border-radius: 3px; }
+.db-marker--portal-same {
+  background: transparent;
+  border: 3px solid #8a5cc4;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9);
+}
 .db-map-legend {
   display: flex;
   gap: 14px;
@@ -1402,9 +1405,7 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 }
 .db-map-legend span { display: inline-flex; align-items: center; gap: 6px; }
 /* 圖例裡的標記是靜態的，不要吃到絕對定位 */
-.db-map-legend .db-marker { position: static; margin: 0; transform: none; }
-.db-map-legend .db-marker--portal,
-.db-map-legend .db-marker--portal-same { transform: rotate(45deg); }
+.db-map-legend .db-marker { position: static; margin: 0; flex-shrink: 0; }
 
 @media (max-width: 560px) {
   /* 手機的圖只有三百多像素寬，26px 的怪物圖示會把整張圖蓋滿，縮一號 */
@@ -1423,16 +1424,6 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 }
 .db-map-toggles .cm-sort-btn:not(.active) { opacity: 0.55; }
 
-/* 怪物座標：玩家在遊戲裡對得起來的原始數字 */
-.db-map-mob { padding: 8px 0; border-bottom: 1px solid var(--border); }
-.db-map-mob:last-child { border-bottom: none; }
-.db-map-coords {
-  margin: 6px 0 0;
-  font-size: 11.5px;
-  color: var(--ink-faint);
-  line-height: 1.7;
-  word-break: break-all;
-}
 
 /* 製作配方：一個配方一塊，上面是做的人跟花費、下面是材料 */
 .db-craft { padding: 10px 0; border-bottom: 1px solid var(--border); }

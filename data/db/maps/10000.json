@@ -1,1 +1,1 @@
-{"id":10000,"name":"菇菇村","street":"楓之島","region":"楓之島","hasMini":true,"spawns":[],"mobs":[],"npcs":[{"name":"羅傑","x":47.591,"y":37.136}],"portals":[{"id":20000,"same":false,"name":"楓之島 / 菇菇村","region":"楓之島","link":true,"tx":706,"ty":216,"x":78.385,"y":57.161}]}
+{"id":10000,"name":"菇菇村","street":"楓之島","region":"楓之島","hasMini":true,"spawns":[],"mobs":[],"npcs":[{"name":"羅傑","x":47.591,"y":37.136}],"portals":[{"id":20000,"same":false,"name":"楓之島 / 菇菇村","region":"楓之島","link":true,"x":78.385,"y":57.161}]}

@@ -1,1 +1,1 @@
-{"id":910100000,"name":"詛咒之林","street":"隱藏地圖","region":"維多利亞島","hasMini":true,"spawns":[],"mobs":[],"npcs":[{"name":"利普","x":18.098,"y":54.227}],"portals":[{"id":100040105,"same":false,"name":"隱密之地 / 巫婆森林Ⅰ","region":"維多利亞島","link":true,"tx":869,"ty":277,"x":82.209,"y":64.14}]}
+{"id":910100000,"name":"詛咒之林","street":"隱藏地圖","region":"維多利亞島","hasMini":true,"spawns":[],"mobs":[],"npcs":[{"name":"利普","x":18.098,"y":54.227}],"portals":[{"id":100040105,"same":false,"name":"隱密之地 / 巫婆森林Ⅰ","region":"維多利亞島","link":true,"x":82.209,"y":64.14}]}

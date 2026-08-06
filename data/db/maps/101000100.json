@@ -1,1 +1,1 @@
-{"id":101000100,"name":"忍耐之林（一層）","street":"隱密之地","region":"維多利亞島","hasMini":true,"spawns":[],"mobs":[],"npcs":[{"name":"路易士","x":90.978,"y":95.215}],"portals":[{"id":101000101,"same":false,"name":"隱密之地 / 忍耐之林（二層）","region":"維多利亞島","link":true,"tx":94,"ty":-3022,"x":61.753,"y":8.6}]}
+{"id":101000100,"name":"忍耐之林（一層）","street":"隱密之地","region":"維多利亞島","hasMini":true,"spawns":[],"mobs":[],"npcs":[{"name":"路易士","x":90.978,"y":95.215}],"portals":[{"id":101000101,"same":false,"name":"隱密之地 / 忍耐之林（二層）","region":"維多利亞島","link":true,"x":61.753,"y":8.6}]}

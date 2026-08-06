@@ -1,1 +1,1 @@
-{"id":0,"name":"菇菇村訓練所入口","street":"楓之島","region":"楓之島","hasMini":true,"spawns":[],"mobs":[],"npcs":[{"name":"希娜","x":13.961,"y":46.988},{"name":"莎麗","x":68.02,"y":30.011}],"portals":[{"id":10000,"same":false,"name":"楓之島 / 菇菇村","region":"楓之島","link":true,"tx":1244,"ty":482,"x":93.296,"y":69.113}]}
+{"id":0,"name":"菇菇村訓練所入口","street":"楓之島","region":"楓之島","hasMini":true,"spawns":[],"mobs":[],"npcs":[{"name":"希娜","x":13.961,"y":46.988},{"name":"莎麗","x":68.02,"y":30.011}],"portals":[{"id":10000,"same":false,"name":"楓之島 / 菇菇村","region":"楓之島","link":true,"x":93.296,"y":69.113}]}

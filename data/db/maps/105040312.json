@@ -1,1 +1,1 @@
-{"id":105040312,"name":"沉睡森林（三層）","street":"隱密之地","region":"奇幻村","hasMini":true,"spawns":[],"mobs":[],"npcs":[{"name":"坍塌的石像","x":93.08,"y":90.355}],"portals":[{"id":105040313,"same":false,"name":"隱密之地 / 沉睡森林（四層）","region":"奇幻村","link":true,"tx":1259,"ty":-2569,"x":88.315,"y":4.465}]}
+{"id":105040312,"name":"沉睡森林（三層）","street":"隱密之地","region":"奇幻村","hasMini":true,"spawns":[],"mobs":[],"npcs":[{"name":"坍塌的石像","x":93.08,"y":90.355}],"portals":[{"id":105040313,"same":false,"name":"隱密之地 / 沉睡森林（四層）","region":"奇幻村","link":true,"x":88.315,"y":4.465}]}
