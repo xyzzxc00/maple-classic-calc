@@ -1,1 +1,1 @@
-{"id":1002053,"name":"綠色皮帽","desc":"","cat":"裝備","sub":"帽子","sell":250,"equip":{"incPDD":5,"price":250,"reqLevel":5,"tuc":7},"drops":[],"shops":[],"quests":[{"id":"1006","name":"長老的回信","kind":"獎勵","count":1}],"crafts":[],"usedIn":[]}
+{"id":1002053,"name":"綠色皮帽","desc":"","cat":"裝備","sub":"帽子","sell":250,"equip":{"incPDD":5,"price":250,"reqLevel":5,"tuc":7},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"1006","name":"長老的回信","kind":"獎勵","count":1}],"crafts":[],"usedIn":[]}

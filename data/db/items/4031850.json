@@ -1,1 +1,1 @@
-{"id":4031850,"name":"牛奶瓶(滿)","desc":"牛奶瓶內裝著滿滿的牛奶。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"drops":[],"shops":[],"quests":[{"id":"2180","name":"尋找新鮮的牛奶","kind":"需求","count":1}],"crafts":[],"usedIn":[]}
+{"id":4031850,"name":"牛奶瓶(滿)","desc":"牛奶瓶內裝著滿滿的牛奶。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"2180","name":"尋找新鮮的牛奶","kind":"需求","count":1}],"crafts":[],"usedIn":[]}

@@ -1,1 +1,1 @@
-{"id":4031007,"name":"舊金錶","desc":"用黃金來做的舊金錶。阿勒斯母親的遺物。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"drops":[],"shops":[],"quests":[{"id":"2016","name":"母親的金錶","kind":"獎勵","count":1},{"id":"2016","name":"母親的金錶","kind":"需求","count":1}],"crafts":[],"usedIn":[]}
+{"id":4031007,"name":"舊金錶","desc":"用黃金來做的舊金錶。阿勒斯母親的遺物。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"2016","name":"母親的金錶","kind":"獎勵","count":1},{"id":"2016","name":"母親的金錶","kind":"需求","count":1}],"crafts":[],"usedIn":[]}

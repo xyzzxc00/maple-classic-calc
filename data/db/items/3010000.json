@@ -1,1 +1,1 @@
-{"id":3010000,"name":"休閒椅","desc":"坐在休閒椅上，每10秒恢復HP 50。","cat":"裝飾","sub":"椅子","sell":0,"equip":{},"drops":[],"shops":[],"quests":[{"id":"1020","name":"皮奧資源回收利用","kind":"獎勵","count":1}],"crafts":[],"usedIn":[]}
+{"id":3010000,"name":"休閒椅","desc":"坐在休閒椅上，每10秒恢復HP 50。","cat":"裝飾","sub":"椅子","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"1020","name":"皮奧資源回收利用","kind":"獎勵","count":1}],"crafts":[],"usedIn":[]}

@@ -1,1 +1,1 @@
-{"id":4031152,"name":"化石研究報告書","desc":"化石研究的結果報告書，是由蓓蒂博士所整理。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"drops":[],"shops":[],"quests":[{"id":"2070","name":"化石研究成果","kind":"獎勵","count":1},{"id":"2070","name":"化石研究成果","kind":"需求","count":1}],"crafts":[],"usedIn":[]}
+{"id":4031152,"name":"化石研究報告書","desc":"化石研究的結果報告書，是由蓓蒂博士所整理。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"2070","name":"化石研究成果","kind":"獎勵","count":1},{"id":"2070","name":"化石研究成果","kind":"需求","count":1}],"crafts":[],"usedIn":[]}

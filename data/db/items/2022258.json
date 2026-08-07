@@ -1,1 +1,1 @@
-{"id":2022258,"name":"椰子果汁","desc":"挖開椰子並插入吸管的造型，可享用清爽可口的椰子汁。可恢復HP 100。","cat":"消耗","sub":"食物","sell":0,"equip":{},"drops":[],"shops":[{"npc":"娃娃","price":105,"currency":"楓幣","maps":["鯨魚號 / 鯨魚號碼頭"]}],"quests":[],"crafts":[],"usedIn":[]}
+{"id":2022258,"name":"椰子果汁","desc":"挖開椰子並插入吸管的造型，可享用清爽可口的椰子汁。可恢復HP 100。","cat":"消耗","sub":"食物","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"娃娃","price":105,"currency":"楓幣","maps":["鯨魚號 / 鯨魚號碼頭"]}],"quests":[],"crafts":[],"usedIn":[]}

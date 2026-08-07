@@ -1,1 +1,1 @@
-{"id":1092002,"name":"紅十字盾牌","desc":"","cat":"裝備","sub":"盾牌","sell":50000,"equip":{"incPDD":30,"price":50000,"reqJob":1,"reqLevel":30,"reqSTR":90,"tuc":7},"drops":[{"id":"5130101","name":"石巨人","level":55}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}
+{"id":1092002,"name":"紅十字盾牌","desc":"","cat":"裝備","sub":"盾牌","sell":50000,"equip":{"incPDD":30,"price":50000,"reqJob":1,"reqLevel":30,"reqSTR":90,"tuc":7},"float":{"incPDD":[27,33]},"floatFrom":["怪物掉落"],"drops":[{"id":"5130101","name":"石巨人","level":55}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

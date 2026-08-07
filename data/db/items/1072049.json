@@ -1,1 +1,1 @@
-{"id":1072049,"name":"綠短鞋","desc":"","cat":"裝備","sub":"鞋子","sell":2500,"equip":{"incPDD":7,"price":2500,"reqLevel":16,"tuc":5},"drops":[],"shops":[{"npc":"娜塔莎","price":5000,"currency":"楓幣","maps":["維多利亞 / 維多利亞防具店"]}],"quests":[],"crafts":[],"usedIn":[]}
+{"id":1072049,"name":"綠短鞋","desc":"","cat":"裝備","sub":"鞋子","sell":2500,"equip":{"incPDD":7,"price":2500,"reqLevel":16,"tuc":5},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"娜塔莎","price":5000,"currency":"楓幣","maps":["維多利亞 / 維多利亞防具店"]}],"quests":[],"crafts":[],"usedIn":[]}

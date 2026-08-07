@@ -1,1 +1,1 @@
-{"id":4000045,"name":"烏龜殼","desc":"烏龜的殼","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"drops":[{"id":"4130101","name":"烏龜","level":46}],"shops":[],"quests":[{"id":"2042","name":"瑪亞的第三個收集品","kind":"需求","count":50}],"crafts":[],"usedIn":[]}
+{"id":4000045,"name":"烏龜殼","desc":"烏龜的殼","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"4130101","name":"烏龜","level":46}],"shops":[],"quests":[{"id":"2042","name":"瑪亞的第三個收集品","kind":"需求","count":50}],"crafts":[],"usedIn":[]}

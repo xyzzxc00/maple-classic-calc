@@ -1,1 +1,1 @@
-{"id":1072070,"name":"藍冒險鞋","desc":"","cat":"裝備","sub":"鞋子","sell":900,"equip":{"incPDD":4,"price":900,"reqJob":8,"reqLevel":10,"tuc":5},"drops":[],"shops":[{"npc":"瑪帕","price":1800,"currency":"楓幣","maps":["維多利亞 / 墮落城市武器店"]}],"quests":[],"crafts":[],"usedIn":[]}
+{"id":1072070,"name":"藍冒險鞋","desc":"","cat":"裝備","sub":"鞋子","sell":900,"equip":{"incPDD":4,"price":900,"reqJob":8,"reqLevel":10,"tuc":5},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"瑪帕","price":1800,"currency":"楓幣","maps":["維多利亞 / 墮落城市武器店"]}],"quests":[],"crafts":[],"usedIn":[]}

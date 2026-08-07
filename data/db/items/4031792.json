@@ -1,1 +1,1 @@
-{"id":4031792,"name":"蘑菇糖果","desc":"香甜可口的蘑菇造型糖果。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"drops":[],"shops":[],"quests":[{"id":"1034","name":"美味的磨菇糖果","kind":"獎勵","count":10},{"id":"1034","name":"美味的磨菇糖果","kind":"需求","count":10}],"crafts":[],"usedIn":[]}
+{"id":4031792,"name":"蘑菇糖果","desc":"香甜可口的蘑菇造型糖果。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"1034","name":"美味的磨菇糖果","kind":"獎勵","count":10},{"id":"1034","name":"美味的磨菇糖果","kind":"需求","count":10}],"crafts":[],"usedIn":[]}

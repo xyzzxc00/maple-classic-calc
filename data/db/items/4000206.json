@@ -1,1 +1,1 @@
-{"id":4000206,"name":"肋骨","desc":"骷髏士兵的肋骨。","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"drops":[{"id":"5150001","name":"骷髏士兵","level":57}],"shops":[],"quests":[{"id":"2119","name":"遺跡發掘隊的公告","kind":"需求","count":60}],"crafts":[],"usedIn":[]}
+{"id":4000206,"name":"肋骨","desc":"骷髏士兵的肋骨。","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"5150001","name":"骷髏士兵","level":57}],"shops":[],"quests":[{"id":"2119","name":"遺跡發掘隊的公告","kind":"需求","count":60}],"crafts":[],"usedIn":[]}

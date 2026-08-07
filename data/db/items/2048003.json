@@ -1,1 +1,1 @@
-{"id":2048003,"name":"寵物跳躍力卷軸100%","desc":"寵物裝備附加跳躍力提升屬性。 成功率：100%，跳躍力+1","cat":"消耗","sub":"卷軸","sell":0,"equip":{},"drops":[{"id":"2130103","name":"青蛇","level":21}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}
+{"id":2048003,"name":"寵物跳躍力卷軸100%","desc":"寵物裝備附加跳躍力提升屬性。 成功率：100%，跳躍力+1","cat":"消耗","sub":"卷軸","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"2130103","name":"青蛇","level":21}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

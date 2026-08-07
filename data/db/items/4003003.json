@@ -1,1 +1,1 @@
-{"id":4003003,"name":"妖精之翼","desc":"妖精的翅膀，非常軟弱，應該小心保管","cat":"其他","sub":"製作材料","sell":0,"equip":{},"drops":[],"shops":[],"quests":[{"id":"2017","name":"艾溫的玻璃鞋","kind":"獎勵","count":1}],"crafts":[],"usedIn":[{"id":1372000,"name":"妖精短杖"},{"id":1382001,"name":"精靈長杖"}]}
+{"id":4003003,"name":"妖精之翼","desc":"妖精的翅膀，非常軟弱，應該小心保管","cat":"其他","sub":"製作材料","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"2017","name":"艾溫的玻璃鞋","kind":"獎勵","count":1}],"crafts":[],"usedIn":[{"id":1372000,"name":"妖精短杖"},{"id":1382001,"name":"精靈長杖"}]}

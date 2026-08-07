@@ -1,1 +1,1 @@
-{"id":4031862,"name":"黑魔法師的象徵","desc":"為黑魔法師手下的證明。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"drops":[],"shops":[],"quests":[{"id":"2174","name":"向盲俠報告","kind":"獎勵","count":1},{"id":"2174","name":"向盲俠報告","kind":"需求","count":1}],"crafts":[],"usedIn":[]}
+{"id":4031862,"name":"黑魔法師的象徵","desc":"為黑魔法師手下的證明。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"2174","name":"向盲俠報告","kind":"獎勵","count":1},{"id":"2174","name":"向盲俠報告","kind":"需求","count":1}],"crafts":[],"usedIn":[]}

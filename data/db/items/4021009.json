@@ -1,1 +1,1 @@
-{"id":4021009,"name":"星石","desc":"含有星之精氣的寶石。","cat":"其他","sub":"寶石","sell":0,"equip":{},"drops":[],"shops":[],"quests":[{"id":"2051","name":"薩比特拉瑪的返老還童藥","kind":"獎勵","count":1},{"id":"2048","name":"戰劍的覺醒方法","kind":"需求","count":1}],"crafts":[],"usedIn":[]}
+{"id":4021009,"name":"星石","desc":"含有星之精氣的寶石。","cat":"其他","sub":"寶石","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"2051","name":"薩比特拉瑪的返老還童藥","kind":"獎勵","count":1},{"id":"2048","name":"戰劍的覺醒方法","kind":"需求","count":1}],"crafts":[],"usedIn":[]}

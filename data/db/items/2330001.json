@@ -1,1 +1,1 @@
-{"id":2330001,"name":"子彈","desc":"利用鋼鐵所製作的子彈；若使用完畢需儲值補充。 攻擊力+12","cat":"消耗","sub":"子彈","sell":0,"equip":{},"drops":[{"id":"2230102","name":"黑肥肥","level":25},{"id":"3230100","name":"風獨眼獸","level":35}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}
+{"id":2330001,"name":"子彈","desc":"利用鋼鐵所製作的子彈；若使用完畢需儲值補充。 攻擊力+12","cat":"消耗","sub":"子彈","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"2230102","name":"黑肥肥","level":25},{"id":"3230100","name":"風獨眼獸","level":35}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

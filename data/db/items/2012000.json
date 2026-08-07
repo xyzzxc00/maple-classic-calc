@@ -1,1 +1,1 @@
-{"id":2012000,"name":"暴龍之血","desc":"暴龍之血。 5分鐘內攻擊力增加8。","cat":"消耗","sub":"食物","sell":0,"equip":{},"drops":[{"id":"5130100","name":"青龍","level":50}],"shops":[],"quests":[{"id":"2012","name":"珍的第二個挑戰","kind":"需求","count":3}],"crafts":[],"usedIn":[{"id":1472023,"name":"赤紅戰神拳套"}]}
+{"id":2012000,"name":"暴龍之血","desc":"暴龍之血。 5分鐘內攻擊力增加8。","cat":"消耗","sub":"食物","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"5130100","name":"青龍","level":50}],"shops":[],"quests":[{"id":"2012","name":"珍的第二個挑戰","kind":"需求","count":3}],"crafts":[],"usedIn":[{"id":1472023,"name":"赤紅戰神拳套"}]}

@@ -1,1 +1,1 @@
-{"id":1092008,"name":"鍋蓋","desc":"","cat":"裝備","sub":"盾牌","sell":2000,"equip":{"incPDD":10,"price":2000,"reqLevel":10,"tuc":7},"drops":[{"id":"1110100","name":"綠菇菇","level":15}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}
+{"id":1092008,"name":"鍋蓋","desc":"","cat":"裝備","sub":"盾牌","sell":2000,"equip":{"incPDD":10,"price":2000,"reqLevel":10,"tuc":7},"float":{"incPDD":[9,11]},"floatFrom":["怪物掉落"],"drops":[{"id":"1110100","name":"綠菇菇","level":15}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

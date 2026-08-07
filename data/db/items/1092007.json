@@ -1,1 +1,1 @@
-{"id":1092007,"name":"戰鬥盾牌","desc":"","cat":"裝備","sub":"盾牌","sell":80000,"equip":{"incPDD":35,"price":80000,"reqJob":1,"reqLevel":35,"reqSTR":120,"tuc":7},"drops":[{"id":"1130100","name":"斧木妖","level":17}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}
+{"id":1092007,"name":"戰鬥盾牌","desc":"","cat":"裝備","sub":"盾牌","sell":80000,"equip":{"incPDD":35,"price":80000,"reqJob":1,"reqLevel":35,"reqSTR":120,"tuc":7},"float":{"incPDD":[31,39]},"floatFrom":["怪物掉落"],"drops":[{"id":"1130100","name":"斧木妖","level":17}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

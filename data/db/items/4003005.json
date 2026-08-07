@@ -1,1 +1,1 @@
-{"id":4003005,"name":"柔軟的羽毛","desc":"柔軟而輕巧的羽毛，可用來製作箭。","cat":"其他","sub":"製作材料","sell":0,"equip":{},"drops":[],"shops":[],"quests":[{"id":"1116","name":"精靈羅雯愛情象徵","kind":"需求","count":20}],"crafts":[],"usedIn":[]}
+{"id":4003005,"name":"柔軟的羽毛","desc":"柔軟而輕巧的羽毛，可用來製作箭。","cat":"其他","sub":"製作材料","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"1116","name":"精靈羅雯愛情象徵","kind":"需求","count":20}],"crafts":[],"usedIn":[]}

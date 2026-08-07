@@ -1,1 +1,1 @@
-{"id":4031845,"name":"觀察報告","desc":"巴爾特在監視塔觀察週邊動態後，加以記錄的報告書。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"drops":[],"shops":[],"quests":[{"id":"2172","name":"巴爾特看到了什麼？","kind":"獎勵","count":1},{"id":"2172","name":"巴爾特看到了什麼？","kind":"需求","count":1}],"crafts":[],"usedIn":[]}
+{"id":4031845,"name":"觀察報告","desc":"巴爾特在監視塔觀察週邊動態後，加以記錄的報告書。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"2172","name":"巴爾特看到了什麼？","kind":"獎勵","count":1},{"id":"2172","name":"巴爾特看到了什麼？","kind":"需求","count":1}],"crafts":[],"usedIn":[]}

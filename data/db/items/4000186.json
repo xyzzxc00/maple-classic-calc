@@ -1,1 +1,1 @@
-{"id":4000186,"name":"黑龍之角","desc":"黑龍頭上所突起的角。","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"drops":[{"id":"6230601","name":"黑龍","level":68}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}
+{"id":4000186,"name":"黑龍之角","desc":"黑龍頭上所突起的角。","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"6230601","name":"黑龍","level":68}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

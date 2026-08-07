@@ -1,1 +1,1 @@
-{"id":2022253,"name":"蘑菇糖果","desc":"桑所給的美味磨菇糖果，吃下去後約有三分鐘的時間可提升跳躍力+3。","cat":"消耗","sub":"食物","sell":0,"equip":{},"drops":[],"shops":[],"quests":[{"id":"1034","name":"美味的磨菇糖果","kind":"獎勵","count":2}],"crafts":[],"usedIn":[]}
+{"id":2022253,"name":"蘑菇糖果","desc":"桑所給的美味磨菇糖果，吃下去後約有三分鐘的時間可提升跳躍力+3。","cat":"消耗","sub":"食物","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"1034","name":"美味的磨菇糖果","kind":"獎勵","count":2}],"crafts":[],"usedIn":[]}

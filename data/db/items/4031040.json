@@ -1,1 +1,1 @@
-{"id":4031040,"name":"休咪的鈔票","desc":"休咪弄丟的鈔票。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"drops":[],"shops":[],"quests":[{"id":"2056","name":"休咪丟失的鈔票","kind":"需求","count":1}],"crafts":[],"usedIn":[]}
+{"id":4031040,"name":"休咪的鈔票","desc":"休咪弄丟的鈔票。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"2056","name":"休咪丟失的鈔票","kind":"需求","count":1}],"crafts":[],"usedIn":[]}

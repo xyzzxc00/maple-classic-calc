@@ -933,9 +933,16 @@
         ([k, label]) => `<div><dt>${label}</dt><dd>${num(eq[k])}</dd></div>`
       );
       if (eq.reqJob != null) reqs.push(`<div><dt>職業</dt><dd>${jobText(eq.reqJob)}</dd></div>`);
-      const incs = EQUIP_INC.filter(([k]) => eq[k]).map(
-        ([k, label]) => `<div><dt>${label}</dt><dd>+${num(eq[k])}</dd></div>`
-      );
+      // 會浮動的欄位在基準值旁邊帶出範圍（例如 +72（67~77））
+      const fl = d.float || {};
+      const incs = EQUIP_INC.filter(([k]) => eq[k]).map(([k, label]) => {
+        const r = fl[k];
+        const range = r ? ` <span class="db-float-range">(${num(r[0])}~${num(r[1])})</span>` : "";
+        return `<div><dt>${label}</dt><dd>+${num(eq[k])}${range}</dd></div>`;
+      });
+      const floatNote = Object.keys(fl).length
+        ? `<p class="db-section-note">標示範圍的欄位：由${esc((d.floatFrom || []).join("或"))}拿到時，數值會在括號範圍內隨機浮動；商店購買與任務獎勵固定是基準值。</p>`
+        : "";
 
       const sourceSection = (title, bits) =>
         bits.length
@@ -999,6 +1006,7 @@
         ${incs.length ? `<section class="db-section">
           <h3 class="db-section-title">裝備加成</h3>
           <dl class="db-stat-grid">${incs.join("")}</dl>
+          ${floatNote}
         </section>` : ""}
         ${sourceSection("哪些怪會掉", dropBits)}
         ${shopRows.length ? `<section class="db-section">

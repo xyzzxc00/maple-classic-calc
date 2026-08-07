@@ -1,1 +1,1 @@
-{"id":4031001,"name":"路卡斯的信件","desc":"從路卡斯收到的信件。應該轉交給蘑菇村的瑪麗亞","cat":"其他","sub":"任務道具","sell":0,"equip":{},"drops":[],"shops":[],"quests":[{"id":"1006","name":"長老的回信","kind":"獎勵","count":1},{"id":"1006","name":"長老的回信","kind":"需求","count":1}],"crafts":[],"usedIn":[]}
+{"id":4031001,"name":"路卡斯的信件","desc":"從路卡斯收到的信件。應該轉交給蘑菇村的瑪麗亞","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"1006","name":"長老的回信","kind":"獎勵","count":1},{"id":"1006","name":"長老的回信","kind":"需求","count":1}],"crafts":[],"usedIn":[]}

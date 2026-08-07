@@ -1,1 +1,1 @@
-{"id":2070002,"name":"黑色利刃","desc":"用鋼鐵做成的飛鏢。消耗完可再補充。 #c等級限制：10, 攻擊力+19","cat":"消耗","sub":"飛鏢","sell":0,"equip":{},"drops":[{"id":"3230101","name":"小幽靈","level":35},{"id":"4230125","name":"骷髏犬","level":44}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}
+{"id":2070002,"name":"黑色利刃","desc":"用鋼鐵做成的飛鏢。消耗完可再補充。 #c等級限制：10, 攻擊力+19","cat":"消耗","sub":"飛鏢","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"3230101","name":"小幽靈","level":35},{"id":"4230125","name":"骷髏犬","level":44}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

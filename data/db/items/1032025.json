@@ -1,1 +1,1 @@
-{"id":1032025,"name":"綠葉耳環","desc":"","cat":"裝備","sub":"耳環","sell":10000,"equip":{"incMDD":2,"incMMP":50,"price":10000,"reqLevel":25,"tuc":5},"drops":[],"shops":[],"quests":[{"id":"2070","name":"化石研究成果","kind":"獎勵","count":1}],"crafts":[],"usedIn":[]}
+{"id":1032025,"name":"綠葉耳環","desc":"","cat":"裝備","sub":"耳環","sell":10000,"equip":{"incMDD":2,"incMMP":50,"price":10000,"reqLevel":25,"tuc":5},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"2070","name":"化石研究成果","kind":"獎勵","count":1}],"crafts":[],"usedIn":[]}

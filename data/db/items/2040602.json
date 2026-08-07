@@ -1,1 +1,1 @@
-{"id":2040602,"name":"褲、裙防禦卷軸10%","desc":"下衣附加物理防禦力提升屬性。 成功率：10%，物理防禦力+5，魔法防禦力+3，MaxHP+10","cat":"消耗","sub":"卷軸","sell":0,"equip":{},"drops":[{"id":"210100","name":"綠水靈","level":6},{"id":"3220000","name":"樹妖王","level":35}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}
+{"id":2040602,"name":"褲、裙防禦卷軸10%","desc":"下衣附加物理防禦力提升屬性。 成功率：10%，物理防禦力+5，魔法防禦力+3，MaxHP+10","cat":"消耗","sub":"卷軸","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"210100","name":"綠水靈","level":6},{"id":"3220000","name":"樹妖王","level":35}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

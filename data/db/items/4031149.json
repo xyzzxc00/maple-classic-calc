@@ -1,1 +1,1 @@
-{"id":4031149,"name":"化石箱","desc":"裝有化石的木箱，箱子外面寫著'(特)使用注意'的文字。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"drops":[],"shops":[],"quests":[{"id":"2066","name":"遞送化石箱子","kind":"獎勵","count":1},{"id":"2066","name":"遞送化石箱子","kind":"需求","count":1}],"crafts":[],"usedIn":[]}
+{"id":4031149,"name":"化石箱","desc":"裝有化石的木箱，箱子外面寫著'(特)使用注意'的文字。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"2066","name":"遞送化石箱子","kind":"獎勵","count":1},{"id":"2066","name":"遞送化石箱子","kind":"需求","count":1}],"crafts":[],"usedIn":[]}

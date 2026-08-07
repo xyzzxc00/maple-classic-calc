@@ -516,6 +516,25 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids):
             continue
 
         equip = it.get("equipStats") or {}
+
+        # 裝備數值浮動：從怪物掉落或製作取得的裝備，能力值會在「基準 ± Δ」
+        # 內隨機，Δ = ceil(基準/10)，武器的物攻/魔攻封頂 ±5、其他欄位封頂
+        # ±10；商店與任務給的固定是基準值。規則是從 morris 整理的 1,501 件
+        # 浮動裝備反推出來的，3,893 個欄位全數吻合，零例外
+        float_rng = {}
+        if equip and (drops or crafts):
+            is_weapon = equip.get("attackSpeed") is not None
+            for k in ("incPAD", "incMAD", "incPDD", "incMDD",
+                      "incSTR", "incDEX", "incINT", "incLUK",
+                      "incMHP", "incMMP", "incACC", "incEVA",
+                      "incSpeed", "incJump"):
+                v = equip.get(k)
+                if not isinstance(v, (int, float)) or v <= 0:
+                    continue
+                cap = 5 if (is_weapon and k in ("incPAD", "incMAD")) else 10
+                delta = min(-(-int(v) // 10), cap)
+                float_rng[k] = [int(v) - delta, int(v) + delta]
+
         out.append({
             "id": it["id"],
             "name": it.get("name") or "",
@@ -525,6 +544,10 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids):
             "sell": it.get("sellPrice") or 0,
             "equip": {k: v for k, v in equip.items()
                       if k not in ("islot", "vslot", "cash") and v},
+            "float": float_rng,
+            "floatFrom": [lbl for lbl, ok in
+                          (("怪物掉落", drops), ("製作取得", crafts)) if ok]
+                         if float_rng else [],
             "drops": [
                 {"id": str(d["monsterId"]), "name": d.get("monsterName") or "",
                  "level": d.get("level")}

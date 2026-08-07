@@ -1,1 +1,1 @@
-{"id":4031005,"name":"變異菇菇的血","desc":"裝有變異菇菇之血的玻璃瓶。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"drops":[],"shops":[],"quests":[{"id":"2006","name":"獲得變異菇菇的血","kind":"獎勵","count":1},{"id":"2006","name":"獲得變異菇菇的血","kind":"需求","count":1}],"crafts":[],"usedIn":[]}
+{"id":4031005,"name":"變異菇菇的血","desc":"裝有變異菇菇之血的玻璃瓶。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"2006","name":"獲得變異菇菇的血","kind":"獎勵","count":1},{"id":"2006","name":"獲得變異菇菇的血","kind":"需求","count":1}],"crafts":[],"usedIn":[]}

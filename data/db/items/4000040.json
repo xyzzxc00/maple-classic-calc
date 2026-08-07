@@ -1,1 +1,1 @@
-{"id":4000040,"name":"蘑菇王芽孢","desc":"巨大蘑菇王的芽孢。","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"drops":[{"id":"6130101","name":"蘑菇王","level":60}],"shops":[],"quests":[{"id":"2012","name":"珍的第二個挑戰","kind":"需求","count":1}],"crafts":[],"usedIn":[]}
+{"id":4000040,"name":"蘑菇王芽孢","desc":"巨大蘑菇王的芽孢。","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"6130101","name":"蘑菇王","level":60}],"shops":[],"quests":[{"id":"2012","name":"珍的第二個挑戰","kind":"需求","count":1}],"crafts":[],"usedIn":[]}

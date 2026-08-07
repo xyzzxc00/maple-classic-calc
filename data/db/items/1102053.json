@@ -1,1 +1,1 @@
-{"id":1102053,"name":"破舊的披風","desc":"","cat":"裝備","sub":"披風","sell":2000,"equip":{"incEVA":10,"price":2000,"reqLevel":25,"tuc":5},"drops":[],"shops":[],"quests":[{"id":"2072","name":"神秘的女孩的身份","kind":"獎勵","count":1}],"crafts":[],"usedIn":[]}
+{"id":1102053,"name":"破舊的披風","desc":"","cat":"裝備","sub":"披風","sell":2000,"equip":{"incEVA":10,"price":2000,"reqLevel":25,"tuc":5},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"2072","name":"神秘的女孩的身份","kind":"獎勵","count":1}],"crafts":[],"usedIn":[]}
