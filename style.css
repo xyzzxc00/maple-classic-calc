@@ -1331,6 +1331,15 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 .db-chip:hover { border-color: var(--accent-text); }
 /* 命中計算選中的怪物晶片 */
 .db-chip--on { border-color: var(--accent-text); background: var(--accent-tint); font-weight: 700; }
+/* 獨立版命中計算：搜尋框、怪物清單、輸入區、結果之間拉開呼吸空間，
+   晶片間距也放寬一級——這一頁的晶片是主要操作對象，不是附註 */
+#calcHitView .field { margin: 18px 0 12px; }
+#hitMobList { gap: 8px; margin-bottom: 18px; }
+#hitMobList .cm-empty { margin: 0; }
+#hitCalcForm .db-detail-desc { margin: 0 0 12px; }
+#hitCalcForm .db-map-toggles { margin: 0 0 12px; }
+#hitCalcForm .cm-filter-row { margin-bottom: 14px; }
+#hitCalcResult .db-section-note { margin-top: 10px; }
 .db-chip--plain {
   color: var(--ink);
   background: var(--surface-tint);
