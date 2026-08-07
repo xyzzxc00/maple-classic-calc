@@ -84,7 +84,7 @@ def open_map_ids(maps):
     }
 
 
-def open_quest_ids(quests, map_ids, monster_ids, skill_ids, job_open):
+def open_quest_ids(quests, map_ids, monster_ids, skill_ids, job_open, field_mob_ids):
     """開放任務。只看等級跟「有一端 NPC 在開放地圖」遠遠不夠——四轉技能任務的
     NPC 就站在維多利亞島跟奇幻村，等級需求還是空的，照樣會被放進來（實際看到
     270 萬經驗的四轉任務混在列表裡）。四道關卡：
@@ -112,7 +112,15 @@ def open_quest_ids(quests, map_ids, monster_ids, skill_ids, job_open):
             continue
 
         comp = q.get("completeRequirements") or {}
-        if any(str(m.get("id")) not in monster_ids for m in (comp.get("monsters") or [])):
+        # 「要打的怪要在收錄範圍」只對野外怪成立。懸賞／教學這類任務要打的
+        # 是事件自己生成的副本怪（9 開頭的 ID，不在任何地圖出沒——螞蟻洞
+        # 99/999 隻懸賞、楓之島教學、鯨魚號盲俠都是），照野外標準擋會把
+        # 遊戲裡明明可解的任務誤殺掉：只擋「有出沒地圖、但全在未開放地區」的
+        if any(
+            str(m.get("id")) not in monster_ids
+            and str(m.get("id")) in field_mob_ids
+            for m in (comp.get("monsters") or [])
+        ):
             continue
         rewards = ((q.get("completeRewards") or {}).get("skills") or []) + (
             (q.get("startRewards") or {}).get("skills") or []
@@ -907,9 +915,10 @@ def main():
     monster_ids = {str(m["id"]) for m in kept}
     kept_skills = pick_skills(skills_db["skills"])
     skill_ids = {s["id"] for s in kept_skills}
+    field_mob_ids = {str(m["id"]) for m in monsters_db["monsters"] if m.get("maps")}
     quest_ids = open_quest_ids(
         quests_db["quests"], map_ids, monster_ids, skill_ids,
-        open_job_codes(skills_db),
+        open_job_codes(skills_db), field_mob_ids,
     )
 
     # 道具要先算：怪物與任務詳情裡的道具要不要做成連結，取決於那筆道具有沒有
