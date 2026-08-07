@@ -475,6 +475,40 @@
     </section>`;
   }
 
+  // 純計算：怪物頁的試算區跟計算工具的獨立分頁共用同一份公式
+  function computeHit({ eva, mobLv, level, magic, acc, intv, luk }) {
+    const diff = Math.max(0, mobLv - level);
+    let ratio;
+    let acc100;
+    let current;
+    if (magic) {
+      current = Math.floor((intv || 0) / 10) + Math.floor((luk || 0) / 10);
+      acc100 = Math.floor((eva + 1) * (1 + 0.04 * diff));
+      const acc1 = Math.round(0.41 * acc100);
+      const den = acc100 - acc1 + 1;
+      const part = Math.min(1, Math.max(0, den <= 0 ? 1 : (current - acc1 + 1) / den));
+      ratio = (-0.7011618132 * part * part + 1.702139835 * part) * 100;
+    } else {
+      current = acc || 0;
+      acc100 = ((55.2 + 2.15 * diff) * eva) / 15;
+      ratio = (100 * (current - acc100 * 0.5)) / (acc100 * 0.5);
+    }
+    return { ratio: Math.max(0, Math.min(100, ratio)), acc100, current, diff };
+  }
+
+  function hitResultHtml(r, magic) {
+    const gap = Math.max(0, Math.ceil(r.acc100 - r.current));
+    const unit = magic ? "魔法命中（⌊智÷10⌋+⌊幸÷10⌋）" : "面板命中";
+    return `<dl class="db-stat-grid">
+        <div><dt>命中率</dt><dd>${r.ratio.toFixed(1)}%</dd></div>
+        <div><dt>你的${magic ? "魔法命中" : "命中"}</dt><dd>${num(r.current)}</dd></div>
+        <div><dt>100% 所需</dt><dd>${num(Math.ceil(r.acc100))}</dd></div>
+        <div><dt>還差</dt><dd>${gap ? num(gap) : "已達標"}</dd></div>
+        <div><dt>等級差</dt><dd>${r.diff}</dd></div>
+      </dl>
+      <p class="db-section-note">舊版社群考據公式（${unit}），跟多個玩家計算器交叉核對過；等級比怪物高不會再加成。Artale 系工具的物理係數略有簡化，結果差距約 2% 內，實際仍以遊戲內為準。</p>`;
+  }
+
   function renderHitResult() {
     const box = document.getElementById("dbHitCalc");
     const out = document.getElementById("dbHitResult");
@@ -487,40 +521,13 @@
       out.innerHTML = '<p class="db-section-note">填入你的等級與能力值就會算出來。</p>';
       return;
     }
-    const diff = Math.max(0, mobLv - level);
-    let ratio;
-    let acc100;
-    let current;
-    let unit;
-    if (magic) {
-      const intv = parseInt(document.getElementById("dbHitInt").value, 10) || 0;
-      const luk = parseInt(document.getElementById("dbHitLuk").value, 10) || 0;
-      current = Math.floor(intv / 10) + Math.floor(luk / 10);
-      acc100 = Math.floor((eva + 1) * (1 + 0.04 * diff));
-      const acc1 = Math.round(0.41 * acc100);
-      const den = acc100 - acc1 + 1;
-      const part = Math.min(1, Math.max(0, den <= 0 ? 1 : (current - acc1 + 1) / den));
-      ratio = (-0.7011618132 * part * part + 1.702139835 * part) * 100;
-      unit = "魔法命中（⌊智÷10⌋+⌊幸÷10⌋）";
-      localStorage.setItem(HIT_PREFS_KEY, JSON.stringify({ type: "magic", level, int: intv, luk }));
-    } else {
-      const acc = parseInt(document.getElementById("dbHitAcc").value, 10) || 0;
-      current = acc;
-      acc100 = ((55.2 + 2.15 * diff) * eva) / 15;
-      ratio = (100 * (acc - acc100 * 0.5)) / (acc100 * 0.5);
-      unit = "面板命中";
-      localStorage.setItem(HIT_PREFS_KEY, JSON.stringify({ type: "phys", level, acc }));
-    }
-    ratio = Math.max(0, Math.min(100, ratio));
-    const gap = Math.max(0, Math.ceil(acc100 - current));
-    out.innerHTML = `<dl class="db-stat-grid">
-        <div><dt>命中率</dt><dd>${ratio.toFixed(1)}%</dd></div>
-        <div><dt>你的${magic ? "魔法命中" : "命中"}</dt><dd>${num(current)}</dd></div>
-        <div><dt>100% 所需</dt><dd>${num(Math.ceil(acc100))}</dd></div>
-        <div><dt>還差</dt><dd>${gap ? num(gap) : "已達標"}</dd></div>
-        <div><dt>等級差</dt><dd>${diff}</dd></div>
-      </dl>
-      <p class="db-section-note">舊版社群考據公式（${unit}），跟多個玩家計算器交叉核對過；等級比怪物高不會再加成。Artale 系工具的物理係數略有簡化，結果差距約 2% 內，實際仍以遊戲內為準。</p>`;
+    const acc = parseInt(document.getElementById("dbHitAcc").value, 10) || 0;
+    const intv = parseInt(document.getElementById("dbHitInt").value, 10) || 0;
+    const luk = parseInt(document.getElementById("dbHitLuk").value, 10) || 0;
+    localStorage.setItem(HIT_PREFS_KEY, JSON.stringify(
+      magic ? { type: "magic", level, int: intv, luk } : { type: "phys", level, acc }
+    ));
+    out.innerHTML = hitResultHtml(computeHit({ eva, mobLv, level, magic, acc, intv, luk }), magic);
   }
 
   // ------------------------------------------------------------- 怪物
@@ -1805,4 +1812,161 @@
   }
 
   window.MapleDb = { load, showTab: showSet };
+
+  // ---------------------------------- 計算工具：獨立版命中率計算
+  // 跟怪物頁的試算區共用 computeHit / hitResultHtml / HIT_PREFS_KEY，差別
+  // 只在怪物不是從詳情頁帶入，而是自己搜。索引檔小（含迴避欄位），選了
+  // 怪立即能算，不用再抓詳情
+  (function initCalcHit() {
+    const view = document.getElementById("calcHitView");
+    if (!view) return;
+    const searchEl = document.getElementById("hitMobSearch");
+    const listEl = document.getElementById("hitMobList");
+    const formEl = document.getElementById("hitCalcForm");
+    const outEl = document.getElementById("hitCalcResult");
+    const PICK_KEY = "maple_classic_hit_mob";
+    let index = null;
+    let picked = null;
+
+    function ensureIndex() {
+      if (index) return Promise.resolve(index);
+      return getJson("data/db/monsters.json").then((rows) => {
+        index = rows.filter((r) => r.eva != null && r.level != null);
+        return index;
+      });
+    }
+
+    function renderList() {
+      const q = searchEl.value.trim().toLowerCase();
+      const rows = index
+        .filter((r) => !q || r.name.toLowerCase().includes(q))
+        .slice(0, 24);
+      listEl.innerHTML = rows.length
+        ? rows
+            .map(
+              (r) => `<button class="db-chip${picked && picked.id === r.id ? " db-chip--on" : ""}"
+                        type="button" data-hit-mob="${esc(r.id)}">
+                ${esc(r.name)}<span class="db-sub-num">Lv.${r.level}</span>
+              </button>`
+            )
+            .join("")
+        : '<p class="cm-empty">找不到符合的怪物</p>';
+    }
+
+    function renderForm() {
+      if (!picked) {
+        formEl.innerHTML = "";
+        outEl.innerHTML = '<p class="db-section-note">先從上面選一隻怪物。</p>';
+        return;
+      }
+      const p = hitPrefs();
+      const magic = p.type === "magic";
+      const level = p.level >= 1 ? p.level : 30;
+      formEl.innerHTML = `
+        <p class="db-detail-desc">目標：<strong>${esc(picked.name)}</strong>
+          Lv.${picked.level} · 迴避 ${picked.eva}
+          <button class="db-inline-link" type="button" id="hitMobDetail">看這隻怪的資料 →</button></p>
+        <div class="db-map-toggles">
+          <button class="cm-sort-btn${magic ? "" : " active"}" type="button" data-hit2-type="phys">物理攻擊</button>
+          <button class="cm-sort-btn${magic ? " active" : ""}" type="button" data-hit2-type="magic">魔法攻擊</button>
+        </div>
+        <div class="cm-filter-row">
+          <label class="db-calc-field">你的等級
+            <input class="cm-filter-input cm-filter-lv" id="hit2Level" type="number"
+                   min="1" max="199" value="${level}" inputmode="numeric">
+          </label>
+          <label class="db-calc-field"${magic ? " hidden" : ""} id="hit2AccField">面板命中
+            <input class="cm-filter-input cm-filter-lv" id="hit2Acc" type="number"
+                   min="0" max="999" value="${p.acc >= 0 ? p.acc : 100}" inputmode="numeric">
+          </label>
+          <label class="db-calc-field"${magic ? "" : " hidden"} id="hit2IntField">智力
+            <input class="cm-filter-input cm-filter-lv" id="hit2Int" type="number"
+                   min="0" max="999" value="${p.int >= 0 ? p.int : 100}" inputmode="numeric">
+          </label>
+          <label class="db-calc-field"${magic ? "" : " hidden"} id="hit2LukField">幸運
+            <input class="cm-filter-input cm-filter-lv" id="hit2Luk" type="number"
+                   min="0" max="999" value="${p.luk >= 0 ? p.luk : 4}" inputmode="numeric">
+          </label>
+        </div>`;
+      renderResult();
+    }
+
+    function renderResult() {
+      if (!picked) return;
+      const magic = formEl
+        .querySelector('[data-hit2-type="magic"]')
+        .classList.contains("active");
+      const level = parseInt(document.getElementById("hit2Level").value, 10);
+      if (!(level >= 1)) {
+        outEl.innerHTML = '<p class="db-section-note">填入你的等級與能力值就會算出來。</p>';
+        return;
+      }
+      const acc = parseInt(document.getElementById("hit2Acc").value, 10) || 0;
+      const intv = parseInt(document.getElementById("hit2Int").value, 10) || 0;
+      const luk = parseInt(document.getElementById("hit2Luk").value, 10) || 0;
+      localStorage.setItem(HIT_PREFS_KEY, JSON.stringify(
+        magic ? { type: "magic", level, int: intv, luk } : { type: "phys", level, acc }
+      ));
+      outEl.innerHTML = hitResultHtml(
+        computeHit({ eva: picked.eva, mobLv: picked.level, level, magic, acc, intv, luk }),
+        magic
+      );
+    }
+
+    // 首次切到這個子分頁才載索引（跟資料庫分頁同一個檔，之後互相吃快取）
+    const btn = document.getElementById("calcSubHit");
+    let loadedOnce = false;
+    function activate() {
+      if (loadedOnce) return;
+      loadedOnce = true;
+      ensureIndex()
+        .then(() => {
+          const savedId = localStorage.getItem(PICK_KEY);
+          picked = index.find((r) => r.id === savedId) || null;
+          renderList();
+          renderForm();
+        })
+        .catch(() => {
+          listEl.innerHTML = LOAD_ERROR;
+        });
+    }
+    if (btn) btn.addEventListener("click", activate);
+    // 直接用 #calc-hit 錨點或記住的子分頁進來時，按鈕不會被「點」到
+    if (!view.hidden) activate();
+    new MutationObserver(() => {
+      if (!view.hidden) activate();
+    }).observe(view, { attributes: true, attributeFilter: ["hidden"] });
+
+    searchEl.addEventListener("input", () => {
+      if (index) renderList();
+    });
+    view.addEventListener("click", (e) => {
+      const mob = e.target.closest("[data-hit-mob]");
+      if (mob) {
+        picked = index.find((r) => r.id === mob.dataset.hitMob) || picked;
+        localStorage.setItem(PICK_KEY, picked ? picked.id : "");
+        renderList();
+        renderForm();
+        return;
+      }
+      const type = e.target.closest("[data-hit2-type]");
+      if (type) {
+        formEl.querySelectorAll("[data-hit2-type]").forEach((b) =>
+          b.classList.toggle("active", b === type)
+        );
+        const magic = type.dataset.hit2Type === "magic";
+        document.getElementById("hit2AccField").hidden = magic;
+        document.getElementById("hit2IntField").hidden = !magic;
+        document.getElementById("hit2LukField").hidden = !magic;
+        renderResult();
+        return;
+      }
+      if (e.target.closest("#hitMobDetail") && picked) {
+        openDetail("monster", picked.id, true);
+      }
+    });
+    view.addEventListener("input", (e) => {
+      if (/^hit2(Level|Acc|Int|Luk)$/.test(e.target.id)) renderResult();
+    });
+  })();
 })();

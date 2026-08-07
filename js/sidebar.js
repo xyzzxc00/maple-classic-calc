@@ -105,6 +105,7 @@
     { id: "calcSubAttack", page: "calc" },
     { id: "calcSubScroll", page: "calc" },
     { id: "calcSubGacha", page: "calc" },
+    { id: "calcSubHit", page: "calc" },
     { id: "dbSubMonsters", page: "db" },
     { id: "dbSubMaps", page: "db" },
     { id: "dbSubWorld", page: "db" },

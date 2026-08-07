@@ -1329,6 +1329,8 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   cursor: pointer;
 }
 .db-chip:hover { border-color: var(--accent-text); }
+/* 命中計算選中的怪物晶片 */
+.db-chip--on { border-color: var(--accent-text); background: var(--accent-tint); font-weight: 700; }
 .db-chip--plain {
   color: var(--ink);
   background: var(--surface-tint);

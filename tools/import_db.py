@@ -863,6 +863,9 @@ def build_index(details):
             "hp": (d["stats"] or {}).get("maxHP"),
             "exp": (d["stats"] or {}).get("exp"),
             "el": d["elemental"]["summary"],
+            # 迴避進索引是給獨立版命中計算機用的——選了怪要立即算，不能等
+            # 詳情檔載入
+            "eva": (d["stats"] or {}).get("eva"),
             "maps": len(d["maps"]),
             "drops": len(d["drops"]),
             "regions": sorted({mp["region"] for mp in d["maps"] if mp["region"]}),

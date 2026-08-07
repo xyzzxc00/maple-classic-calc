@@ -101,6 +101,7 @@
     { key: "attack", btn: document.getElementById("calcSubAttack"), view: document.getElementById("calcAttackView") },
     { key: "scroll", btn: document.getElementById("calcSubScroll"), view: document.getElementById("calcScrollView") },
     { key: "gacha", btn: document.getElementById("calcSubGacha"), view: document.getElementById("calcGachaView") },
+    { key: "hit", btn: document.getElementById("calcSubHit"), view: document.getElementById("calcHitView") },
   ];
 
   function showCalcSubtab(key, skipSave) {
