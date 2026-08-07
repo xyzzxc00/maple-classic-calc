@@ -1,1 +1,0 @@
-{"id":1041093,"name":"藍鋼玉鎧甲","desc":"","cat":"裝備","sub":"上衣","sell":90000,"equip":{"incDEX":1,"incPDD":65,"incSTR":4,"price":90000,"reqJob":1,"reqLevel":60,"reqSTR":210,"tuc":7},"float":{"incPDD":[58,72],"incSTR":[3,5],"incDEX":[0,2]},"floatFrom":["怪物掉落"],"drops":[{"id":"7130100","name":"月牙牛魔王","level":70}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}
