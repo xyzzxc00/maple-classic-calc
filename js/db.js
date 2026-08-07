@@ -179,7 +179,10 @@
           els.detail.innerHTML = cfg.renderDetail(d);
           if (cfg.afterDetail) cfg.afterDetail(d);
         })
-        .catch(() => {
+        .catch((err) => {
+          // 顯示給使用者的是友善訊息，但原因要留在 console，不然渲染函式
+          // 拋錯會跟網路錯誤混在一起，除錯時完全瞎猜
+          console.error(`[db] ${cfg.label} 詳情渲染失敗`, err);
           els.detail.innerHTML =
             '<button class="db-back" type="button" data-db-back>← 回到列表</button>' +
             `<p class="cm-empty cm-empty--error">這筆${cfg.label}資料載入失敗</p>`;
@@ -414,6 +417,112 @@
     }
   }
 
+  // ------------------------------------------------------ 怪物：命中率試算
+  // 公式是舊版（Big Bang 前）的社群考據，三個獨立實作（本站參考的資料庫
+  // 網站、其上游 a2983456456 的命中計算器、Artale 的 steve07s 計算器）
+  // 互相對過，魔法公式另有 2007 年 PTT 引用日本 zaizen 研究站的原始考據：
+  //   物理：100% 所需命中 = (55.2 + 2.15×等級差) × 迴避 ÷ 15
+  //         命中率 = (面板命中 − 所需÷2) ÷ (所需÷2)，線性
+  //   魔法：魔法命中 = ⌊INT÷10⌋ + ⌊LUK÷10⌋
+  //         100% 所需 = ⌊(迴避+1) × (1 + 0.04×等級差)⌋，1% 門檻 = 41%×所需
+  //         中間用二次曲線內插（SouthPerry 迴歸係數）
+  //   等級差 = max(0, 怪物等級 − 角色等級)，比怪高不加成
+  // Artale 版把物理係數簡化成 (55 + 2×等級差)，差距在 2% 內——說明欄有註
+
+  const HIT_PREFS_KEY = "maple_classic_db_hit";
+
+  function hitPrefs() {
+    try {
+      return JSON.parse(localStorage.getItem(HIT_PREFS_KEY)) || {};
+    } catch {
+      return {};
+    }
+  }
+
+  function renderHitCalc(d) {
+    const eva = (d.stats || {}).eva;
+    const mobLv = d.level != null ? d.level : (d.stats || {}).level;
+    if (eva == null || mobLv == null) return "";
+    const p = hitPrefs();
+    const fallback = parseInt(calcPrefs().currentLevel, 10);
+    const level = p.level >= 1 ? p.level : fallback >= 1 && fallback <= 199 ? fallback : 30;
+    const magic = p.type === "magic";
+    return `<section class="db-section" id="dbHitCalc" data-eva="${eva}" data-moblv="${mobLv}">
+      <h3 class="db-section-title">命中率試算</h3>
+      <div class="db-map-toggles">
+        <button class="cm-sort-btn${magic ? "" : " active"}" type="button" data-hit-type="phys">物理攻擊</button>
+        <button class="cm-sort-btn${magic ? " active" : ""}" type="button" data-hit-type="magic">魔法攻擊</button>
+      </div>
+      <div class="cm-filter-row">
+        <label class="db-calc-field">你的等級
+          <input class="cm-filter-input cm-filter-lv" id="dbHitLevel" type="number"
+                 min="1" max="199" value="${level}" inputmode="numeric">
+        </label>
+        <label class="db-calc-field"${magic ? " hidden" : ""} id="dbHitAccField">面板命中
+          <input class="cm-filter-input cm-filter-lv" id="dbHitAcc" type="number"
+                 min="0" max="999" value="${p.acc >= 0 ? p.acc : 100}" inputmode="numeric">
+        </label>
+        <label class="db-calc-field"${magic ? "" : " hidden"} id="dbHitIntField">智力
+          <input class="cm-filter-input cm-filter-lv" id="dbHitInt" type="number"
+                 min="0" max="999" value="${p.int >= 0 ? p.int : 100}" inputmode="numeric">
+        </label>
+        <label class="db-calc-field"${magic ? "" : " hidden"} id="dbHitLukField">幸運
+          <input class="cm-filter-input cm-filter-lv" id="dbHitLuk" type="number"
+                 min="0" max="999" value="${p.luk >= 0 ? p.luk : 4}" inputmode="numeric">
+        </label>
+      </div>
+      <div id="dbHitResult"></div>
+    </section>`;
+  }
+
+  function renderHitResult() {
+    const box = document.getElementById("dbHitCalc");
+    const out = document.getElementById("dbHitResult");
+    if (!box || !out) return;
+    const eva = parseInt(box.dataset.eva, 10);
+    const mobLv = parseInt(box.dataset.moblv, 10);
+    const magic = box.querySelector('[data-hit-type="magic"]').classList.contains("active");
+    const level = parseInt(document.getElementById("dbHitLevel").value, 10);
+    if (!(level >= 1)) {
+      out.innerHTML = '<p class="db-section-note">填入你的等級與能力值就會算出來。</p>';
+      return;
+    }
+    const diff = Math.max(0, mobLv - level);
+    let ratio;
+    let acc100;
+    let current;
+    let unit;
+    if (magic) {
+      const intv = parseInt(document.getElementById("dbHitInt").value, 10) || 0;
+      const luk = parseInt(document.getElementById("dbHitLuk").value, 10) || 0;
+      current = Math.floor(intv / 10) + Math.floor(luk / 10);
+      acc100 = Math.floor((eva + 1) * (1 + 0.04 * diff));
+      const acc1 = Math.round(0.41 * acc100);
+      const den = acc100 - acc1 + 1;
+      const part = Math.min(1, Math.max(0, den <= 0 ? 1 : (current - acc1 + 1) / den));
+      ratio = (-0.7011618132 * part * part + 1.702139835 * part) * 100;
+      unit = "魔法命中（⌊智÷10⌋+⌊幸÷10⌋）";
+      localStorage.setItem(HIT_PREFS_KEY, JSON.stringify({ type: "magic", level, int: intv, luk }));
+    } else {
+      const acc = parseInt(document.getElementById("dbHitAcc").value, 10) || 0;
+      current = acc;
+      acc100 = ((55.2 + 2.15 * diff) * eva) / 15;
+      ratio = (100 * (acc - acc100 * 0.5)) / (acc100 * 0.5);
+      unit = "面板命中";
+      localStorage.setItem(HIT_PREFS_KEY, JSON.stringify({ type: "phys", level, acc }));
+    }
+    ratio = Math.max(0, Math.min(100, ratio));
+    const gap = Math.max(0, Math.ceil(acc100 - current));
+    out.innerHTML = `<dl class="db-stat-grid">
+        <div><dt>命中率</dt><dd>${ratio.toFixed(1)}%</dd></div>
+        <div><dt>你的${magic ? "魔法命中" : "命中"}</dt><dd>${num(current)}</dd></div>
+        <div><dt>100% 所需</dt><dd>${num(Math.ceil(acc100))}</dd></div>
+        <div><dt>還差</dt><dd>${gap ? num(gap) : "已達標"}</dd></div>
+        <div><dt>等級差</dt><dd>${diff}</dd></div>
+      </dl>
+      <p class="db-section-note">舊版社群考據公式（${unit}），跟多個玩家計算器交叉核對過；等級比怪物高不會再加成。Artale 系工具的物理係數略有簡化，結果差距約 2% 內，實際仍以遊戲內為準。</p>`;
+  }
+
   // ------------------------------------------------------------- 怪物
 
   const EL_NAME = { fire: "火", ice: "冰", lightning: "雷", poison: "毒", holy: "聖" };
@@ -601,6 +710,7 @@
           <dl class="db-stat-grid">${stats}</dl>
         </section>
         ${renderKillCalc(d)}
+        ${renderHitCalc(d)}
         <section class="db-section">
           <h3 class="db-section-title">屬性抗性</h3>
           <div class="db-el-row">${elems}</div>
@@ -623,8 +733,25 @@
         </section>
         ${quests}`;
     },
-    afterDetail: renderKillResult,
+    afterDetail() {
+      renderKillResult();
+      renderHitResult();
+    },
     onDetailClick(e) {
+      const hitType = e.target.closest("[data-hit-type]");
+      if (hitType) {
+        // 切換物理／魔法：換高亮、換要顯示的輸入欄，再重算
+        const box = document.getElementById("dbHitCalc");
+        box.querySelectorAll("[data-hit-type]").forEach((b) =>
+          b.classList.toggle("active", b === hitType)
+        );
+        const magic = hitType.dataset.hitType === "magic";
+        document.getElementById("dbHitAccField").hidden = magic;
+        document.getElementById("dbHitIntField").hidden = !magic;
+        document.getElementById("dbHitLukField").hidden = !magic;
+        renderHitResult();
+        return;
+      }
       if (e.target.closest("#dbToCalc")) sendToCalculator();
       else if (e.target.closest("#dbToSpots") && window.MapleNav && window.MapleCommunity) {
         window.MapleNav.switchNav("cm");
@@ -633,6 +760,8 @@
     },
     onDetailInput(e) {
       if (e.target.id === "dbCalcLevel" || e.target.id === "dbCalcRate") renderKillResult();
+      else if (e.target.id === "dbHitLevel" || e.target.id === "dbHitAcc"
+               || e.target.id === "dbHitInt" || e.target.id === "dbHitLuk") renderHitResult();
     },
   });
 
