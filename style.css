@@ -3218,3 +3218,29 @@ body.has-sidebar .theme-toggle {
   .atk-field-grid,
   .atk-field-grid--six { grid-template-columns: repeat(2, 1fr); }
 }
+
+
+/* ---------- 五個控制項的篩選列（道具：搜尋／分類／類型／職業／等級範圍） ----------
+   預設的 flex-wrap 在窄螢幕會排成不規則的 2、2、1，最後一個獨佔一整排看
+   起來像沒對齊。這裡改成明確的兩欄，等級範圍那組（本身是兩個輸入框）獨
+   佔一整排，變成上2中2下2 */
+.cm-filter-row--pairs {
+  display: grid;
+  /* 搜尋略寬、三個下拉等寬、等級範圍最寬（它裡面是兩個輸入框加一個 ~）。
+     用 flex-wrap 的話 5 個控制項在 1067px 下差幾像素就換行，會擠成
+     「三個下拉一排、搜尋跟等級掉到下一排」的錯亂順序 */
+  grid-template-columns: 1.3fr 1fr 1fr 1fr 1.7fr;
+  gap: 8px;
+  /* input 與 select 的預設高度差 2px，同一列並排時看得出來 */
+  align-items: stretch;
+}
+.cm-filter-row--pairs .cm-filter-input { min-width: 0; }
+.cm-filter-row--pairs > .cm-filter-lv-group { min-width: 0; }
+@media (max-width: 1100px) {
+  /* 中等寬度：五欄擠不下，退成兩欄（等級範圍獨佔一排） */
+  .cm-filter-row--pairs { grid-template-columns: repeat(2, 1fr); }
+  .cm-filter-row--pairs > .cm-filter-lv-group { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .cm-filter-row--pairs .cm-filter-input { width: 100%; }
+}

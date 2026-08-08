@@ -1360,6 +1360,13 @@
     showItemView(localStorage.getItem(ITEM_VIEW_KEY) === "list" ? "list" : "cats", true);
   })();
 
+  // 裝備類型的分組與組內順序（跟卷軸模擬用的是同一套分法）
+  const SUB_GROUPS = [
+    { label: "防具", subs: ["帽子", "上衣", "褲裙", "套服", "鞋子", "手套", "披風", "盾牌"] },
+    { label: "武器", subs: ["單手劍", "單手斧", "單手棍", "短刀", "短杖", "雙手劍", "雙手斧", "雙手棍", "長杖", "弓", "弩", "拳套", "指虎", "槍", "矛", "火槍"] },
+    { label: "飾品", subs: ["耳環", "戒指", "墜飾", "腰帶", "眼飾", "臉飾", "勳章"] },
+  ];
+
   const items = makeSet({
     key: "items",
     route: "item",
@@ -1371,6 +1378,15 @@
       { id: "Search", test: (r, v) => !v || r.name.toLowerCase().includes(v.trim().toLowerCase()) },
       { id: "Cat", test: (r, v) => !v || r.cat === v },
       { id: "Sub", test: (r, v) => !v || r.sub === v },
+      // job 是 bitmask，一件裝備可以同時開放給多個職業（例如 mask 9 ＝
+      // 劍士＋盜賊），所以要用位元 AND 而不是相等比較。選「無職業限制」
+      // （值 "0"）時只留 job 為 0 的；沒選就全部通過
+      { id: "Job", test: (r, v) => {
+        if (v === "") return true;
+        const mask = parseInt(v, 10);
+        if (!mask) return !(r.job || 0);
+        return ((r.job || 0) & mask) === mask;
+      } },
       { id: "LvMin", test: (r, v) => !v || (r.lv || 0) >= parseInt(v, 10) },
       { id: "LvMax", test: (r, v) => !v || (r.lv || 0) <= parseInt(v, 10) },
     ],
@@ -1399,13 +1415,45 @@
         const subs = cat
           ? [...(bySub.get(cat) || [])]
           : [...new Set(index.map((i) => i.sub))];
+        const present = new Set(subs.filter(Boolean));
         els.Sub.innerHTML = '<option value="">全部類型</option>';
-        subs.filter(Boolean).sort().forEach((s) => {
+        const addOption = (parent, value) => {
           const o = document.createElement("option");
-          o.value = s;
-          o.textContent = s;
-          els.Sub.appendChild(o);
+          o.value = value;
+          o.textContent = value;
+          parent.appendChild(o);
+        };
+        // 裝備的類型有三十幾種，照筆劃排會把弓、矛、耳環、戒指混成一片。
+        // 用 optgroup 分成防具／武器／飾品，組內照固定順序（防具由上到下、
+        // 武器單手到雙手），其餘分類維持單純排序就好
+        let grouped = false;
+        SUB_GROUPS.forEach((group) => {
+          const parts = group.subs.filter((s) => present.has(s));
+          if (!parts.length) return;
+          grouped = true;
+          const og = document.createElement("optgroup");
+          og.label = group.label;
+          parts.forEach((s) => {
+            addOption(og, s);
+            present.delete(s);
+          });
+          els.Sub.appendChild(og);
         });
+        // 沒被歸類的（消耗品、其他分類的子類…）照原本的排序接在後面
+        const rest = [...present].sort((a, b) => a.localeCompare(b, "zh-TW"));
+        if (grouped && rest.length) {
+          const og = document.createElement("optgroup");
+          og.label = "其他";
+          rest.forEach((s) => addOption(og, s));
+          els.Sub.appendChild(og);
+        } else {
+          rest.forEach((s) => addOption(els.Sub, s));
+        }
+        // 職業限制只有裝備才有（其他分類一律 job=0），分類切到消耗品之類
+        // 時就把職業停用並重設——不然選了職業會變成永遠 0 筆，看起來像壞掉
+        const jobUsable = !cat || cat === "裝備";
+        els.Job.disabled = !jobUsable;
+        if (!jobUsable && els.Job.value) els.Job.value = "";
         // 同上：類型被重設了，列表要重畫才不會停在舊的篩選結果
         if (rerender) render();
       };
@@ -2215,7 +2263,14 @@
     unit: "個",
     filters: [
       { id: "Search", test: (r, v) => !v || r.name.toLowerCase().includes(v.trim().toLowerCase()) },
-      { id: "Group", test: (r, v) => !v || r.group === v },
+      // 選單的值有兩種：大類（「冒險家劍士」）用 group 比對；轉職路線的值
+      // 是 "line:" 前綴 + 該線所有 job 用 | 串起來（入門｜二轉｜三轉），
+      // 比對時只要命中其中一個就算
+      { id: "Group", test: (r, v) => {
+        if (!v) return true;
+        if (!v.startsWith("line:")) return r.group === v;
+        return v.slice(5).split("|").includes(r.job);
+      } },
       { id: "Adv", test: (r, v) => !v || r.adv === v },
     ],
     sorts: [
@@ -2224,15 +2279,61 @@
     ],
     searchRow: (r) => [r.group, r.job, r.adv].filter(Boolean).join(" · "),
     fillFilters(index, els) {
-      const groups = [...new Set(index.map((s) => s.group))].filter(Boolean);
       const advs = [...new Set(index.map((s) => s.adv))].filter(Boolean);
       // 轉職階段照遊戲順序排，不要照字母
       const ORDER = ["零轉", "一轉", "二轉", "三轉", "四轉"];
-      groups.forEach((g) => {
-        const o = document.createElement("option");
-        o.value = g;
-        o.textContent = g;
-        els.Group.appendChild(o);
+      // 職業選單分到「轉職路線」：五大職業各有 2~3 條分歧，一條線把一轉
+      // 入門到三轉的技能全收在一起（選冰雷就看得到法師入門＋冰/雷魔法指南
+      // ＋魔導士之路(冰雷)）。資料裡的 job 是「每一轉一個名字」，對玩家來說
+      // 太碎——想查「我冰雷法師能學什麼」不該要自己點三次
+      const SKILL_LINES = {
+        "冒險家劍士": [
+          ["狂戰士／十字軍", ["劍士入門", "狂戰士之路", "十字軍之路"]],
+          ["見習騎士／騎士", ["劍士入門", "見習騎士之路", "騎士之路"]],
+          ["槍騎兵／龍騎士", ["劍士入門", "槍騎兵之路", "龍騎士之路"]],
+        ],
+        "冒險家法師": [
+          ["火／毒", ["法師入門", "火/毒魔法指南", "魔導士之路(火毒)"]],
+          ["冰／雷", ["法師入門", "冰/雷魔法指南", "魔導士之路(冰雷)"]],
+          ["僧侶／祭司", ["法師入門", "僧侶指南", "祭司之路"]],
+        ],
+        "冒險家弓箭手": [
+          ["獵人／遊俠", ["弓箭手入門", "獵人指南", "遊俠之路"]],
+          ["弩弓手／狙擊手", ["弓箭手入門", "弩弓手指南", "狙擊手之路"]],
+        ],
+        "冒險家盜賊": [
+          ["刺客／暗殺者", ["盜賊入門", "刺客指南", "暗殺者之路"]],
+          ["俠盜／神偷", ["盜賊入門", "俠盜指南", "神偷之路"]],
+        ],
+        "冒險家海盜": [
+          ["打手／格鬥家", ["海盜入門", "打手指南", "格鬥家之路"]],
+          ["槍手／神槍手", ["海盜入門", "槍手指南", "神槍手之路"]],
+        ],
+      };
+      const groups = [...new Set(index.map((s) => s.group))].filter(Boolean);
+      groups.forEach((group) => {
+        const lines = SKILL_LINES[group];
+        // 沒有分歧的（初心者/共通）就一個單純選項，不用包 optgroup
+        if (!lines) {
+          const o = document.createElement("option");
+          o.value = group;
+          o.textContent = group;
+          els.Group.appendChild(o);
+          return;
+        }
+        const og = document.createElement("optgroup");
+        og.label = group;
+        const all = document.createElement("option");
+        all.value = group;
+        all.textContent = group + "（全部）";
+        og.appendChild(all);
+        lines.forEach(([label, jobs]) => {
+          const o = document.createElement("option");
+          o.value = "line:" + jobs.join("|");
+          o.textContent = label;
+          og.appendChild(o);
+        });
+        els.Group.appendChild(og);
       });
       advs
         .sort((a, b) => (ORDER.indexOf(a) + 1 || 99) - (ORDER.indexOf(b) + 1 || 99))

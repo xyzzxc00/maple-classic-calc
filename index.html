@@ -1086,13 +1086,22 @@
 
       <div id="dbItemListWrap">
       <div class="cm-toolbar">
-        <div class="cm-filter-row">
+        <div class="cm-filter-row cm-filter-row--pairs">
           <input class="cm-filter-input" id="dbItemSearch" type="search" placeholder="搜尋道具名稱" autocomplete="off">
           <select class="cm-filter-input" id="dbItemCat" aria-label="依分類篩選道具">
             <option value="">全部分類</option>
           </select>
           <select class="cm-filter-input" id="dbItemSub" aria-label="依類型篩選道具">
             <option value="">全部類型</option>
+          </select>
+          <select class="cm-filter-input" id="dbItemJob" aria-label="依職業篩選裝備">
+            <option value="">全部職業</option>
+            <option value="1">劍士</option>
+            <option value="2">法師</option>
+            <option value="4">弓箭手</option>
+            <option value="8">盜賊</option>
+            <option value="16">海盜</option>
+            <option value="0">無職業限制</option>
           </select>
           <div class="cm-filter-lv-group">
             <input class="cm-filter-input cm-filter-lv" id="dbItemLvMin" type="number" min="1" max="200" placeholder="最低等">

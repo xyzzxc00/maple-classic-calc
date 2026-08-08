@@ -645,6 +645,8 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids):
 
 
 def build_item_index(details):
+    # job 是職業限制的 bitmask（1 劍士／2 法師／4 弓箭手／8 盜賊／16 海盜，
+    # 0 或缺欄位＝全職業可穿）。放進索引才能在列表直接篩職業，不用逐筆抓詳情
     return [
         {
             "id": d["id"],
@@ -652,6 +654,7 @@ def build_item_index(details):
             "cat": d["cat"],
             "sub": d["sub"],
             "lv": (d["equip"] or {}).get("reqLevel") or 0,
+            "job": (d["equip"] or {}).get("reqJob") or 0,
             "sell": d["sell"],
             "from": len(d["drops"]) + len(d["shops"]) + len(d["quests"]) + len(d["crafts"]),
         }
