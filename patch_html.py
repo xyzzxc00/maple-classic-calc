@@ -285,6 +285,10 @@ def shell_pages():
                 path = os.path.join(dirpath, name)
                 depth = os.path.relpath(path, DIST).replace("\\", "/").count("/")
                 yield path, "../" * depth
+    # 404 在根目錄（GitHub Pages 只認 /404.html），深度 0 所以相對路徑是空字串
+    not_found = os.path.join(DIST, "404.html")
+    if os.path.exists(not_found):
+        yield not_found, ""
 
 
 def main():

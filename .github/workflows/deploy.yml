@@ -60,6 +60,16 @@ jobs:
           sleep 15
           npx firebase-tools@14 deploy --only firestore:rules --project maple-classic-calc
 
+      # 資料與樣式的健檢擺在建置之前：壞掉就直接擋下部署，不要把有問題的
+      # 東西推上線。這兩支防的都是「畫面看起來正常、其實壞了」的錯——漏打
+      # 的 CSS 註解會讓整條規則被默默吃掉；索引與詳情檔對不上、或跨資料集
+      # 連結指向沒收錄的東西，使用者點下去才會發現是死路
+      - name: Check CSS syntax
+        run: python3 tools/check_css.py
+
+      - name: Check database integrity
+        run: python3 tools/check_data.py
+
       - name: Cache global npm tools
         uses: actions/cache@v5
         with:
@@ -81,7 +91,9 @@ jobs:
           mkdir dist/js
 
           # Copy static files (firestore.rules 為伺服器端規則，不放進 dist)
-          cp index.html privacy.html favicon.svg icon-192.png icon-512.png og-image.png robots.txt sitemap.xml \
+          # 404.html：GitHub Pages 會自動拿它當找不到頁面時的回應（不用設定），
+          # 走跟 guides/、privacy/ 一樣的獨立頁樣式，不吃主站 bundle
+          cp index.html privacy.html 404.html favicon.svg icon-192.png icon-512.png og-image.png robots.txt sitemap.xml \
              manifest.webmanifest google4878b2ed0894b6d8.html llms.txt CNAME dist/
 
           # guides/ 下的攻略文章是獨立靜態頁（各自要有自己的網址才能被搜尋引擎
