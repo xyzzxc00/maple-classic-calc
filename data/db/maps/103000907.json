@@ -1,1 +1,1 @@
-{"id":103000907,"name":"三號線三號地區B2","street":"地鐵三號線工地","region":"維多利亞島","hasMini":true,"spawns":[],"mobs":[],"npcs":[{"name":"出口","x":8.55,"y":74.324}],"portals":[{"id":103000908,"same":false,"name":"地鐵三號線工地 / 三號線三號地區B3","region":"維多利亞島","link":true,"x":89.161,"y":59.3}]}
+{"id":103000907,"name":"三號線三號地區B2","street":"地鐵三號線工地","region":"維多利亞島","mark":"Quest","hasMini":true,"spawns":[],"mobs":[],"npcs":[{"name":"出口","x":8.55,"y":74.324}],"portals":[{"id":103000908,"same":false,"name":"地鐵三號線工地 / 三號線三號地區B3","region":"維多利亞島","link":true,"x":89.161,"y":59.3}]}

@@ -1,1 +1,1 @@
-{"id":107000301,"name":"沼地小屋","street":"隱藏地圖","region":"維多利亞島","hasMini":false,"spawns":[],"mobs":[],"npcs":[{"name":"倒下的垃圾桶","x":null,"y":null}],"portals":[{"id":107000300,"same":false,"name":"戰火之地 / 鱷魚潭Ⅰ","region":"維多利亞島","link":true,"x":null,"y":null}]}
+{"id":107000301,"name":"沼地小屋","street":"隱藏地圖","region":"維多利亞島","mark":"KerningCity","hasMini":false,"spawns":[],"mobs":[],"npcs":[{"name":"倒下的垃圾桶","x":null,"y":null}],"portals":[{"id":107000300,"same":false,"name":"戰火之地 / 鱷魚潭Ⅰ","region":"維多利亞島","link":true,"x":null,"y":null}]}

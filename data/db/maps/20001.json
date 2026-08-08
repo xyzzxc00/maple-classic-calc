@@ -1,1 +1,1 @@
-{"id":20001,"name":"菇菇村村民家","street":"楓之島","region":"楓之島","hasMini":true,"spawns":[],"mobs":[],"npcs":[{"name":"桑","x":54.588,"y":68.017}],"portals":[{"id":20000,"same":false,"name":"楓之島 / 菇菇村","region":"楓之島","link":true,"x":41.888,"y":67.809}]}
+{"id":20001,"name":"菇菇村村民家","street":"楓之島","region":"楓之島","mark":"MushroomVillage","hasMini":true,"spawns":[],"mobs":[],"npcs":[{"name":"桑","x":54.588,"y":68.017}],"portals":[{"id":20000,"same":false,"name":"楓之島 / 菇菇村","region":"楓之島","link":true,"x":41.888,"y":67.809}]}

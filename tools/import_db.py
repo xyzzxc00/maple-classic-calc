@@ -683,11 +683,17 @@ def build_map_details(maps, map_ids, monster_ids):
         if not (mobs or npcs or portals):
             continue
 
+        # 零星的徽章代碼（"2"、空值）併進 Other，前端顯示成「其他」
+        mark = m.get("markKey") or ""
+        if not mark or mark in ("2",):
+            mark = "Other"
+
         out.append({
             "id": m["id"],
             "name": m.get("name") or "",
             "street": m.get("street") or "",
             "region": m.get("regionName") or "",
+            "mark": mark,
             "hasMini": has_mini,
             "spawns": spawns,
             "mobs": sorted(mobs.values(), key=lambda x: -x["count"]),
@@ -705,6 +711,10 @@ def build_map_index(details):
             "name": d["name"],
             "street": d["street"],
             "region": d["region"],
+            # markKey 是每張圖攜帶的城鎮徽章代碼（Henesys、Perion…），拿來做
+            # 「依城鎮分組」的瀏覽視圖——street 欄位太粗（維多利亞島 138 張的
+            # street 都叫「維多利亞」），只有徽章分得出弓箭手村跟勇士之村
+            "mark": d["mark"],
             "mobs": len(d["mobs"]),
             "spawns": sum(x["count"] for x in d["mobs"]),
             "npcs": len(d["npcs"]),
@@ -1011,6 +1021,13 @@ def main():
         if m["id"] in map_ids and m.get("miniMapImage")
     }
 
+    # 城鎮徽章圖路徑（依城鎮分組的瀏覽視圖用）；實際搬運在下面圖片區段，
+    # 要排在 OUT_ASSETS 的 rmtree 之後
+    mark_img_paths = {}
+    for m in maps_db["maps"]:
+        if m["id"] in map_ids and m.get("markKey") and m.get("markImage"):
+            mark_img_paths.setdefault(m["markKey"], m["markImage"])
+
     # 世界地圖
     worldmaps_db = load(src, "worldmaps-data.js")
     world_regions = build_world_maps(worldmaps_db, map_page_ids)
@@ -1051,6 +1068,8 @@ def main():
                      for s in kept_skills)
     map_imgs = sum(copy_image(src, p, os.path.join(OUT_ASSETS, "maps"))
                    for p in map_img_paths.values())
+    sum(copy_image(src, p, os.path.join(OUT_ASSETS, "marks"))
+        for k, p in mark_img_paths.items() if k != "2")
     npc_imgs = sum(copy_image(src, p, os.path.join(OUT_ASSETS, "npcs"))
                    for p in npc_img_paths.values())
     world_imgs = sum(copy_image(src, p, os.path.join(OUT_ASSETS, "worldmaps"))

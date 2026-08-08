@@ -1,1 +1,1 @@
-{"id":103000004,"name":"墮落城市醫院","street":"維多利亞","region":"維多利亞島","hasMini":false,"spawns":[],"mobs":[],"npcs":[{"name":"神秘的女孩","x":null,"y":null}],"portals":[{"id":103000000,"same":false,"name":"維多利亞 / 墮落城市","region":"維多利亞島","link":true,"x":null,"y":null}]}
+{"id":103000004,"name":"墮落城市醫院","street":"維多利亞","region":"維多利亞島","mark":"KerningCity","hasMini":false,"spawns":[],"mobs":[],"npcs":[{"name":"神秘的女孩","x":null,"y":null}],"portals":[{"id":103000000,"same":false,"name":"維多利亞 / 墮落城市","region":"維多利亞島","link":true,"x":null,"y":null}]}

@@ -1,1 +1,1 @@
-{"id":1010001,"name":"楓葉村武器店","street":"彩虹之地","region":"楓之島","hasMini":false,"spawns":[],"mobs":[],"npcs":[{"name":"賽德","x":null,"y":null}],"portals":[{"id":1010000,"same":false,"name":"彩虹之地 / 楓葉村","region":"楓之島","link":true,"x":null,"y":null}]}
+{"id":1010001,"name":"楓葉村武器店","street":"彩虹之地","region":"楓之島","mark":"Amherst","hasMini":false,"spawns":[],"mobs":[],"npcs":[{"name":"賽德","x":null,"y":null}],"portals":[{"id":1010000,"same":false,"name":"彩虹之地 / 楓葉村","region":"楓之島","link":true,"x":null,"y":null}]}

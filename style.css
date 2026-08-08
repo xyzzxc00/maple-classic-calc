@@ -1609,6 +1609,130 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 .db-wnode--region:hover,
 .db-wnode--region:focus-visible { background: #292a24; border-color: #292a24; }
 
+/* ---------- 地圖「城鎮」檢視 ---------- */
+.db-view-toggle { display: flex; gap: 6px; margin-bottom: 14px; }
+.db-view-toggle .cm-sort-btn {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 6px 14px;
+}
+.db-town-region {
+  margin: 18px 0 8px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  grid-column: 1 / -1;
+}
+.db-town-region:first-child { margin-top: 0; }
+.db-town-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+.db-town-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  overflow: hidden;
+}
+.db-town-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--surface-tint);
+  border: none;
+  border-bottom: 1px solid var(--border);
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.db-town-head:hover .db-town-title { color: var(--accent-text); }
+.db-town-head img { image-rendering: pixelated; flex-shrink: 0; }
+.db-town-title { flex: 1; font-size: 15px; font-weight: 700; color: var(--ink); }
+.db-town-top { list-style: none; margin: 0; padding: 6px 14px 10px; }
+.db-town-top li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+}
+.db-mark-chip-row { margin: 0 0 10px; font-size: 13px; color: var(--ink-soft); }
+
+/* ---------- 世界地圖圓點與預覽卡 ----------
+   節點改成小圓點，名稱與小地圖預覽收進滑過才出現的卡片——文字藥丸在
+   節點密的區域（維多利亞島 129 個）會互相蓋住。顏色寫死不跟主題反轉，
+   理由同上：底圖永遠是亮的手繪圖 */
+.db-wdot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border-radius: 50%;
+  background: #5c6640;
+  border: 2px solid #fffdf5;
+  box-shadow: 0 0 0 1px rgba(41, 42, 36, 0.55);
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+/* 命中範圍外擴：12px 在手機上點不準 */
+.db-wdot::after { content: ""; position: absolute; inset: -7px; border-radius: 50%; }
+.db-wdot:hover,
+.db-wdot:focus-visible {
+  transform: translate(-50%, -50%) scale(1.5);
+  background: #8a5cc4;
+  z-index: 4;
+}
+.db-wdot--plain {
+  background: #9b988a;
+  cursor: default;
+}
+.db-wdot--plain:hover { transform: translate(-50%, -50%); background: #9b988a; }
+
+/* 預覽卡：跟著滑到的點出現，上下左右依點的位置翻邊，避免被面板裁掉 */
+.db-wcard {
+  position: absolute;
+  z-index: 6;
+  width: 190px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 253, 245, 0.97);
+  border: 1px solid rgba(90, 86, 60, 0.55);
+  box-shadow: 0 6px 24px rgba(20, 18, 8, 0.35);
+  color: #292a24;
+  pointer-events: none;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.db-wcard strong { display: block; font-size: 13.5px; }
+.db-wcard small { display: block; color: #6b6a5c; margin-bottom: 6px; }
+.db-wcard img {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  border: 1px solid rgba(90, 86, 60, 0.35);
+  border-radius: 4px;
+  background: #f4f2e8;
+}
+.db-wcard-stats {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+  color: #6b6a5c;
+  font-size: 11.5px;
+}
+.db-wcard--above { transform: translate(-50%, calc(-100% - 16px)); }
+.db-wcard--below { transform: translate(-50%, 16px); }
+.db-wcard--above.db-wcard--left,
+.db-wcard--below.db-wcard--left { transform: translate(-14px, var(--wcard-y, 16px)); }
+.db-wcard--above.db-wcard--right,
+.db-wcard--below.db-wcard--right { transform: translate(calc(-100% + 14px), var(--wcard-y, 16px)); }
+.db-wcard--above.db-wcard--left,
+.db-wcard--above.db-wcard--right { --wcard-y: calc(-100% - 16px); }
+
 
 /* 製作配方：一個配方一塊，上面是做的人跟花費、下面是材料 */
 .db-craft { padding: 10px 0; border-bottom: 1px solid var(--border); }

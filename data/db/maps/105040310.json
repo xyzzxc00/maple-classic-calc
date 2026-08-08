@@ -1,1 +1,1 @@
-{"id":105040310,"name":"沉睡森林（一層）","street":"隱密之地","region":"奇幻村","hasMini":true,"spawns":[],"mobs":[],"npcs":[{"name":"坍塌的石像","x":18.393,"y":91.24}],"portals":[{"id":105040311,"same":false,"name":"隱密之地 / 沉睡森林（二層）","region":"奇幻村","link":true,"x":9.695,"y":10.164}]}
+{"id":105040310,"name":"沉睡森林（一層）","street":"隱密之地","region":"奇幻村","mark":"Quest","hasMini":true,"spawns":[],"mobs":[],"npcs":[{"name":"坍塌的石像","x":18.393,"y":91.24}],"portals":[{"id":105040311,"same":false,"name":"隱密之地 / 沉睡森林（二層）","region":"奇幻村","link":true,"x":9.695,"y":10.164}]}

@@ -1,1 +1,1 @@
-{"id":120000103,"name":"餐廳","street":"鯨魚號","region":"鯨魚號","hasMini":false,"spawns":[],"mobs":[],"npcs":[{"name":"湯寶寶","x":null,"y":null}],"portals":[{"id":120000100,"same":false,"name":"鯨魚號 / 上層走廊","region":"鯨魚號","link":true,"x":null,"y":null}]}
+{"id":120000103,"name":"餐廳","street":"鯨魚號","region":"鯨魚號","mark":"Nautilus","hasMini":false,"spawns":[],"mobs":[],"npcs":[{"name":"湯寶寶","x":null,"y":null}],"portals":[{"id":120000100,"same":false,"name":"鯨魚號 / 上層走廊","region":"鯨魚號","link":true,"x":null,"y":null}]}

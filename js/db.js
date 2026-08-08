@@ -804,6 +804,133 @@
 
   // ------------------------------------------------------------- 地圖
 
+  // 城鎮徽章代碼 → 顯示名稱與所屬地區；順序就是「城鎮」檢視的排列順序。
+  // street 欄位太粗（維多利亞島 138 張的 street 都叫「維多利亞」），只有
+  // 每張圖攜帶的城鎮徽章（markKey）分得出弓箭手村跟勇士之村
+  const TOWNS = [
+    ["MushroomVillage", "菇菇村", "楓之島"],
+    ["Amherst", "楓葉村", "楓之島"],
+    ["SouthPerry", "楓之港", "楓之島"],
+    ["Rith", "維多利亞港", "維多利亞島"],
+    ["Henesys", "弓箭手村", "維多利亞島"],
+    ["Ellinia", "魔法森林", "維多利亞島"],
+    ["Perion", "勇士之村", "維多利亞島"],
+    ["KerningCity", "墮落城市", "維多利亞島"],
+    ["Dungeon", "奇幻村", "奇幻村"],
+    ["Nautilus", "鯨魚號", "鯨魚號"],
+    ["KerningParty", "組隊任務區", "特殊區域"],
+    ["Quest", "忍耐／任務地圖", "特殊區域"],
+    ["Other", "其他", "特殊區域"],
+  ];
+  const TOWN_NAME = Object.fromEntries(TOWNS.map(([k, n]) => [k, n]));
+
+  const MAP_VIEW_KEY = "maple_classic_db_map_view";
+
+  function mapViewEls() {
+    return {
+      townsBtn: document.getElementById("dbMapViewTowns"),
+      listBtn: document.getElementById("dbMapViewList"),
+      towns: document.getElementById("dbMapTowns"),
+      listWrap: document.getElementById("dbMapListWrap"),
+      mark: document.getElementById("dbMapMark"),
+      chip: document.getElementById("dbMapMarkChip"),
+    };
+  }
+
+  function showMapView(which, skipSave) {
+    const els = mapViewEls();
+    if (!els.towns) return;
+    const towns = which === "towns";
+    els.towns.hidden = !towns;
+    els.listWrap.hidden = towns;
+    els.townsBtn.classList.toggle("active", towns);
+    els.listBtn.classList.toggle("active", !towns);
+    els.townsBtn.setAttribute("aria-selected", towns ? "true" : "false");
+    els.listBtn.setAttribute("aria-selected", towns ? "false" : "true");
+    if (!skipSave) localStorage.setItem(MAP_VIEW_KEY, which);
+  }
+
+  function updateMarkChip() {
+    const els = mapViewEls();
+    if (!els.chip) return;
+    const v = els.mark.value;
+    els.chip.hidden = !v;
+    els.chip.innerHTML = v
+      ? `目前只顯示 <strong>${esc(TOWN_NAME[v] || v)}</strong> 的地圖
+         <button class="db-inline-link" type="button" id="dbMapMarkClear">✕ 顯示全部</button>`
+      : "";
+  }
+
+  // 「城鎮」檢視：依徽章分組的卡片。每張卡列出張數與重生點最多的前三張圖
+  // （通常就是大家想找的練功圖），點卡片標題進清單看全部
+  function buildMapTowns(index) {
+    const els = mapViewEls();
+    if (!els.towns) return;
+    const groups = new Map();
+    index.forEach((m) => {
+      if (!groups.has(m.mark)) groups.set(m.mark, []);
+      groups.get(m.mark).push(m);
+    });
+    let lastRegion = null;
+    const cards = [];
+    TOWNS.forEach(([key, name, region]) => {
+      const rows = groups.get(key);
+      if (!rows || !rows.length) return;
+      if (region !== lastRegion) {
+        cards.push(`<h3 class="db-town-region">${esc(region)}</h3>`);
+        lastRegion = region;
+      }
+      const top = rows
+        .slice()
+        .sort((a, b) => (b.spawns || 0) - (a.spawns || 0))
+        .slice(0, 3);
+      const mark = key === "Other" ? "" :
+        `<img src="assets/db/marks/${esc(key)}.png" alt="" width="38" height="38"
+              loading="lazy" decoding="async">`;
+      cards.push(`<section class="db-town-card">
+        <button class="db-town-head" type="button" data-town="${esc(key)}">
+          ${mark}
+          <span class="db-town-title">${esc(name)}</span>
+          <span class="db-sub-num">${rows.length} 張地圖 →</span>
+        </button>
+        <ul class="db-town-top">
+          ${top.map((m) => `<li><button class="db-inline-link" type="button"
+              data-db-goto="map" data-db-id="${esc(m.id)}">${esc(m.name)}</button>
+              <span class="db-sub-num">${m.spawns} 重生點</span></li>`).join("")}
+        </ul>
+      </section>`);
+    });
+    els.towns.innerHTML = `<div class="db-town-grid">${cards.join("")}</div>`;
+  }
+
+  (function initMapViews() {
+    const els = mapViewEls();
+    if (!els.townsBtn) return;
+    els.townsBtn.addEventListener("click", () => showMapView("towns"));
+    els.listBtn.addEventListener("click", () => showMapView("list"));
+    showMapView(localStorage.getItem(MAP_VIEW_KEY) === "list" ? "list" : "towns", true);
+    els.towns.addEventListener("click", (e) => {
+      const goto = e.target.closest("[data-db-goto]");
+      if (goto) {
+        openDetail("map", goto.dataset.dbId, true);
+        return;
+      }
+      const town = e.target.closest("[data-town]");
+      if (town) {
+        // 套上城鎮篩選、切到清單。change 事件讓資料集框架自己重畫
+        els.mark.value = town.dataset.town;
+        els.mark.dispatchEvent(new Event("change"));
+        showMapView("list");
+      }
+    });
+    document.addEventListener("click", (e) => {
+      if (e.target.closest && e.target.closest("#dbMapMarkClear")) {
+        els.mark.value = "";
+        els.mark.dispatchEvent(new Event("change"));
+      }
+    });
+  })();
+
   const maps = makeSet({
     key: "maps",
     route: "map",
@@ -815,6 +942,9 @@
       { id: "Search", test: (r, v) => !v || r.name.toLowerCase().includes(v.trim().toLowerCase()) },
       { id: "Region", test: (r, v) => !v || r.region === v },
       { id: "Street", test: (r, v) => !v || r.street === v },
+      // 城鎮徽章篩選：選單本身隱藏，由「城鎮」檢視的卡片設定，畫面上用
+      // 晶片顯示目前套用的城鎮（可按 ✕ 清掉）
+      { id: "Mark", test: (r, v) => !v || r.mark === v },
     ],
     sorts: [
       { key: "region", cmp: (a, b) => a.region.localeCompare(b.region, "zh-TW") || a.street.localeCompare(b.street, "zh-TW") || a.name.localeCompare(b.name, "zh-TW") },
@@ -853,6 +983,16 @@
       };
       fill(false);
       els.Region.addEventListener("change", () => fill(true));
+      // 城鎮篩選的選項（選單隱藏，值由城鎮卡片設定）
+      TOWNS.forEach(([key, name]) => {
+        if (!index.some((m) => m.mark === key)) return;
+        const o = document.createElement("option");
+        o.value = key;
+        o.textContent = name;
+        els.Mark.appendChild(o);
+      });
+      els.Mark.addEventListener("change", updateMarkChip);
+      buildMapTowns(index);
     },
     renderRow(m) {
       return `<button class="db-row db-row--text" type="button" data-db-id="${esc(m.id)}">
@@ -1571,6 +1711,9 @@
     let regions = null;
     let loading = null;
     let current = null;
+    // 地圖索引（含怪物/重生點/傳送統計），預覽卡要用；跟地圖分頁抓同一個
+    // 檔，瀏覽器快取會去重
+    let mapStats = null;
 
     function render() {
       const r = regions.find((x) => x.key === current) || regions[0];
@@ -1592,15 +1735,18 @@
           return `<line x1="${na.x}" y1="${na.y}" x2="${nb.x}" y2="${nb.y}"/>`;
         })
         .join("");
+      // 節點畫成小圓點，名稱與預覽收進滑過才出現的卡片——文字藥丸在
+      // 節點密的區域會互相蓋住，129 個名字擠在一張圖上誰也讀不了
       const nodes = r.nodes
         .map((n) => {
           const at = `style="left:${n.x}%;top:${n.y}%"`;
-          const dot = "<i></i>";
+          const label = esc([n.street, n.name].filter(Boolean).join(" / "));
           return n.link
-            ? `<button class="db-wnode" type="button" data-db-goto="map"
-                 data-db-id="${esc(n.id)}" ${at}
-                 title="${esc([n.street, n.name].filter(Boolean).join(" / "))}">${dot}${esc(n.name)}</button>`
-            : `<span class="db-wnode db-wnode--plain" ${at}>${dot}${esc(n.name)}</span>`;
+            ? `<button class="db-wdot" type="button" data-db-goto="map"
+                 data-db-id="${esc(n.id)}" data-wname="${esc(n.name)}"
+                 data-wstreet="${esc(n.street || "")}" ${at}
+                 aria-label="${label}"></button>`
+            : `<span class="db-wdot db-wdot--plain" ${at} title="${label}"></span>`;
         })
         .join("");
       const proxies = r.proxies
@@ -1611,9 +1757,9 @@
         )
         .join("");
 
-      // 藥丸的字不跟著圖縮放，節點一多就會互相蓋住——維多利亞島 129 個節點
-      // 需要比其他三塊大得多的畫布，字才攤得開。超出面板寬度就橫向捲動
-      const minW = r.nodes.length > 80 ? 1200 : 760;
+      // 圓點不佔版面，畫布不再需要為文字撐大；只有維多利亞島在手機上
+      // 保留原圖寬度（點太密會疊在一起），其餘直接隨面板縮放
+      const minW = r.nodes.length > 80 ? 640 : 0;
       box.innerHTML = `<div class="db-world-scroll">
           <div class="db-world-figure" style="min-width:${minW}px">
             <img class="db-world-img" src="assets/db/worldmaps/${esc(r.key)}.png"
@@ -1623,16 +1769,86 @@
             ${nodes}${proxies}
           </div>
         </div>
-        <p class="db-section-note">點地圖上的名字可以看那張地圖的資料；「前往◯◯」切到相鄰的區域。點地圖底圖可以放大檢視，名字攤得更開、更好點。</p>`;
+        <p class="db-section-note">滑過圓點會浮出那張地圖的小地圖預覽，點一下開啟（手機是第一下看預覽、第二下進入）；上面的按鈕切換區域，點底圖可以放大檢視。</p>`;
       const scroller = box.querySelector(".db-world-scroll");
       if (scroller) scroller.scrollLeft = 0;
     }
 
-    // 燈箱裡的畫布再放大一級：藥丸的字是固定大小，畫布越大攤得越開
     function zoomWidth() {
       const r = regions && (regions.find((x) => x.key === current) || regions[0]);
-      return r && r.nodes.length > 80 ? 1700 : 1100;
+      return r && r.nodes.length > 80 ? 1400 : 1000;
     }
+
+    // ---------------- 滑過圓點的預覽卡 ----------------
+    // 全站只有一張卡，跟著滑到的點搬家；掛在 document 上做事件委派，
+    // 燈箱裡複製出來的圓點也吃得到同一套行為
+    let card = null;
+    let cardFor = null;
+
+    function hideCard() {
+      if (card) card.remove();
+      card = null;
+      cardFor = null;
+    }
+
+    function showCard(dot) {
+      if (cardFor === dot) return;
+      hideCard();
+      const fig = dot.closest(".db-world-figure");
+      if (!fig) return;
+      const id = dot.dataset.dbId;
+      const st = (mapStats && mapStats.get(id)) || null;
+      const stats = st
+        ? `<span>怪物 ${st.mobs}</span><span>重生點 ${st.spawns}</span><span>傳送 ${st.portals}</span>`
+        : "";
+      card = document.createElement("div");
+      card.className = "db-wcard";
+      // 靠近圖頂的點卡片往下開，其他往上開，才不會被面板裁掉
+      const y = parseFloat(dot.style.top);
+      const x = parseFloat(dot.style.left);
+      card.classList.add(y < 42 ? "db-wcard--below" : "db-wcard--above");
+      if (x < 18) card.classList.add("db-wcard--left");
+      else if (x > 82) card.classList.add("db-wcard--right");
+      card.style.left = dot.style.left;
+      card.style.top = dot.style.top;
+      card.innerHTML = `
+        <strong>${esc(dot.dataset.wname)}</strong>
+        ${dot.dataset.wstreet ? `<small>${esc(dot.dataset.wstreet)}</small>` : ""}
+        <img src="assets/db/maps/${encodeURIComponent(id)}.png" alt=""
+             decoding="async" onerror="this.remove()">
+        ${stats ? `<div class="db-wcard-stats">${stats}</div>` : ""}`;
+      fig.appendChild(card);
+      cardFor = dot;
+    }
+
+    document.addEventListener("mouseover", (e) => {
+      const dot = e.target.closest && e.target.closest(".db-wdot[data-db-id]");
+      if (dot) showCard(dot);
+      else if (card && !(e.target.closest && e.target.closest(".db-wcard"))) hideCard();
+    });
+    document.addEventListener("focusin", (e) => {
+      const dot = e.target.closest && e.target.closest(".db-wdot[data-db-id]");
+      if (dot) showCard(dot);
+    });
+    // 手機沒有 hover：第一下先看預覽卡、第二下才進地圖。攔在捕獲階段，
+    // 第一下不讓後面的導頁 handler（含燈箱那份）收到
+    const hoverable = window.matchMedia && window.matchMedia("(hover: hover)").matches;
+    document.addEventListener(
+      "click",
+      (e) => {
+        const dot = e.target.closest && e.target.closest(".db-wdot[data-db-id]");
+        if (!dot) {
+          if (card && !(e.target.closest && e.target.closest(".db-wcard"))) hideCard();
+          return;
+        }
+        if (!hoverable && cardFor !== dot) {
+          e.preventDefault();
+          e.stopPropagation();
+          showCard(dot);
+        }
+      },
+      true
+    );
 
     function zoom() {
       openFigureLightbox(box.querySelector(".db-world-figure"), zoomWidth());
@@ -1646,9 +1862,14 @@
 
     function load() {
       if (regions || loading) return loading || Promise.resolve();
-      loading = getJson("data/db/worldmaps.json")
-        .then((data) => {
+      loading = Promise.all([
+        getJson("data/db/worldmaps.json"),
+        // 預覽卡的統計；壞了就少一行數字，不擋世界地圖本體
+        getJson("data/db/maps.json").catch(() => []),
+      ])
+        .then(([data, idx]) => {
           regions = Array.isArray(data) ? data : [];
+          mapStats = new Map((idx || []).map((m) => [String(m.id), m]));
           if (!current) {
             const saved = localStorage.getItem(REGION_KEY);
             current = regions.some((x) => x.key === saved) ? saved : regions[0] && regions[0].key;

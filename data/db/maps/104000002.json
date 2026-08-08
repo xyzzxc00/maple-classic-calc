@@ -1,1 +1,1 @@
-{"id":104000002,"name":"維多利亞港雜貨店","street":"維多利亞","region":"維多利亞島","hasMini":false,"spawns":[],"mobs":[],"npcs":[{"name":"米娜","x":null,"y":null}],"portals":[{"id":104000000,"same":false,"name":"維多利亞 / 維多利亞港","region":"維多利亞島","link":true,"x":null,"y":null}]}
+{"id":104000002,"name":"維多利亞港雜貨店","street":"維多利亞","region":"維多利亞島","mark":"Rith","hasMini":false,"spawns":[],"mobs":[],"npcs":[{"name":"米娜","x":null,"y":null}],"portals":[{"id":104000000,"same":false,"name":"維多利亞 / 維多利亞港","region":"維多利亞島","link":true,"x":null,"y":null}]}

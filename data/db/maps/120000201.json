@@ -1,1 +1,1 @@
-{"id":120000201,"name":"會議室","street":"鯨魚號","region":"鯨魚號","hasMini":true,"spawns":[],"mobs":[],"npcs":[{"name":"黑巴克","x":35.031,"y":74.06}],"portals":[{"id":120000200,"same":false,"name":"鯨魚號 / 中央走廊","region":"鯨魚號","link":true,"x":88.966,"y":75.188}]}
+{"id":120000201,"name":"會議室","street":"鯨魚號","region":"鯨魚號","mark":"Nautilus","hasMini":true,"spawns":[],"mobs":[],"npcs":[{"name":"黑巴克","x":35.031,"y":74.06}],"portals":[{"id":120000200,"same":false,"name":"鯨魚號 / 中央走廊","region":"鯨魚號","link":true,"x":88.966,"y":75.188}]}

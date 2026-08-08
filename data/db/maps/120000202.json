@@ -1,1 +1,1 @@
-{"id":120000202,"name":"寢室","street":"鯨魚號","region":"鯨魚號","hasMini":false,"spawns":[],"mobs":[],"npcs":[{"name":"淨水器","x":null,"y":null}],"portals":[{"id":120000200,"same":false,"name":"鯨魚號 / 中央走廊","region":"鯨魚號","link":true,"x":null,"y":null}]}
+{"id":120000202,"name":"寢室","street":"鯨魚號","region":"鯨魚號","mark":"Nautilus","hasMini":false,"spawns":[],"mobs":[],"npcs":[{"name":"淨水器","x":null,"y":null}],"portals":[{"id":120000200,"same":false,"name":"鯨魚號 / 中央走廊","region":"鯨魚號","link":true,"x":null,"y":null}]}

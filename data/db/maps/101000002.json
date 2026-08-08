@@ -1,1 +1,1 @@
-{"id":101000002,"name":"魔法森林雜貨店","street":"維多利亞","region":"維多利亞島","hasMini":false,"spawns":[],"mobs":[],"npcs":[{"name":"妖精 蓮","x":null,"y":null}],"portals":[{"id":101000000,"same":false,"name":"維多利亞 / 魔法森林","region":"維多利亞島","link":true,"x":null,"y":null}]}
+{"id":101000002,"name":"魔法森林雜貨店","street":"維多利亞","region":"維多利亞島","mark":"Ellinia","hasMini":false,"spawns":[],"mobs":[],"npcs":[{"name":"妖精 蓮","x":null,"y":null}],"portals":[{"id":101000000,"same":false,"name":"維多利亞 / 魔法森林","region":"維多利亞島","link":true,"x":null,"y":null}]}
