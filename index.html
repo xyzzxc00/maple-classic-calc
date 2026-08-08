@@ -236,6 +236,8 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body class="has-sidebar">
+<!-- 跳過側邊欄十幾顆分頁按鈕，直接進主要內容。平常收在畫面外，Tab 到才出現 -->
+<a class="skip-link" href="#mainContent">跳到主要內容</a>
 <script>
   (function () {
     var saved = localStorage.getItem("maple_classic_theme");
@@ -357,7 +359,7 @@
   <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
   <div class="app-main">
-<main>
+<main id="mainContent" tabindex="-1">
 <div class="wrap" id="pageHome" role="tabpanel" aria-labelledby="navHome">
 
   <section class="panel dashboard-hero">

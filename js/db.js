@@ -145,16 +145,36 @@
       return out;
     }
 
-    function render() {
+    // 一次全渲染在道具那種上千筆的資料集會爆掉：1,373 列各帶一張圖，DOM
+    // 節點衝到兩萬多個，手機捲動與每次重繪都明顯頓。改成先給一批、其餘
+    // 按鈕載入——篩選過的結果多半遠少於一批，使用者根本不會碰到按鈕
+    const PAGE = 60;
+    let shown = PAGE;
+    let visibleRows = [];
+
+    function paint() {
+      const slice = visibleRows.slice(0, shown);
+      const more = visibleRows.length - slice.length;
+      els.list.innerHTML =
+        (slice.length
+          ? slice.map(cfg.renderRow).join("")
+          : `<p class="cm-empty">沒有符合條件的${cfg.label}</p>`) +
+        (more
+          ? `<button class="db-more" type="button" data-db-more>再顯示 ${Math.min(more, PAGE)} 筆（還有 ${more} 筆）</button>`
+          : "");
+    }
+
+    function render(keepShown) {
       if (!index) return;
       const v = filterValues();
       let rows = index.filter((row) => (cfg.filters || []).every((f) => f.test(row, v[f.id])));
       const sorter = (cfg.sorts || []).find((s) => s.key === sortKey);
       if (sorter) rows = rows.slice().sort(sorter.cmp);
       if (els.count) els.count.textContent = `${rows.length} ${cfg.unit}`;
-      els.list.innerHTML = rows.length
-        ? rows.map(cfg.renderRow).join("")
-        : `<p class="cm-empty">沒有符合條件的${cfg.label}</p>`;
+      visibleRows = rows;
+      // 換篩選條件／換排序就回到第一批；只有「再顯示」自己要求保留
+      if (!keepShown) shown = PAGE;
+      paint();
     }
 
     function showList() {
@@ -235,6 +255,14 @@
       });
     });
     els.list.addEventListener("click", (e) => {
+      if (e.target.closest("[data-db-more]")) {
+        shown += PAGE;
+        paint();
+        // 焦點移到新一批的第一列，鍵盤使用者不會被丟回列表最上面
+        const first = els.list.querySelectorAll("[data-db-id]")[shown - PAGE];
+        if (first) first.focus();
+        return;
+      }
       const row = e.target.closest("[data-db-id]");
       if (row) openDetail(cfg.route, row.dataset.dbId, true);
     });

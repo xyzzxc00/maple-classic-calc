@@ -314,6 +314,32 @@ a:hover { text-decoration-color: var(--accent-hover); }
   outline-offset: 1px;
   border-color: var(--accent);
 }
+
+/* ---------- 鍵盤焦點指示（全站） ----------
+   在此之前只有表單欄位有 focus 樣式，按鈕、連結、分頁、卡片全都吃瀏覽器
+   預設的 outline:none，用鍵盤 Tab 過去完全看不出停在哪——這是 WCAG 2.4.7
+   的硬性失敗，而且鍵盤操作在這種「一直在切分頁、填欄位」的工具站很常見。
+   用 :focus-visible 而不是 :focus：滑鼠點擊不會冒出框，只有鍵盤操作才顯示。
+   雙層 box-shadow 讓框在深色底（側邊欄、頂欄）跟淺色底上都看得見 */
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* 側邊欄／頂欄是橄欖綠底，同色框看不出來，改用白框加深色描邊 */
+.sidebar :focus-visible,
+.top-banner :focus-visible {
+  outline-color: #FFFFFF;
+  box-shadow: 0 0 0 5px rgba(41, 42, 36, 0.55);
+}
+/* 圓角元件的焦點框跟著自己的圓角走，不要出現方框套圓鈕的違和感 */
+.btn:focus-visible,
+.db-chip:focus-visible,
+.cm-sort-btn:focus-visible { border-radius: 999px; }
+.tool-card:focus-visible,
+.feed-item:focus-visible,
+.db-row:focus-visible,
+.panel :focus-visible { border-radius: var(--radius-md); }
 /* 表單欄位字數計數（formGuard.js 掛上去的，超過上限文字會變色示警） */
 .field-count {
   align-self: flex-end;
@@ -1451,6 +1477,22 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   font-size: 12px;
 }
 .db-map-toggles .cm-sort-btn:not(.active) { opacity: 0.55; }
+
+/* 列表的「再顯示 N 筆」：資料集一次只鋪一批，其餘按這顆補上來 */
+.db-more {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-tint);
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.db-more:hover { border-style: solid; border-color: var(--accent-text); color: var(--accent-text); }
 /* 說明文字預設帶 -4px 是為了貼著區塊標題，接在按鈕後面會太擠 */
 .db-map-toggles + .db-section-note { margin-top: 8px; }
 
@@ -2395,3 +2437,39 @@ body.has-sidebar .theme-toggle {
   }
   body.menu-open { overflow: hidden; }
 }
+
+/* ---------- 尊重「減少動態效果」的系統設定 ----------
+   全站有一千多個元素帶 transition（側邊欄滑入、按鈕變色、卡片浮起）。
+   對前庭系統敏感的使用者，作業系統層級關掉動態之後，網頁也該跟著收斂。
+   不是整個關成 0——那會讓某些依賴 transitionend 的邏輯永遠等不到事件，
+   而是壓到 0.01ms：視覺上等於瞬間完成，事件照樣觸發 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- 跳到主要內容 ----------
+   鍵盤與螢幕閱讀器使用者每進一頁都要先 Tab 過側邊欄十幾個分頁按鈕才碰得到
+   內容。這顆按鈕平常收在畫面外，只有被 Tab 選到才滑進來 */
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 500;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform 0.15s;
+}
+.skip-link:focus { transform: translateY(0); }
