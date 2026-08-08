@@ -111,6 +111,7 @@
     { id: "dbSubWorld", page: "db" },
     { id: "dbSubItems", page: "db" },
     { id: "dbSubNpcs", page: "db" },
+    { id: "dbSubShops", page: "db" },
     { id: "dbSubQuests", page: "db" },
     { id: "dbSubSkills", page: "db" },
     { id: "guidesSubQuests", page: "guides" },

@@ -135,6 +135,8 @@
     let index = null;
     let loading = null;
     let sortKey = (cfg.sorts && cfg.sorts[0] && cfg.sorts[0].key) || null;
+    // 再點一次同一個排序鍵會反轉方向（表格欄位標題的慣例）
+    let sortDir = 1;
     const cache = new Map();
 
     function filterValues() {
@@ -155,10 +157,16 @@
     function paint() {
       const slice = visibleRows.slice(0, shown);
       const more = visibleRows.length - slice.length;
+      let body = slice.length
+        ? slice.map(cfg.renderRow).join("")
+        : `<p class="cm-empty">沒有符合條件的${cfg.label}</p>`;
+      // 表格式列表（怪物）：renderRow 產出 <tr>，要包進 table；空狀態的
+      // <p> 不能塞進 tbody，維持在外面
+      if (cfg.wrapTable && slice.length) {
+        body = cfg.wrapTable(body, sortKey, sortDir);
+      }
       els.list.innerHTML =
-        (slice.length
-          ? slice.map(cfg.renderRow).join("")
-          : `<p class="cm-empty">沒有符合條件的${cfg.label}</p>`) +
+        body +
         (more
           ? `<button class="db-more" type="button" data-db-more>再顯示 ${Math.min(more, PAGE)} 筆（還有 ${more} 筆）</button>`
           : "");
@@ -169,12 +177,24 @@
       const v = filterValues();
       let rows = index.filter((row) => (cfg.filters || []).every((f) => f.test(row, v[f.id])));
       const sorter = (cfg.sorts || []).find((s) => s.key === sortKey);
-      if (sorter) rows = rows.slice().sort(sorter.cmp);
+      if (sorter) {
+        rows = rows.slice().sort(sorter.cmp);
+        if (sortDir < 0) rows.reverse();
+      }
       if (els.count) els.count.textContent = `${rows.length} ${cfg.unit}`;
       visibleRows = rows;
       // 換篩選條件／換排序就回到第一批；只有「再顯示」自己要求保留
       if (!keepShown) shown = PAGE;
       paint();
+    }
+
+    function setSort(key) {
+      if (sortKey === key) sortDir = -sortDir;
+      else {
+        sortKey = key;
+        sortDir = 1;
+      }
+      render();
     }
 
     function showList() {
@@ -247,14 +267,19 @@
     });
     page.querySelectorAll(`[data-db-sort][data-db-set="${cfg.route}"]`).forEach((btn) => {
       btn.addEventListener("click", () => {
-        sortKey = btn.dataset.dbSort;
+        setSort(btn.dataset.dbSort);
         page
           .querySelectorAll(`[data-db-sort][data-db-set="${cfg.route}"]`)
           .forEach((b) => b.classList.toggle("active", b === btn));
-        render();
       });
     });
     els.list.addEventListener("click", (e) => {
+      // 表格欄位標題排序（wrapTable 產出的 th 帶 data-db-sort）
+      const th = e.target.closest("[data-db-sort]");
+      if (th && els.list.contains(th)) {
+        setSort(th.dataset.dbSort);
+        return;
+      }
       if (e.target.closest("[data-db-more]")) {
         shown += PAGE;
         paint();
@@ -265,6 +290,15 @@
       }
       const row = e.target.closest("[data-db-id]");
       if (row) openDetail(cfg.route, row.dataset.dbId, true);
+    });
+    // 表格列與欄位標題不是原生 button，鍵盤的 Enter/空白鍵要自己接
+    els.list.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const t = e.target.closest("[data-db-id],[data-db-sort]");
+      if (t && els.list.contains(t)) {
+        e.preventDefault();
+        t.click();
+      }
     });
     els.detail.addEventListener("click", (e) => {
       const goto = e.target.closest("[data-db-goto]");
@@ -561,6 +595,11 @@
   // ------------------------------------------------------------- 怪物
 
   const EL_NAME = { fire: "火", ice: "冰", lightning: "雷", poison: "毒", holy: "聖" };
+
+  // 每 1 點經驗要打掉多少 HP，越低越好打（效率欄）
+  function hpPerExp(m) {
+    return m.exp ? (m.hp || 0) / m.exp : Infinity;
+  }
   const EL_LABEL = { normal: "一般", weak: "弱點", resist: "抗性", immune: "免疫" };
   const DROP_ORDER = ["裝備", "消耗", "其他", "裝飾"];
   // 只標我確定語意的欄位。拆包資料還有 pushed／elemAttr／rareItemDropLevel
@@ -593,12 +632,35 @@
       { id: "Region", test: (r, v) => !v || (r.regions || []).includes(v) },
       { id: "LvMin", test: (r, v) => !v || r.level >= parseInt(v, 10) },
       { id: "LvMax", test: (r, v) => !v || r.level <= parseInt(v, 10) },
+      // 快速晶片（值在隱藏 select 裡）：等級區間與屬性弱點／不死系
+      {
+        id: "LvBand",
+        test(r, v) {
+          if (!v) return true;
+          const [lo, hi] = v.split("-").map(Number);
+          return r.level >= lo && r.level <= hi;
+        },
+      },
+      {
+        id: "Weak",
+        test: (r, v) =>
+          !v || (v === "undead" ? !!r.undead : (r.weak || []).includes(v)),
+      },
     ],
     sorts: [
-      // 等級由低到高（練功查表的順序）；經驗值與 HP 由高到低（找目標的順序）
+      // 等級由低到高（練功查表的順序）；數值欄由高到低（找目標的順序）。
+      // 排序鍵對應表格欄位標題，點標題排序、再點反轉
       { key: "level", cmp: (a, b) => a.level - b.level || a.name.localeCompare(b.name, "zh-TW") },
-      { key: "exp", cmp: (a, b) => (b.exp || 0) - (a.exp || 0) },
       { key: "hp", cmp: (a, b) => (b.hp || 0) - (a.hp || 0) },
+      { key: "mp", cmp: (a, b) => (b.mp || 0) - (a.mp || 0) },
+      { key: "pad", cmp: (a, b) => (b.pad || 0) - (a.pad || 0) },
+      { key: "mad", cmp: (a, b) => (b.mad || 0) - (a.mad || 0) },
+      { key: "pdd", cmp: (a, b) => (b.pdd || 0) - (a.pdd || 0) },
+      { key: "mdd", cmp: (a, b) => (b.mdd || 0) - (a.mdd || 0) },
+      { key: "acc", cmp: (a, b) => (b.acc || 0) - (a.acc || 0) },
+      { key: "eva", cmp: (a, b) => (b.eva || 0) - (a.eva || 0) },
+      { key: "exp", cmp: (a, b) => (b.exp || 0) - (a.exp || 0) },
+      { key: "hpexp", cmp: (a, b) => hpPerExp(a) - hpPerExp(b) },
     ],
     searchRow: (r) => `Lv.${r.level} · ${(r.regions || []).join("、")}`,
     fillFilters(index, els) {
@@ -610,28 +672,64 @@
         opt.textContent = r;
         els.Region.appendChild(opt);
       });
+      // 快速晶片 → 隱藏 select；同組單選、再點同一顆恢復全部
+      const quick = document.getElementById("dbMonsterQuick");
+      const bandOpts = ["1-10", "11-20", "21-30", "31-40", "41-200"];
+      const weakOpts = ["fire", "ice", "lightning", "poison", "holy", "undead"];
+      bandOpts.forEach((v) => els.LvBand.appendChild(new Option(v, v)));
+      weakOpts.forEach((v) => els.Weak.appendChild(new Option(v, v)));
+      quick.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-mon-band],[data-mon-weak]");
+        if (!btn) return;
+        const isBand = btn.dataset.monBand !== undefined;
+        const sel = isBand ? els.LvBand : els.Weak;
+        sel.value = isBand ? btn.dataset.monBand : btn.dataset.monWeak;
+        quick
+          .querySelectorAll(isBand ? "[data-mon-band]" : "[data-mon-weak]")
+          .forEach((b) => b.classList.toggle("active", b === btn));
+        sel.dispatchEvent(new Event("change"));
+      });
+    },
+    // 表格式列表：欄位標題可排序（點一下排序、再點反轉），效率欄
+    // HP÷EXP 是「每 1 點經驗要打掉多少血」，越低越好打
+    wrapTable(rowsHtml, sortKey, sortDir) {
+      const arrow = (k) => (k === sortKey ? (sortDir > 0 ? " ▲" : " ▼") : "");
+      const th = (k, label, numeric) =>
+        `<th${numeric ? ' class="db-th-num"' : ""} data-db-sort="${k}"
+           role="button" tabindex="0">${label}${arrow(k)}</th>`;
+      return `<table class="db-table"><thead><tr>
+          <th>怪物</th>
+          ${th("level", "等級", true)}${th("hp", "HP", true)}${th("mp", "MP", true)}
+          ${th("pad", "物攻", true)}${th("mad", "魔攻", true)}
+          ${th("pdd", "物防", true)}${th("mdd", "魔防", true)}
+          ${th("acc", "命中", true)}${th("eva", "迴避", true)}
+          ${th("exp", "EXP", true)}${th("hpexp", "HP/EXP", true)}
+          <th>屬性</th>
+        </tr></thead><tbody>${rowsHtml}</tbody></table>`;
     },
     renderRow(m) {
-      // 屬性標籤只在「有弱點或抗性」時才出現——全部「一般」的怪佔多數，
-      // 每列都掛一顆「一般」只是噪音
-      const el = m.el && m.el !== "一般" ? `<span class="db-tag">${esc(m.el)}</span>` : "";
-      return `<button class="db-row" type="button" data-db-id="${esc(m.id)}">
-        ${monsterImg(m.id, 44)}
-        <div class="db-row-main">
-          <div class="db-row-title">
-            <span class="db-row-name">${esc(m.name)}</span>
-            <span class="db-row-level">Lv.${m.level}</span>
-            ${el}
-          </div>
-          <div class="db-row-meta">${esc((m.regions || []).join("、"))}</div>
-        </div>
-        <dl class="db-row-stats">
-          <div><dt>HP</dt><dd>${shortNum(m.hp)}</dd></div>
-          <div><dt>EXP</dt><dd>${shortNum(m.exp)}</dd></div>
-          <div><dt>地圖</dt><dd>${m.maps}</dd></div>
-          <div><dt>掉落</dt><dd>${m.drops}</dd></div>
-        </dl>
-      </button>`;
+      const tags = [];
+      (m.weak || []).forEach((k) =>
+        tags.push(`<span class="db-eltag db-eltag--weak">${EL_NAME[k] || k}弱</span>`)
+      );
+      if (m.undead) tags.push('<span class="db-eltag db-eltag--undead">不死</span>');
+      const ratio = hpPerExp(m);
+      return `<tr class="db-trow" data-db-id="${esc(m.id)}" tabindex="0"
+                role="button" aria-label="${esc(m.name)}">
+        <td class="db-td-name">${monsterImg(m.id, 32)}<span>${esc(m.name)}</span></td>
+        <td class="db-td-num">${m.level}</td>
+        <td class="db-td-num">${shortNum(m.hp)}</td>
+        <td class="db-td-num">${shortNum(m.mp)}</td>
+        <td class="db-td-num">${m.pad || 0}</td>
+        <td class="db-td-num">${m.mad || 0}</td>
+        <td class="db-td-num">${m.pdd || 0}</td>
+        <td class="db-td-num">${m.mdd || 0}</td>
+        <td class="db-td-num">${m.acc || 0}</td>
+        <td class="db-td-num">${m.eva || 0}</td>
+        <td class="db-td-num">${shortNum(m.exp)}</td>
+        <td class="db-td-num">${Number.isFinite(ratio) ? ratio.toFixed(1) : "—"}</td>
+        <td>${tags.join("") || ""}</td>
+      </tr>`;
     },
     renderDetail(d) {
       const flags = FLAGS.filter(([k]) => d.stats[k])
@@ -1164,6 +1262,91 @@
       alt="" loading="lazy" decoding="async" width="${size}" height="${size}">`;
   }
 
+  // 道具「分類」檢視：每個大類一張卡（張數＋代表圖示＋子類晶片），點子類
+  // 切到清單並套上分類＋類型篩選。跟地圖的城鎮視圖同一套互動模式
+  const ITEM_VIEW_KEY = "maple_classic_db_item_view";
+
+  function showItemView(which, skipSave) {
+    const cats = document.getElementById("dbItemCats");
+    const wrap = document.getElementById("dbItemListWrap");
+    const catsBtn = document.getElementById("dbItemViewCats");
+    const listBtn = document.getElementById("dbItemViewList");
+    if (!cats) return;
+    const showCats = which === "cats";
+    cats.hidden = !showCats;
+    wrap.hidden = showCats;
+    catsBtn.classList.toggle("active", showCats);
+    listBtn.classList.toggle("active", !showCats);
+    catsBtn.setAttribute("aria-selected", showCats ? "true" : "false");
+    listBtn.setAttribute("aria-selected", showCats ? "false" : "true");
+    if (!skipSave) localStorage.setItem(ITEM_VIEW_KEY, which);
+  }
+
+  function buildItemCats(index, filterEls, render) {
+    const cats = document.getElementById("dbItemCats");
+    if (!cats) return;
+    const order = ["裝備", "消耗", "其他", "裝飾"];
+    const byCat = new Map();
+    index.forEach((i) => {
+      if (!byCat.has(i.cat)) byCat.set(i.cat, []);
+      byCat.get(i.cat).push(i);
+    });
+    const cards = [];
+    [...order.filter((c) => byCat.has(c)),
+     ...[...byCat.keys()].filter((c) => !order.includes(c)).sort()].forEach((cat) => {
+      const rows = byCat.get(cat);
+      // 每個子類的數量與代表圖示（拿賣店價最高的當代表，比較不會抽到雜物）
+      const bySub = new Map();
+      rows.forEach((i) => {
+        if (!bySub.has(i.sub)) bySub.set(i.sub, []);
+        bySub.get(i.sub).push(i);
+      });
+      const samples = rows
+        .slice()
+        .sort((a, b) => (b.sell || 0) - (a.sell || 0))
+        .slice(0, 4)
+        .map((i) => `<img src="assets/db/items/${encodeURIComponent(i.id)}.png" alt=""
+              width="28" height="28" loading="lazy" decoding="async">`)
+        .join("");
+      const subs = [...bySub.entries()]
+        .sort((a, b) => b[1].length - a[1].length)
+        .map(
+          ([sub, list]) => `<button class="db-chip" type="button"
+              data-item-cat="${esc(cat)}" data-item-sub="${esc(sub || "")}">
+              ${esc(sub || "未分類")}<span class="db-sub-num">${list.length}</span></button>`
+        )
+        .join("");
+      cards.push(`<section class="db-town-card">
+        <button class="db-town-head" type="button" data-item-cat="${esc(cat)}" data-item-sub="">
+          <span class="db-cat-samples">${samples}</span>
+          <span class="db-town-title">${esc(cat)}</span>
+          <span class="db-sub-num">${rows.length} 個 →</span>
+        </button>
+        <div class="db-chip-row db-cat-subs">${subs}</div>
+      </section>`);
+    });
+    cats.innerHTML = `<div class="db-town-grid db-town-grid--wide">${cards.join("")}</div>`;
+
+    cats.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-item-cat]");
+      if (!btn) return;
+      filterEls.Cat.value = btn.dataset.itemCat;
+      // 先觸發分類 change 讓連動的類型選單重建，再設類型
+      filterEls.Cat.dispatchEvent(new Event("change"));
+      filterEls.Sub.value = btn.dataset.itemSub || "";
+      render();
+      showItemView("list");
+    });
+  }
+
+  (function initItemViews() {
+    const catsBtn = document.getElementById("dbItemViewCats");
+    if (!catsBtn) return;
+    catsBtn.addEventListener("click", () => showItemView("cats"));
+    document.getElementById("dbItemViewList").addEventListener("click", () => showItemView("list"));
+    showItemView(localStorage.getItem(ITEM_VIEW_KEY) === "list" ? "list" : "cats", true);
+  })();
+
   const items = makeSet({
     key: "items",
     route: "item",
@@ -1215,6 +1398,7 @@
       };
       fillSub(false);
       els.Cat.addEventListener("change", () => fillSub(true));
+      buildItemCats(index, els, render);
     },
     renderRow(i) {
       return `<button class="db-row" type="button" data-db-id="${esc(i.id)}">
@@ -1590,6 +1774,82 @@
       alt="" loading="lazy" decoding="async" width="${size}" height="${size}">`;
   }
 
+  // 技能「職業」檢視：依職業群分區、每個轉職一張卡放技能圖示格。滑過圖示
+  // 看名稱（title），點了開技能詳情
+  const SKILL_VIEW_KEY = "maple_classic_db_skill_view";
+
+  function showSkillView(which, skipSave) {
+    const tree = document.getElementById("dbSkillTree");
+    const wrap = document.getElementById("dbSkillListWrap");
+    const treeBtn = document.getElementById("dbSkillViewTree");
+    const listBtn = document.getElementById("dbSkillViewList");
+    if (!tree) return;
+    const showTree = which === "tree";
+    tree.hidden = !showTree;
+    wrap.hidden = showTree;
+    treeBtn.classList.toggle("active", showTree);
+    listBtn.classList.toggle("active", !showTree);
+    treeBtn.setAttribute("aria-selected", showTree ? "true" : "false");
+    listBtn.setAttribute("aria-selected", showTree ? "false" : "true");
+    if (!skipSave) localStorage.setItem(SKILL_VIEW_KEY, which);
+  }
+
+  function buildSkillTree(index) {
+    const tree = document.getElementById("dbSkillTree");
+    if (!tree) return;
+    const GROUP_ORDER = ["初心者/共通", "冒險家劍士", "冒險家法師",
+                        "冒險家弓箭手", "冒險家盜賊", "冒險家海盜"];
+    const ADV_ORDER = ["零轉", "一轉", "二轉", "三轉", "四轉"];
+    const byGroup = new Map();
+    index.forEach((s) => {
+      if (!byGroup.has(s.group)) byGroup.set(s.group, new Map());
+      const jobs = byGroup.get(s.group);
+      if (!jobs.has(s.job)) jobs.set(s.job, []);
+      jobs.get(s.job).push(s);
+    });
+    const parts = [];
+    GROUP_ORDER.filter((g) => byGroup.has(g)).forEach((g) => {
+      parts.push(`<h3 class="db-town-region">${esc(g)}</h3>`);
+      const jobs = [...byGroup.get(g).entries()].sort((a, b) => {
+        const advOf = (rows) => ADV_ORDER.indexOf(rows[0].adv);
+        return advOf(a[1]) - advOf(b[1]) || a[0].localeCompare(b[0], "zh-TW");
+      });
+      const cards = jobs.map(([job, rows]) => {
+        const icons = rows
+          .slice()
+          .sort((a, b) => a.name.localeCompare(b.name, "zh-TW"))
+          .map(
+            (s) => `<button class="db-skill-icon" type="button" data-db-goto="skill"
+                data-db-id="${esc(s.id)}" title="${esc(s.name)}" aria-label="${esc(s.name)}">
+              <img src="assets/db/skills/${encodeURIComponent(s.id)}.png" alt=""
+                   width="32" height="32" loading="lazy" decoding="async"></button>`
+          )
+          .join("");
+        return `<section class="db-town-card db-skill-card">
+          <div class="db-town-head db-town-head--static">
+            <span class="db-town-title">${esc(job)}</span>
+            <span class="db-sub-num">${esc(rows[0].adv)} · ${rows.length} 招</span>
+          </div>
+          <div class="db-skill-grid">${icons}</div>
+        </section>`;
+      });
+      parts.push(`<div class="db-town-grid">${cards.join("")}</div>`);
+    });
+    tree.innerHTML = parts.join("");
+    tree.addEventListener("click", (e) => {
+      const goto = e.target.closest("[data-db-goto]");
+      if (goto) openDetail("skill", goto.dataset.dbId, true);
+    });
+  }
+
+  (function initSkillViews() {
+    const treeBtn = document.getElementById("dbSkillViewTree");
+    if (!treeBtn) return;
+    treeBtn.addEventListener("click", () => showSkillView("tree"));
+    document.getElementById("dbSkillViewList").addEventListener("click", () => showSkillView("list"));
+    showSkillView(localStorage.getItem(SKILL_VIEW_KEY) === "list" ? "list" : "tree", true);
+  })();
+
   const skills = makeSet({
     key: "skills",
     route: "skill",
@@ -1626,6 +1886,7 @@
           o.textContent = a;
           els.Adv.appendChild(o);
         });
+      buildSkillTree(index);
     },
     renderRow(s) {
       return `<button class="db-row" type="button" data-db-id="${esc(s.id)}">
@@ -1821,7 +2082,12 @@
       cardFor = dot;
     }
 
+    // 觸控裝置的「點一下」會先補發 mouseover 再發 click——如果讓 mouseover
+    // 顯示卡片，click 到達時會以為是第二下而直接導頁，手機就永遠看不到
+    // 預覽。所以滑過顯卡只給真的有 hover 的裝置；觸控裝置一律由下面的
+    // click 兩段式接手
     document.addEventListener("mouseover", (e) => {
+      if (!hoverable) return;
       const dot = e.target.closest && e.target.closest(".db-wdot[data-db-id]");
       if (dot) showCard(dot);
       else if (card && !(e.target.closest && e.target.closest(".db-wcard"))) hideCard();
@@ -1903,6 +2169,118 @@
     return { key: "world", load, show };
   })();
 
+  // ------------------------------------------------------------- 商店總覽
+
+  // 全部會賣東西的 NPC 與商品清單（data/db/shops.json，匯入時彙整）。
+  // 不是列表＋詳情的資料集：商品點了跳道具頁、NPC 名字跳 NPC 頁
+  const shops = (() => {
+    const view = document.getElementById("dbShopsView");
+    const listEl = document.getElementById("dbShopList");
+    const countEl = document.getElementById("dbShopCount");
+    const searchEl = document.getElementById("dbShopSearch");
+    const regionEl = document.getElementById("dbShopRegion");
+    if (!view || !listEl) return null;
+
+    let data = null;
+    let loading = null;
+
+    function shopCard(s) {
+      const goods = s.items
+        .map(
+          (i) => `<button class="db-shop-item" type="button"
+              data-db-goto="item" data-db-id="${esc(i.id)}">
+            <img src="assets/db/items/${encodeURIComponent(i.id)}.png" alt=""
+                 width="26" height="26" loading="lazy" decoding="async">
+            <span class="db-shop-item-name">${esc(i.name)}</span>
+            <span class="db-sub-num">${num(i.price)} ${esc(i.currency || "楓幣")}</span>
+          </button>`
+        )
+        .join("");
+      const crafts = s.crafts
+        .map(
+          (c) => `<button class="db-shop-item" type="button"
+              data-db-goto="item" data-db-id="${esc(c.id)}">
+            <img src="assets/db/items/${encodeURIComponent(c.id)}.png" alt=""
+                 width="26" height="26" loading="lazy" decoding="async">
+            <span class="db-shop-item-name">${esc(c.name)}<small>（製作）</small></span>
+            <span class="db-sub-num">${c.meso ? num(c.meso) + " 楓幣" : "材料"}</span>
+          </button>`
+        )
+        .join("");
+      return `<section class="db-shop-card">
+        <button class="db-town-head" type="button" data-db-goto="npc" data-db-id="${esc(s.id)}">
+          <img src="assets/db/npcs/${encodeURIComponent(s.id)}.png" alt=""
+               width="38" height="38" loading="lazy" decoding="async"
+               onerror="this.style.visibility='hidden'">
+          <span class="db-town-title">${esc(s.name)}</span>
+          <span class="db-sub-num">${esc(s.where)} · ${s.items.length + s.crafts.length} 項</span>
+        </button>
+        <div class="db-shop-goods">${goods}${crafts}</div>
+      </section>`;
+    }
+
+    function render() {
+      const q = (searchEl.value || "").trim().toLowerCase();
+      const region = regionEl.value;
+      const rows = data.filter((s) => {
+        if (region && s.region !== region) return false;
+        if (!q) return true;
+        if (s.name.toLowerCase().includes(q)) return true;
+        return (
+          s.items.some((i) => i.name.toLowerCase().includes(q)) ||
+          s.crafts.some((c) => c.name.toLowerCase().includes(q))
+        );
+      });
+      if (countEl) countEl.textContent = `${rows.length} 家`;
+      // 依地區分段，跟地圖城鎮視圖同一種閱讀節奏
+      let lastRegion = null;
+      const parts = [];
+      rows.forEach((s) => {
+        if (s.region !== lastRegion) {
+          parts.push(`<h3 class="db-town-region">${esc(s.region || "其他")}</h3>`);
+          lastRegion = s.region;
+        }
+        parts.push(shopCard(s));
+      });
+      listEl.innerHTML = rows.length
+        ? `<div class="db-shop-grid">${parts.join("")}</div>`
+        : '<p class="cm-empty">沒有符合條件的商店</p>';
+    }
+
+    function load() {
+      if (data || loading) return loading || Promise.resolve();
+      loading = getJson("data/db/shops.json")
+        .then((rows) => {
+          data = rows || [];
+          [...new Set(data.map((s) => s.region))].filter(Boolean).sort().forEach((r) => {
+            regionEl.appendChild(new Option(r, r));
+          });
+          render();
+        })
+        .catch(() => {
+          if (countEl) countEl.textContent = "—";
+          listEl.innerHTML = LOAD_ERROR;
+        })
+        .finally(() => {
+          loading = null;
+        });
+      return loading;
+    }
+
+    let timer = null;
+    searchEl.addEventListener("input", () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => data && render(), 150);
+    });
+    regionEl.addEventListener("change", () => data && render());
+    view.addEventListener("click", (e) => {
+      const goto = e.target.closest("[data-db-goto]");
+      if (goto) openDetail(goto.dataset.dbGoto, goto.dataset.dbId, true);
+    });
+
+    return { key: "shops", load };
+  })();
+
   // ------------------------------------------------------------- 組裝
 
   const SETS = [monsters, maps, items, npcs, quests, skills].filter(Boolean);
@@ -1922,21 +2300,25 @@
     }
   });
 
-  // 世界地圖不是列表＋詳情的資料集，不進 SETS（全站搜尋、網址路由都與它
-  // 無關），只註冊成一個子分頁
-  if (world) {
-    const btn = document.getElementById("dbSubWorld");
-    const view = document.getElementById("dbWorldView");
+  // 世界地圖與商店總覽不是列表＋詳情的資料集，不進 SETS（全站搜尋、網址
+  // 路由都與它們無關），只註冊成子分頁
+  [
+    [world, "dbSubWorld", "dbWorldView"],
+    [shops, "dbSubShops", "dbShopsView"],
+  ].forEach(([mod, btnId, viewId]) => {
+    if (!mod) return;
+    const btn = document.getElementById(btnId);
+    const view = document.getElementById(viewId);
     if (btn && view) {
-      tabs.push({ key: "world", btn, view });
+      tabs.push({ key: mod.key, btn, view });
       btn.addEventListener("click", () => {
-        showTab("world");
-        world.load();
+        showTab(mod.key);
+        mod.load();
         if (currentRoute()) history.replaceState({}, "", routeUrl(null));
         SETS.forEach((x) => x.showList());
       });
     }
-  }
+  });
 
   // ------------------------------------------------------------- 全站搜尋
 
@@ -2031,21 +2413,23 @@
     const route = currentRoute();
     const routed = route && SETS.find((s) => s.route === route.set);
     const hashSub = location.hash.slice(1).split("-")[1];
-    // 世界地圖不在 SETS 裡，錨點（#db-world）與記住的子分頁要另外認得它
-    const isWorld = (k) => world && k === "world";
+    // 世界地圖與商店總覽不在 SETS 裡，錨點（#db-world、#db-shops）與記住的
+    // 子分頁要另外認得它們
+    const extras = { world, shops };
+    const isExtra = (k) => k && extras[k];
     const hashed = SETS.find((s) => s.key === hashSub);
     const saved = localStorage.getItem(TAB_KEY);
     const initial = routed
       ? routed.key
       : hashed
       ? hashed.key
-      : isWorld(hashSub)
-      ? "world"
-      : SETS.some((s) => s.key === saved) || isWorld(saved)
+      : isExtra(hashSub)
+      ? hashSub
+      : SETS.some((s) => s.key === saved) || isExtra(saved)
       ? saved
       : SETS[0] && SETS[0].key;
     if (initial) showTab(initial, true);
-    if (isWorld(initial)) world.load();
+    if (isExtra(initial)) extras[initial].load();
     const target = SETS.find((s) => s.key === initial);
     if (target) target.load();
   }
@@ -2054,8 +2438,12 @@
   // 順便把該資料集的索引載起來，不然會看到空列表
   function showSet(key) {
     showTab(key);
-    if (world && key === "world") {
+    if (key === "world" && world) {
       world.load();
+      return;
+    }
+    if (key === "shops" && shops) {
+      shops.load();
       return;
     }
     const s = SETS.find((x) => x.key === key);

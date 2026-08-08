@@ -1609,6 +1609,77 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 .db-wnode--region:hover,
 .db-wnode--region:focus-visible { background: #292a24; border-color: #292a24; }
 
+/* ---------- 怪物表格 ---------- */
+.db-table-scroll { overflow-x: auto; }
+.db-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.db-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-tint);
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-strong);
+  cursor: pointer;
+  user-select: none;
+}
+.db-table th:hover { color: var(--accent-text); }
+.db-table th:first-child { cursor: default; }
+.db-table th:first-child:hover { color: var(--ink-soft); }
+.db-th-num, .db-td-num { text-align: right; }
+.db-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.db-trow { cursor: pointer; }
+.db-trow:hover td { background: var(--surface-tint); }
+.db-td-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.db-td-name img { image-rendering: pixelated; flex-shrink: 0; }
+/* 屬性弱點小標籤 */
+.db-eltag {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--accent-tint);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
+}
+.db-eltag--weak { background: #f6e8e6; color: #a3392f; border-color: #d8a49d; }
+.db-eltag--undead { background: #e8e6f0; color: #4d4470; border-color: #b0a8cc; }
+body.dark .db-eltag--weak { background: #3d2523; color: #e8a49b; border-color: #6e443f; }
+body.dark .db-eltag--undead { background: #2b2838; color: #b7addb; border-color: #565073; }
+/* 快速篩選晶片列 */
+.db-quick-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+.db-quick-filters .cm-group-label { margin-left: 4px; }
+.db-quick-filters .cm-sort-btn {
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+}
+
 /* ---------- 地圖「城鎮」檢視 ---------- */
 .db-view-toggle { display: flex; gap: 6px; margin-bottom: 14px; }
 .db-view-toggle .cm-sort-btn {
@@ -1659,6 +1730,57 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   padding: 4px 0;
 }
 .db-mark-chip-row { margin: 0 0 10px; font-size: 13px; color: var(--ink-soft); }
+
+/* ---------- 道具「分類」檢視 ---------- */
+.db-town-grid--wide { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.db-cat-samples { display: flex; gap: 4px; flex-shrink: 0; }
+.db-cat-samples img { image-rendering: pixelated; }
+.db-cat-subs { padding: 10px 14px 12px; }
+
+/* ---------- 商店總覽 ---------- */
+.db-shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.db-shop-grid .db-town-region { grid-column: 1 / -1; }
+.db-shop-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  overflow: hidden;
+}
+.db-shop-goods { display: flex; flex-direction: column; padding: 4px 8px 8px; }
+.db-shop-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: none;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+.db-shop-item:last-child { border-bottom: none; }
+.db-shop-item:hover { background: var(--surface-tint); }
+.db-shop-item img { image-rendering: pixelated; flex-shrink: 0; }
+.db-shop-item-name { flex: 1; }
+.db-shop-item-name small { color: var(--ink-faint); }
+
+/* ---------- 技能「職業」檢視 ---------- */
+.db-skill-grid { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 14px; }
+.db-skill-icon {
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+  line-height: 0;
+}
+.db-skill-icon:hover { border-color: var(--accent-text); background: var(--accent-tint); }
+.db-skill-icon img { image-rendering: pixelated; }
+.db-town-head--static { cursor: default; }
+.db-town-head--static:hover .db-town-title { color: var(--ink); }
 
 /* ---------- 世界地圖圓點與預覽卡 ----------
    節點改成小圓點，名稱與小地圖預覽收進滑過才出現的卡片——文字藥丸在

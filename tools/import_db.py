@@ -872,24 +872,35 @@ def build_npc_index(details):
 
 
 def build_index(details):
-    """列表用的索引，欄位越少越好——這是進站就會載的檔案"""
-    return [
-        {
+    """列表用的索引。怪物列表是表格式（可依欄位排序、依屬性弱點篩選），
+    主要戰鬥數值都要進索引；整包仍只有十幾 KB"""
+    out = []
+    for d in details:
+        st = d["stats"] or {}
+        vals = (d["elemental"] or {}).get("values") or {}
+        out.append({
             "id": d["id"],
             "name": d["name"],
             "level": d["level"],
-            "hp": (d["stats"] or {}).get("maxHP"),
-            "exp": (d["stats"] or {}).get("exp"),
+            "hp": st.get("maxHP"),
+            "mp": st.get("maxMP"),
+            "exp": st.get("exp"),
+            "pad": st.get("PADamage"),
+            "mad": st.get("MADamage"),
+            "pdd": st.get("PDDamage"),
+            "mdd": st.get("MDDamage"),
+            "acc": st.get("acc"),
+            # 迴避同時給獨立版命中計算機用——選了怪要立即算，不能等詳情檔
+            "eva": st.get("eva"),
+            "undead": 1 if st.get("undead") else 0,
             "el": d["elemental"]["summary"],
-            # 迴避進索引是給獨立版命中計算機用的——選了怪要立即算，不能等
-            # 詳情檔載入
-            "eva": (d["stats"] or {}).get("eva"),
+            # 弱點元素清單（fire/ice/lightning/poison/holy），給快速篩選用
+            "weak": sorted(k for k, v in vals.items() if v == "weak"),
             "maps": len(d["maps"]),
             "drops": len(d["drops"]),
             "regions": sorted({mp["region"] for mp in d["maps"] if mp["region"]}),
-        }
-        for d in details
-    ]
+        })
+    return out
 
 
 # ------------------------------------------------------------------ 圖片搬運
@@ -993,6 +1004,24 @@ def main():
         with open(os.path.join(OUT_DATA, "npcs", f"{d['id']}.json"), "w",
                   encoding="utf-8") as f:
             json.dump(d, f, ensure_ascii=False, separators=(",", ":"))
+
+    # 商店總覽頁：把有賣東西（含製作）的 NPC 彙整成一個檔，依地區排。
+    # 這頁是「全部商店在賣什麼」的瀏覽入口，跟單一 NPC 頁互補
+    shops = [
+        {
+            "id": d["id"],
+            "name": d["name"],
+            "region": d["maps"][0]["region"] if d["maps"] else "",
+            "where": d["maps"][0]["label"] if d["maps"] else "",
+            "items": d["shop"],
+            "crafts": d["crafts"],
+        }
+        for d in npc_details
+        if d["shop"] or d["crafts"]
+    ]
+    shops.sort(key=lambda s: (s["region"], s["where"], s["name"]))
+    with open(os.path.join(OUT_DATA, "shops.json"), "w", encoding="utf-8") as f:
+        json.dump(shops, f, ensure_ascii=False, separators=(",", ":"))
     # 地圖上的 NPC 記錄沒有圖片路徑，圖只出現在任務與商店那邊的 NPC 物件裡
     npc_ids = {d["id"] for d in npc_details}
     npc_img_paths = {}

@@ -300,6 +300,7 @@
         <button class="sidebar-link subtab" id="dbSubWorld" type="button" role="tab" aria-selected="false" aria-controls="dbWorldView">世界</button>
         <button class="sidebar-link subtab" id="dbSubItems" type="button" role="tab" aria-selected="false" aria-controls="dbItemsView">道具</button>
         <button class="sidebar-link subtab" id="dbSubNpcs" type="button" role="tab" aria-selected="false" aria-controls="dbNpcsView">NPC</button>
+        <button class="sidebar-link subtab" id="dbSubShops" type="button" role="tab" aria-selected="false" aria-controls="dbShopsView">商店</button>
         <button class="sidebar-link subtab" id="dbSubQuests" type="button" role="tab" aria-selected="false" aria-controls="dbQuestsView">任務</button>
         <button class="sidebar-link subtab" id="dbSubSkills" type="button" role="tab" aria-selected="false" aria-controls="dbSkillsView">技能</button>
       </div>
@@ -409,6 +410,14 @@
        上線日 -->
   <div class="section-head"><h2>最新更新</h2></div>
   <div class="feed-list">
+    <button class="feed-item" type="button" data-nav-page="db" data-nav-subtab="monsters">
+      <span class="feed-tag">資料庫</span>
+      <span class="feed-text">
+        <span class="feed-title">資料庫大改版：怪物數值表格、道具分類瀏覽、商店總覽、技能職業樹</span>
+        <span class="feed-desc">怪物改成可排序的完整數值表（含屬性弱點與等級快速篩選）；新增「商店」分頁看全部 NPC 在賣什麼</span>
+      </span>
+      <span class="feed-date">08/08</span>
+    </button>
     <button class="feed-item" type="button" data-nav-page="db" data-nav-subtab="world">
       <span class="feed-tag">資料庫</span>
       <span class="feed-text">
@@ -430,14 +439,6 @@
       <span class="feed-text">
         <span class="feed-title">劍士終極系列點法爭議、法師黃傘崩價更新、月妙鋼豬賺錢法</span>
         <span class="feed-desc">依玩家回報與巴哈精華區最新心得補強：終極系列建議放最後再決定、超綠防吞券技巧、藍水靈練功點與更多任務細節</span>
-      </span>
-      <span class="feed-date">08/06</span>
-    </button>
-    <button class="feed-item" type="button" data-nav-page="db" data-nav-subtab="world">
-      <span class="feed-tag">資料庫</span>
-      <span class="feed-text">
-        <span class="feed-title">新增世界地圖：四塊區域一張張點著走，鯨魚號也開放了</span>
-        <span class="feed-desc">楓之島、維多利亞島、奇幻村、鯨魚號的全區地圖，點名字直接看那張地圖；小地圖也能點圖放大檢視</span>
       </span>
       <span class="feed-date">08/06</span>
     </button>
@@ -925,17 +926,31 @@
             <span class="cm-filter-sep">~</span>
             <input class="cm-filter-input cm-filter-lv" id="dbMonsterLvMax" type="number" min="1" max="200" placeholder="最高等">
           </div>
+          <!-- 快速篩選晶片的實際值放在這兩個隱藏選單，晶片按了就改它們 -->
+          <select id="dbMonsterWeak" hidden aria-hidden="true"><option value=""></option></select>
+          <select id="dbMonsterLvBand" hidden aria-hidden="true"><option value=""></option></select>
         </div>
-        <div class="cm-actions">
-          <div class="cm-sort-btns"><span class="cm-group-label">排序</span>
-            <button class="cm-sort-btn active" data-db-sort="level" data-db-set="monster" type="button">等級</button>
-            <button class="cm-sort-btn" data-db-sort="exp" data-db-set="monster" type="button">經驗值</button>
-            <button class="cm-sort-btn" data-db-sort="hp" data-db-set="monster" type="button">HP</button>
-          </div>
+        <!-- 排序改到表格欄位標題（點標題排序、再點反轉），這排改成快速篩選 -->
+        <div class="db-quick-filters" id="dbMonsterQuick">
+          <span class="cm-group-label">等級</span>
+          <button class="cm-sort-btn active" type="button" data-mon-band="">全部</button>
+          <button class="cm-sort-btn" type="button" data-mon-band="1-10">1~10</button>
+          <button class="cm-sort-btn" type="button" data-mon-band="11-20">11~20</button>
+          <button class="cm-sort-btn" type="button" data-mon-band="21-30">21~30</button>
+          <button class="cm-sort-btn" type="button" data-mon-band="31-40">31~40</button>
+          <button class="cm-sort-btn" type="button" data-mon-band="41-200">41+</button>
+          <span class="cm-group-label">屬性</span>
+          <button class="cm-sort-btn active" type="button" data-mon-weak="">全部</button>
+          <button class="cm-sort-btn" type="button" data-mon-weak="fire">火弱</button>
+          <button class="cm-sort-btn" type="button" data-mon-weak="ice">冰弱</button>
+          <button class="cm-sort-btn" type="button" data-mon-weak="lightning">雷弱</button>
+          <button class="cm-sort-btn" type="button" data-mon-weak="poison">毒弱</button>
+          <button class="cm-sort-btn" type="button" data-mon-weak="holy">聖弱</button>
+          <button class="cm-sort-btn" type="button" data-mon-weak="undead">不死系</button>
         </div>
       </div>
 
-      <div id="dbMonsterList"><p class="cm-loading">載入中...</p></div>
+      <div id="dbMonsterList" class="db-table-scroll"><p class="cm-loading">載入中...</p></div>
     </section>
 
     <!-- 單隻怪的詳情，內容由 db.js 依 data/db/monsters/<id>.json 產生 -->
@@ -1025,6 +1040,14 @@
         <p class="cm-disclaimer">裝備數值與商店價格取自遊戲資料檔。<strong>掉落機率一樣沒有</strong>——資料檔只記錄「這隻怪會掉什麼」。</p>
       </details>
 
+      <div class="db-view-toggle" role="tablist" aria-label="道具檢視方式">
+        <button class="cm-sort-btn active" id="dbItemViewCats" type="button" role="tab" aria-selected="true">分類</button>
+        <button class="cm-sort-btn" id="dbItemViewList" type="button" role="tab" aria-selected="false">清單</button>
+      </div>
+
+      <div id="dbItemCats" hidden><p class="cm-loading">載入中...</p></div>
+
+      <div id="dbItemListWrap">
       <div class="cm-toolbar">
         <div class="cm-filter-row">
           <input class="cm-filter-input" id="dbItemSearch" type="search" placeholder="搜尋道具名稱" autocomplete="off">
@@ -1050,6 +1073,7 @@
       </div>
 
       <div id="dbItemList"><p class="cm-loading">載入中...</p></div>
+      </div>
     </section>
 
     <section class="panel" id="dbItemDetail" hidden></section>
@@ -1092,6 +1116,32 @@
     </section>
 
     <section class="panel" id="dbNpcDetail" hidden></section>
+  </div>
+
+  <div id="dbShopsView" role="tabpanel" aria-labelledby="dbSubShops" hidden>
+    <section class="panel">
+      <div class="panel-head">
+        <h2>商店總覽</h2>
+        <span class="badge" id="dbShopCount">—</span>
+      </div>
+
+      <details class="cm-disclaimer-details">
+        <summary>收錄範圍說明</summary>
+        <p class="cm-disclaimer">已開放地圖上所有會賣東西（或能製作裝備）的 NPC 與他們的完整商品清單，價格取自遊戲資料檔。點商品看那件道具的資料，點 NPC 名字看他還經手哪些任務。</p>
+      </details>
+
+      <div class="cm-toolbar">
+        <div class="cm-filter-row">
+          <input class="cm-filter-input" id="dbShopSearch" type="search"
+                 placeholder="搜尋商品或 NPC 名稱" autocomplete="off">
+          <select class="cm-filter-input" id="dbShopRegion" aria-label="依地區篩選商店">
+            <option value="">全部地區</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="dbShopList"><p class="cm-loading">載入中...</p></div>
+    </section>
   </div>
 
   <div id="dbQuestsView" role="tabpanel" aria-labelledby="dbSubQuests" hidden>
@@ -1145,6 +1195,14 @@
         <p class="cm-disclaimer">只收錄<strong>本服現有的五大冒險家職業</strong>（劍士、法師、弓箭手、盜賊、海盜）與共通技能。拆包檔裡還有皇家騎士團、狂狼勇士、龍魔導士等後期版本職業，以及要 Lv.120 才學得到的四轉技能，本服還沒有，不列在這裡。</p>
       </details>
 
+      <div class="db-view-toggle" role="tablist" aria-label="技能檢視方式">
+        <button class="cm-sort-btn active" id="dbSkillViewTree" type="button" role="tab" aria-selected="true">職業</button>
+        <button class="cm-sort-btn" id="dbSkillViewList" type="button" role="tab" aria-selected="false">清單</button>
+      </div>
+
+      <div id="dbSkillTree" hidden><p class="cm-loading">載入中...</p></div>
+
+      <div id="dbSkillListWrap">
       <div class="cm-toolbar">
         <div class="cm-filter-row">
           <input class="cm-filter-input" id="dbSkillSearch" type="search" placeholder="搜尋技能名稱" autocomplete="off">
@@ -1164,6 +1222,7 @@
       </div>
 
       <div id="dbSkillList"><p class="cm-loading">載入中...</p></div>
+      </div>
     </section>
 
     <section class="panel" id="dbSkillDetail" hidden></section>
