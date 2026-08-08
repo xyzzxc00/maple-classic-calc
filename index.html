@@ -62,7 +62,8 @@
     "加倍卷用量計算",
     "EXP 計時器與測速",
     "命中率計算（物理與魔法）",
-    "卷軸強化模擬器",
+    "攻擊力計算（職業配點、BUFF、表攻與技能傷害）",
+    "卷軸強化模擬器（裝備與卷軸資料庫、最佳衝卷順序、期望成本）",
     "轉蛋機率模擬器",
     "怪物資料庫（數值、掉落、出沒地圖、練等試算）",
     "地圖資料庫（小地圖標記、出沒怪物、傳送點）",
@@ -281,7 +282,7 @@
       <div class="nav-group-links">
         <button class="sidebar-link subtab active" id="calcSubExp" type="button" role="tab" aria-selected="true" aria-controls="calcExpView">練等計算</button>
         <!-- 攻擊力計算：公式已查證完成，暫時重新隱藏，等使用者確認要上線再拿掉 hidden -->
-        <button class="sidebar-link subtab" id="calcSubAttack" type="button" role="tab" aria-selected="false" aria-controls="calcAttackView" hidden>攻擊力計算</button>
+        <button class="sidebar-link subtab" id="calcSubAttack" type="button" role="tab" aria-selected="false" aria-controls="calcAttackView">攻擊力計算</button>
         <button class="sidebar-link subtab" id="calcSubScroll" type="button" role="tab" aria-selected="false" aria-controls="calcScrollView">卷軸強化模擬</button>
         <button class="sidebar-link subtab" id="calcSubGacha" type="button" role="tab" aria-selected="false" aria-controls="calcGachaView">轉蛋模擬</button>
         <button class="sidebar-link subtab" id="calcSubHit" type="button" role="tab" aria-selected="false" aria-controls="calcHitView">命中計算</button>
@@ -410,6 +411,14 @@
        上線日 -->
   <div class="section-head"><h2>最新更新</h2></div>
   <div class="feed-list">
+    <button class="feed-item" type="button" data-nav-page="calc" data-nav-subtab="attack">
+      <span class="feed-tag">計算工具</span>
+      <span class="feed-text">
+        <span class="feed-title">攻擊力計算全新上線、卷軸模擬大改版：直接選裝備選卷軸算期望成本</span>
+        <span class="feed-desc">攻擊力計算照職業技能表配點、含隊伍與道具 BUFF，直接算表攻與技能傷害；卷軸模擬改成從 2,000+ 件裝備挑一件、混搭卷軸自動算最省錢的衝法與成本分布</span>
+      </span>
+      <span class="feed-date">08/08</span>
+    </button>
     <button class="feed-item" type="button" data-nav-page="db" data-nav-subtab="monsters">
       <span class="feed-tag">資料庫</span>
       <span class="feed-text">
@@ -433,14 +442,6 @@
         <span class="feed-desc">697 件會浮動的裝備標出實際區間，例如海神叉物攻 42（37~47）；商店買的固定基準值也講清楚</span>
       </span>
       <span class="feed-date">08/07</span>
-    </button>
-    <button class="feed-item" type="button" data-nav-page="guides" data-nav-subtab="jobs">
-      <span class="feed-tag">攻略更新</span>
-      <span class="feed-text">
-        <span class="feed-title">劍士終極系列點法爭議、法師黃傘崩價更新、月妙鋼豬賺錢法</span>
-        <span class="feed-desc">依玩家回報與巴哈精華區最新心得補強：終極系列建議放最後再決定、超綠防吞券技巧、藍水靈練功點與更多任務細節</span>
-      </span>
-      <span class="feed-date">08/06</span>
     </button>
   </div>
 
@@ -631,185 +632,227 @@
 
     <div id="calcAttackView" role="tabpanel" aria-labelledby="calcSubAttack" hidden>
       <details class="cm-disclaimer-details">
-        <summary>攻擊力公式來源說明</summary>
-        <p class="cm-disclaimer">這裡算的是舊楓之谷（Big Bang 大改版前）的舊制攻擊力公式。物理攻擊（劍士／弓箭手／盜賊／海盜系）的公式跟武器係數已對照巴哈姆特舊制討論串、PTT 楓之谷板譯表與英文 SouthPerry 公式彙整（官服時代實測資料）三方交叉核對，數字完全一致。斧／棍／槍／矛的揮砍、穿刺兩種係數已合併顯示（上限取高係數、下限取低係數），跟遊戲內資訊視窗顯示的範圍一致。法師的魔法攻擊力採用 SouthPerry 2008 年公式原式，與巴哈姆特 2008 年〈魔法攻擊力計算公式〉文屬同一條式子（巴哈版是近似值，兩者結果差不到 1%）；「魔攻」直接填角色資訊視窗顯示的數值即可。技能相關數值（魔力激發 140%、熟練度逐級表）已與經典版客戶端技能資料逐字核對。屬性杖「不符合」檔各來源記載在 70%～75% 之間，這裡採 75%。正式開服後若有實測出入會再校正。</p>
+        <summary>公式與資料來源說明</summary>
+        <p class="cm-disclaimer">技能數值、職業技能表與 BUFF 效果取自經典版客戶端拆包資料。表攻採舊楓之谷（Big Bang 大改版前）公式：最大 = floor((主屬性 × 武器係數 + 副屬性) × 攻擊力 ÷ 100)，最小值另乘 0.9 × 熟練度；法師的技能傷害用魔法基本攻擊力公式計算。技能傷害為理論值，未計入怪物防禦、屬性相剋與命中判定，實戰數字請以遊戲內為準。</p>
       </details>
 
   <section class="calc-section">
     <div class="panel-head">
       <h2>攻擊力計算</h2>
-      <button class="btn btn-ghost" id="clearAttackBtn" type="button">↺ 重設</button>
+      <button class="btn btn-ghost" id="atkResetBtn" type="button">↺ 重設</button>
     </div>
+    <p class="cm-empty" id="atkStatus">資料載入中…</p>
+    <div id="atkBody" hidden>
+    <p class="calc-build-meta" id="atkBuildMeta"></p>
 
     <div class="field-grid two-col">
       <label class="field">
-        <span>職業／武器</span>
-        <select id="attackWeaponType"></select>
+        <span>職業</span>
+        <select id="atkJob"></select>
       </label>
       <label class="field">
-        <span id="attackWeaponAtkLabel">武器攻擊力</span>
-        <input type="number" id="attackWeaponAtk" min="0" placeholder="例：50">
-      </label>
-      <label class="field" id="attackAmmoField" hidden>
-        <span id="attackAmmoLabel">飛鏢攻擊力</span>
-        <input type="number" id="attackAmmo" min="0" placeholder="沒有就留空">
-      </label>
-
-      <label class="field">
-        <span>力量 STR</span>
-        <input type="number" id="attackStr" min="4" value="4">
+        <span>武器</span>
+        <select id="atkWeapon"></select>
       </label>
       <label class="field">
-        <span>敏捷 DEX</span>
-        <input type="number" id="attackDex" min="4" value="4">
-      </label>
-
-      <label class="field">
-        <span>智力 INT</span>
-        <input type="number" id="attackInt" min="4" value="4">
+        <span>角色等級</span>
+        <input type="number" id="atkLevel" min="1" max="200" step="1" inputmode="numeric" autocomplete="off">
       </label>
       <label class="field">
-        <span>幸運 LUK</span>
-        <input type="number" id="attackLuk" min="4" value="4">
-      </label>
-
-      <label class="field" id="attackMasteryField">
-        <span id="attackMasteryLabel">熟練度 %（技能視窗顯示的數字，直接輸入）</span>
-        <input type="number" id="attackMastery" min="0" max="100" value="10">
-      </label>
-
-      <label class="field" id="attackSkillPctField" hidden>
-        <span>技能攻擊力 %（技能說明上的數字，例如暴風雪滿級 520）</span>
-        <input type="number" id="attackSkillPct" min="0" placeholder="例：520">
-      </label>
-      <label class="field" id="attackMonsterMdefField" hidden>
-        <span>怪物魔防（沒有特定目標可留空，當 0 算）</span>
-        <input type="number" id="attackMonsterMdef" min="0" placeholder="例：550">
-      </label>
-      <label class="field" id="attackLevelDiffField" hidden>
-        <span>等級差（怪物比你高幾等；沒比你高就留空）</span>
-        <input type="number" id="attackLevelDiff" min="0" placeholder="例：5">
+        <span>精靈的祝福等級</span>
+        <input type="number" id="atkSpirit" min="0" step="1" value="0" inputmode="numeric" autocomplete="off">
       </label>
     </div>
+    <p class="exp-rate-hint" id="atkSpiritHint"></p>
 
-    <div class="field-grid three-col" id="attackMagicBonusRow" hidden>
+    <div class="panel-head scroll-sub-head"><h3>素質點數</h3></div>
+    <div class="field-grid two-col" id="atkBaseStats"></div>
+    <p class="exp-rate-hint" id="atkBaseBudget"></p>
+
+    <div class="panel-head scroll-sub-head"><h3>裝備加成（裝備上的素質加成合計）</h3></div>
+    <div class="field-grid two-col" id="atkEquipStats"></div>
+
+    <div class="panel-head scroll-sub-head"><h3>攻擊數值</h3></div>
+    <div class="field-grid two-col">
       <label class="field">
-        <span>屬性相剋</span>
-        <select id="attackElemBonus">
-          <option value="1">無屬性／怪物無相剋（100%）</option>
-          <option value="1.5">剋屬性（怪物弱點，150%）</option>
-          <option value="0.5">被抵抗（怪物半減，50%）</option>
-        </select>
-      </label>
-      <label class="field-inline">
-        <input type="checkbox" id="attackManaBoost">
-        <span>魔力激發（140%，三轉火毒／冰雷限定）</span>
+        <span>武器攻擊力</span>
+        <input type="number" id="atkWeaponAtk" min="0" step="1" inputmode="numeric" autocomplete="off">
       </label>
       <label class="field">
-        <span>屬性杖加成</span>
-        <select id="attackStaffMatch">
-          <option value="1">無</option>
-          <option value="1.25">屬性全符合（125%）</option>
-          <option value="1.1">屬性部分符合（110%）</option>
-          <option value="0.75">屬性不符合（75%）</option>
-        </select>
+        <span>其他裝備攻擊力合計</span>
+        <input type="number" id="atkEquipAtk" min="0" step="1" value="0" inputmode="numeric" autocomplete="off">
+      </label>
+      <label class="field">
+        <span>武器魔法攻擊力</span>
+        <input type="number" id="atkWeaponMag" min="0" step="1" inputmode="numeric" autocomplete="off">
+      </label>
+      <label class="field">
+        <span>其他裝備魔法攻擊力合計</span>
+        <input type="number" id="atkEquipMag" min="0" step="1" value="0" inputmode="numeric" autocomplete="off">
+      </label>
+      <label class="field">
+        <span>其他攻擊力 BUFF（手動輸入）</span>
+        <input type="number" id="atkManualPad" min="0" step="1" value="0" inputmode="numeric" autocomplete="off">
+      </label>
+      <label class="field">
+        <span>其他魔法攻擊力 BUFF（手動輸入）</span>
+        <input type="number" id="atkManualMad" min="0" step="1" value="0" inputmode="numeric" autocomplete="off">
       </label>
     </div>
-
-    <p class="exp-rate-hint" id="attackMasteryHint">1轉熟練技能基礎 10%，滿級（Lv.20）約 60%；4轉「達人」系技能可以再往上加，實際數字請照自己技能視窗顯示的熟練度輸入。</p>
-
-    <div class="stat-grid">
-      <div class="stat-card">
-        <p class="stat-label" id="attackResultLabel">攻擊力範圍</p>
-        <p class="stat-value" id="attackResult">—</p>
-      </div>
-    </div>
-    <p class="input-warning-hint" id="attackWarningHint" hidden></p>
   </section>
+
+  <section class="calc-section">
+    <div class="panel-head">
+      <h2>技能點數</h2>
+      <button class="btn btn-ghost" id="atkSkillReset" type="button">歸零技能點</button>
+    </div>
+    <p class="cm-disclaimer">SP 預算照角色等級與轉職進度自動計算，要先點滿前一階段的點數才能點下一階段。</p>
+    <div class="atk-pills" id="atkSkillBudget"></div>
+    <div class="subtabs atk-skill-tabs" id="atkSkillTabs" role="tablist" aria-label="轉職階段"></div>
+    <div class="atk-skill-list" id="atkSkillList"></div>
+  </section>
+
+  <section class="calc-section">
+    <div class="panel-head"><h2>BUFF 設定</h2></div>
+    <div class="panel-head scroll-sub-head"><h3>隊伍技能 BUFF</h3></div>
+    <div class="atk-buff-list" id="atkPartyBuffs"></div>
+    <div class="panel-head scroll-sub-head"><h3>道具 BUFF</h3></div>
+    <label class="field">
+      <span>搜尋道具 BUFF</span>
+      <input type="search" id="atkItemBuffSearch" placeholder="輸入名稱，例：攻擊藥水" autocomplete="off">
+    </label>
+    <div class="atk-selected-buffs" id="atkItemBuffSelected"></div>
+    <div class="atk-buff-list" id="atkItemBuffResults"></div>
+  </section>
+
+  <section class="calc-section">
+    <div class="panel-head"><h2>計算結果</h2></div>
+    <div id="atkDetail"></div>
+  </section>
+    </div>
 
     </div>
 
     <div id="calcScrollView" role="tabpanel" aria-labelledby="calcSubScroll" hidden>
       <details class="cm-disclaimer-details">
-        <summary>「失敗報廢張數」是什麼？</summary>
-        <p class="cm-disclaimer">「失敗報廢張數」＝一件新裝備開局後，如果最前面連續 X 張全部失敗（中途只要衝到 1 張成功就不會放棄），就當這件報廢、直接換新裝備重來；預設等於裝備衝捲數（等於不主動放棄）。另外「目標成功張數」已經不可能達成時（剩餘可衝張數不夠補到目標），也會直接視同報廢、自動換新裝備。不含裝備爆炸機制（有搭配保護卷軸的話，把保護卷的成本自己加進卷軸單價裡就好）。實際成功率請照自己遊戲內卷軸說明為準。</p>
+        <summary>這個模擬怎麼算？</summary>
+        <p class="cm-disclaimer">裝備與卷軸清單取自經典版客戶端拆包資料，成功率、破壞率與屬性效果照卷軸說明。理論值以動態規劃計算：混合多種卷軸時會搜尋「每強化出一件成品的平均成本」最低的使用順序，每衝一張後依結果重新決定下一張，剩餘卷軸已不可能達成目標時直接停損、把裝備打掉重練；本地模擬再用同一套策略實際跑隨機數，給出成本分布。裝備與卷軸價格請自行填市價，模擬結果僅供參考。</p>
       </details>
-      <p class="cm-disclaimer">不懂這些數字怎麼算出來的？<a href="guides/scroll-expected-value-guide/">看卷軸期望值解析 →</a></p>
+      <p class="cm-disclaimer">不懂期望值怎麼算？<a href="guides/scroll-expected-value-guide/">看卷軸期望值解析 →</a></p>
 
   <section class="calc-section">
     <div class="panel-head">
       <h2>卷軸強化模擬</h2>
-      <button class="btn btn-ghost" id="clearScrollBtn" type="button">↺ 重設</button>
+      <button class="btn btn-ghost" id="ssimResetBtn" type="button">↺ 重設</button>
     </div>
+    <p class="cm-empty" id="ssimStatus">資料載入中…</p>
+    <div id="ssimBody" hidden>
+    <p class="calc-build-meta"><span id="ssimBuildMeta"></span> · <span id="ssimCount"></span></p>
 
+    <div class="panel-head scroll-sub-head"><h3>1. 選裝備</h3></div>
     <div class="field-grid two-col">
       <label class="field">
-        <span>卷軸成功率（%）</span>
-        <input type="number" id="scrollRate" min="1" max="100" value="60" inputmode="numeric">
+        <span>搜尋裝備</span>
+        <input type="search" id="ssimEquipSearch" placeholder="輸入名稱，例：楓葉" autocomplete="off">
       </label>
       <label class="field">
-        <span>裝備衝捲數</span>
-        <input type="number" id="scrollSlots" min="1" max="20" value="5" inputmode="numeric">
+        <span>分類</span>
+        <select id="ssimEquipGroup">
+          <option value="">全部分類</option>
+          <option value="weapon">武器</option>
+          <option value="armor">防具</option>
+          <option value="accessory">飾品</option>
+          <option value="other">其他</option>
+        </select>
       </label>
+      <label class="field">
+        <span>部位</span>
+        <select id="ssimEquipPart"></select>
+      </label>
+      <label class="field">
+        <span>職業</span>
+        <select id="ssimEquipJob">
+          <option value="">全部職業</option>
+          <option value="warrior">劍士</option>
+          <option value="magician">法師</option>
+          <option value="bowman">弓箭手</option>
+          <option value="thief">盜賊</option>
+          <option value="pirate">海盜</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>需求等級下限</span>
+        <input type="text" id="ssimEquipLevelMin" inputmode="numeric" placeholder="例：60" autocomplete="off">
+      </label>
+      <label class="field">
+        <span>需求等級上限</span>
+        <input type="text" id="ssimEquipLevelMax" inputmode="numeric" placeholder="例：80" autocomplete="off">
+      </label>
+    </div>
+    <label class="field-inline">
+      <input type="checkbox" id="ssimEquipSourced">
+      <span>只顯示目前有取得管道的裝備（怪物掉落／製作）</span>
+    </label>
+    <div class="ssim-picker" id="ssimEquipPicker" role="listbox" aria-label="裝備清單"></div>
+    <div class="ssim-init" id="ssimInitStats"></div>
+    <label class="field">
+      <span>裝備取得價格（楓幣，含報廢重買成本）</span>
+      <input type="text" id="ssimEquipPrice" inputmode="numeric" value="0" autocomplete="off">
+      <small class="ssim-price-hint" id="ssimEquipPriceHint"></small>
+    </label>
 
+    <div class="panel-head scroll-sub-head"><h3>2. 加卷軸</h3></div>
+    <div class="field-grid two-col">
+      <label class="field">
+        <span>搜尋卷軸</span>
+        <input type="search" id="ssimScrollSearch" placeholder="輸入名稱，例：手套攻擊" autocomplete="off">
+      </label>
+      <label class="field">
+        <span>成功率</span>
+        <select id="ssimScrollSuccess"></select>
+      </label>
+    </div>
+    <label class="field-inline">
+      <input type="checkbox" id="ssimScrollSourced">
+      <span>只顯示目前有取得管道的卷軸</span>
+    </label>
+    <div class="ssim-picker" id="ssimScrollPicker" role="listbox" aria-label="卷軸清單"></div>
+    <div class="field-grid three-col">
+      <label class="field">
+        <span>張數</span>
+        <input type="number" id="ssimAddCount" min="1" step="1" value="1" inputmode="numeric" autocomplete="off">
+      </label>
       <label class="field">
         <span>目標成功張數</span>
-        <input type="number" id="scrollTarget" min="1" value="5" inputmode="numeric">
+        <input type="number" id="ssimAddTarget" min="0" step="1" value="1" inputmode="numeric" autocomplete="off">
       </label>
       <label class="field">
-        <span>失敗報廢張數</span>
-        <input type="number" id="scrollGiveup" min="1" value="5" inputmode="numeric">
-      </label>
-
-      <label class="field">
-        <span>裝備價格（楓幣，選填）</span>
-        <input type="text" id="scrollEquipPrice" placeholder="例：10000（可用 1W）" inputmode="decimal">
-      </label>
-      <label class="field">
-        <span>卷軸單價（楓幣，選填）</span>
-        <input type="text" id="scrollPrice" placeholder="例：50000（可用 5W）" inputmode="decimal">
+        <span>卷軸單價（楓幣）</span>
+        <input type="text" id="ssimAddPrice" inputmode="numeric" placeholder="例：50,000" autocomplete="off">
+        <small class="ssim-price-hint" id="ssimAddPriceHint"></small>
       </label>
     </div>
-    <p class="input-warning-hint" id="scrollWarningHint" hidden></p>
+    <button class="btn btn-primary" id="ssimAddScroll" type="button">加入卷軸</button>
 
-    <div class="panel-head scroll-sub-head">
-      <h3>理論值（不考慮提早放棄，單件裝備衝滿所有次數）</h3>
-    </div>
-    <div class="stat-grid">
-      <div class="stat-card">
-        <p class="stat-label">單件裝備達標機率</p>
-        <p class="stat-value" id="scrollTheoryChance">—</p>
-      </div>
-      <div class="stat-card">
-        <p class="stat-label">平均需要裝備數</p>
-        <p class="stat-value" id="scrollTheoryCopies">—</p>
+    <div class="panel-head scroll-sub-head"><h3>3. 卷軸策略</h3></div>
+    <div class="ssim-strategy" id="ssimStrategy"></div>
+    <div class="field-grid two-col">
+      <label class="field">
+        <span>本地模擬次數（100 ~ 20,000）</span>
+        <input type="number" id="ssimTrials" min="100" max="20000" step="100" value="3000" inputmode="numeric" autocomplete="off">
+      </label>
+      <div class="field ssim-run-field">
+        <span aria-hidden="true">&nbsp;</span>
+        <button class="btn btn-primary" id="ssimRun" type="button">開始計算</button>
       </div>
     </div>
-    <div class="exp-rate-box" id="scrollTheoryCostBox" hidden>
-      <div class="exp-rate-row"><span>平均需要卷軸張數</span><span id="scrollTheoryScrolls">—</span></div>
-      <div class="exp-rate-row hl"><span>預期花費</span><span id="scrollTheoryCost">—</span></div>
-    </div>
-
-    <div class="panel-head scroll-sub-head">
-      <h3>衝卷模擬（會套用上面的報廢策略，實際花費通常比理論值省）</h3>
-      <button class="btn btn-ghost" id="scrollResetSimBtn" type="button">重置模擬數據</button>
-    </div>
-    <div class="scroll-sim-status">
-      <span>目前這件：已衝 <strong id="scrollCurAttempts">0</strong> / <strong id="scrollCurSlots">5</strong>，成功 <strong id="scrollCurSuccess">0</strong></span>
-    </div>
-    <div class="scroll-sim-controls">
-      <button class="btn btn-primary" id="scrollAttackBtn" type="button">衝一張</button>
-      <button class="btn btn-primary" id="scrollAutoBtn" type="button">連續衝到目標</button>
-      <button class="btn btn-ghost" id="scrollSwapBtn" type="button">換裝備</button>
-    </div>
-    <div class="exp-rate-box" id="scrollSimStatsBox">
-      <div class="exp-rate-row"><span>累計裝備數</span><span id="scrollSimCopies">0</span></div>
-      <div class="exp-rate-row hl" id="scrollSimCostRow" hidden><span>累計成本</span><span id="scrollSimCost">—</span></div>
-    </div>
-    <p class="scroll-sim-result" id="scrollSimResult" hidden></p>
-
-    <div class="scroll-sim-dist" id="scrollSimDist" hidden></div>
   </section>
+
+  <section class="calc-section">
+    <div class="panel-head"><h2>模擬結果</h2></div>
+    <div id="ssimDetail"></div>
+  </section>
+    </div>
 
     </div>
 
@@ -2203,7 +2246,6 @@
 <!-- Firebase SDK 改為懶載入：只有切到「社群資料庫／建議地點」分頁時才載入（見 js/community.js） -->
 <script defer src="js/data.js"></script>
 <script defer src="js/calculator.js"></script>
-<script defer src="js/attackData.js"></script>
 <script defer src="js/attack.js"></script>
 <script defer src="js/scroll.js"></script>
 <script defer src="js/gachaData.js"></script>
