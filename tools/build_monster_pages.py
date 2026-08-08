@@ -79,7 +79,15 @@ def page(mon, prev_next):
 
     meso = mon.get("meso") or {}
     meso_html = ""
-    if meso.get("min") is not None:
+    if meso.get("unverified"):
+        # BOSS 與召喚後消失的怪：沒有可靠的楓幣資料，講清楚而不是掛數字
+        # （理由見 tools/import_db.py，跟站上的動態頁維持一致）
+        meso_html = (
+            '<section class="db-section"><h2 class="db-section-title">楓幣掉落</h2>'
+            '<p class="db-section-note">這隻的楓幣掉落沒有可靠資料。遊戲資料檔只有依等級推估的'
+            '公式值，未經實測確認，玩家實測 BOSS 多半不會掉落楓幣，因此這裡不列數字。</p></section>'
+        )
+    elif meso.get("min") is not None:
         note = f"（{esc(meso['note'])}）" if meso.get("note") else ""
         meso_html = (
             '<section class="db-section"><h2 class="db-section-title">楓幣掉落</h2>'

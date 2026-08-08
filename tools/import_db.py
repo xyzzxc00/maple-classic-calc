@@ -35,6 +35,14 @@ import sys
 OPEN_REGIONS = {"楓之島", "維多利亞島", "奇幻村", "鯨魚號"}
 LEVEL_CAP = 100
 
+# 遊戲內說明文字本身就寫錯的道具：拆包資料照樣是錯的，只能人工註記。
+# key 是道具 ID，value 顯示在說明底下。要加新的請一併寫上實測來源與日期，
+# 沒有實測依據就不要放——這欄的用途是修正官方錯誤，不是放我們的猜測
+ITEM_NOTES = {
+    # 遊戲內寫「MP恢復約50」，實測回復 150 MP（2026-08 玩家實測回報）
+    2010004: "遊戲內說明寫「MP 恢復約 50」，但實際回復約 150 MP（玩家實測）。",
+}
+
 # 技能：本服只有五大冒險家職業。拆包檔裡還有皇家騎士團、狂狼勇士、龍魔導士、
 # 影武者這些後期版本才有的職業群，以及 GM 專用技能，全部不收。四轉技能要
 # Lv.120 才學得到，等級上限開放前也不該出現
@@ -230,18 +238,30 @@ def build_detail(m, map_ids, quest_ids, item_ids, map_page_ids):
     ]
     meso = m.get("mesoDrop") or {}
     el = m.get("elemental") or {}
+    stats = m.get("stats") or {}
+    # BOSS 的楓幣數字不能用：拆包只有「伺服器公式推估」，沒有實際掉落表，
+    # 而玩家實測沼澤巨鱷／巨居蟹／殭屍猴王都不噴錢（2026-08 巴哈回報）。
+    # 同一份資料自己也不一致——53 隻 BOSS 有 16 隻錢袋數 0、37 隻是 2。
+    # 召喚後會消失的怪（noDropReason）同理，本來就不該列這欄。
+    # 寧可不顯示，也不要掛一個對不上的數字
+    boss = bool(stats.get("boss"))
+    no_drop = meso.get("noDropReason") or ""
+    meso_out = {
+        "min": meso.get("totalMin"),
+        "max": meso.get("totalMax"),
+        "note": meso.get("sourceLabel") or "",
+    }
+    if boss or no_drop:
+        meso_out = {"min": None, "max": None, "note": "", "unverified": True}
     return {
         "id": m["id"],
         "name": m["name"],
         "level": m.get("level"),
         "desc": (m.get("description") or "").strip(),
-        "stats": m.get("stats") or {},
+        "stats": stats,
+        "boss": boss,
         "elemental": {"summary": el.get("summary") or "", "values": el.get("values") or {}},
-        "meso": {
-            "min": meso.get("totalMin"),
-            "max": meso.get("totalMax"),
-            "note": meso.get("sourceLabel") or "",
-        },
+        "meso": meso_out,
         "maps": sorted(maps, key=lambda x: -x["spawns"]),
         # 拆包資料只有「會掉什麼」，沒有掉落率——畫面上不能顯示機率。
         # 未命名道具（遊戲資料裡沒名字沒圖的，顯示成「未命名道具 2040824」）
@@ -604,6 +624,7 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids):
             "id": it["id"],
             "name": it.get("name") or "",
             "desc": (it.get("desc") or "").strip(),
+            "note": ITEM_NOTES.get(it["id"], ""),
             "cat": it.get("category") or "",
             "sub": it.get("subcategory") or "",
             "sell": it.get("sellPrice") or 0,
@@ -953,6 +974,8 @@ def build_index(details):
             # 迴避同時給獨立版命中計算機用——選了怪要立即算，不能等詳情檔
             "eva": st.get("eva"),
             "undead": 1 if st.get("undead") else 0,
+            # BOSS 旗標給列表的快速篩選用（詳情也有一份，那邊決定楓幣怎麼呈現）
+            "boss": 1 if d.get("boss") else 0,
             "el": d["elemental"]["summary"],
             # 弱點元素清單（fire/ice/lightning/poison/holy），給快速篩選用
             "weak": sorted(k for k, v in vals.items() if v == "weak"),

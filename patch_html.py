@@ -42,9 +42,17 @@ def build_stamp():
         import hashlib
 
         h = hashlib.sha1()
-        for name in ("index.html", "style.css"):
+        # js/ 也要納入雜湊：只算 index.html 與 style.css 的話，「只改了 JS」
+        # 的那種改動不會讓版本戳變，本機預覽就一直吃瀏覽器快取裡的舊
+        # bundle.js——畫面看起來像改動沒生效，實際上是檔案根本沒重新載入。
+        # （CI 走 GITHUB_SHA 那條路，本來就每次都不同，不受影響）
+        names = ["index.html", "style.css"]
+        js_dir = os.path.join(DIST, "js")
+        if os.path.isdir(js_dir):
+            names += [os.path.join("js", f) for f in sorted(os.listdir(js_dir))]
+        for name in names:
             p = os.path.join(DIST, name)
-            if os.path.exists(p):
+            if os.path.isfile(p):
                 with open(p, "rb") as f:
                     h.update(f.read())
         return h.hexdigest()[:8]
@@ -58,9 +66,17 @@ VERSION = None  # main() 決定，讓下面的改寫函式都拿得到
 
 
 def stamp_assets(html, root=""):
-    """幫本站自己的 js/css 加上 ?v=版本。只動相對路徑，外部 CDN 不碰"""
+    """幫本站自己的 js/css 加上 ?v=版本。只動相對路徑，外部 CDN 不碰。
+
+    順便把版本寫進 <html data-asset-ver>，讓 JS 抓 data/db/*.json 時也能帶
+    同一個版本參數——那些檔案是 fetch 來的、沒有 <script src> 可以蓋戳記，
+    資料更新後瀏覽器會照吃快取（實測 transferSize=0），使用者會看到舊資料
+    """
     pattern = r'(src|href)="(' + re.escape(root) + r'(?:js/[^"?]+\.js|style\.css))"'
-    return re.sub(pattern, lambda m: f'{m.group(1)}="{m.group(2)}?v={VERSION}"', html)
+    html = re.sub(pattern, lambda m: f'{m.group(1)}="{m.group(2)}?v={VERSION}"', html)
+    if "data-asset-ver=" not in html:
+        html = re.sub(r"<html\b", f'<html data-asset-ver="{VERSION}"', html, count=1)
+    return html
 
 
 def read(path):

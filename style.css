@@ -3244,3 +3244,21 @@ body.has-sidebar .theme-toggle {
 @media (max-width: 760px) {
   .cm-filter-row--pairs .cm-filter-input { width: 100%; }
 }
+
+
+/* 遊戲內說明本身寫錯、需要人工修正的道具（見 tools/import_db.py 的
+   ITEM_NOTES）。用警示色框起來，跟原文的說明區隔開——讀者要一眼看出
+   「這行不是遊戲原文，是站方補的更正」 */
+.db-item-note {
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border: 1px solid var(--warning);
+  border-radius: var(--radius-md);
+  background: var(--surface-tint);
+  color: var(--warning);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+/* 楓幣掉落改成純說明時，section-note 預設的負上邊距（貼區塊標題用的）
+   會讓它咬住標題 */
+.db-section-note--flush { margin-top: 4px; }

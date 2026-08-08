@@ -1528,7 +1528,9 @@
 
   function load() {
     if (loadPromise) return loadPromise;
-    loadPromise = fetch("data/db/scroll_sim.json")
+    // 帶版本參數，理由同 db.js 的 verUrl（資料更新後不能讓瀏覽器吃舊快取）
+    const ver = document.documentElement.dataset.assetVer;
+    loadPromise = fetch("data/db/scroll_sim.json" + (ver ? "?v=" + ver : ""))
       .then((res) => {
         if (!res.ok) throw new Error("HTTP " + res.status);
         return res.json();

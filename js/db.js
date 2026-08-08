@@ -37,8 +37,19 @@
     return n == null ? "—" : n.toLocaleString("zh-TW");
   }
 
+  // 資料檔要帶版本參數，不然瀏覽器會一直用快取裡的舊資料——這些檔案是
+  // fetch 來的，沒有 <script src> 可以像 js/css 那樣蓋 ?v= 戳記。版本由
+  // patch_html.py 寫在 <html data-asset-ver>；直接開原始碼（沒跑建置）
+  // 時沒有這個屬性，就不帶參數
+  const ASSET_VER = document.documentElement.dataset.assetVer || "";
+
+  function verUrl(url) {
+    if (!ASSET_VER) return url;
+    return url + (url.includes("?") ? "&" : "?") + "v=" + ASSET_VER;
+  }
+
   function getJson(url) {
-    return fetch(url).then((res) => {
+    return fetch(verUrl(url)).then((res) => {
       if (!res.ok) throw new Error("HTTP " + res.status);
       return res.json();
     });
@@ -650,6 +661,8 @@
         id: "LvBand",
         test(r, v) {
           if (!v) return true;
+          // BOSS 借用同一組晶片（跟等級區間互斥）：想看王就是不分等級看全部
+          if (v === "boss") return !!r.boss;
           const [lo, hi] = v.split("-").map(Number);
           return r.level >= lo && r.level <= hi;
         },
@@ -687,7 +700,7 @@
       });
       // 快速晶片 → 隱藏 select；同組單選、再點同一顆恢復全部
       const quick = document.getElementById("dbMonsterQuick");
-      const bandOpts = ["1-10", "11-20", "21-30", "31-40", "41-200"];
+      const bandOpts = ["1-10", "11-20", "21-30", "31-40", "41-200", "boss"];
       const weakOpts = ["fire", "ice", "lightning", "poison", "holy", "undead"];
       bandOpts.forEach((v) => els.LvBand.appendChild(new Option(v, v)));
       weakOpts.forEach((v) => els.Weak.appendChild(new Option(v, v)));
@@ -830,8 +843,16 @@
           </section>`
         : "";
 
-      const meso =
-        d.meso && d.meso.max
+      // BOSS 與召喚後消失的怪：拆包只有公式推估、沒有實際掉落表，玩家實測
+      // 也對不上（見 tools/import_db.py 的說明），所以不掛數字、只講清楚
+      const meso = d.meso && d.meso.unverified
+        ? `<section class="db-section">
+             <h3 class="db-section-title">楓幣掉落</h3>
+             <p class="db-section-note db-section-note--flush">這隻的楓幣掉落沒有可靠資料。
+               遊戲資料檔只有依等級推估的公式值，未經實測確認，玩家實測 BOSS 多半不會掉落楓幣，
+               因此這裡不列數字。</p>
+           </section>`
+        : d.meso && d.meso.max
           ? `<section class="db-section">
                <h3 class="db-section-title">楓幣掉落</h3>
                <p class="db-meso">${d.meso.min === d.meso.max ? num(d.meso.min) : `${num(d.meso.min)} ~ ${num(d.meso.max)}`}
@@ -1548,6 +1569,7 @@
             </div>
             <p class="db-detail-desc">${esc(d.cat)}${d.sell ? ` · 賣店價 ${num(d.sell)}` : ""}</p>
             ${d.desc ? `<p class="db-detail-desc">${esc(d.desc)}</p>` : ""}
+            ${d.note ? `<p class="db-item-note">⚠ ${esc(d.note)}</p>` : ""}
           </div>
         </div>
         ${reqs.length ? `<section class="db-section">
