@@ -1793,6 +1793,70 @@ body.dark .db-eltag--undead { background: #2b2838; color: #b7addb; border-color:
 .db-town-head--static { cursor: default; }
 .db-town-head--static:hover .db-town-title { color: var(--ink); }
 
+/* ---------- 單一職業的技能總覽 ----------
+   兩欄卡片，每張一招。需要前置技能的往內縮一階並拉一條接續線，一眼看得出
+   哪些是後續技能 */
+.db-skill-entries {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+@media (min-width: 760px) {
+  .db-skill-entries { grid-template-columns: 1fr 1fr; }
+}
+.db-skill-entry { position: relative; }
+/* 後續技能：整張往右縮，左邊拉一條線接回上一階 */
+.db-skill-entry--follow { padding-left: 22px; }
+.db-skill-entry--follow::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: -6px;
+  bottom: 50%;
+  width: 10px;
+  border-left: 2px solid var(--border-strong);
+  border-bottom: 2px solid var(--border-strong);
+  border-bottom-left-radius: 6px;
+}
+.db-skill-entry-btn {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.db-skill-entry-btn:hover { border-color: var(--accent-text); background: var(--surface-tint); }
+.db-skill-entry-btn > img { image-rendering: pixelated; flex-shrink: 0; margin-top: 2px; }
+.db-skill-entry-body { flex: 1; min-width: 0; }
+.db-skill-entry-body strong { display: block; font-size: 14.5px; color: var(--ink); }
+.db-skill-entry-body p {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+.db-skill-entry-go { color: var(--ink-faint); flex-shrink: 0; }
+.db-skill-badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.db-skill-badge,
+.db-skill-label {
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border-strong);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+.db-skill-badge { color: var(--accent-text); border-color: var(--accent-border); }
+.db-skill-badge--req { color: var(--danger); border-color: var(--danger); font-weight: 500; }
+.db-skill-label { font-weight: 400; }
+
 /* ---------- NPC「分類」檢視 ---------- */
 .db-npc-instructors { margin-bottom: 16px; }
 .db-npc-instructor-row {

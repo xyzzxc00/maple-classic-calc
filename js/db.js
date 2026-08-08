@@ -371,9 +371,19 @@
     s.showDetail(id).then(() => window.scrollTo(0, 0));
   }
 
+  // 職業技能總覽用的狀態：索引快取，以及「詳情是從哪個職業頁點進來的」
+  let skillIndexCache = null;
+  let skillJobReturn = null;
+
   function closeDetail(push) {
     if (push) history.pushState({}, "", routeUrl(null));
+    // 從職業技能總覽點進來的，返回要回那一頁而不是整個列表
+    const backToJob = skillJobReturn;
     SETS.forEach((s) => s.showList());
+    if (backToJob) {
+      showSkillJob(backToJob);
+      return;
+    }
     window.scrollTo(0, 0);
   }
 
@@ -2023,6 +2033,7 @@
   function buildSkillTree(index) {
     const tree = document.getElementById("dbSkillTree");
     if (!tree) return;
+    skillIndexCache = index;
     const GROUP_ORDER = ["初心者/共通", "冒險家劍士", "冒險家法師",
                         "冒險家弓箭手", "冒險家盜賊", "冒險家海盜"];
     const ADV_ORDER = ["零轉", "一轉", "二轉", "三轉", "四轉"];
@@ -2052,10 +2063,10 @@
           )
           .join("");
         return `<section class="db-town-card db-skill-card">
-          <div class="db-town-head db-town-head--static">
+          <button class="db-town-head" type="button" data-skill-job="${esc(job)}">
             <span class="db-town-title">${esc(job)}</span>
-            <span class="db-sub-num">${esc(rows[0].adv)} · ${rows.length} 招</span>
-          </div>
+            <span class="db-sub-num">${esc(rows[0].adv)} · ${rows.length} 招 →</span>
+          </button>
           <div class="db-skill-grid">${icons}</div>
         </section>`;
       });
@@ -2064,16 +2075,107 @@
     tree.innerHTML = parts.join("");
     tree.addEventListener("click", (e) => {
       const goto = e.target.closest("[data-db-goto]");
-      if (goto) openDetail("skill", goto.dataset.dbId, true);
+      if (goto) {
+        openDetail("skill", goto.dataset.dbId, true);
+        return;
+      }
+      const jobBtn = e.target.closest("[data-skill-job]");
+      if (jobBtn) showSkillJob(jobBtn.dataset.skillJob);
     });
+  }
+
+  // 單一職業的技能總覽：一張卡一招，帶說明、最高等級、消耗/效果欄位；
+  // 需要前置技能的往內縮一階，一眼看得出哪些是後續技能。前置只顯示文字
+  // 不做連結——說明裡用的是另一套譯名（「劍技專精」對應資料裡的「精準之劍」），
+  // 沒有可靠對應表，硬連會連錯
+  function showSkillJob(job) {
+    const panel = document.getElementById("dbSkillJobPanel");
+    const tree = document.getElementById("dbSkillTree");
+    const wrap = document.getElementById("dbSkillListWrap");
+    const detail = document.getElementById("dbSkillDetail");
+    if (!panel) return;
+    const rows = (skillIndexCache || []).filter((s) => s.job === job);
+    if (!rows.length) return;
+    const base = rows.filter((s) => !s.req);
+    const follow = rows.filter((s) => s.req);
+    const card = (s, isFollow) => {
+      const labels = (s.labels || [])
+        .map((l) => `<span class="db-skill-label">${esc(l)}</span>`)
+        .join("");
+      return `<article class="db-skill-entry${isFollow ? " db-skill-entry--follow" : ""}">
+        <button class="db-skill-entry-btn" type="button" data-db-goto="skill" data-db-id="${esc(s.id)}">
+          <img src="assets/db/skills/${encodeURIComponent(s.id)}.png" alt=""
+               width="32" height="32" loading="lazy" decoding="async">
+          <div class="db-skill-entry-body">
+            <strong>${esc(s.name)}</strong>
+            <p>${esc(s.desc)}</p>
+            <div class="db-skill-badges">
+              <span class="db-skill-badge">最高 Lv.${s.maxLevel}</span>
+              ${s.req ? `<span class="db-skill-badge db-skill-badge--req">需要 ${esc(s.req.name)} Lv.${s.req.level}</span>` : ""}
+              ${labels}
+            </div>
+          </div>
+          <span class="db-skill-entry-go" aria-hidden="true">→</span>
+        </button>
+      </article>`;
+    };
+    panel.innerHTML = `
+      <button class="db-back" type="button" data-skill-job-back>← 回到職業一覽</button>
+      <div class="db-detail-head">
+        <div>
+          <div class="db-row-title">
+            <h2 class="db-detail-name">${esc(job)}</h2>
+            <span class="db-tag">${esc(rows[0].adv)}</span>
+          </div>
+          <p class="db-detail-desc">共 ${rows.length} 招。需要前置技能的往內縮一階；點任一招看每一級的詳細數值。</p>
+        </div>
+      </div>
+      <div class="db-skill-entries">
+        ${base.map((s) => card(s, false)).join("")}
+        ${follow.map((s) => card(s, true)).join("")}
+      </div>
+      <p class="db-section-note">前置需求取自遊戲說明原文，該處使用的技能譯名可能與本站列出的名稱不同（例如「劍技專精」即上面的「精準之劍」），所以只顯示文字、不做連結。</p>`;
+    tree.hidden = true;
+    wrap.hidden = true;
+    detail.hidden = true;
+    panel.hidden = false;
+    skillJobReturn = job;
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }
+
+  function hideSkillJob() {
+    const panel = document.getElementById("dbSkillJobPanel");
+    if (panel) panel.hidden = true;
+    skillJobReturn = null;
   }
 
   (function initSkillViews() {
     const treeBtn = document.getElementById("dbSkillViewTree");
     if (!treeBtn) return;
-    treeBtn.addEventListener("click", () => showSkillView("tree"));
-    document.getElementById("dbSkillViewList").addEventListener("click", () => showSkillView("list"));
+    treeBtn.addEventListener("click", () => {
+      hideSkillJob();
+      showSkillView("tree");
+    });
+    document.getElementById("dbSkillViewList").addEventListener("click", () => {
+      hideSkillJob();
+      showSkillView("list");
+    });
     showSkillView(localStorage.getItem(SKILL_VIEW_KEY) === "list" ? "list" : "tree", true);
+    // 職業頁自己的返回與技能卡點擊
+    const panel = document.getElementById("dbSkillJobPanel");
+    panel.addEventListener("click", (e) => {
+      if (e.target.closest("[data-skill-job-back]")) {
+        hideSkillJob();
+        showSkillView("tree");
+        return;
+      }
+      const goto = e.target.closest("[data-db-goto]");
+      if (goto) {
+        // 只收起面板，skillJobReturn 要留著——詳情的返回鍵靠它回到這一頁
+        panel.hidden = true;
+        openDetail("skill", goto.dataset.dbId, true);
+      }
+    });
   })();
 
   const skills = makeSet({

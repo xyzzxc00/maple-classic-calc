@@ -294,9 +294,23 @@ def pick_skills(skills):
     ]
 
 
+SKILL_REQ = re.compile(r"所需技能[：:]\s*(.+?)\s*(\d+)\s*等級以上")
+
+
+def skill_req(desc):
+    """從說明文字裡撈前置技能需求（「所需技能：劍技專精5等級以上」）。
+
+    只留文字不做技能連結：說明裡用的是另一套譯名（「劍技專精」對應資料裡
+    的「精準之劍」），沒有可靠的對應表，硬猜會連錯。前端只用它顯示需求、
+    以及判斷這招要不要縮排成「後續技能」"""
+    m = SKILL_REQ.search(desc or "")
+    return {"name": m.group(1).strip(), "level": int(m.group(2))} if m else None
+
+
 def build_skill_detail(s):
     """技能詳情：留說明、公式、每一級的數值。levels 的 description 是遊戲原文
     （每級一句），保留原文比自己組句子安全"""
+    desc = (s.get("description") or "").strip()
     return {
         "id": s["id"],
         "name": s["name"],
@@ -304,7 +318,8 @@ def build_skill_detail(s):
         "job": s.get("jobName") or "",
         "adv": s.get("advancement") or "",
         "maxLevel": s.get("maxLevel"),
-        "desc": (s.get("description") or "").strip(),
+        "desc": desc,
+        "req": skill_req(desc),
         "formula": (s.get("formula") or "").strip(),
         "labels": s.get("valueLabels") or {},
         "levels": [
@@ -327,9 +342,22 @@ def build_skill_index(details):
             "job": d["job"],
             "adv": d["adv"],
             "maxLevel": d["maxLevel"],
+            # 職業技能總覽頁要用：說明摘要、消耗/效果欄位名、前置需求
+            "desc": strip_head(d["desc"]),
+            "labels": list((d["labels"] or {}).values()),
+            "req": d["req"],
         }
         for d in details
     ]
+
+
+def strip_head(desc):
+    """技能說明開頭都有「[最高等級：20] 」，卡片上已經另外顯示最高等級了，
+    去掉重複；結尾的 # 與跳脫符號也一併清掉"""
+    # 兩種寫法都有：「[最高等級：20]」與「[等級上限：20]」
+    out = re.sub(r"^\[(?:最高等級|等級上限)\s*[：:]\s*\d+\]\s*", "", desc or "")
+    out = re.sub(r"所需技能[：:].*$", "", out)
+    return out.replace("\\#", "").replace("#", "").strip()
 
 
 def build_quest_detail(q, map_ids, monster_ids, skill_ids, quest_ids, item_ids):
