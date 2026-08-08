@@ -1648,6 +1648,17 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   color: var(--ink);
 }
 .db-td-name img { image-rendering: pixelated; flex-shrink: 0; }
+/* 第一欄（怪物名）凍結：手機橫向捲表格時，不然捲到右邊就不知道在看哪隻。
+   要有實色底才蓋得住底下捲過去的欄位 */
+.db-table th:first-child,
+.db-table .db-td-name {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--surface);
+}
+.db-table th:first-child { z-index: 3; background: var(--surface-tint); }
+.db-trow:hover .db-td-name { background: var(--surface-tint); }
 /* 屬性弱點小標籤 */
 .db-eltag {
   display: inline-block;
@@ -1781,6 +1792,35 @@ body.dark .db-eltag--undead { background: #2b2838; color: #b7addb; border-color:
 .db-skill-icon img { image-rendering: pixelated; }
 .db-town-head--static { cursor: default; }
 .db-town-head--static:hover .db-town-title { color: var(--ink); }
+
+/* ---------- NPC「分類」檢視 ---------- */
+.db-npc-instructors { margin-bottom: 16px; }
+.db-npc-instructor-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.db-npc-instructor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 108px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+}
+.db-npc-instructor:hover { border-color: var(--accent-text); background: var(--accent-tint); }
+.db-npc-instructor img { image-rendering: pixelated; }
+.db-npc-instructor strong { font-size: 13.5px; color: var(--ink); }
+.db-npc-instructor span { font-size: 12px; color: var(--accent-text); font-weight: 700; }
+.db-npc-instructor small { font-size: 11px; color: var(--ink-faint); }
+.db-npc-top { display: inline-flex; align-items: center; gap: 6px; }
+.db-npc-top img { image-rendering: pixelated; }
 
 /* ---------- 世界地圖圓點與預覽卡 ----------
    節點改成小圓點，名稱與小地圖預覽收進滑過才出現的卡片——文字藥丸在

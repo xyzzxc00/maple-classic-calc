@@ -241,7 +241,10 @@
           const route = currentRoute();
           if (route && route.set === cfg.route) showDetail(route.id);
         })
-        .catch(() => {
+        .catch((err) => {
+          // 原因留在 console：fillFilters／render 拋錯會跟網路錯誤走同一個
+          // catch，不記下來只能瞎猜（詳情那邊踩過一次同樣的坑）
+          console.error(`[db] ${cfg.label} 索引載入或渲染失敗`, err);
           index = null;
           if (els.count) els.count.textContent = "—";
           els.list.innerHTML = LOAD_ERROR;
@@ -1516,6 +1519,110 @@
       alt="" loading="lazy" decoding="async" width="${size}" height="${size}">`;
   }
 
+  // NPC「分類」檢視：一排轉職教官＋三張角色卡（任務／商店與製作／居民）。
+  // 教官用名字對照——資料檔沒有「教官」旗標，這五位是查證過的一轉教官
+  const NPC_VIEW_KEY = "maple_classic_db_npc_view";
+  const INSTRUCTORS = [
+    ["武術教練", "劍士"],
+    ["漢斯", "法師"],
+    ["赫麗娜", "弓箭手"],
+    ["達克魯", "盜賊"],
+    ["卡伊琳", "海盜"],
+  ];
+
+  function showNpcView(which, skipSave) {
+    const roles = document.getElementById("dbNpcRoles");
+    const wrap = document.getElementById("dbNpcListWrap");
+    const rolesBtn = document.getElementById("dbNpcViewRoles");
+    const listBtn = document.getElementById("dbNpcViewList");
+    if (!roles) return;
+    const showRoles = which === "roles";
+    roles.hidden = !showRoles;
+    wrap.hidden = showRoles;
+    rolesBtn.classList.toggle("active", showRoles);
+    listBtn.classList.toggle("active", !showRoles);
+    rolesBtn.setAttribute("aria-selected", showRoles ? "true" : "false");
+    listBtn.setAttribute("aria-selected", showRoles ? "false" : "true");
+    if (!skipSave) localStorage.setItem(NPC_VIEW_KEY, which);
+  }
+
+  function buildNpcRoles(index, filterEls, render) {
+    const roles = document.getElementById("dbNpcRoles");
+    if (!roles) return;
+    const byName = new Map(index.map((n) => [n.name, n]));
+    const instructors = INSTRUCTORS.filter(([name]) => byName.has(name))
+      .map(([name, job]) => {
+        const n = byName.get(name);
+        return `<button class="db-npc-instructor" type="button"
+            data-db-goto="npc" data-db-id="${esc(n.id)}">
+          <img src="assets/db/npcs/${encodeURIComponent(n.id)}.png" alt=""
+               width="44" height="44" loading="lazy" decoding="async"
+               onerror="this.style.visibility='hidden'">
+          <strong>${esc(name)}</strong>
+          <span>${esc(job)}教官</span>
+          <small>${esc(n.where)}</small>
+        </button>`;
+      })
+      .join("");
+
+    const groups = [
+      ["quests", "任務 NPC", index.filter((n) => n.quests > 0),
+       (n) => `${n.quests} 個任務`, (a, b) => b.quests - a.quests],
+      ["shop", "商店與製作", index.filter((n) => n.shop > 0),
+       (n) => `${n.shop} 項商品`, (a, b) => b.shop - a.shop],
+      ["none", "村民與其他", index.filter((n) => !n.quests && !n.shop),
+       (n) => esc(n.where), (a, b) => a.name.localeCompare(b.name, "zh-TW")],
+    ];
+    const cards = groups
+      .map(([key, title, rows, meta, cmp]) => {
+        const top = rows.slice().sort(cmp).slice(0, 3);
+        return `<section class="db-town-card">
+          <button class="db-town-head" type="button" data-npc-role="${key}">
+            <span class="db-town-title">${esc(title)}</span>
+            <span class="db-sub-num">${rows.length} 位 →</span>
+          </button>
+          <ul class="db-town-top">
+            ${top.map((n) => `<li><button class="db-inline-link db-npc-top" type="button"
+                data-db-goto="npc" data-db-id="${esc(n.id)}">
+                <img src="assets/db/npcs/${encodeURIComponent(n.id)}.png" alt=""
+                     width="24" height="24" loading="lazy" decoding="async"
+                     onerror="this.style.visibility='hidden'">${esc(n.name)}</button>
+                <span class="db-sub-num">${meta(n)}</span></li>`).join("")}
+          </ul>
+        </section>`;
+      })
+      .join("");
+
+    roles.innerHTML = `
+      ${instructors ? `<section class="db-npc-instructors">
+        <h3 class="db-town-region">轉職教官</h3>
+        <div class="db-npc-instructor-row">${instructors}</div>
+      </section>` : ""}
+      <div class="db-town-grid">${cards}</div>`;
+
+    roles.addEventListener("click", (e) => {
+      const goto = e.target.closest("[data-db-goto]");
+      if (goto) {
+        openDetail("npc", goto.dataset.dbId, true);
+        return;
+      }
+      const role = e.target.closest("[data-npc-role]");
+      if (role) {
+        filterEls.Has.value = role.dataset.npcRole;
+        filterEls.Has.dispatchEvent(new Event("change"));
+        showNpcView("list");
+      }
+    });
+  }
+
+  (function initNpcViews() {
+    const rolesBtn = document.getElementById("dbNpcViewRoles");
+    if (!rolesBtn) return;
+    rolesBtn.addEventListener("click", () => showNpcView("roles"));
+    document.getElementById("dbNpcViewList").addEventListener("click", () => showNpcView("list"));
+    showNpcView(localStorage.getItem(NPC_VIEW_KEY) === "list" ? "list" : "roles", true);
+  })();
+
   const npcs = makeSet({
     key: "npcs",
     route: "npc",
@@ -1526,7 +1633,16 @@
     filters: [
       { id: "Search", test: (r, v) => !v || r.name.toLowerCase().includes(v.trim().toLowerCase()) },
       { id: "Region", test: (r, v) => !v || r.region === v },
-      { id: "Has", test: (r, v) => !v || (v === "quests" ? r.quests > 0 : r.shop > 0) },
+      {
+        id: "Has",
+        test(r, v) {
+          if (!v) return true;
+          if (v === "quests") return r.quests > 0;
+          if (v === "shop") return r.shop > 0;
+          // none＝沒有任務也沒有商店的「居民」
+          return !r.quests && !r.shop;
+        },
+      },
     ],
     sorts: [
       { key: "region", cmp: (a, b) => a.region.localeCompare(b.region, "zh-TW") || a.where.localeCompare(b.where, "zh-TW") || a.name.localeCompare(b.name, "zh-TW") },
@@ -1534,13 +1650,14 @@
       { key: "name", cmp: (a, b) => a.name.localeCompare(b.name, "zh-TW") },
     ],
     searchRow: (r) => [r.region, r.where].filter(Boolean).join(" · "),
-    fillFilters(index, els) {
+    fillFilters(index, els, render) {
       [...new Set(index.map((n) => n.region))].filter(Boolean).sort().forEach((r) => {
         const o = document.createElement("option");
         o.value = r;
         o.textContent = r;
         els.Region.appendChild(o);
       });
+      buildNpcRoles(index, els, render);
     },
     renderRow(n) {
       return `<button class="db-row" type="button" data-db-id="${esc(n.id)}">

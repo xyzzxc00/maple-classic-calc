@@ -413,8 +413,8 @@
     <button class="feed-item" type="button" data-nav-page="db" data-nav-subtab="monsters">
       <span class="feed-tag">資料庫</span>
       <span class="feed-text">
-        <span class="feed-title">資料庫大改版：怪物數值表格、道具分類瀏覽、商店總覽、技能職業樹</span>
-        <span class="feed-desc">怪物改成可排序的完整數值表（含屬性弱點與等級快速篩選）；新增「商店」分頁看全部 NPC 在賣什麼</span>
+        <span class="feed-title">資料庫大改版：怪物數值表格、道具與 NPC 分類瀏覽、商店總覽、技能職業樹</span>
+        <span class="feed-desc">怪物改成可排序的完整數值表（含屬性弱點與等級快速篩選）；NPC 依轉職教官／任務／商店分類；新增「商店」分頁看全部 NPC 在賣什麼</span>
       </span>
       <span class="feed-date">08/08</span>
     </button>
@@ -1091,6 +1091,14 @@
         <p class="cm-disclaimer">只收錄站在已開放地圖上、而且遊戲資料裡有名字的 NPC。任務與商店都掛在 NPC 身上，所以這裡可以反查「他有什麼任務、賣什麼」。有些 NPC 只是站在那裡沒有功能，一樣會列出來，方便你確認某個村子有誰。</p>
       </details>
 
+      <div class="db-view-toggle" role="tablist" aria-label="NPC 檢視方式">
+        <button class="cm-sort-btn active" id="dbNpcViewRoles" type="button" role="tab" aria-selected="true">分類</button>
+        <button class="cm-sort-btn" id="dbNpcViewList" type="button" role="tab" aria-selected="false">清單</button>
+      </div>
+
+      <div id="dbNpcRoles" hidden><p class="cm-loading">載入中...</p></div>
+
+      <div id="dbNpcListWrap">
       <div class="cm-toolbar">
         <div class="cm-filter-row">
           <input class="cm-filter-input" id="dbNpcSearch" type="search" placeholder="搜尋 NPC 名稱" autocomplete="off">
@@ -1101,6 +1109,7 @@
             <option value="">全部 NPC</option>
             <option value="quests">有任務</option>
             <option value="shop">有商店</option>
+            <option value="none">沒有功能（居民）</option>
           </select>
         </div>
         <div class="cm-actions">
@@ -1113,6 +1122,7 @@
       </div>
 
       <div id="dbNpcList"><p class="cm-loading">載入中...</p></div>
+      </div>
     </section>
 
     <section class="panel" id="dbNpcDetail" hidden></section>
