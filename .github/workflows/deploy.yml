@@ -70,6 +70,11 @@ jobs:
       - name: Check database integrity
         run: python3 tools/check_data.py
 
+      # 怪物靜態頁在建置時重產，不進版控——它們是 data/db 的衍生物，跟著
+      # 資料一起改才不會有「頁面寫舊數值、資料庫寫新數值」的落差
+      - name: Build monster static pages
+        run: python3 tools/build_monster_pages.py
+
       - name: Cache global npm tools
         uses: actions/cache@v5
         with:
@@ -111,6 +116,10 @@ jobs:
           # 直接進版控的成品，build 階段不做任何處理，原樣複製
           cp -r data dist/
           cp -r assets dist/
+
+          # 怪物靜態頁（上面那步剛產的）：資料庫是 SPA，搜尋引擎只看得到首頁，
+          # 這 68 頁讓每隻怪各自有能被索引、能被分享的網址
+          cp -r db dist/
 
           # Bundle all JS in load order → single minified file.
           # 檔案清單直接從 index.html 現有的 <script defer src="js/...">
@@ -166,6 +175,11 @@ jobs:
             sed -i "\#<loc>$1</loc>#,\#</url># s|<lastmod>[0-9-]*</lastmod>|<lastmod>$2</lastmod>|" dist/sitemap.xml
           }
           stamp_lastmod "$BASE/" "$TODAY"
+
+          # 怪物靜態頁的 68+1 條網址接進 sitemap（手寫維護一定會漏，而且會
+          # 隨資料更新增減）。要在下面 guides 那圈之前做，才不會被它的
+          # sed 範圍掃到
+          python3 tools/build_sitemap_db.py dist/sitemap.xml "$TODAY"
 
           # privacy/ 跟 guides/ 各篇文章一樣戳真實 git 修改日期，不是整批蓋今天
           privacy_last_mod=$(git log -1 --format=%cd --date=short -- privacy/index.html)

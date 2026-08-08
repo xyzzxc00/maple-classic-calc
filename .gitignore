@@ -6,3 +6,8 @@ firebase-debug.log
 .env
 .DS_Store
 Thumbs.db
+
+
+# 怪物靜態頁是 data/db 的衍生物，建置時重產（tools/build_monster_pages.py），
+# 不進版控——避免資料更新後頁面留著舊數值
+/db/

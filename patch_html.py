@@ -277,7 +277,9 @@ def inject_shell(html, parts, root):
 
 def shell_pages():
     """所有要注入外殼的獨立頁面 → (檔案路徑, 回到根目錄的相對路徑)"""
-    for folder in ("guides", "privacy"):
+    # db/ 是建置時產生的怪物靜態頁（tools/build_monster_pages.py），一樣要
+    # 有側邊欄才跟站上其他獨立頁一致；順便讓每頁都帶著完整的站內連結
+    for folder in ("guides", "privacy", "db"):
         for dirpath, _, filenames in os.walk(os.path.join(DIST, folder)):
             for name in sorted(filenames):
                 if not name.endswith(".html"):

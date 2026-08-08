@@ -766,7 +766,9 @@
           }</p>
           ${drops}
         </section>
-        ${quests}`;
+        ${quests}
+        <p class="db-section-note">這隻怪也有<a href="db/monster/${esc(d.id)}/">獨立的資料頁</a>，
+          網址可以直接分享，也查得到 Google。</p>`;
     },
     afterDetail() {
       renderKillResult();
