@@ -1855,7 +1855,23 @@ body.dark .db-eltag--undead { background: #2b2838; color: #b7addb; border-color:
 }
 .db-skill-badge { color: var(--accent-text); border-color: var(--accent-border); }
 .db-skill-badge--req { color: var(--danger); border-color: var(--danger); font-weight: 500; }
+/* 對得上技能的前置：做成可點，點了直接看那一招 */
+.db-skill-badge--link { cursor: pointer; }
+.db-skill-badge--link:hover,
+.db-skill-badge--link:focus-visible { background: var(--danger); color: #fff; }
+/* 觸控裝置沒有 hover 提示，徽章又只有 22px 高——把點擊區撐大一點才好按 */
+@media (pointer: coarse) {
+  .db-skill-badge--link { padding: 5px 10px; }
+}
 .db-skill-label { font-weight: 400; }
+/* 頁尾那行前置譯名的說明：db-section-note 預設的負上邊距是貼區塊標題用的，
+   接在整片卡片底下會黏在最後一列上。拉開並補一條分隔線，讓它讀起來是註腳
+   而不是最後一張卡的一部分 */
+.db-skill-entries + .db-section-note {
+  margin: 20px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
 
 /* ---------- NPC「分類」檢視 ---------- */
 .db-npc-instructors { margin-bottom: 16px; }

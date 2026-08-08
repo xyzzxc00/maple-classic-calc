@@ -334,8 +334,29 @@ def build_skill_detail(s):
 
 
 def build_skill_index(details):
-    return [
-        {
+    """前置需求的技能名解析自說明原文，那裡用的是另一套譯名——有些對得上
+    本站的技能名（可以連結），有些對不上（例如「劍技專精」其實是「精準之
+    劍」）。只在「同職業內剛好唯一命中」時才給 id，其餘留純文字，寧可少連
+    也不要連錯"""
+    by_job = {}
+    for d in details:
+        by_job.setdefault((d["job"], d["name"]), []).append(d["id"])
+    by_group = {}
+    for d in details:
+        by_group.setdefault((d["group"], d["name"]), []).append(d["id"])
+
+    out = []
+    for d in details:
+        req = dict(d["req"]) if d["req"] else None
+        if req:
+            for table, key in ((by_job, d["job"]), (by_group, d["group"])):
+                hits = table.get((key, req["name"]))
+                if hits and len(hits) == 1:
+                    req["id"] = hits[0]
+                    break
+                if hits:
+                    break  # 多重候選，寧可不連
+        out.append({
             "id": d["id"],
             "name": d["name"],
             "group": d["group"],
@@ -345,10 +366,9 @@ def build_skill_index(details):
             # 職業技能總覽頁要用：說明摘要、消耗/效果欄位名、前置需求
             "desc": strip_head(d["desc"]),
             "labels": list((d["labels"] or {}).values()),
-            "req": d["req"],
-        }
-        for d in details
-    ]
+            "req": req,
+        })
+    return out
 
 
 def strip_head(desc):

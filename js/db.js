@@ -2084,10 +2084,22 @@
     });
   }
 
+  // 前置需求徽章：匯入時對得上技能的會帶 id（可點去看那一招），對不上的
+  // 只顯示文字——說明原文用的是另一套譯名，硬猜會連錯
+  function reqBadge(req) {
+    if (!req) return "";
+    const label = `需要 ${esc(req.name)} Lv.${req.level}`;
+    return req.id
+      ? `<span class="db-skill-badge db-skill-badge--req db-skill-badge--link"
+           role="link" tabindex="0" data-req-skill="${esc(req.id)}"
+           title="看「${esc(req.name)}」的資料">${label} →</span>`
+      : `<span class="db-skill-badge db-skill-badge--req">${label}</span>`;
+  }
+
   // 單一職業的技能總覽：一張卡一招，帶說明、最高等級、消耗/效果欄位；
-  // 需要前置技能的往內縮一階，一眼看得出哪些是後續技能。前置只顯示文字
-  // 不做連結——說明裡用的是另一套譯名（「劍技專精」對應資料裡的「精準之劍」），
-  // 沒有可靠對應表，硬連會連錯
+  // 需要前置技能的往內縮一階，一眼看得出哪些是後續技能。前置的技能名取自
+  // 說明原文，那裡用的是另一套譯名（「劍技專精」對應資料裡的「精準之劍」）；
+  // 匯入時只在同職業內唯一命中才給 id，那些才做成可點（見 reqBadge）
   function showSkillJob(job) {
     const panel = document.getElementById("dbSkillJobPanel");
     const tree = document.getElementById("dbSkillTree");
@@ -2111,7 +2123,7 @@
             <p>${esc(s.desc)}</p>
             <div class="db-skill-badges">
               <span class="db-skill-badge">最高 Lv.${s.maxLevel}</span>
-              ${s.req ? `<span class="db-skill-badge db-skill-badge--req">需要 ${esc(s.req.name)} Lv.${s.req.level}</span>` : ""}
+              ${reqBadge(s.req)}
               ${labels}
             </div>
           </div>
@@ -2134,7 +2146,7 @@
         ${base.map((s) => card(s, false)).join("")}
         ${follow.map((s) => card(s, true)).join("")}
       </div>
-      <p class="db-section-note">前置需求取自遊戲說明原文，該處使用的技能譯名可能與本站列出的名稱不同（例如「劍技專精」即上面的「精準之劍」），所以只顯示文字、不做連結。</p>`;
+      <p class="db-section-note">前置需求取自遊戲說明原文，該處使用的技能譯名有時與本站列出的名稱不同（例如「劍技專精」即「精準之劍」）。能明確對到同職業技能的會做成連結（帶 → 的可點），對不上的只顯示原文名稱。</p>`;
     tree.hidden = true;
     wrap.hidden = true;
     detail.hidden = true;
@@ -2169,11 +2181,27 @@
         showSkillView("tree");
         return;
       }
+      // 前置徽章：卡在外層按鈕裡面，要先攔下來才不會變成開這一招
+      const req = e.target.closest("[data-req-skill]");
+      if (req) {
+        e.preventDefault();
+        e.stopPropagation();
+        panel.hidden = true;
+        openDetail("skill", req.dataset.reqSkill, true);
+        return;
+      }
       const goto = e.target.closest("[data-db-goto]");
       if (goto) {
         // 只收起面板，skillJobReturn 要留著——詳情的返回鍵靠它回到這一頁
         panel.hidden = true;
         openDetail("skill", goto.dataset.dbId, true);
+      }
+    });
+    panel.addEventListener("keydown", (e) => {
+      const req = e.target.closest && e.target.closest("[data-req-skill]");
+      if (req && (e.key === "Enter" || e.key === " ")) {
+        e.preventDefault();
+        req.click();
       }
     });
   })();
@@ -2259,7 +2287,9 @@
             )
             .join("")}</div>`;
 
-      return `<button class="db-back" type="button" data-db-back>← 回到技能列表</button>
+      // 從職業頁點進來的（含前置需求徽章），返回鍵會回那一頁，標籤要對得上
+      const backLabel = skillJobReturn ? `← 回到${skillJobReturn}` : "← 回到技能列表";
+      return `<button class="db-back" type="button" data-db-back>${esc(backLabel)}</button>
         <div class="db-detail-head">
           ${skillImg(d.id, 64)}
           <div>
