@@ -413,8 +413,8 @@
     <button class="feed-item" type="button" data-nav-page="db" data-nav-subtab="monsters">
       <span class="feed-tag">資料庫</span>
       <span class="feed-text">
-        <span class="feed-title">資料庫大改版：怪物數值表格、道具與 NPC 分類瀏覽、商店總覽、技能職業樹</span>
-        <span class="feed-desc">怪物改成可排序的完整數值表（含屬性弱點與等級快速篩選）；NPC 依轉職教官／任務／商店分類；新增「商店」分頁看全部 NPC 在賣什麼</span>
+        <span class="feed-title">資料庫大改版：怪物數值表格、道具／NPC／任務分類瀏覽、商店總覽、技能職業樹</span>
+        <span class="feed-desc">怪物改成可排序的完整數值表（含屬性弱點與等級快速篩選）；NPC 依轉職教官／任務／商店分類、任務依城鎮分類；新增「商店」分頁看全部 NPC 在賣什麼</span>
       </span>
       <span class="feed-date">08/08</span>
     </button>
@@ -1163,9 +1163,17 @@
 
       <details class="cm-disclaimer-details">
         <summary>收錄範圍說明</summary>
-        <p class="cm-disclaimer">只收錄<strong>接取與繳交 NPC 都在已開放地區</strong>（楓之島、維多利亞島、奇幻村）、且等級需求在 Lv.100 以內的任務。任務內容、需求與獎勵取自遊戲資料檔，不是玩家整理的攻略；文字敘述保留遊戲原文。</p>
+        <p class="cm-disclaimer">只收錄<strong>接取與繳交 NPC 都在已開放地區</strong>（楓之島、維多利亞島、奇幻村、鯨魚號）、且等級需求在 Lv.100 以內的任務。任務內容、需求與獎勵取自遊戲資料檔，不是玩家整理的攻略；文字敘述保留遊戲原文。</p>
       </details>
 
+      <div class="db-view-toggle" role="tablist" aria-label="任務檢視方式">
+        <button class="cm-sort-btn active" id="dbQuestViewTowns" type="button" role="tab" aria-selected="true">城鎮</button>
+        <button class="cm-sort-btn" id="dbQuestViewList" type="button" role="tab" aria-selected="false">清單</button>
+      </div>
+
+      <div id="dbQuestTowns" hidden><p class="cm-loading">載入中...</p></div>
+
+      <div id="dbQuestListWrap">
       <div class="cm-toolbar">
         <div class="cm-filter-row">
           <input class="cm-filter-input" id="dbQuestSearch" type="search" placeholder="搜尋任務名稱" autocomplete="off">
@@ -1177,6 +1185,7 @@
             <span class="cm-filter-sep">~</span>
             <input class="cm-filter-input cm-filter-lv" id="dbQuestLvMax" type="number" min="1" max="200" placeholder="最高等">
           </div>
+          <select id="dbQuestMark" hidden aria-hidden="true"><option value=""></option></select>
         </div>
         <div class="cm-actions">
           <div class="cm-sort-btns"><span class="cm-group-label">排序</span>
@@ -1187,7 +1196,10 @@
         </div>
       </div>
 
+      <p class="db-mark-chip-row" id="dbQuestMarkChip" hidden></p>
+
       <div id="dbQuestList"><p class="cm-loading">載入中...</p></div>
+      </div>
     </section>
 
     <section class="panel" id="dbQuestDetail" hidden></section>

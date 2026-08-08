@@ -442,9 +442,18 @@ def build_quest_detail(q, map_ids, monster_ids, skill_ids, quest_ids, item_ids):
     }
 
 
-def build_quest_index(details):
-    return [
-        {
+def build_quest_index(details, mark_of):
+    """mark_of：地圖 id → 城鎮徽章代碼。任務的「城鎮」取接取 NPC 所站的
+    第一張開放地圖；接取 NPC 不在開放地圖就退回繳交 NPC，再不行歸「其他」"""
+    out = []
+    for d in details:
+        mark = "Other"
+        for npc in (d["startNpc"], d["endNpc"]):
+            maps = (npc or {}).get("maps") or []
+            if maps:
+                mark = mark_of.get(maps[0]["id"], "Other")
+                break
+        out.append({
             "id": d["id"],
             "name": d["name"],
             "cat": d["category"],
@@ -452,9 +461,9 @@ def build_quest_index(details):
             "lv": d["minLevel"],
             "npc": (d["startNpc"] or {}).get("name") or "",
             "exp": d["rewards"]["exp"] or 0,
-        }
-        for d in details
-    ]
+            "mark": mark,
+        })
+    return out
 
 
 def build_item_details(items, kept_monster_ids, map_ids, quest_ids):
@@ -987,7 +996,10 @@ def main():
     quest_details.sort(key=lambda d: (d["category"], d["minLevel"] or 0, d["name"]))
     os.makedirs(os.path.join(OUT_DATA, "quests"), exist_ok=True)
     with open(os.path.join(OUT_DATA, "quests.json"), "w", encoding="utf-8") as f:
-        json.dump(build_quest_index(quest_details), f, ensure_ascii=False, separators=(",", ":"))
+        mark_of = {m["id"]: (m.get("markKey") if m.get("markKey") not in (None, "", "2") else "Other")
+                   for m in maps_db["maps"]}
+        json.dump(build_quest_index(quest_details, mark_of), f,
+                  ensure_ascii=False, separators=(",", ":"))
     for d in quest_details:
         with open(os.path.join(OUT_DATA, "quests", f"{d['id']}.json"), "w",
                   encoding="utf-8") as f:

@@ -1743,6 +1743,107 @@
     return `<span class="db-chip db-chip--plain">${esc(name)}${tail}</span>`;
   }
 
+  // 任務「城鎮」檢視：依接取 NPC 所在的城鎮分組。卡片列等級最低的前三個
+  // 任務（新手最先碰到的），點卡片標題進清單看該城鎮全部
+  const QUEST_VIEW_KEY = "maple_classic_db_quest_view";
+
+  function showQuestView(which, skipSave) {
+    const towns = document.getElementById("dbQuestTowns");
+    const wrap = document.getElementById("dbQuestListWrap");
+    const townsBtn = document.getElementById("dbQuestViewTowns");
+    const listBtn = document.getElementById("dbQuestViewList");
+    if (!towns) return;
+    const showTowns = which === "towns";
+    towns.hidden = !showTowns;
+    wrap.hidden = showTowns;
+    townsBtn.classList.toggle("active", showTowns);
+    listBtn.classList.toggle("active", !showTowns);
+    townsBtn.setAttribute("aria-selected", showTowns ? "true" : "false");
+    listBtn.setAttribute("aria-selected", showTowns ? "false" : "true");
+    if (!skipSave) localStorage.setItem(QUEST_VIEW_KEY, which);
+  }
+
+  function updateQuestMarkChip() {
+    const chip = document.getElementById("dbQuestMarkChip");
+    const sel = document.getElementById("dbQuestMark");
+    if (!chip) return;
+    const v = sel.value;
+    chip.hidden = !v;
+    chip.innerHTML = v
+      ? `目前只顯示 <strong>${esc(TOWN_NAME[v] || v)}</strong> 的任務
+         <button class="db-inline-link" type="button" id="dbQuestMarkClear">✕ 顯示全部</button>`
+      : "";
+  }
+
+  function buildQuestTowns(index, filterEls, render) {
+    const towns = document.getElementById("dbQuestTowns");
+    if (!towns) return;
+    const groups = new Map();
+    index.forEach((q) => {
+      if (!groups.has(q.mark)) groups.set(q.mark, []);
+      groups.get(q.mark).push(q);
+    });
+    let lastRegion = null;
+    const cards = [];
+    TOWNS.forEach(([key, name, region]) => {
+      const rows = groups.get(key);
+      if (!rows || !rows.length) return;
+      if (region !== lastRegion) {
+        cards.push(`<h3 class="db-town-region">${esc(region)}</h3>`);
+        lastRegion = region;
+      }
+      const top = rows
+        .slice()
+        .sort((a, b) => (a.lv || 0) - (b.lv || 0) || a.name.localeCompare(b.name, "zh-TW"))
+        .slice(0, 3);
+      const mark = key === "Other" ? "" :
+        `<img src="assets/db/marks/${esc(key)}.png" alt="" width="38" height="38"
+              loading="lazy" decoding="async">`;
+      cards.push(`<section class="db-town-card">
+        <button class="db-town-head" type="button" data-quest-town="${esc(key)}">
+          ${mark}
+          <span class="db-town-title">${esc(name)}</span>
+          <span class="db-sub-num">${rows.length} 個任務 →</span>
+        </button>
+        <ul class="db-town-top">
+          ${top.map((q) => `<li><button class="db-inline-link" type="button"
+              data-db-goto="quest" data-db-id="${esc(q.id)}">${esc(q.name)}</button>
+              <span class="db-sub-num">${q.lv ? "Lv." + q.lv : "不限等級"}</span></li>`).join("")}
+        </ul>
+      </section>`);
+    });
+    towns.innerHTML = `<div class="db-town-grid">${cards.join("")}</div>`;
+
+    towns.addEventListener("click", (e) => {
+      const goto = e.target.closest("[data-db-goto]");
+      if (goto) {
+        openDetail("quest", goto.dataset.dbId, true);
+        return;
+      }
+      const town = e.target.closest("[data-quest-town]");
+      if (town) {
+        filterEls.Mark.value = town.dataset.questTown;
+        filterEls.Mark.dispatchEvent(new Event("change"));
+        showQuestView("list");
+      }
+    });
+  }
+
+  (function initQuestViews() {
+    const townsBtn = document.getElementById("dbQuestViewTowns");
+    if (!townsBtn) return;
+    townsBtn.addEventListener("click", () => showQuestView("towns"));
+    document.getElementById("dbQuestViewList").addEventListener("click", () => showQuestView("list"));
+    showQuestView(localStorage.getItem(QUEST_VIEW_KEY) === "list" ? "list" : "towns", true);
+    document.addEventListener("click", (e) => {
+      if (e.target.closest && e.target.closest("#dbQuestMarkClear")) {
+        const sel = document.getElementById("dbQuestMark");
+        sel.value = "";
+        sel.dispatchEvent(new Event("change"));
+      }
+    });
+  })();
+
   const quests = makeSet({
     key: "quests",
     route: "quest",
@@ -1755,6 +1856,8 @@
       { id: "Cat", test: (r, v) => !v || r.cat === v },
       { id: "LvMin", test: (r, v) => !v || (r.lv || 0) >= parseInt(v, 10) },
       { id: "LvMax", test: (r, v) => !v || (r.lv || 0) <= parseInt(v, 10) },
+      // 城鎮篩選（選單隱藏，由「城鎮」檢視的卡片設定，晶片顯示可清除）
+      { id: "Mark", test: (r, v) => !v || r.mark === v },
     ],
     sorts: [
       { key: "level", cmp: (a, b) => (a.lv || 0) - (b.lv || 0) || a.name.localeCompare(b.name, "zh-TW") },
@@ -1763,7 +1866,13 @@
     ],
     searchRow: (r) =>
       [r.cat, r.lv ? `Lv.${r.lv}` : "", r.npc ? `NPC：${r.npc}` : ""].filter(Boolean).join(" · "),
-    fillFilters(index, els) {
+    fillFilters(index, els, render) {
+      buildQuestTowns(index, els, render);
+      TOWNS.forEach(([key, name]) => {
+        if (!index.some((q) => q.mark === key)) return;
+        els.Mark.appendChild(new Option(name, key));
+      });
+      els.Mark.addEventListener("change", updateQuestMarkChip);
       [...new Set(index.map((q) => q.cat))].filter(Boolean).sort().forEach((c) => {
         const o = document.createElement("option");
         o.value = c;
