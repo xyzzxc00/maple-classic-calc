@@ -21,8 +21,7 @@
 
 - [練等計算機（首頁）](https://mapleclassictools.com/): 輸入目前等級與目標等級，自動計算所需經驗值、預估練功時間、加倍卷用量，附倒數計時器與 EXP 測速
 - [命中率計算](https://mapleclassictools.com/#calc-hit): 選擇怪物自動帶入等級與迴避，計算物理／魔法命中率、100% 命中所需值與還差多少
-- [攻擊力計算](https://mapleclassictools.com/#calc-attack): 依職業技能表配點（含轉職 SP 預算與前置技能檢查）、隊伍與道具 BUFF，計算表攻範圍與各技能理論傷害，資料取自經典版客戶端拆包
-- [卷軸強化模擬器](https://mapleclassictools.com/#calc-scroll): 從 2,000+ 件裝備挑一件、混搭卷軸，以動態規劃算出最低平均成本的衝卷順序、達標機率與期望成本，再以蒙地卡羅模擬給出成本分布
+- [卷軸強化模擬器](https://mapleclassictools.com/#calc-scroll): 依成功率模擬衝卷結果
 - [轉蛋機率模擬器](https://mapleclassictools.com/#calc-gacha): 採官方公布機率的純前端模擬，不涉及真實貨幣
 - [攻略文章列表](https://mapleclassictools.com/guides/): 全部練功攻略文章的總覽入口
 

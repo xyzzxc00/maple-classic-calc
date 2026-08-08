@@ -1,1124 +1,195 @@
 /**
- * attack.js — 攻擊力計算機
- * -----------------------------------------------------------------
- * 計算邏輯完整對齊經典版拆包計算機（morris 版）：職業/武器/等級、
- * 素質點數預算、技能點數（轉職階段 SP 預算＋前置檢查）、精靈的祝福、
- * 隊伍技能 BUFF、道具 BUFF，輸出表攻範圍與各技能傷害。
- *
- * 資料在 data/db/damage_calc.json（約 1MB，gzip 後小很多），切到
- * 「攻擊力計算」子分頁才抓——初次載入由 nav.js 觸發（load()），跟
- * 資料庫頁同一套規矩，不要自己判斷「現在是不是在這一頁」。
- * -----------------------------------------------------------------
+ * attack.js — 攻擊力計算機 UI 綁定與計算邏輯
  */
 (function () {
-  const view = document.getElementById("calcAttackView");
-  if (!view) return;
-
-  // ------------------------------------------------------------ 常數
-  // 武器係數與各種門檻值照拆包計算機原樣，不要「順手調整」——這組數字
-  // 跟遊戲內顯示核對過
-  const STAT_KEYS = ["str", "dex", "int", "luk"];
-  const STAT_LABELS = { str: "力量", dex: "敏捷", int: "智力", luk: "幸運" };
-  const MIN_CHARACTER_LEVEL = 1;
-  const MAX_CHARACTER_LEVEL = 200;
-  const DEFAULT_CHARACTER_LEVEL = 120;
-  const MIN_BASE_STAT = 4;
-  const LEVEL_ONE_BASE_STAT_POINTS = 25;
-  const ZERO_ADVANCEMENT_SP = 6;
-  const ADVANCEMENT_ORDER = ["零轉", "一轉", "二轉", "三轉", "四轉"];
-  const JOB_REQUIREMENTS = {
-    warrior: { level: 10, stats: { str: 35 } },
-    magician: { level: 8, stats: { int: 20 } },
-    bowman: { level: 10, stats: { dex: 25 } },
-    thief: { level: 10, stats: { dex: 25 } },
-    pirate_str: { level: 10, stats: { dex: 25 } },
-    pirate_dex: { level: 10, stats: { dex: 25 } },
+  const els = {
+    weaponType: document.getElementById("attackWeaponType"),
+    weaponAtk: document.getElementById("attackWeaponAtk"),
+    weaponAtkLabel: document.getElementById("attackWeaponAtkLabel"),
+    ammoField: document.getElementById("attackAmmoField"),
+    ammoLabel: document.getElementById("attackAmmoLabel"),
+    ammo: document.getElementById("attackAmmo"),
+    str: document.getElementById("attackStr"),
+    dex: document.getElementById("attackDex"),
+    int: document.getElementById("attackInt"),
+    luk: document.getElementById("attackLuk"),
+    masteryField: document.getElementById("attackMasteryField"),
+    masteryLabel: document.getElementById("attackMasteryLabel"),
+    mastery: document.getElementById("attackMastery"),
+    masteryHint: document.getElementById("attackMasteryHint"),
+    skillPctField: document.getElementById("attackSkillPctField"),
+    skillPct: document.getElementById("attackSkillPct"),
+    monsterMdefField: document.getElementById("attackMonsterMdefField"),
+    monsterMdef: document.getElementById("attackMonsterMdef"),
+    levelDiffField: document.getElementById("attackLevelDiffField"),
+    levelDiff: document.getElementById("attackLevelDiff"),
+    magicBonusRow: document.getElementById("attackMagicBonusRow"),
+    elemBonus: document.getElementById("attackElemBonus"),
+    manaBoost: document.getElementById("attackManaBoost"),
+    staffMatch: document.getElementById("attackStaffMatch"),
+    resultLabel: document.getElementById("attackResultLabel"),
+    result: document.getElementById("attackResult"),
+    warningHint: document.getElementById("attackWarningHint"),
+    clearBtn: document.getElementById("clearAttackBtn"),
   };
-  const BASE_ATTACK_BY_JOB = {
-    warrior: { str: 450, dex: 90, int: 4, luk: 4 },
-    magician: { str: 4, dex: 4, int: 513, luk: 90 },
-    bowman: { str: 90, dex: 450, int: 4, luk: 4 },
-    thief: { str: 4, dex: 120, int: 4, luk: 450 },
-    pirate_str: { str: 450, dex: 100, int: 4, luk: 4 },
-    pirate_dex: { str: 90, dex: 450, int: 4, luk: 4 },
-  };
-  const WEAPON_FORMULAS = {
-    "單手劍": { max: 4.0, min: 4.0, main: "str", secondary: ["dex"], mastery: ["劍"] },
-    "雙手劍": { max: 4.6, min: 4.6, main: "str", secondary: ["dex"], mastery: ["劍"] },
-    "單手斧": { max: 4.4, min: 3.2, main: "str", secondary: ["dex"], mastery: ["斧"] },
-    "雙手斧": { max: 4.8, min: 3.4, main: "str", secondary: ["dex"], mastery: ["斧"] },
-    "單手棍": { max: 4.4, min: 3.2, main: "str", secondary: ["dex"], mastery: ["棍"] },
-    "雙手棍": { max: 4.8, min: 3.4, main: "str", secondary: ["dex"], mastery: ["棍"] },
-    "槍": { max: 5.0, min: 3.0, main: "str", secondary: ["dex"], mastery: ["槍"] },
-    "矛": { max: 5.0, min: 3.0, main: "str", secondary: ["dex"], mastery: ["矛"] },
-    "弓": { max: 3.4, min: 3.4, main: "dex", secondary: ["str"], mastery: ["弓"] },
-    "弩": { max: 3.6, min: 3.6, main: "dex", secondary: ["str"], mastery: ["弩"] },
-    "短刀": { max: 3.6, min: 3.6, main: "luk", secondary: ["str", "dex"], mastery: ["短刀", "刀"] },
-    "拳套": { max: 3.6, min: 3.6, main: "luk", secondary: ["str", "dex"], mastery: ["拳套", "暗器"] },
-    "指虎": { max: 4.8, min: 4.8, main: "str", secondary: ["dex"], mastery: ["指虎"] },
-    "火槍": { max: 3.6, min: 3.6, main: "dex", secondary: ["str"], mastery: ["火槍", "槍法"] },
-    "短杖": { max: 3.6, min: 3.6, main: "int", secondary: ["luk"], mastery: ["魔法"] },
-    "長杖": { max: 3.6, min: 3.6, main: "int", secondary: ["luk"], mastery: ["魔法"] },
-  };
-  const SPECIAL_HIT_COUNTS = [
-    [/雙飛斬/, 2],
-    [/三飛閃/, 3],
-    [/無雙劍舞/, 2],
-    [/閃．連殺/, 6],
-    [/海盜加農炮/, 4],
-  ];
+  if (!els.weaponType) return;
 
-  const STORE_KEY = "maple_attack_calc_v1";
+  const WEAPON_TYPES = window.MapleAttackWeaponTypes || [];
+  const STAT_INPUTS = { str: els.str, dex: els.dex, int: els.int, luk: els.luk };
 
-  let db = null;
-  let loadPromise = null;
-  let els = null;
+  const MASTERY_HINT_PHYSICAL = "二轉熟練技能未學是 10%，Lv.19 起就達滿值 60%；4轉「達人」系技能可以再往上加，實際數字請照自己技能視窗顯示的熟練度輸入。";
+  const MASTERY_HINT_MAGIC = "法術熟練度（精神集中／魔法熟練系技能）點滿基本上是 60%，實際數字請照自己技能視窗顯示的熟練度輸入。";
 
-  const state = {
-    jobId: "",
-    weaponType: "",
-    characterLevel: DEFAULT_CHARACTER_LEVEL,
-    spiritBlessingLevel: 0,
-    skillTab: "零轉",
-    skillLevels: {},
-    activePartySkillBuffs: {},
-    partySkillBuffLevels: {},
-    selectedItemBuffs: new Set(),
-  };
+  // 依武器資料本身的順序分組成 <optgroup>（劍士/弓箭手/盜賊/海盜/法師），
+  // 跟職業介紹分頁的職業順序一致，不用另外維護一份順序
+  const branches = [];
+  WEAPON_TYPES.forEach((w) => { if (!branches.includes(w.branch)) branches.push(w.branch); });
+  els.weaponType.innerHTML = branches
+    .map((branch) => {
+      const opts = WEAPON_TYPES.filter((w) => w.branch === branch)
+        .map((w) => `<option value="${w.id}">${w.label}</option>`)
+        .join("");
+      return `<optgroup label="${branch}">${opts}</optgroup>`;
+    })
+    .join("");
 
-  // ------------------------------------------------------------ 小工具
-
-  function esc(s) {
-    return String(s == null ? "" : s).replace(/[&<>"]/g, (c) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])
-    );
+  function getWeaponType() {
+    return WEAPON_TYPES.find((w) => w.id === els.weaponType.value) || WEAPON_TYPES[0];
   }
 
-  function fmt(value) {
-    const number = Number.isFinite(Number(value)) ? Math.floor(Number(value)) : 0;
-    return number.toLocaleString("zh-TW");
+  function getStat(key) {
+    return parseInt(STAT_INPUTS[key].value, 10) || 0;
   }
 
-  function clampNumber(value, min, max, fallback = min) {
-    const number = Math.floor(Number(value));
-    if (!Number.isFinite(number)) return fallback;
-    return Math.max(min, Math.min(max, number));
+  function getMastery(warnings) {
+    const raw = els.mastery.value.trim();
+    const pct = parseFloat(raw);
+    const valid = !isNaN(pct) && pct >= 0 && pct <= 100;
+    if (raw && !valid) warnings.push("熟練度請輸入 0～100 之間的數字");
+    return valid ? pct / 100 : 0.1;
   }
 
-  function inputNumber(el, fallback = 0) {
-    const value = Number(el && el.value || 0);
-    return Number.isFinite(value) ? value : fallback;
+  function calcPhysical(weapon, weaponAtk, weaponAtkRaw, warnings) {
+    const mainStatVal = getStat(weapon.mainStat);
+    const subStatsSum = weapon.subStats.reduce((sum, key) => sum + getStat(key), 0);
+    const mastery = getMastery(warnings);
+
+    // 上限取高係數、下限取低係數（合併揮砍/穿刺，跟資訊視窗顯示一致），
+    // 細節見 attackData.js 開頭說明
+    const max = Math.floor((mainStatVal * weapon.coefMax + subStatsSum) * weaponAtk / 100);
+    const min = Math.floor((mainStatVal * weapon.coefMin * 0.9 * mastery + subStatsSum) * weaponAtk / 100);
+    els.result.textContent = weaponAtkRaw ? `${min.toLocaleString()} ~ ${max.toLocaleString()}` : "—";
   }
 
-  function saveState() {
-    try {
-      localStorage.setItem(STORE_KEY, JSON.stringify({
-        jobId: state.jobId,
-        weaponType: state.weaponType,
-        characterLevel: state.characterLevel,
-        spiritBlessingLevel: state.spiritBlessingLevel,
-        skillTab: state.skillTab,
-      }));
-    } catch (e) { /* 隱私模式塞不進去就算了 */ }
+  // SouthPerry t=855 原式（巴哈 2008 版是它的近似擬合），細節與出處見
+  // attackData.js 開頭說明。技能攻擊力／怪物魔防／等級差／各種加成都是
+  // 選填，沒填視為「無加成、對 0 魔防同等級目標」的基礎值。
+  function calcMagic(weaponAtk, weaponAtkRaw, warnings) {
+    const intVal = getStat("int");
+    const mastery = getMastery(warnings);
+
+    const skillPctRaw = els.skillPct.value.trim();
+    const skillPct = parseFloat(skillPctRaw);
+    if (skillPctRaw && skillPct < 0) warnings.push("技能攻擊力不能是負數");
+    const effectiveSkillPct = (!isNaN(skillPct) && skillPct >= 0) ? skillPct : 100;
+
+    const mdefRaw = els.monsterMdef.value.trim();
+    const mdef = parseFloat(mdefRaw);
+    if (mdefRaw && mdef < 0) warnings.push("怪物魔防不能是負數");
+    const effectiveMdef = (!isNaN(mdef) && mdef >= 0) ? mdef : 0;
+
+    const levelDiffRaw = els.levelDiff.value.trim();
+    const levelDiff = parseFloat(levelDiffRaw);
+    if (levelDiffRaw && levelDiff < 0) warnings.push("等級差是「怪物比你高幾等」，不能是負數（怪物沒比你高就留空）");
+    const effectiveLevelDiff = (!isNaN(levelDiff) && levelDiff >= 0) ? levelDiff : 0;
+
+    // 魔力激發倍率照經典版拆包 Lv30=140%（不是 2008 文獻的 135%）
+    const bonusMult = (parseFloat(els.elemBonus.value) || 1) *
+      (els.manaBoost.checked ? 1.4 : 1) *
+      (parseFloat(els.staffMatch.value) || 1);
+
+    // 熟練度×0.9 只作用在線性魔攻項；加成乘算在扣魔防之前；
+    // 魔防最大扣 ×0.5、最小扣 ×0.6，怪物每比你高 1 等多扣 1%
+    const quad = weaponAtk * weaponAtk / 1000;
+    const maxBase = ((quad + weaponAtk) / 30 + intVal / 200) * effectiveSkillPct;
+    const minBase = ((quad + weaponAtk * mastery * 0.9) / 30 + intVal / 200) * effectiveSkillPct;
+
+    const mdefScale = 1 + 0.01 * effectiveLevelDiff;
+    const max = Math.max(1, Math.floor(maxBase * bonusMult - effectiveMdef * 0.5 * mdefScale));
+    const min = Math.max(1, Math.min(max, Math.floor(minBase * bonusMult - effectiveMdef * 0.6 * mdefScale)));
+    els.result.textContent = weaponAtkRaw ? `${min.toLocaleString()} ~ ${max.toLocaleString()}` : "—";
   }
 
-  function restoreState() {
-    try {
-      const raw = JSON.parse(localStorage.getItem(STORE_KEY) || "{}");
-      if (raw.jobId) state.jobId = raw.jobId;
-      if (raw.weaponType) state.weaponType = raw.weaponType;
-      if (raw.characterLevel) state.characterLevel = raw.characterLevel;
-      if (raw.spiritBlessingLevel) state.spiritBlessingLevel = raw.spiritBlessingLevel;
-      if (raw.skillTab) state.skillTab = raw.skillTab;
-    } catch (e) { /* 壞紀錄照預設值 */ }
-  }
-
-  // ------------------------------------------------------ 職業與技能查詢
-
-  function skillById(skillId) {
-    return (db.skills || []).find((skill) => Number(skill.id) === Number(skillId));
-  }
-
-  function currentJob() {
-    return (db.jobs || []).find((job) => job.id === state.jobId) || (db.jobs || [])[0];
-  }
-
-  function jobSkills() {
-    const job = currentJob();
-    const ids = new Set([0, ...((job && job.jobIds) || []).map(Number)]);
-    return (db.skills || []).filter((skill) => ids.has(Number(skill.jobId)));
-  }
-
-  function currentJobRequirement() {
-    const job = currentJob();
-    return JOB_REQUIREMENTS[(job && job.defaultStats) || "warrior"] || JOB_REQUIREMENTS.warrior;
-  }
-
-  function jobMinLevel() {
-    return currentJobRequirement().level || MIN_CHARACTER_LEVEL;
-  }
-
-  function baseStatMinimum(stat) {
-    return Math.max(MIN_BASE_STAT, Number(currentJobRequirement().stats[stat] || MIN_BASE_STAT));
-  }
-
-  function characterLevel() {
-    return clampNumber(state.characterLevel, jobMinLevel(), MAX_CHARACTER_LEVEL, DEFAULT_CHARACTER_LEVEL);
-  }
-
-  function setCharacterLevel(value, persist) {
-    const minLevel = jobMinLevel();
-    state.characterLevel = clampNumber(value, minLevel, MAX_CHARACTER_LEVEL, Math.max(DEFAULT_CHARACTER_LEVEL, minLevel));
-    els.level.min = String(minLevel);
-    els.level.value = String(state.characterLevel);
-    if (persist) saveState();
-  }
-
-  // -------------------------------------------------------- 精靈的祝福
-
-  function spiritBlessingMaxLevel() {
-    return Number((db.spiritBlessing && db.spiritBlessing.maxLevel) || 20);
-  }
-
-  function spiritBlessingLevel() {
-    return clampNumber(state.spiritBlessingLevel, 0, spiritBlessingMaxLevel(), 0);
-  }
-
-  function setSpiritBlessingLevel(value, persist) {
-    state.spiritBlessingLevel = clampNumber(value, 0, spiritBlessingMaxLevel(), 0);
-    els.spirit.max = String(spiritBlessingMaxLevel());
-    els.spirit.value = String(state.spiritBlessingLevel);
-    if (persist) saveState();
-  }
-
-  function spiritBlessingValues() {
-    const skill = db.spiritBlessing;
-    const level = spiritBlessingLevel();
-    const row = ((skill && skill.levels) || []).find((item) => Number(item.level) === Number(level)) || null;
-    const values = (row && row.values) || {};
-    return {
-      pad: Number(values.x || values.pad || 0),
-      mad: Number(values.y || values.mad || 0),
-    };
-  }
-
-  // ---------------------------------------------------- 轉職階段與 SP 預算
-
-  function advancementStartLevel(advancement) {
-    if (advancement === "零轉") return MIN_CHARACTER_LEVEL;
-    if (advancement === "一轉") return jobMinLevel();
-    if (advancement === "二轉") return 30;
-    if (advancement === "三轉") return 70;
-    if (advancement === "四轉") return 120;
-    return MIN_CHARACTER_LEVEL;
-  }
-
-  function advancementEndLevel(advancement) {
-    if (advancement === "零轉") return jobMinLevel();
-    if (advancement === "一轉") return 30;
-    if (advancement === "二轉") return 70;
-    if (advancement === "三轉") return 120;
-    return MAX_CHARACTER_LEVEL;
-  }
-
-  function skillBudget(advancement) {
-    const level = characterLevel();
-    if (advancement === "零轉") return Math.max(0, Math.min(ZERO_ADVANCEMENT_SP, level - 1));
-    const start = advancementStartLevel(advancement);
-    if (level < start) return 0;
-    if (advancement === "四轉") return Math.max(0, (level - start + 1) * 3);
-    const cappedLevel = Math.min(level, advancementEndLevel(advancement));
-    return 1 + Math.max(0, cappedLevel - start) * 3;
-  }
-
-  function skillAdvancement(skill) {
-    if (Number(skill && skill.jobId) === 0) return "零轉";
-    return (skill && skill.advancement) || "";
-  }
-
-  function advancementIndex(advancement) {
-    return ADVANCEMENT_ORDER.indexOf(advancement);
-  }
-
-  function skillLevel(skillId) {
-    return Math.max(0, Number(state.skillLevels[String(skillId)] || 0));
-  }
-
-  function skillBudgetUsed(advancement) {
-    return jobSkills()
-      .filter((skill) => skillAdvancement(skill) === advancement)
-      .reduce((sum, skill) => sum + skillLevel(skill.id), 0);
-  }
-
-  function skillUsedThrough(stageIndex) {
-    return jobSkills()
-      .filter((skill) => {
-        const index = advancementIndex(skillAdvancement(skill));
-        return index >= 0 && index <= stageIndex;
-      })
-      .reduce((sum, skill) => sum + skillLevel(skill.id), 0);
-  }
-
-  function skillTotalUsed() {
-    return jobSkills().reduce((sum, skill) => sum + skillLevel(skill.id), 0);
-  }
-
-  function skillBudgetThrough(stageIndex) {
-    return ADVANCEMENT_ORDER
-      .slice(0, Math.max(0, stageIndex) + 1)
-      .reduce((sum, advancement) => sum + skillBudget(advancement), 0);
-  }
-
-  function totalSkillBudget() {
-    return ADVANCEMENT_ORDER.reduce((sum, advancement) => sum + skillBudget(advancement), 0);
-  }
-
-  function previousAdvancementsComplete(stageIndex) {
-    if (stageIndex <= 0) return true;
-    return skillUsedThrough(stageIndex - 1) >= skillBudgetThrough(stageIndex - 1);
-  }
-
-  function skillGateReason(skill) {
-    const advancement = skillAdvancement(skill);
-    const stageIndex = advancementIndex(advancement);
-    if (stageIndex < 0) return "";
-    if (stageIndex > 0 && characterLevel() < advancementStartLevel(advancement)) return "等級不足";
-    if (!previousAdvancementsComplete(stageIndex)) {
-      const previous = ADVANCEMENT_ORDER[stageIndex - 1] || "";
-      return "需先用盡" + previous + "點數";
-    }
-    return "";
-  }
-
-  function skillAssignableMax(skill) {
-    const skillMax = Number((skill && skill.maxLevel) || 0);
-    const current = skillLevel(skill && skill.id);
-    if (skillMax <= 0) return 0;
-    if (skillGateReason(skill)) return Math.min(skillMax, current);
-    const remaining = Math.max(0, totalSkillBudget() - skillTotalUsed());
-    return Math.max(0, Math.min(skillMax, current + remaining));
-  }
-
-  // 超出預算或階段被鎖時把點數收回來——優先從剛改動的那顆收，再從
-  // 高轉職階段往回收
-  function clampSkillLevelsToBudgets(changedSkillId = null) {
-    const skills = jobSkills();
-    const skillMap = new Map(skills.map((skill) => [String(skill.id), skill]));
-    for (const key of Object.keys(state.skillLevels)) {
-      const skill = skillMap.get(String(key));
-      if (!skill) {
-        delete state.skillLevels[key];
-        continue;
-      }
-      state.skillLevels[key] = clampNumber(state.skillLevels[key], 0, Number(skill.maxLevel || 0), 0);
-    }
-    function reducePoints(candidates, amount) {
-      const preferred = changedSkillId
-        ? candidates.find((skill) => String(skill.id) === String(changedSkillId))
-        : null;
-      const ordered = [
-        ...(preferred ? [preferred] : []),
-        ...candidates
-          .filter((skill) => !preferred || String(skill.id) !== String(preferred.id))
-          .sort((a, b) =>
-            advancementIndex(skillAdvancement(b)) - advancementIndex(skillAdvancement(a)) ||
-            Number(b.id) - Number(a.id)),
-      ];
-      let remaining = amount;
-      for (const skill of ordered) {
-        const key = String(skill.id);
-        const current = skillLevel(key);
-        const reduceBy = Math.min(current, remaining);
-        if (reduceBy > 0) {
-          state.skillLevels[key] = current - reduceBy;
-          remaining -= reduceBy;
-        }
-        if (remaining <= 0) break;
-      }
-    }
-
-    const overBudget = skillTotalUsed() - totalSkillBudget();
-    if (overBudget > 0) reducePoints(skills, overBudget);
-
-    for (let index = 1; index < ADVANCEMENT_ORDER.length; index += 1) {
-      if (previousAdvancementsComplete(index)) continue;
-      const lockedSkills = skills.filter((skill) => advancementIndex(skillAdvancement(skill)) >= index);
-      reducePoints(lockedSkills, skillTotalUsed());
-    }
-  }
-
-  // ------------------------------------------------------ 素質點數預算
-
-  function baseStatLimit() {
-    return LEVEL_ONE_BASE_STAT_POINTS + Math.max(0, characterLevel() - 1) * 5;
-  }
-
-  function baseStatInput(stat) {
-    return document.getElementById("atkBase" + stat.toUpperCase());
-  }
-
-  function baseStatValue(stat) {
-    const minimum = baseStatMinimum(stat);
-    return clampNumber(baseStatInput(stat) && baseStatInput(stat).value, minimum, 9999, minimum);
-  }
-
-  function baseStatSum() {
-    return STAT_KEYS.reduce((sum, stat) => sum + baseStatValue(stat), 0);
-  }
-
-  function clampBaseStats(changedStat = null) {
-    const limit = baseStatLimit();
-    for (const stat of STAT_KEYS) {
-      const input = baseStatInput(stat);
-      if (!input) continue;
-      input.min = String(baseStatMinimum(stat));
-      input.value = String(baseStatValue(stat));
-    }
-    if (changedStat && STAT_KEYS.includes(changedStat)) {
-      const changedInput = baseStatInput(changedStat);
-      const otherSum = STAT_KEYS
-        .filter((stat) => stat !== changedStat)
-        .reduce((sum, stat) => sum + baseStatValue(stat), 0);
-      const maxForChanged = Math.max(baseStatMinimum(changedStat), limit - otherSum);
-      changedInput.max = String(maxForChanged);
-      changedInput.value = String(Math.min(baseStatValue(changedStat), maxForChanged));
-    }
-    let sum = baseStatSum();
-    if (sum > limit) {
-      const orderedStats = [...STAT_KEYS].sort((a, b) => baseStatValue(b) - baseStatValue(a));
-      for (const stat of orderedStats) {
-        const input = baseStatInput(stat);
-        if (!input) continue;
-        const value = baseStatValue(stat);
-        const removable = Math.max(0, value - baseStatMinimum(stat));
-        const reduceBy = Math.min(removable, sum - limit);
-        if (reduceBy > 0) {
-          input.value = String(value - reduceBy);
-          sum -= reduceBy;
-        }
-        if (sum <= limit) break;
-      }
-    }
-    for (const stat of STAT_KEYS) {
-      const input = baseStatInput(stat);
-      if (!input) continue;
-      const otherSum = STAT_KEYS
-        .filter((key) => key !== stat)
-        .reduce((sumValue, key) => sumValue + baseStatValue(key), 0);
-      input.max = String(Math.max(baseStatMinimum(stat), limit - otherSum));
-    }
-    updateBaseStatBudget();
-  }
-
-  function updateBaseStatBudget() {
-    const used = baseStatSum();
-    const limit = baseStatLimit();
-    const remaining = Math.max(0, limit - used);
-    els.baseBudget.textContent =
-      "素質點數 " + fmt(used) + " / " + fmt(limit) + "，剩餘 " + fmt(remaining) + " 點（照角色等級自動計算）";
-  }
-
-  function updateSpiritHint() {
-    if (!db.spiritBlessing) {
-      els.spiritHint.textContent = "未收錄精靈的祝福資料";
-      return;
-    }
-    const values = spiritBlessingValues();
-    els.spiritHint.textContent =
-      "每 10 級 +1、最高 " + spiritBlessingMaxLevel() + " 級；目前攻擊力 +" + fmt(values.pad) +
-      "、魔法攻擊力 +" + fmt(values.mad);
-  }
-
-  // ------------------------------------------------------ 技能數值解析
-
-  function levelRow(skill, level) {
-    return (skill.levels || []).find((row) => Number(row.level) === Number(level)) || null;
-  }
-
-  // 技能每級的數值大多在 values 裡，少數只寫在說明文字裡（例如部分精通
-  // 技能的攻擊力加成），照拆包計算機的作法從文字補撈一次
-  function parseLevelText(text) {
-    const values = {};
-    const source = String(text || "");
-    const mastery = source.match(/熟練度\s*[+提升]*\s*(\d+)\s*%/);
-    if (mastery) values.M = Number(mastery[1]);
-    const attack = source.match(/物理攻擊力\s*(?:上升|增加|[+＋])\s*(\d+)/) ||
-      source.match(/(?:^|[^魔法])攻擊力\s*(?:上升|增加|[+＋])\s*(\d+)/);
-    if (attack) values.pad = Number(attack[1]);
-    const magic = source.match(/(?:魔法攻擊力|魔力)\s*(?:上升|增加|[+＋])\s*(\d+)/);
-    if (magic) values.mad = Number(magic[1]);
-    const damage = source.match(/(?:殺傷力|傷害|攻擊力|最大攻擊力)\s*(?:提升|增加|[+＋])?\s*(\d+)\s*%/);
-    if (damage) values.damage = values.damage || Number(damage[1]);
-    return values;
-  }
-
-  function skillValues(skill, level) {
-    const row = levelRow(skill, level);
-    return { ...((row && row.values) || {}), ...parseLevelText(row && row.description) };
-  }
-
-  function selectedSkillValues(skill) {
-    return skillValues(skill, skillLevel(skill.id));
-  }
-
-  // ------------------------------------------------------------ BUFF
-
-  function partyBuffById(buffId) {
-    return (db.partySkillBuffs || []).find((buff) => String(buff.id) === String(buffId));
-  }
-
-  function partyBuffLevel(buff) {
-    const key = String(buff.id);
-    const fallback = Number(buff.maxLevel || 0);
-    const stored = Object.prototype.hasOwnProperty.call(state.partySkillBuffLevels, key)
-      ? Number(state.partySkillBuffLevels[key])
-      : fallback;
-    return Math.max(0, Math.min(fallback, Number.isFinite(stored) ? stored : fallback));
-  }
-
-  function partyBuffValues(buff) {
-    const level = partyBuffLevel(buff);
-    const row = (buff.levels || []).find((item) => Number(item.level) === Number(level)) || null;
-    return (row && row.effects) || {};
-  }
-
-  // 同種加成不疊加、取最高的那個來源（跟遊戲內 BUFF 覆蓋規則一致）
-  function improveBuffTotals(totals, effects, source) {
-    for (const key of ["pad", "mad", "padPercent", "madPercent", "statPercent"]) {
-      const value = Number((effects && effects[key]) || 0);
-      if (value > Number(totals[key] || 0)) {
-        totals[key] = value;
-        totals.sources[key] = source;
-      }
-    }
-  }
-
-  function getBuffTotals() {
-    const totals = { pad: 0, mad: 0, padPercent: 0, madPercent: 0, statPercent: 0, sources: {} };
-    improveBuffTotals(totals, { pad: inputNumber(els.manualPad) }, "手動攻擊力");
-    improveBuffTotals(totals, { mad: inputNumber(els.manualMad) }, "手動魔法攻擊力");
-    for (const buff of db.partySkillBuffs || []) {
-      if (!state.activePartySkillBuffs[String(buff.id)]) continue;
-      improveBuffTotals(totals, partyBuffValues(buff), buff.name);
-    }
-    for (const buffId of state.selectedItemBuffs) {
-      const buff = (db.itemBuffs || []).find((row) => String(row.id) === String(buffId));
-      if (!buff) continue;
-      improveBuffTotals(totals, buff.effects, buff.name);
-    }
-    return totals;
-  }
-
-  function percentBuffAmount(baseValue, buff, percentKey) {
-    const percent = Number((buff && buff[percentKey]) || 0);
-    return Math.floor(Math.max(0, Number(baseValue) || 0) * percent / 100);
-  }
-
-  function getStatTotals() {
-    const baseTotals = { str: 0, dex: 0, int: 0, luk: 0 };
-    const addedTotals = { str: 0, dex: 0, int: 0, luk: 0 };
-    const totals = { str: 0, dex: 0, int: 0, luk: 0 };
-    for (const stat of STAT_KEYS) {
-      baseTotals[stat] = inputNumber(baseStatInput(stat));
-      addedTotals[stat] = inputNumber(document.getElementById("atkEquip" + stat.toUpperCase()));
-      totals[stat] = baseTotals[stat] + addedTotals[stat];
-    }
-    const buff = getBuffTotals();
-    const mapleWarrior = buff.statPercent || 0;
-    if (mapleWarrior > 0) {
-      for (const stat of STAT_KEYS) totals[stat] += Math.floor(baseTotals[stat] * mapleWarrior / 100);
-    }
-    return { totals, baseTotals, addedTotals, buff };
-  }
-
-  // ---------------------------------------------------- 熟練度與被動加成
-
-  function isWeaponMatch(skill, weaponType) {
-    const formula = WEAPON_FORMULAS[weaponType];
-    if (!formula) return false;
-    const haystack = (skill.name || "") + " " + (skill.description || "") + " " + (skill.formula || "");
-    return formula.mastery.some((token) => haystack.includes(token));
-  }
-
-  function getPassiveSkillAttackBonus(weaponType) {
-    let pad = 0;
-    let mad = 0;
-    for (const skill of jobSkills()) {
-      const level = skillLevel(skill.id);
-      if (!level) continue;
-      const values = selectedSkillValues(skill);
-      if (!isWeaponMatch(skill, weaponType)) continue;
-      if (values.pad && /精通|熟練/.test(skill.name + " " + skill.description)) pad += Number(values.pad);
-      if (values.mad && /精通|熟練/.test(skill.name + " " + skill.description)) mad += Number(values.mad);
-    }
-    return { pad, mad };
-  }
-
-  function getMastery(weaponType) {
-    let mastery = 0.1;
-    let source = "基礎 10%";
-    let additive = 0;
-    for (const skill of jobSkills()) {
-      const level = skillLevel(skill.id);
-      if (!level) continue;
-      const values = selectedSkillValues(skill);
-      if (!values.M) continue;
-      // 暗之靈魂是加算在其他精通上的特例
-      if ((skill.name || "").includes("暗之靈魂")) {
-        additive = Math.max(additive, Number(values.M) / 100);
-        continue;
-      }
-      if (!isWeaponMatch(skill, weaponType)) continue;
-      const value = Number(values.M) / 100;
-      if (value > mastery) {
-        mastery = value;
-        source = skill.name + " " + values.M + "%";
-      }
-    }
-    if (additive) {
-      mastery = Math.min(0.95, mastery + additive);
-      source += " + 暗之靈魂 " + Math.round(additive * 100) + "%";
-    }
-    return { mastery, source };
-  }
-
-  // ------------------------------------------------------------ 表攻計算
-
-  function getAttackRange() {
-    const job = currentJob();
-    const weaponType = state.weaponType || (job && job.weapons && job.weapons[0]) || "";
-    const formula = WEAPON_FORMULAS[weaponType] || WEAPON_FORMULAS["單手劍"];
-    const { totals, baseTotals, addedTotals, buff } = getStatTotals();
-    const passive = getPassiveSkillAttackBonus(weaponType);
-    const spirit = spiritBlessingValues();
-    const attackBase = inputNumber(els.weaponAtk) + inputNumber(els.equipAtk) + passive.pad + spirit.pad;
-    const magicAttackBase = inputNumber(els.weaponMag) + inputNumber(els.equipMag) + passive.mad + spirit.mad;
-    const echoMagicBase = baseTotals.int + addedTotals.int + magicAttackBase;
-    const attack = attackBase + Number(buff.pad || 0) + percentBuffAmount(attackBase, buff, "padPercent");
-    const magicAttack = Math.floor(
-      totals.int + magicAttackBase + Number(buff.mad || 0) + percentBuffAmount(echoMagicBase, buff, "madPercent")
-    );
-    const secondary = (formula.secondary || []).reduce((sum, key) => sum + totals[key], 0);
-    const { mastery, source } = getMastery(weaponType);
-    const max = Math.floor((totals[formula.main] * formula.max + secondary) * attack / 100);
-    const min = Math.floor((totals[formula.main] * formula.min * 0.9 * mastery + secondary) * attack / 100);
-    return {
-      job,
-      weaponType,
-      formula,
-      stats: totals,
-      attack,
-      magicAttack,
-      mastery,
-      masterySource: source,
-      min: Math.max(0, min),
-      max: Math.max(0, max),
-    };
-  }
-
-  // ------------------------------------------------------------ 技能傷害
-
-  function isCriticalPassiveSkill(skill) {
-    const name = (skill && skill.name) || "";
-    if (/強力投擲|霸王箭|致命箭|致命暗襲/.test(name)) return true;
-    const text = name + " " + ((skill && skill.description) || "") + " " + ((skill && skill.formula) || "");
-    return /(爆擊|暴擊|臨界|致命一擊|出現比率)/.test(text) && !/消耗\s*(?:HP|MP|HP、MP|MP、HP)/.test(text);
-  }
-
-  function isDamageSkill(skill) {
-    if (isCriticalPassiveSkill(skill)) return false;
-    return (skill.levels || []).some((row) => {
-      const values = { ...(row.values || {}), ...parseLevelText(row.description || "") };
-      return values.damage || values.mad || values.z;
-    });
-  }
-
-  function hitCount(skill, values) {
-    for (const [pattern, count] of SPECIAL_HIT_COUNTS) {
-      if (pattern.test(skill.name || "")) return count;
-    }
-    if (values.bulletCount) return Number(values.bulletCount);
-    if ((skill.name || "").includes("龍魂之箭")) return 1;
-    if ((skill.name || "").includes("魔力爪")) return 2;
-    if ((skill.name || "").includes("二連箭")) return 2;
-    return 1;
-  }
-
-  function physicalSkillDamage(skill, values, range) {
-    const percent = Number(values.damage || values.z || 100);
-    const hits = hitCount(skill, values);
-    if (/雙飛斬|三飛閃/.test(skill.name || "")) {
-      const luk = range.stats.luk;
-      const max = Math.floor((luk * 5.0) * range.attack / 100 * percent / 100);
-      const min = Math.floor((luk * 2.5) * range.attack / 100 * percent / 100);
-      return { min, max, hits, percent, note: "投擲公式：每段 floor(幸運 × 2.5~5.0 × 攻擊力 ÷ 100 × 技能% ÷ 100)" };
-    }
-    return {
-      min: Math.floor(range.min * percent / 100),
-      max: Math.floor(range.max * percent / 100),
-      hits,
-      percent,
-      note: "",
-    };
-  }
-
-  function magicSkillDamage(skill, values, range) {
-    const basic = Number(values.mad || 0);
-    const mastery = Number(values.M || 60) / 100;
-    const magic = range.magicAttack;
-    const intValue = range.stats.int;
-    const max = Math.floor(((magic * magic / 1000 + magic) / 30 + intValue / 200) * basic);
-    const min = Math.floor(((magic * magic / 1000 + magic * mastery * 0.9) / 30 + intValue / 200) * basic);
-    return { min, max, hits: hitCount(skill, values), percent: basic, note: "魔法基本攻擊力" };
-  }
-
-  function skillDamage(skill, range) {
-    const level = skillLevel(skill.id);
-    if (!level) return null;
-    const values = selectedSkillValues(skill);
-    if (!values.damage && !values.z && !values.mad) return null;
-    const job = currentJob();
-    return job.kind === "magic"
-      ? magicSkillDamage(skill, values, range)
-      : physicalSkillDamage(skill, values, range);
-  }
-
-  function prerequisiteWarnings(skill) {
+  function calc() {
+    const weapon = getWeaponType();
+    const weaponAtkRaw = els.weaponAtk.value.trim();
+    const weaponAtk = parseFloat(weaponAtkRaw) || 0;
     const warnings = [];
-    for (const req of skill.prerequisites || []) {
-      const level = skillLevel(req.skillId);
-      if (level < Number(req.level || 0)) {
-        warnings.push(req.skillName + " 需要 " + req.level + " 級");
-      }
+    const isMagic = weapon.type === "magic";
+    const hasAmmo = !isMagic && !!weapon.ammoLabel;
+
+    ["str", "dex", "int", "luk"].forEach((key) => {
+      const raw = STAT_INPUTS[key].value.trim();
+      if (raw && parseInt(raw, 10) < 0) warnings.push("能力值不能是負數");
+    });
+    if (weaponAtkRaw && weaponAtk < 0) warnings.push("武器攻擊力不能是負數");
+
+    // 飛鏢/箭矢/子彈本身的攻擊力和武器攻擊力相加後代入公式
+    els.ammoField.hidden = !hasAmmo;
+    let totalAtk = weaponAtk;
+    if (hasAmmo) {
+      els.ammoLabel.textContent = weapon.ammoLabel + "（和武器攻擊力相加計算）";
+      const ammoRaw = els.ammo.value.trim();
+      const ammoAtk = parseFloat(ammoRaw) || 0;
+      if (ammoRaw && ammoAtk < 0) warnings.push(weapon.ammoLabel + "不能是負數");
+      if (ammoAtk > 0) totalAtk += ammoAtk;
     }
-    return warnings;
-  }
 
-  // ------------------------------------------------------------ 渲染
+    els.skillPctField.hidden = !isMagic;
+    els.monsterMdefField.hidden = !isMagic;
+    els.levelDiffField.hidden = !isMagic;
+    els.magicBonusRow.hidden = !isMagic;
+    els.masteryLabel.textContent = isMagic ? "法術熟練度 %（技能視窗顯示的數字，直接輸入）" : "熟練度 %（技能視窗顯示的數字，直接輸入）";
+    els.masteryHint.textContent = isMagic ? MASTERY_HINT_MAGIC : MASTERY_HINT_PHYSICAL;
+    els.weaponAtkLabel.textContent = isMagic ? "魔攻（角色資訊視窗顯示的魔攻數值）" : "武器攻擊力";
+    els.resultLabel.textContent = isMagic ? "魔法攻擊力範圍" : "攻擊力範圍";
 
-  function availableSkillAdvancements() {
-    return ADVANCEMENT_ORDER.filter((advancement) =>
-      jobSkills().some((skill) => skillAdvancement(skill) === advancement));
-  }
-
-  function ensureSkillTab() {
-    const available = availableSkillAdvancements();
-    if (!available.includes(state.skillTab)) state.skillTab = available[0] || "零轉";
-    return state.skillTab;
-  }
-
-  function renderSkillBudget() {
-    els.skillBudget.innerHTML = availableSkillAdvancements().map((advancement) => {
-      const used = skillBudgetUsed(advancement);
-      const budget = skillBudget(advancement);
-      return '<span class="atk-pill' + (budget ? "" : " atk-pill--empty") + '">' +
-        esc(advancement) + " " + fmt(used) + " / " + fmt(budget) + "</span>";
-    }).join("");
-  }
-
-  function renderSkillTabs() {
-    const activeTab = ensureSkillTab();
-    els.skillTabs.innerHTML = availableSkillAdvancements().map((advancement) => {
-      const active = advancement === activeTab;
-      return '<button class="subtab' + (active ? " active" : "") + '" type="button" role="tab" ' +
-        'aria-selected="' + active + '" data-atk-skill-tab="' + esc(advancement) + '">' +
-        esc(advancement) + "</button>";
-    }).join("");
-  }
-
-  function skillImg(skill) {
-    return skill.image
-      ? '<img class="atk-skill-icon" src="' + esc(skill.image) + '" alt="" loading="lazy" width="32" height="32">'
-      : '<span class="atk-skill-icon atk-skill-icon--empty"></span>';
-  }
-
-  function renderSkillList() {
-    clampSkillLevelsToBudgets();
-    renderSkillBudget();
-    renderSkillTabs();
-    const activeTab = ensureSkillTab();
-    const rows = jobSkills().filter((skill) => skillAdvancement(skill) === activeTab);
-    els.skillList.innerHTML = rows.map((skill) => {
-      const level = skillLevel(skill.id);
-      const warnings = level ? prerequisiteWarnings(skill) : [];
-      const maxAllowed = skillAssignableMax(skill);
-      const gateReason = skillGateReason(skill);
-      const isLocked = (Boolean(gateReason) || maxAllowed <= 0) && level <= 0;
-      return '<div class="atk-skill-row' + (isLocked ? " atk-skill-row--locked" : "") + '">' +
-        skillImg(skill) +
-        '<span class="atk-skill-name"><strong>' + esc(skill.name) + "</strong>" +
-        "<small>" + level + "/" + (skill.maxLevel || 0) + (gateReason ? " · " + esc(gateReason) : "") + "</small></span>" +
-        '<span class="atk-skill-ctrl">' +
-        '<input data-atk-skill-level="' + esc(skill.id) + '" type="number" min="0" max="' + maxAllowed +
-        '" step="1" value="' + level + '" inputmode="numeric" autocomplete="off" aria-label="' + esc(skill.name) + ' 技能等級"' +
-        (isLocked ? " disabled" : "") + ">" +
-        '<button class="btn btn-ghost atk-max-btn" type="button" data-atk-skill-max="' + esc(skill.id) + '"' +
-        (maxAllowed <= level ? " disabled" : "") + ">MAX</button></span>" +
-        (warnings.length ? '<em class="atk-warning">' + esc(warnings.join("、")) + "</em>" : "") +
-        "</div>";
-    }).join("") || '<p class="cm-empty">此階段沒有技能</p>';
-  }
-
-  function formatBuffEffects(effects) {
-    const parts = [];
-    if (effects && effects.pad) parts.push("攻擊力 +" + effects.pad);
-    if (effects && effects.mad) parts.push("魔法攻擊力 +" + effects.mad);
-    if (effects && effects.padPercent) parts.push("攻擊力 +" + effects.padPercent + "%");
-    if (effects && effects.madPercent) parts.push("魔法攻擊力 +" + effects.madPercent + "%");
-    if (effects && effects.statPercent) parts.push("全屬性 +" + effects.statPercent + "%");
-    return parts.join(" · ") || "BUFF";
-  }
-
-  function renderPartyBuffs() {
-    els.partyBuffs.innerHTML = (db.partySkillBuffs || []).map((buff) => {
-      const isChecked = Boolean(state.activePartySkillBuffs[String(buff.id)]);
-      const level = partyBuffLevel(buff);
-      const effects = partyBuffValues(buff);
-      return '<div class="atk-buff-row' + (isChecked ? " atk-buff-row--active" : "") + '">' +
-        '<input id="atkPartyBuff' + esc(buff.id) + '" data-atk-party-buff="' + esc(buff.id) + '" type="checkbox"' +
-        (isChecked ? " checked" : "") + ">" +
-        (buff.image ? '<img class="atk-skill-icon" src="' + esc(buff.image) + '" alt="" loading="lazy" width="32" height="32">' : "") +
-        '<label class="atk-buff-info" for="atkPartyBuff' + esc(buff.id) + '"><strong>' + esc(buff.name) + "</strong>" +
-        "<small>" + esc(buff.source || "隊伍技能 BUFF") + " · " + esc(formatBuffEffects(effects)) + "</small></label>" +
-        '<label class="atk-buff-level"><span>等級</span>' +
-        '<input data-atk-party-buff-level="' + esc(buff.id) + '" type="number" min="0" max="' + esc(buff.maxLevel || 0) +
-        '" step="1" value="' + esc(level) + '" inputmode="numeric" autocomplete="off" aria-label="' + esc(buff.name) + ' 等級"></label>' +
-        "</div>";
-    }).join("") || '<p class="cm-empty">目前沒有可啟用的技能 BUFF</p>';
-  }
-
-  function renderItemBuffSearch() {
-    const query = (els.itemBuffSearch.value || "").trim().toLowerCase();
-    const rows = (db.itemBuffs || [])
-      .filter((buff) => !state.selectedItemBuffs.has(String(buff.id)))
-      .filter((buff) => {
-        if (!query) return true;
-        return (buff.id + " " + buff.name + " " + buff.desc).toLowerCase().includes(query);
-      })
-      .slice(0, 18);
-    els.itemBuffResults.innerHTML = rows.map((buff) =>
-      '<button class="atk-buff-row atk-buff-row--btn" type="button" data-atk-add-buff="' + esc(buff.id) + '">' +
-      (buff.image ? '<img class="atk-skill-icon" src="' + esc(buff.image) + '" alt="" loading="lazy" width="32" height="32">' : "") +
-      '<span class="atk-buff-info"><strong>' + esc(buff.name) + "</strong><small>" +
-      esc(formatBuffEffects(buff.effects)) + "</small></span>" +
-      '<span class="atk-pill">加入</span></button>'
-    ).join("") || '<p class="cm-empty">找不到道具 BUFF</p>';
-  }
-
-  function renderSelectedItemBuffs() {
-    els.itemBuffSelected.innerHTML = [...state.selectedItemBuffs].map((id) => {
-      const buff = (db.itemBuffs || []).find((row) => String(row.id) === String(id));
-      if (!buff) return "";
-      return '<span class="atk-selected-buff">' + esc(buff.name) + " · " + esc(formatBuffEffects(buff.effects)) +
-        '<button type="button" data-atk-remove-buff="' + esc(buff.id) + '" aria-label="移除 ' + esc(buff.name) + '">✕</button></span>';
-    }).join("");
-  }
-
-  function renderSkillDamageCard(skill, result) {
-    const totalMin = result.min * result.hits;
-    const totalMax = result.max * result.hits;
-    return '<div class="atk-dmg-card">' +
-      skillImg(skill) +
-      "<div><strong>" + esc(skill.name) + "</strong><p>Lv." + skillLevel(skill.id) + "</p>" +
-      '<div class="atk-dmg-nums">' +
-      '<span class="atk-pill">單段 ' + fmt(result.min) + " ~ " + fmt(result.max) + "</span>" +
-      (result.hits > 1 ? '<span class="atk-pill">' + result.hits + " 段合計 " + fmt(totalMin) + " ~ " + fmt(totalMax) + "</span>" : "") +
-      '<span class="atk-pill">' + esc(result.note || result.percent + "%") + "</span>" +
-      "</div></div></div>";
-  }
-
-  function renderDetail() {
-    const job = currentJob();
-    const range = getAttackRange();
-    const damageSkills = jobSkills().filter(isDamageSkill);
-    const activeDamageRows = damageSkills
-      .map((skill) => ({ skill, result: skillDamage(skill, range) }))
-      .filter((row) => row.result);
-    const formula = WEAPON_FORMULAS[state.weaponType] || {};
-    const isMagic = job && job.kind === "magic";
-    const attackCards = isMagic
-      ? '<div class="stat-card"><p class="stat-label">魔法攻擊力</p><p class="stat-value">' + fmt(range.magicAttack) + "</p></div>"
-      : '<div class="stat-card"><p class="stat-label">最小攻擊力</p><p class="stat-value">' + fmt(range.min) + "</p></div>" +
-        '<div class="stat-card"><p class="stat-label">最大攻擊力</p><p class="stat-value">' + fmt(range.max) + "</p></div>";
-    els.detail.innerHTML =
-      '<div class="atk-hero">' +
-      (job && job.image ? '<img class="atk-hero-img" src="' + esc(job.image) + '" alt="" loading="lazy">' : "") +
-      "<div><h3>" + esc((job && job.name) || "") + "</h3>" +
-      "<p>Lv." + characterLevel() + " · " + esc(state.weaponType) + " · 熟練度 " + Math.round(range.mastery * 100) + "% · " +
-      esc(range.masterySource) + "</p></div></div>" +
-      '<div class="stat-grid">' + attackCards + "</div>" +
-      (isMagic
-        ? ""
-        : '<div class="atk-formula-note"><p>最大 = floor((主屬性 × ' + (formula.max || "-") + " + 副屬性) × 攻擊力 ÷ 100)</p>" +
-          "<p>最小 = floor((主屬性 × " + (formula.min || "-") + " × 0.9 × 熟練度 + 副屬性) × 攻擊力 ÷ 100)</p></div>") +
-      '<div class="panel-head scroll-sub-head"><h3>技能傷害</h3><span class="atk-head-note">' +
-      fmt(activeDamageRows.length) + " 個技能已設定點數</span></div>" +
-      ('<div class="atk-dmg-grid">' +
-        (activeDamageRows.map((row) => renderSkillDamageCard(row.skill, row.result)).join("") ||
-          '<p class="cm-empty">設定技能點數後會顯示技能傷害（理論值，未計入怪物防禦與屬性相剋）</p>') +
-        "</div>");
-  }
-
-  function renderAll() {
-    updateBaseStatBudget();
-    updateSpiritHint();
-    renderSkillList();
-    renderPartyBuffs();
-    renderItemBuffSearch();
-    renderSelectedItemBuffs();
-    renderDetail();
-  }
-
-  // ------------------------------------------------------------ 初始化
-
-  function initFields() {
-    els.baseStats.innerHTML = "";
-    els.equipStats.innerHTML = "";
-    for (const stat of STAT_KEYS) {
-      const base = document.createElement("label");
-      base.className = "field";
-      base.innerHTML = "<span>" + STAT_LABELS[stat] + " " + stat.toUpperCase() + "</span>" +
-        '<input id="atkBase' + stat.toUpperCase() + '" type="number" min="' + MIN_BASE_STAT +
-        '" step="1" inputmode="numeric" autocomplete="off">';
-      els.baseStats.append(base);
-      const equip = document.createElement("label");
-      equip.className = "field";
-      equip.innerHTML = "<span>" + STAT_LABELS[stat] + " " + stat.toUpperCase() + "</span>" +
-        '<input id="atkEquip' + stat.toUpperCase() + '" type="number" step="1" inputmode="numeric" value="0" autocomplete="off">';
-      els.equipStats.append(equip);
+    if (isMagic) {
+      calcMagic(weaponAtk, weaponAtkRaw, warnings);
+    } else {
+      calcPhysical(weapon, totalAtk, weaponAtkRaw, warnings);
     }
+
+    els.warningHint.hidden = warnings.length === 0;
+    els.warningHint.textContent = [...new Set(warnings)].join("；");
   }
 
-  function initJobs() {
-    els.job.innerHTML = (db.jobs || []).map((job) =>
-      '<option value="' + esc(job.id) + '">' + esc(job.name) + "</option>").join("");
-    state.jobId = ((db.jobs || [])[0] || {}).id || "";
-    restoreState();
-    if (!(db.jobs || []).some((job) => job.id === state.jobId)) {
-      state.jobId = ((db.jobs || [])[0] || {}).id || "";
-    }
-    els.job.value = state.jobId;
-    setCharacterLevel(state.characterLevel, false);
-  }
+  els.weaponType.addEventListener("change", calc);
+  [
+    els.weaponAtk, els.ammo, els.str, els.dex, els.int, els.luk, els.mastery,
+    els.skillPct, els.monsterMdef, els.levelDiff,
+  ].forEach((el) => el.addEventListener("input", calc));
+  [els.elemBonus, els.manaBoost, els.staffMatch].forEach((el) =>
+    el.addEventListener("change", calc)
+  );
 
-  function applyJobDefaults() {
-    const job = currentJob();
-    const defaults = BASE_ATTACK_BY_JOB[(job && job.defaultStats) || "warrior"] || BASE_ATTACK_BY_JOB.warrior;
-    for (const stat of STAT_KEYS) {
-      const input = baseStatInput(stat);
-      if (input && !input.dataset.userEdited) input.value = defaults[stat];
-    }
-    clampBaseStats();
-    renderWeaponOptions();
-  }
+  els.clearBtn.addEventListener("click", () => {
+    els.weaponAtk.value = "";
+    els.ammo.value = "";
+    els.str.value = 4;
+    els.dex.value = 4;
+    els.int.value = 4;
+    els.luk.value = 4;
+    els.mastery.value = 10;
+    els.skillPct.value = "";
+    els.monsterMdef.value = "";
+    els.levelDiff.value = "";
+    els.elemBonus.value = "1";
+    els.manaBoost.checked = false;
+    els.staffMatch.value = "1";
+    els.weaponType.selectedIndex = 0;
+    calc();
+  });
 
-  function renderWeaponOptions() {
-    const job = currentJob();
-    const options = (job && job.weapons) || Object.keys(WEAPON_FORMULAS);
-    const previous = state.weaponType;
-    state.weaponType = options.includes(previous) ? previous : options[0];
-    els.weapon.innerHTML = options.map((type) =>
-      '<option value="' + esc(type) + '">' + esc(type) + "</option>").join("");
-    els.weapon.value = state.weaponType;
-    saveState();
-  }
-
-  function clearAll() {
-    const job = currentJob();
-    setCharacterLevel(DEFAULT_CHARACTER_LEVEL, true);
-    state.skillLevels = {};
-    state.activePartySkillBuffs = {};
-    state.partySkillBuffLevels = {};
-    state.selectedItemBuffs.clear();
-    setSpiritBlessingLevel(0, true);
-    els.itemBuffSearch.value = "";
-    els.weaponAtk.value = job && job.kind === "magic" ? 30 : 80;
-    els.weaponMag.value = job && job.kind === "magic" ? 90 : 0;
-    els.equipAtk.value = "0";
-    els.equipMag.value = "0";
-    els.manualPad.value = "0";
-    els.manualMad.value = "0";
-    for (const stat of STAT_KEYS) {
-      const base = baseStatInput(stat);
-      const equip = document.getElementById("atkEquip" + stat.toUpperCase());
-      if (base) base.dataset.userEdited = "";
-      if (equip) equip.value = "0";
-    }
-    applyJobDefaults();
-    clampSkillLevelsToBudgets();
-    renderAll();
-  }
-
-  function setupEvents() {
-    els.reset.addEventListener("click", clearAll);
-    els.skillReset.addEventListener("click", () => {
-      state.skillLevels = {};
-      clampSkillLevelsToBudgets();
-      renderAll();
-    });
-    els.job.addEventListener("change", () => {
-      state.jobId = els.job.value;
-      state.skillLevels = {};
-      state.skillTab = "零轉";
-      saveState();
-      setCharacterLevel(state.characterLevel, true);
-      applyJobDefaults();
-      clampSkillLevelsToBudgets();
-      renderAll();
-    });
-    els.weapon.addEventListener("change", () => {
-      state.weaponType = els.weapon.value;
-      saveState();
-      renderAll();
-    });
-    view.addEventListener("input", (event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLInputElement)) return;
-      // checkbox 交給下面的 change 監聽器處理。checkbox 點擊會先發 input
-      // 再發 change，這裡先 renderAll 的話 DOM 已重建，change 事件冒泡不
-      // 上來，勾選就永遠存不進 state
-      if (target.type === "checkbox") return;
-      if (target === els.level) {
-        setCharacterLevel(target.value, true);
-        clampBaseStats();
-        clampSkillLevelsToBudgets();
-        renderAll();
-        return;
-      }
-      if (target === els.spirit) {
-        setSpiritBlessingLevel(target.value, true);
-        renderAll();
-        return;
-      }
-      if (target === els.itemBuffSearch) {
-        renderItemBuffSearch();
-        return;
-      }
-      if (target.id.startsWith("atkBase")) {
-        target.dataset.userEdited = "1";
-        const stat = STAT_KEYS.find((key) => target.id === "atkBase" + key.toUpperCase());
-        clampBaseStats(stat);
-      }
-      const skillId = target.dataset.atkSkillLevel;
-      if (skillId) {
-        const skill = skillById(skillId);
-        const max = skillAssignableMax(skill);
-        state.skillLevels[String(skillId)] = Math.max(0, Math.min(max, Number(target.value || 0)));
-        clampSkillLevelsToBudgets(skillId);
-      }
-      const partyBuffId = target.dataset.atkPartyBuffLevel;
-      if (partyBuffId) {
-        const buff = partyBuffById(partyBuffId);
-        const max = Number((buff && buff.maxLevel) || 0);
-        state.partySkillBuffLevels[String(partyBuffId)] = Math.max(0, Math.min(max, Number(target.value || 0)));
-      }
-      renderAll();
-    });
-    view.addEventListener("change", (event) => {
-      const target = event.target;
-      if (!(target instanceof HTMLInputElement)) return;
-      const partySkillBuff = target.dataset.atkPartyBuff;
-      if (partySkillBuff) {
-        state.activePartySkillBuffs[String(partySkillBuff)] = target.checked;
-        renderAll();
-      }
-    });
-    view.addEventListener("click", (event) => {
-      const tabButton = event.target.closest("[data-atk-skill-tab]");
-      if (tabButton) {
-        state.skillTab = tabButton.dataset.atkSkillTab || "零轉";
-        saveState();
-        renderAll();
-        return;
-      }
-      const maxButton = event.target.closest("[data-atk-skill-max]");
-      if (maxButton) {
-        const skillId = maxButton.dataset.atkSkillMax;
-        const skill = skillById(skillId);
-        if (skill) {
-          state.skillLevels[String(skillId)] = skillAssignableMax(skill);
-          clampSkillLevelsToBudgets(skillId);
-          renderAll();
-        }
-        return;
-      }
-      const addButton = event.target.closest("[data-atk-add-buff]");
-      if (addButton) {
-        state.selectedItemBuffs.add(String(addButton.dataset.atkAddBuff));
-        renderAll();
-        return;
-      }
-      const removeButton = event.target.closest("[data-atk-remove-buff]");
-      if (removeButton) {
-        state.selectedItemBuffs.delete(String(removeButton.dataset.atkRemoveBuff));
-        renderAll();
-      }
-    });
-  }
-
-  function init() {
-    els = {
-      status: document.getElementById("atkStatus"),
-      body: document.getElementById("atkBody"),
-      meta: document.getElementById("atkBuildMeta"),
-      reset: document.getElementById("atkResetBtn"),
-      job: document.getElementById("atkJob"),
-      weapon: document.getElementById("atkWeapon"),
-      level: document.getElementById("atkLevel"),
-      spirit: document.getElementById("atkSpirit"),
-      spiritHint: document.getElementById("atkSpiritHint"),
-      baseBudget: document.getElementById("atkBaseBudget"),
-      baseStats: document.getElementById("atkBaseStats"),
-      equipStats: document.getElementById("atkEquipStats"),
-      weaponAtk: document.getElementById("atkWeaponAtk"),
-      equipAtk: document.getElementById("atkEquipAtk"),
-      weaponMag: document.getElementById("atkWeaponMag"),
-      equipMag: document.getElementById("atkEquipMag"),
-      manualPad: document.getElementById("atkManualPad"),
-      manualMad: document.getElementById("atkManualMad"),
-      skillReset: document.getElementById("atkSkillReset"),
-      skillBudget: document.getElementById("atkSkillBudget"),
-      skillTabs: document.getElementById("atkSkillTabs"),
-      skillList: document.getElementById("atkSkillList"),
-      partyBuffs: document.getElementById("atkPartyBuffs"),
-      itemBuffSearch: document.getElementById("atkItemBuffSearch"),
-      itemBuffResults: document.getElementById("atkItemBuffResults"),
-      itemBuffSelected: document.getElementById("atkItemBuffSelected"),
-      detail: document.getElementById("atkDetail"),
-    };
-    els.meta.textContent = "遊戲版本 " + ((db.metadata && db.metadata.gameVersion) || "未知") +
-      " · 資料時間 " + ((db.metadata && db.metadata.generatedAt) || "");
-    initFields();
-    initJobs();
-    setSpiritBlessingLevel(state.spiritBlessingLevel, false);
-    els.weaponAtk.value = currentJob() && currentJob().kind === "magic" ? 30 : 80;
-    els.weaponMag.value = currentJob() && currentJob().kind === "magic" ? 90 : 0;
-    applyJobDefaults();
-    setupEvents();
-    renderAll();
-    els.status.hidden = true;
-    els.body.hidden = false;
-  }
-
-  function load() {
-    if (loadPromise) return loadPromise;
-    loadPromise = fetch("data/db/damage_calc.json")
-      .then((res) => {
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        return res.json();
-      })
-      .then((data) => {
-        db = data;
-        init();
-      })
-      .catch((err) => {
-        console.error("[attack] 攻擊力計算資料載入失敗", err);
-        loadPromise = null;
-        const status = document.getElementById("atkStatus");
-        if (status) status.textContent = "資料載入失敗，請重新整理頁面再試";
-      });
-    return loadPromise;
-  }
-
-  window.MapleAttackCalc = { load };
+  calc();
 })();

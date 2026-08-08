@@ -40,9 +40,6 @@
     // 初次渲染由這裡觸發，不要讓 db.js 自己判斷「現在是不是在資料庫頁」——
     // 那種自檢寫法踩過兩次 script 載入順序的race
     if (page === "db" && window.MapleDb) window.MapleDb.load();
-    // 進練等計算頁時，若目前停在攻擊力計算/卷軸模擬子分頁，補觸發資料載入
-    // （側邊欄點子分頁時 nav.js 的子分頁監聽先跑、那時主分頁還沒切過來）
-    if (page === "calc") ensureCalcData(activeCalcSubtab);
     // 讓側邊欄（sidebar.js）知道現在在哪一頁，不管是誰觸發的切換
     // （側邊欄點擊、app.js 的「去哪練」跨頁連結、timer.js 的跨頁連結都算）
     document.dispatchEvent(new CustomEvent("maplenav:pagechange", { detail: { page } }));
@@ -97,6 +94,7 @@
   }
 
   // 「練等計算」/「攻擊力計算」/「卷軸強化模擬」子分頁切換
+  // （攻擊力計算資料還在核對，先隱藏，見 index.html 上的 hidden 屬性）
   const CALC_SUBTAB_KEY = "maple_classic_calc_subtab";
   const calcSubtabs = [
     { key: "exp", btn: document.getElementById("calcSubExp"), view: document.getElementById("calcExpView") },
@@ -106,23 +104,7 @@
     { key: "hit", btn: document.getElementById("calcSubHit"), view: document.getElementById("calcHitView") },
   ];
 
-  // 攻擊力計算／卷軸模擬的資料檔各約 1MB（gzip 前），切到那個子分頁才抓。
-  // 跟資料庫頁同一套規矩：初次載入由 nav.js 觸發，模組自己不判斷「現在
-  // 是不是在這一頁」——那種自檢寫法踩過兩次 script 載入順序的 race。
-  // 只在練等計算主分頁真的可見時才抓：載入時 showCalcSubtab 會為了還原
-  // 上次的子分頁而執行，那時人可能根本在首頁
-  function ensureCalcData(key) {
-    if (pages.calc.hidden) return;
-    if (key === "attack" && window.MapleAttackCalc) window.MapleAttackCalc.load();
-    if (key === "scroll" && window.MapleScrollSim) window.MapleScrollSim.load();
-  }
-
-  // var 不是筆誤：switchNav(initialPage) 在這行執行前就會跑，let 會踩 TDZ；
-  // var 提升後初始 switchNav 拿到 undefined，ensureCalcData 安全略過
-  var activeCalcSubtab = "exp";
-
   function showCalcSubtab(key, skipSave) {
-    activeCalcSubtab = key;
     calcSubtabs.forEach((tab) => {
       const isActive = tab.key === key;
       tab.view.hidden = !isActive;
@@ -130,7 +112,6 @@
       tab.btn.setAttribute("aria-selected", isActive ? "true" : "false");
     });
     if (!skipSave) localStorage.setItem(CALC_SUBTAB_KEY, key);
-    ensureCalcData(key);
   }
 
   calcSubtabs.forEach((tab) => tab.btn.addEventListener("click", () => showCalcSubtab(tab.key)));
