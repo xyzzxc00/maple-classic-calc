@@ -439,6 +439,14 @@
        上線日 -->
   <div class="section-head"><h2>最新更新</h2></div>
   <div class="feed-list">
+    <button class="feed-item" type="button" data-nav-page="calc" data-nav-subtab="attack">
+      <span class="feed-tag">計算工具</span>
+      <span class="feed-text">
+        <span class="feed-title">攻擊力計算新增主教「群體治癒」對不死系怪物的傷害</span>
+        <span class="feed-desc">群體治癒的傷害同時吃智力與幸運、不吃熟練度，公式跟一般魔法技能完全不同；選好範圍內的不死怪數量就會算出上下限，補到的怪越少單隻傷害越高</span>
+      </span>
+      <span class="feed-date">08/09</span>
+    </button>
     <button class="feed-item" type="button" data-nav-page="db" data-nav-subtab="items">
       <span class="feed-tag">資料庫</span>
       <span class="feed-text">
@@ -460,14 +468,6 @@
       <span class="feed-text">
         <span class="feed-title">資料庫大改版：怪物數值表格、道具／NPC／任務分類瀏覽、商店總覽、技能職業樹</span>
         <span class="feed-desc">怪物改成可排序的完整數值表（含屬性弱點與等級快速篩選）；NPC 依轉職教官／任務／商店分類、任務依城鎮分類；新增「商店」分頁看全部 NPC 在賣什麼</span>
-      </span>
-      <span class="feed-date">08/08</span>
-    </button>
-    <button class="feed-item" type="button" data-nav-page="db" data-nav-subtab="world">
-      <span class="feed-tag">資料庫</span>
-      <span class="feed-text">
-        <span class="feed-title">世界地圖改成圓點＋預覽卡，地圖列表新增「城鎮」分類</span>
-        <span class="feed-desc">滑過圓點直接看那張圖的小地圖預覽，不再滿版文字互相遮擋；地圖也能依弓箭手村、勇士之村等城鎮瀏覽</span>
       </span>
       <span class="feed-date">08/08</span>
     </button>
@@ -727,6 +727,23 @@
         <span>其他魔攻 BUFF</span>
         <input type="number" id="atkManualMad" min="0" step="1" value="0" inputmode="numeric" autocomplete="off">
       </label>
+    </div>
+
+    <div id="atkHealBlock" hidden>
+      <div class="panel-head scroll-sub-head"><h3>群體治癒（對不死系怪物）</h3></div>
+      <p class="exp-rate-hint">治癒的傷害會分攤給範圍內的所有目標（包含自己），補到的怪越少、單隻傷害越高，最多同時打 5 隻。</p>
+      <div class="field-grid atk-field-grid">
+        <label class="field">
+          <span>範圍內不死怪數量</span>
+          <select id="atkHealTargets">
+            <option value="1">1 隻</option>
+            <option value="2">2 隻</option>
+            <option value="3">3 隻</option>
+            <option value="4">4 隻</option>
+            <option value="5">5 隻</option>
+          </select>
+        </label>
+      </div>
     </div>
   </section>
 

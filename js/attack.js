@@ -75,6 +75,9 @@
     [/海盜加農炮/, 4],
   ];
 
+  // 群體治癒一次最多補到 5 隻怪（第 6 個目標是自己）
+  const MAX_HEAL_TARGETS = 5;
+
   const STORE_KEY = "maple_attack_calc_v1";
 
   let db = null;
@@ -120,9 +123,10 @@
   // 使用者填的整份設定都留著，下次進站直接接續——這個計算機要填的欄位
   // 不少（配點＋技能點＋裝備數值），每次重來很煩。存的是「使用者的輸入」，
   // 不是計算結果，所以資料更新後照樣套得回去
-  const NUMBER_FIELD_IDS = [
+  // 存的是 el.value，所以 <select>（atkHealTargets）跟 <input> 一樣通用
+  const PERSISTED_FIELD_IDS = [
     "atkWeaponAtk", "atkEquipAtk", "atkWeaponMag", "atkEquipMag",
-    "atkManualPad", "atkManualMad",
+    "atkManualPad", "atkManualMad", "atkHealTargets",
   ];
 
   function statFieldIds() {
@@ -141,7 +145,7 @@
     if (!ready) return;
     try {
       const fields = {};
-      NUMBER_FIELD_IDS.concat(statFieldIds()).forEach((id) => {
+      PERSISTED_FIELD_IDS.concat(statFieldIds()).forEach((id) => {
         const el = document.getElementById(id);
         if (el) fields[id] = el.value;
       });
@@ -701,7 +705,23 @@
     return /(爆擊|暴擊|臨界|致命一擊|出現比率)/.test(text) && !/消耗\s*(?:HP|MP|HP、MP|MP、HP)/.test(text);
   }
 
+  // 群體治癒這種「補血順便打不死系」的技能，資料上只有恢復力（hp），沒有
+  // 任何傷害欄位，所以下面 isDamageSkill 那條路認不出來，得靠技能敘述判斷
+  function isHealDamageSkill(skill) {
+    return /不死/.test((skill && skill.description) || "") &&
+      ((skill && skill.levels) || []).some((row) => (row.values || {}).hp);
+  }
+
+  function healDamageSkill() {
+    return jobSkills().find(isHealDamageSkill) || null;
+  }
+
+  function healUndeadCount() {
+    return clampNumber(els && els.healTargets && els.healTargets.value, 1, MAX_HEAL_TARGETS, 1);
+  }
+
   function isDamageSkill(skill) {
+    if (isHealDamageSkill(skill)) return true;
     if (isCriticalPassiveSkill(skill)) return false;
     return (skill.levels || []).some((row) => {
       const values = { ...(row.values || {}), ...parseLevelText(row.description || "") };
@@ -748,10 +768,41 @@
     return { min, max, hits: hitCount(skill, values), percent: basic, note: "魔法基本攻擊力" };
   }
 
+  /**
+   * 群體治癒打不死系怪物的傷害。跟一般魔法技能是完全不同的公式：
+   * 同時吃智力與幸運，智力係數 0.3~1.2、幸運係數固定 1.0，而且**不吃熟練度**
+   * ——所以下限只有上限的三成左右（一般魔法技能約七成五），傷害特別飄。
+   *
+   * 目標乘數 = 1.5 + 5 ÷ (範圍內目標總數)，目標總數要把自己算進去，所以
+   * 打 n 隻不死怪時是 1.5 + 5 ÷ (n + 1)。**這裡是最容易抄錯的地方**：來源
+   * 的對照表寫「1個目標: 6.5」，那個 6.5 是自補、範圍內沒有怪的情況；打
+   * 1 隻怪要用 4。照字面把 6.5 套在 1 隻怪上會讓傷害虛高約六成。
+   *
+   * 來源：巴哈 85994 板〈[全智]or[裝備] 經典服法師起手到底該怎麼選〉一文
+   * 與作者附的試算表。已拿試算表自己的五組數字（1~5 隻怪的上下限）反推
+   * 驗證，五組全部吻合，反推出的技能係數 2.998 也對上資料庫的 Lv.30 恢復力
+   * 300%。試算表另外會扣怪物魔防（上限 ×0.5、下限 ×0.6），我們這裡跟其他
+   * 技能一致不扣，卡片下方本來就標示了「未計入怪物防禦與屬性相剋」。
+   */
+  function healSkillDamage(skill, values, range) {
+    const percent = Number(values.hp || 0);
+    if (!percent) return null;
+    const undead = healUndeadCount();
+    const factor = range.magicAttack / 1000 * (percent / 100) * (1.5 + 5 / (undead + 1));
+    return {
+      min: Math.floor((range.stats.int * 0.3 + range.stats.luk) * factor),
+      max: Math.floor((range.stats.int * 1.2 + range.stats.luk) * factor),
+      hits: 1,
+      percent,
+      note: "對不死系 · 範圍內 " + undead + " 隻 · " + percent + "%",
+    };
+  }
+
   function skillDamage(skill, range) {
     const level = skillLevel(skill.id);
     if (!level) return null;
     const values = selectedSkillValues(skill);
+    if (isHealDamageSkill(skill)) return healSkillDamage(skill, values, range);
     if (!values.damage && !values.z && !values.mad) return null;
     const job = currentJob();
     return job.kind === "magic"
@@ -921,6 +972,10 @@
   function renderDetail() {
     const job = currentJob();
     const range = getAttackRange();
+    // 「不死怪數量」只對真的點了群體治癒的職業有意義：沒點就沒有傷害卡片，
+    // 留一個沒有對應輸出的欄位只會讓人猜它在做什麼
+    const healSkill = healDamageSkill();
+    if (els.healBlock) els.healBlock.hidden = !healSkill || !skillLevel(healSkill.id);
     const damageSkills = jobSkills().filter(isDamageSkill);
     const activeDamageRows = damageSkills
       .map((skill) => ({ skill, result: skillDamage(skill, range) }))
@@ -1054,6 +1109,7 @@
     els.equipMag.value = "0";
     els.manualPad.value = "0";
     els.manualMad.value = "0";
+    if (els.healTargets) els.healTargets.value = "1";
     for (const stat of STAT_KEYS) {
       const base = baseStatInput(stat);
       const equip = document.getElementById("atkEquip" + stat.toUpperCase());
@@ -1093,6 +1149,14 @@
       renderAll();
       saveState();
     });
+    // 下面的 input/change 委派只處理 HTMLInputElement，<select> 不會進去，
+    // 所以這一顆要自己綁。只影響傷害數字，用 renderLive 就夠
+    if (els.healTargets) {
+      els.healTargets.addEventListener("change", () => {
+        renderLive();
+        saveState();
+      });
+    }
     view.addEventListener("input", (event) => {
       const target = event.target;
       if (!(target instanceof HTMLInputElement)) return;
@@ -1234,6 +1298,8 @@
       itemBuffSearch: document.getElementById("atkItemBuffSearch"),
       itemBuffResults: document.getElementById("atkItemBuffResults"),
       itemBuffSelected: document.getElementById("atkItemBuffSelected"),
+      healBlock: document.getElementById("atkHealBlock"),
+      healTargets: document.getElementById("atkHealTargets"),
       detail: document.getElementById("atkDetail"),
     };
     initFields();
