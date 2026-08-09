@@ -231,7 +231,7 @@ def page(mon, prev_next):
 
 <main>
 <div class="article-wrap">
-  <p class="article-breadcrumb"><a href="../../../#home">首頁</a> ／ <a href="../../../#db-monsters">怪物資料庫</a> ／ {esc(name)}</p>
+  <p class="article-breadcrumb"><a href="../../../#home">首頁</a> ／ <a href="../../../#db-monsters">怪物資料庫</a> ／ <a href="../">全部怪物</a> ／ {esc(name)}</p>
 
   <article class="article-body static-monster">
     <div class="static-hero">

@@ -347,21 +347,6 @@ a:hover { text-decoration-color: var(--accent-hover); }
   color: var(--ink-faint);
 }
 .field-count.near-limit { color: var(--warning); }
-.field-inline {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--ink-soft);
-  font-weight: 500;
-  cursor: pointer;
-}
-.field-inline input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--accent);
-  cursor: pointer;
-}
 /* 自訂倍率生效時要有跟 mult-btn.active 一致的視覺語言，
    不然打了自訂數字之後五個預設按鈕全部變回未選取，看起來像沒生效 */
 #customMult.mult-custom-active {
@@ -721,30 +706,13 @@ a:hover { text-decoration-color: var(--accent-hover); }
   padding-top: 16px;
 }
 .scroll-sub-head h3 { margin: 0; font-size: 15px; color: var(--ink-soft); }
-@media (max-width: 560px) {
-  .scroll-sub-head #scrollResetSimBtn { width: 100%; }
-}
-.scroll-sim-status {
-  font-size: 14px;
-  margin: 10px 0;
-}
-.scroll-sim-status strong { color: var(--accent-text); }
 .scroll-sim-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
 .scroll-sim-controls .btn { flex: 1 1 140px; }
 @media (max-width: 560px) {
   .scroll-sim-controls { flex-direction: column; }
   .scroll-sim-controls .btn { flex: none; width: 100%; }
 }
-.scroll-sim-result {
-  font-weight: 700;
-  margin-top: 12px;
-  padding: 10px 14px;
-  border-radius: var(--radius-md);
-  background: var(--accent-tint);
-  border: 1px solid var(--accent-border);
-}
 .scroll-sim-dist { margin-top: 14px; }
-.scroll-sim-dist-title { font-size: 13px; color: var(--ink-soft); margin-bottom: 8px; }
 .scroll-sim-dist-row { display: flex; align-items: center; gap: 10px; font-size: 13px; padding: 4px 0; }
 .scroll-sim-dist-label { flex: 0 0 56px; color: var(--ink-soft); }
 .scroll-sim-dist-bar-track {
@@ -1373,6 +1341,12 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   cursor: default;
 }
 
+/* 世界地圖與小地圖的底圖永遠是亮色手繪圖（見下方註解，刻意不跟主題反轉），
+   所以疊在圖上的焦點框也要釘死成淺色側的值——深色模式的 --accent 疊在亮
+   底上只有 2.85:1，低於 WCAG 2.4.11 的 3:1 */
+.db-world-figure :focus-visible,
+.db-map-figure :focus-visible { outline-color: #5C6640; }
+
 /* 小地圖：原圖只有一百多像素寬，放大時用 pixelated 保留鋸齒，比模糊插值
    好看也比較像遊戲內。標記位置在匯入時就換算成百分比，所以圖怎麼縮放都對得上 */
 /* 容器要有寬度，圖才放得大：原圖只有一兩百像素寬，用 inline-block 會被
@@ -1476,7 +1450,13 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   padding: 6px 12px;
   font-size: 12px;
 }
-.db-map-toggles .cm-sort-btn:not(.active) { opacity: 0.55; }
+/* 未選取態用實色靜音，不要用 opacity——opacity 會把文字連同底色一起
+   稀釋到 2.4:1。這是二選一切換器的另一邊（不是 disabled），使用者要讀
+   得到才知道能切去哪 */
+.db-map-toggles .cm-sort-btn:not(.active) {
+  background: var(--surface-tint);
+  color: var(--ink-soft);
+}
 
 /* 列表的「再顯示 N 筆」：資料集一次只鋪一批，其餘按這顆補上來 */
 .db-more {
@@ -1598,7 +1578,6 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   border-color: #5c6640;
   z-index: 3;
 }
-.db-wnode--plain { cursor: default; opacity: 0.75; }
 /* 跨區入口：實心配色跟一般節點分開，一看就知道點了會離開這張圖 */
 .db-wnode--region {
   background: #5c6640;
@@ -1790,8 +1769,6 @@ body.dark .db-eltag--undead { background: #2b2838; color: #b7addb; border-color:
 }
 .db-skill-icon:hover { border-color: var(--accent-text); background: var(--accent-tint); }
 .db-skill-icon img { image-rendering: pixelated; }
-.db-town-head--static { cursor: default; }
-.db-town-head--static:hover .db-town-title { color: var(--ink); }
 
 /* ---------- 單一職業的技能總覽 ----------
    兩欄卡片，每張一招。需要前置技能的往內縮一階並拉一條接續線，一眼看得出
@@ -1857,8 +1834,15 @@ body.dark .db-eltag--undead { background: #2b2838; color: #b7addb; border-color:
 .db-skill-badge--req { color: var(--danger); border-color: var(--danger); font-weight: 500; }
 /* 對得上技能的前置：做成可點，點了直接看那一招 */
 .db-skill-badge--link { cursor: pointer; }
+/* 底色用中性的 accent-tint、danger 只當文字與邊框——深色模式的 --danger
+   是給暗底配的淺色調，拿來當實心底再配白字只有 2.68:1。這條規則本檔
+   稍早（.cm-remove-btn 那段）已經寫過，這裡當初漏了 */
 .db-skill-badge--link:hover,
-.db-skill-badge--link:focus-visible { background: var(--danger); color: #fff; }
+.db-skill-badge--link:focus-visible {
+  background: var(--accent-tint);
+  color: var(--danger);
+  border-color: var(--danger);
+}
 /* 觸控裝置沒有 hover 提示，徽章又只有 22px 高——把點擊區撐大一點才好按 */
 @media (pointer: coarse) {
   .db-skill-badge--link { padding: 5px 10px; }
@@ -1927,11 +1911,14 @@ body.dark .db-eltag--undead { background: #2b2838; color: #b7addb; border-color:
   background: #8a5cc4;
   z-index: 4;
 }
+/* 「本站沒收錄這張地圖」的點：形狀跟可點的節點一樣，只靠顏色區分，所以
+   顏色本身要看得見。原本的 #9b988a 疊在偏黃的手繪底圖上只有 2.29:1，
+   低於 WCAG 1.4.11 對資訊性圖形的 3:1（實測改後 vs 描邊 5.26、vs 圖底 4.24） */
 .db-wdot--plain {
-  background: #9b988a;
+  background: #6E6B5C;
   cursor: default;
 }
-.db-wdot--plain:hover { transform: translate(-50%, -50%); background: #9b988a; }
+.db-wdot--plain:hover { transform: translate(-50%, -50%); background: #6E6B5C; }
 
 /* 預覽卡：跟著滑到的點出現，上下左右依點的位置翻邊，避免被面板裁掉 */
 .db-wcard {
@@ -2709,8 +2696,6 @@ body.has-sidebar .theme-toggle {
 }
 .feed-item + .feed-item { border-top: 1px solid var(--border); }
 .feed-item:hover { background: var(--surface-tint); }
-.feed-item--static { cursor: default; }
-.feed-item--static:hover { background: var(--surface); }
 .feed-tag {
   font-size: 10.5px;
   font-weight: 700;
@@ -2891,7 +2876,8 @@ body.has-sidebar .theme-toggle {
   color: var(--ink-soft);
   white-space: nowrap;
 }
-.atk-pill--empty { opacity: 0.55; }
+/* 同上：用虛線邊框表達「這階段還沒有點數可用」，文字保持可讀 */
+.atk-pill--empty { border-style: dashed; color: var(--ink-faint); }
 .atk-skill-tabs { margin-bottom: 10px; }
 .atk-skill-list { display: grid; gap: 8px; }
 .atk-skill-row {
@@ -2904,7 +2890,12 @@ body.has-sidebar .theme-toggle {
   border-radius: var(--radius-md);
   background: var(--surface);
 }
-.atk-skill-row--locked { opacity: 0.55; }
+/* 用底色與虛線邊框表達「還不能點」，不用 opacity——列裡的 input 確實是
+   disabled，但技能名與「需先用盡零轉點數」是使用者必須讀懂的資訊 */
+.atk-skill-row--locked {
+  background: var(--surface-tint);
+  border-style: dashed;
+}
 .atk-skill-icon {
   width: 32px;
   height: 32px;
@@ -3262,3 +3253,11 @@ body.has-sidebar .theme-toggle {
 /* 楓幣掉落改成純說明時，section-note 預設的負上邊距（貼區塊標題用的）
    會讓它咬住標題 */
 .db-section-note--flush { margin-top: 4px; }
+
+
+/* 排序／視圖切換鈕在觸控裝置上要夠好按：桌機的 12px 上下內距算出來只有
+   33px 高，低於行動裝置的舒適點擊尺寸。這排（分類/清單、排序）是資料庫
+   最常用的操作，值得多給一點高度 */
+@media (pointer: coarse) {
+  .cm-sort-btn { padding: 14px 16px; min-height: 44px; }
+}

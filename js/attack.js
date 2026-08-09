@@ -130,7 +130,15 @@
       .concat(STAT_KEYS.map((stat) => "atkEquip" + stat.toUpperCase()));
   }
 
+  // 初始化期間一律不准存檔。init() 的流程是「先填職業預設值 → 再把使用者
+  // 存的值蓋回去」，而中間 applyJobDefaults() → renderWeaponOptions() 會呼叫
+  // saveState()——那一刻畫面上還是預設值，等於把使用者的設定覆蓋掉。
+  // 症狀很難察覺：畫面之後被 restoreFields() 蓋成正確的值，看起來一切正常，
+  // 但 localStorage 已經是預設值了，要等下一次開啟才發現資料不見
+  let ready = false;
+
   function saveState() {
+    if (!ready) return;
     try {
       const fields = {};
       NUMBER_FIELD_IDS.concat(statFieldIds()).forEach((id) => {
@@ -1054,8 +1062,8 @@
     }
     applyJobDefaults();
     clampSkillLevelsToBudgets();
-    saveState();
     renderAll();
+    saveState();
   }
 
   function setupEvents() {
@@ -1063,13 +1071,17 @@
     els.skillReset.addEventListener("click", () => {
       state.skillLevels = {};
       clampSkillLevelsToBudgets();
-      saveState();
       renderAll();
+      saveState();
     });
     els.job.addEventListener("change", () => {
       state.jobId = els.job.value;
       state.skillLevels = {};
       state.skillTab = "零轉";
+      // 換職業就重設成該職業的第一把武器。不清掉的話，只要新舊職業碰巧都
+      // 能裝這把（例如法師的清單裡其實也有單手劍），就會沿用舊的——換到
+      // 大魔導士卻拿著劍、表攻還用 STR×4.0 去算，數字低得莫名其妙
+      state.weaponType = "";
       saveState();
       setCharacterLevel(state.characterLevel, true);
       applyJobDefaults();
@@ -1078,8 +1090,8 @@
     });
     els.weapon.addEventListener("change", () => {
       state.weaponType = els.weapon.value;
-      saveState();
       renderAll();
+      saveState();
     });
     view.addEventListener("input", (event) => {
       const target = event.target;
@@ -1119,8 +1131,8 @@
         const skill = skillById(skillId);
         const max = skillAssignableMax(skill);
         state.skillLevels[String(skillId)] = Math.max(0, Math.min(max, Number(target.value || 0)));
-        saveState();
         renderLive();
+        saveState();
         return;
       }
       const partyBuffId = target.dataset.atkPartyBuffLevel;
@@ -1128,13 +1140,13 @@
         const buff = partyBuffById(partyBuffId);
         const max = Number((buff && buff.maxLevel) || 0);
         state.partySkillBuffLevels[String(partyBuffId)] = Math.max(0, Math.min(max, Number(target.value || 0)));
-        saveState();
         renderLive();
+        saveState();
         return;
       }
       // 武器攻擊力、裝備加成那些純數字欄位：不需要重建任何列表
-      saveState();
       renderLive();
+      saveState();
     });
     // change（失焦／Enter）才把值規範化並整個重繪——列表重建會換掉 DOM，
     // 放在這裡才不會打斷打字
@@ -1144,8 +1156,8 @@
       const partySkillBuff = target.dataset.atkPartyBuff;
       if (partySkillBuff) {
         state.activePartySkillBuffs[String(partySkillBuff)] = target.checked;
-        saveState();
         renderAll();
+        saveState();
         return;
       }
       if (target === els.level) setCharacterLevel(target.value, true, true);
@@ -1155,15 +1167,15 @@
         target.value = String(baseStatValue(stat));
       }
       if (target.dataset.atkSkillLevel) advanceSkillTabIfDone();
-      saveState();
       renderAll();
+      saveState();
     });
     view.addEventListener("click", (event) => {
       const tabButton = event.target.closest("[data-atk-skill-tab]");
       if (tabButton) {
         state.skillTab = tabButton.dataset.atkSkillTab || "零轉";
-        saveState();
         renderAll();
+        saveState();
         return;
       }
       const maxButton = event.target.closest("[data-atk-skill-max]");
@@ -1174,8 +1186,8 @@
           state.skillLevels[String(skillId)] = skillAssignableMax(skill);
           clampSkillLevelsToBudgets(skillId);
           advanceSkillTabIfDone();
-          saveState();
           renderAll();
+          saveState();
         }
         return;
       }
@@ -1183,12 +1195,14 @@
       if (addButton) {
         state.selectedItemBuffs.add(String(addButton.dataset.atkAddBuff));
         renderAll();
+        saveState();
         return;
       }
       const removeButton = event.target.closest("[data-atk-remove-buff]");
       if (removeButton) {
         state.selectedItemBuffs.delete(String(removeButton.dataset.atkRemoveBuff));
         renderAll();
+        saveState();
       }
     });
   }
@@ -1232,6 +1246,8 @@
     restoreFields();
     clampBaseStats();
     setupEvents();
+    // 到這裡畫面已經是「使用者上次的狀態」，之後的存檔才存得到對的東西
+    ready = true;
     renderAll();
     els.status.hidden = true;
     els.body.hidden = false;

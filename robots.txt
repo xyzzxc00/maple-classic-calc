@@ -40,4 +40,22 @@ Allow: /
 User-agent: CCBot
 Allow: /
 
+User-agent: meta-externalagent
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: DuckAssistBot
+Allow: /
+
+User-agent: MistralAI-User
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
 Sitemap: https://mapleclassictools.com/sitemap.xml

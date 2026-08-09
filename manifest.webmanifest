@@ -1,7 +1,7 @@
 {
   "name": "新楓之谷經典版 練等 × 社群工具",
   "short_name": "楓谷練等工具",
-  "description": "新楓之谷經典版練等計算機：經驗值試算、加倍卷用量、EXP 測速計時器、社群練功地點資料庫。",
+  "description": "新楓之谷經典版工具站：練等經驗值試算、攻擊力與命中計算、卷軸強化模擬，以及怪物／地圖／道具／NPC／任務／技能資料庫。",
   "lang": "zh-Hant",
   "start_url": "./",
   "scope": "./",
@@ -9,7 +9,10 @@
   "orientation": "portrait",
   "background_color": "#F6F5F1",
   "theme_color": "#5C6640",
-  "categories": ["games", "utilities"],
+  "categories": [
+    "games",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "favicon.svg",

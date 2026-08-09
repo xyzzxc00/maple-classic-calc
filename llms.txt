@@ -2,7 +2,7 @@
 
 > 台版新楓之谷經典版（橘子遊戲 beanfun 代理，2026 年 7 月 29 日正式上線）的非官方玩家工具站。提供練等經驗值計算機、命中率計算機、加倍卷試算、卷軸強化模擬器、轉蛋機率模擬器、遊戲資料庫（怪物／地圖／道具／NPC／任務／技能／世界地圖）、玩法攻略與社群練功地點回報。遊戲版本以 2007～2008 年 pre-Big Bang 舊楓之谷為準。
 
-最後更新：2026-08-07
+最後更新：2026-08-09
 
 重要事實：
 
@@ -22,7 +22,7 @@
 - [練等計算機（首頁）](https://mapleclassictools.com/): 輸入目前等級與目標等級，自動計算所需經驗值、預估練功時間、加倍卷用量，附倒數計時器與 EXP 測速
 - [命中率計算](https://mapleclassictools.com/#calc-hit): 選擇怪物自動帶入等級與迴避，計算物理／魔法命中率、100% 命中所需值與還差多少
 - [攻擊力計算](https://mapleclassictools.com/#calc-attack): 依職業技能表配點（含轉職 SP 預算與前置技能檢查）、隊伍與道具 BUFF，計算表攻範圍與各技能理論傷害，資料取自經典版客戶端拆包
-- [卷軸強化模擬器](https://mapleclassictools.com/#calc-scroll): 從 2,000+ 件裝備挑一件、混搭卷軸，以動態規劃算出最低平均成本的衝卷順序、達標機率與期望成本，再以蒙地卡羅模擬給出成本分布
+- [卷軸強化模擬器](https://mapleclassictools.com/#calc-scroll): 從 969 件裝備挑一件、搭配 106 種卷軸，以動態規劃算出最低平均成本的衝卷順序、達標機率與期望成本，再以蒙地卡羅模擬給出成本分布
 - [轉蛋機率模擬器](https://mapleclassictools.com/#calc-gacha): 採官方公布機率的純前端模擬，不涉及真實貨幣
 - [攻略文章列表](https://mapleclassictools.com/guides/): 全部練功攻略文章的總覽入口
 
@@ -37,8 +37,19 @@
 - [NPC](https://mapleclassictools.com/#db-npcs): 236 位。所在地圖、經手的任務、販售的商品
 - [任務](https://mapleclassictools.com/#db-quests): 264 個。接取條件、完成條件、獎勵、後續任務
 - [技能](https://mapleclassictools.com/#db-skills): 208 個。每一級的數值明細
+- [商店](https://mapleclassictools.com/#db-shops): 36 間。哪個 NPC 在哪張地圖賣什麼、賣多少錢
 
 掉落資料只有「會掉什麼」，**沒有掉落機率**——遊戲資料檔本身沒有記錄。
+
+每一隻怪都有獨立、可直接引用的網址：`https://mapleclassictools.com/db/monster/<怪物ID>/`
+（例如樹妖王是 `/db/monster/3220000/`），總覽在 https://mapleclassictools.com/db/monster/ 。
+這些是伺服器端就渲染好的靜態頁，不需要執行 JavaScript 就讀得到完整內容。
+
+道具可依職業（劍士／法師／弓箭手／盜賊／海盜）與類型（防具／武器／飾品分組）篩選；
+技能可依五大職業的轉職路線篩選（例如「冰／雷」會一次列出法師入門到魔導士(冰雷)的全部技能）。
+
+BOSS 的楓幣掉落刻意不列數字：遊戲資料檔只有依等級推估的公式值，玩家實測 BOSS 多半
+不會掉落楓幣，兩者對不上，所以標示為「沒有可靠資料」而不是給一個推估值。
 
 ## 攻略文章
 

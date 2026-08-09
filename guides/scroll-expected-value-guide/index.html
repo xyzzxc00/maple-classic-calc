@@ -22,7 +22,7 @@
 <meta property="og:site_name" content="新楓之谷經典版 練等 × 社群工具">
 <meta property="og:locale" content="zh_TW">
 <meta property="og:url" content="https://mapleclassictools.com/guides/scroll-expected-value-guide/">
-<meta property="og:image" content="https://mapleclassictools.com/og-image.png?v=10">
+<meta property="og:image" content="https://mapleclassictools.com/og-image.png?v=11">
 <meta property="og:image:width" content="2400">
 <meta property="og:image:height" content="1260">
 <meta property="og:title" content="卷軸強化期望值怎麼算？新楓之谷經典版卷軸解析">
@@ -30,7 +30,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="卷軸強化期望值怎麼算？新楓之谷經典版卷軸解析">
 <meta name="twitter:description" content="為什麼提早放棄報廢裝備反而更省錢？用實際數字拆解卷軸強化的期望值計算邏輯。">
-<meta name="twitter:image" content="https://mapleclassictools.com/og-image.png?v=10">
+<meta name="twitter:image" content="https://mapleclassictools.com/og-image.png?v=11">
 <meta name="author" content="xyzzxc00">
 <meta name="keywords" content="新楓之谷經典版,卷軸強化,期望值,卷軸機率,強化模擬,MapleStory Classic">
 <link rel="canonical" href="https://mapleclassictools.com/guides/scroll-expected-value-guide/">
@@ -158,23 +158,24 @@
     </div>
     <p>同樣條件下，如果把目標從「5 格全成功」放寬成「5 格裡有 4 格成功就好」，達標機率會跳到約 <strong>33.7%</strong>，平均只要約 <strong>3 件</strong>裝備就衝得出來——差距接近 4 倍。這就是為什麼很多玩家會刻意把目標設得比衝捲數低一點，不強求全滿。</p>
 
-    <h2>為什麼「失敗報廢張數」策略能省錢</h2>
+    <h2>為什麼「打掉重練」比硬衝到底省錢</h2>
     <p>假設你設定「如果最前面連續失敗到第 3 張都還沒成功一次，就直接放棄這件、換新的重來」。原因很直覺：如果前面已經連續失敗太多次，導致剩下的格數已經不可能湊到目標成功次數，繼續衝下去的卷軸錢注定是打水漂——不如提早認賠、換一件新裝備，把還沒花的卷軸錢省下來投資在下一件更有機會的裝備上。</p>
-    <p>這也是為什麼<a href="../../#calc-scroll">卷軸強化模擬</a>工具會分成「理論值」跟「衝卷模擬」兩部分：</p>
+    <p>這正是<a href="../../#calc-scroll">卷軸強化模擬</a>工具在做的事——你只要挑裝備、選卷軸、設定目標成功張數，剩下的它會自己算：</p>
     <ul>
-      <li><strong>理論值</strong>——假設完全不放棄、每件裝備都衝滿所有格數，算出來的基準參考</li>
-      <li><strong>衝卷模擬</strong>——真的套用你設定的報廢策略跑隨機模擬，因為提早放棄能省下不少卷軸錢，實際花費通常會比理論值低</li>
+      <li><strong>推薦策略</strong>——混搭多種卷軸時，自動搜尋「每強化出一件成品的平均成本」最低的使用順序，每衝一張後依結果重新決定下一張</li>
+      <li><strong>停損點</strong>——剩餘卷軸已經不可能達成目標時直接判定停損，不用你自己盯著算還有沒有機會</li>
+      <li><strong>成本分布</strong>——用同一套策略實際跑幾千次隨機模擬，給出平均、中位數與 P90／P95，讓你知道運氣差的時候要準備多少錢</li>
     </ul>
 
     <h2>怎麼用這個邏輯規劃預算</h2>
-    <p>實際規劃的時候，可以照這個順序想：</p>
+    <p>實際規劃的時候，可以照工具上的四個步驟想：</p>
     <ol>
-      <li>先設定裝備的衝捲數，跟你能接受的成功率（照卷軸實際標示）</li>
-      <li>試著把「目標成功張數」從全滿慢慢往下調，看達標機率跳升的幅度，抓一個機率跟需求之間你能接受的平衡點</li>
-      <li>設定一個合理的「失敗報廢張數」（不用等到衝滿才放棄，太早的連續失敗通常代表這件裝備氣數已盡）</li>
-      <li>填入裝備價格跟卷軸單價，看預期花費，跟自己的預算對照</li>
+      <li><strong>選裝備</strong>——挑你要衝的那件，可強化次數會自動帶出來，浮動屬性也可以照你手上那件的實際數值調整</li>
+      <li><strong>加卷軸</strong>——選好卷軸後填張數與「目標成功張數」。目標從全滿慢慢往下調，看達標機率跳升的幅度，抓一個機率跟需求之間能接受的平衡點</li>
+      <li><strong>填價格</strong>——裝備取得成本與各卷軸單價都填市價，期望成本才有意義</li>
+      <li><strong>看結果</strong>——重點看「理論期望總成本」（重做到成功強化出一件平均要花多少）與 P90，後者是運氣差時的預算上限</li>
     </ol>
-    <p>把這些數字都填進<a href="../../#calc-scroll">卷軸強化模擬</a>工具，理論值可以先抓一個心理準備，衝卷模擬則可以實際跑幾百幾千次看分布，比單純憑感覺猜要準確很多。</p>
+    <p>混搭不同成功率的卷軸時特別值得跑一次：先用便宜的低成功率卷試水溫、還是直接上高成功率卷比較划算，光靠直覺很難判斷，工具會直接把兩種順序的平均成本算給你看。</p>
 
     <h2>延伸閱讀</h2>
     <p>同樣是拆解計算機背後數學的姊妹篇：<a href="../coupon-stacking-guide/">加倍卷倍率怎麼疊、計算機的「加倍設定」該填多少</a>。</p>

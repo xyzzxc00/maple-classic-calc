@@ -70,6 +70,11 @@ jobs:
       - name: Check database integrity
         run: python3 tools/check_data.py
 
+      # FAQ 的 JSON-LD 與可見 HTML 對不上，Google 會讓整組 rich result 消失
+      # 而且不通知；文案裡的筆數與實際資料檔對不上會餵錯給 AI 檢索器
+      - name: Check SEO copy
+        run: python3 tools/check_seo_copy.py
+
       # 怪物靜態頁在建置時重產，不進版控——它們是 data/db 的衍生物，跟著
       # 資料一起改才不會有「頁面寫舊數值、資料庫寫新數值」的落差
       - name: Build monster static pages
