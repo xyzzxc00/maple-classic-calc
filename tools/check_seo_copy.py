@@ -15,6 +15,9 @@
    後者要注意：描述「正服是持續更新的版本」或「巴哈某篇文章持續更新中」
    是在講別人，不算違規，所以只擋「本站」語境下的承諾。
 
+4. **sitemap 列的網址不能帶 noindex** — 兩邊在對 Google 講相反的話。
+   2026-08-10 收過一次 Search Console 提醒，來源是隱私政策頁。
+
 用法：python tools/check_seo_copy.py
 有問題時 exit 1。
 
@@ -130,11 +133,42 @@ def check_copy_rules(problems):
     print(f"文案   檢查 {len(targets)} 個檔案的 Artale 與更新承諾")
 
 
+def check_sitemap_indexable(problems):
+    """sitemap 列出來的網址，頁面不能帶 noindex。
+
+    這兩件事互相矛盾：sitemap 是在跟 Google 說「請收錄」，noindex 是在說
+    「別收錄」。不會被懲罰，但 Search Console 會永久掛著一則「遭到 noindex
+    標記排除」——2026-08-10 就收到過一次，來源是隱私政策頁。真正的代價是
+    看習慣之後，哪天真的有頁面被誤設 noindex 也會一起被忽略。
+
+    只檢查 sitemap.xml 裡手寫的那些；怪物靜態頁是 build_monster_pages.py
+    產的、共用同一份外殼，不會單獨帶 noindex。
+    """
+    sitemap = read("sitemap.xml")
+    locs = re.findall(r"<loc>\s*([^<\s]+)\s*</loc>", sitemap)
+    checked = 0
+    for url in locs:
+        path = re.sub(r"^https?://[^/]+/", "", url)
+        rel = (path + "index.html") if path.endswith("/") or path == "" else path
+        full = os.path.join(ROOT, rel.replace("/", os.sep))
+        if not os.path.exists(full):
+            # 建置時才產生的頁面（怪物靜態頁）在原始碼裡本來就不存在，跳過
+            continue
+        checked += 1
+        if re.search(r'<meta[^>]+name=["\']robots["\'][^>]*noindex', read(rel), re.I):
+            problems.append(
+                f"{url} 在 sitemap 裡，但 {rel} 帶著 noindex"
+                "（兩者矛盾：要嘛從 sitemap 拿掉，要嘛拿掉 noindex）"
+            )
+    print(f"索引   sitemap {len(locs)} 條，比對 {checked} 個原始碼頁面的 noindex")
+
+
 def main():
     problems = []
     check_faq(problems)
     check_counts(problems)
     check_copy_rules(problems)
+    check_sitemap_indexable(problems)
     print()
     if problems:
         for p in problems:

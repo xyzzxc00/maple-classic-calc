@@ -66,10 +66,9 @@
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
-  <url>
-    <loc>https://mapleclassictools.com/privacy/</loc>
-    <lastmod>2026-08-02</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
-  </url>
+  <!-- 隱私政策刻意不列進 sitemap：它帶著 noindex（樣板頁，沒有搜尋價值，
+       收錄了只是多一頁薄內容）。列在這裡等於一邊叫 Google 收錄、一邊叫它
+       別收錄，Search Console 會一直掛著「遭到 noindex 標記排除」的提醒，
+       久了會蓋掉真正該注意的 noindex 誤設。頁面本身仍是 follow，站內連結
+       照樣傳遞，使用者也照樣進得去。tools/check_seo_copy.py 有擋這件事 -->
 </urlset>
