@@ -1,1 +1,1 @@
-{"id":2120000,"name":"寵物食品","desc":"寵物喜歡的飼料。增加飽滿感30。人不能吃","cat":"消耗","sub":"消耗","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"科爾","price":30,"currency":"楓幣","maps":["維多利亞 / 寵物公園","維多利亞 / 弓箭手村市集"]}],"quests":[],"crafts":[],"usedIn":[]}
+{"id":2120000,"name":"寵物食品","desc":"寵物喜歡的飼料。增加飽滿感30。人不能吃","note":"","cat":"消耗","sub":"消耗","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"科爾","price":30,"currency":"楓幣","maps":["維多利亞 / 寵物公園","維多利亞 / 弓箭手村市集"]}],"quests":[],"crafts":[],"usedIn":[]}

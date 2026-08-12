@@ -1,1 +1,1 @@
-{"id":4001008,"name":"通行證","desc":"用優惠券兌換而來的通行證。當角色擁有該通行證，才能前往下一階段。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"9300003","name":"超級綠水靈","level":40}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}
+{"id":4001008,"name":"通行證","desc":"用優惠券兌換而來的通行證。當角色擁有該通行證，才能前往下一階段。","note":"","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"9300003","name":"超級綠水靈","level":40}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

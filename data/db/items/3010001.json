@@ -1,1 +1,1 @@
-{"id":3010001,"name":"藍色木椅","desc":"只有在維多利亞港製作販售的藍色木椅。坐在上面每10秒可恢復HP 35。","cat":"裝飾","sub":"椅子","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"娜塔莎","price":1000,"currency":"楓幣","maps":["維多利亞 / 維多利亞防具店"]}],"quests":[],"crafts":[],"usedIn":[]}
+{"id":3010001,"name":"藍色木椅","desc":"只有在維多利亞港製作販售的藍色木椅。坐在上面每10秒可恢復HP 35。","note":"","cat":"裝飾","sub":"椅子","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"娜塔莎","price":1000,"currency":"楓幣","maps":["維多利亞 / 維多利亞防具店"]}],"quests":[],"crafts":[],"usedIn":[]}

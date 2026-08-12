@@ -602,23 +602,26 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids):
 
         equip = it.get("equipStats") or {}
 
-        # 裝備數值浮動：從怪物掉落或製作取得的裝備，能力值會在「基準 ± Δ」
-        # 內隨機，Δ = ceil(基準/10)，武器的物攻/魔攻封頂 ±5、其他欄位封頂
-        # ±10；商店與任務給的固定是基準值。規則是從 morris 整理的 1,501 件
-        # 浮動裝備反推出來的，3,893 個欄位全數吻合，零例外
+        # 裝備數值浮動：從怪物掉落或製作取得的裝備，能力值會在「基準 ± Δ」內
+        # 隨機。直接讀拆包本身給的 equipStatRanges（原始資料就算好了，不是
+        # 我們反推的），只在有掉落／製作來源時才會出現，跟本檔的
+        # drops/crafts 判斷邏輯完全一致（2026-08-12 驗證：1,449 件裝備裡
+        # 沒有任何一件是「沒有 drops/crafts 卻有這個欄位」的例外）。
+        #
+        # 2026-08-07~12 教訓：先前這裡是用「反推公式」（Δ = ceil(基準/10)，
+        # 武器封頂 ±5）——反推來源是參考網站當時*顯示出來*的範圍，不是原始
+        # 資料。事後比對 morris 拆包本身的 equipStatRanges 才發現公式錯了：
+        # 武器物攻/魔攻真正的封頂是 ±7、且係數多 +1（Δ = min(ceil(基準/10)+1,
+        # 7)），全站 90 件武器、180 個欄位當時全部算錯。直接讀原始欄位可以
+        # 徹底避免這種「反推公式錯了都不知道」的風險，以後拆包只要更新，
+        # 這裡自動跟著對，不用再猜規律。
+        raw_rng = it.get("equipStatRanges") or {}
         float_rng = {}
         if equip and (drops or crafts):
-            is_weapon = equip.get("attackSpeed") is not None
-            for k in ("incPAD", "incMAD", "incPDD", "incMDD",
-                      "incSTR", "incDEX", "incINT", "incLUK",
-                      "incMHP", "incMMP", "incACC", "incEVA",
-                      "incSpeed", "incJump"):
-                v = equip.get(k)
-                if not isinstance(v, (int, float)) or v <= 0:
-                    continue
-                cap = 5 if (is_weapon and k in ("incPAD", "incMAD")) else 10
-                delta = min(-(-int(v) // 10), cap)
-                float_rng[k] = [int(v) - delta, int(v) + delta]
+            for k, v in raw_rng.items():
+                mn, mx = v.get("min"), v.get("max")
+                if isinstance(mn, (int, float)) and isinstance(mx, (int, float)):
+                    float_rng[k] = [int(mn), int(mx)]
 
         out.append({
             "id": it["id"],
@@ -989,15 +992,23 @@ def build_index(details):
 # ------------------------------------------------------------------ 圖片搬運
 
 
-def copy_image(src_root, rel_path, dest_dir):
-    """來源記錄裡的路徑長這樣：./assets/items/1002067.png"""
+def copy_image(src_root, rel_path, dest_dir, dest_name=None):
+    """來源記錄裡的路徑長這樣：./assets/items/1002067.png
+
+    dest_name 沒給的話用來源檔名——這對絕大多數東西沒差，因為來源檔名本來
+    就跟自己的 ID 一樣。但活動/副本生成的怪物變體（例如月妙獎勵地圖的鋼豬，
+    ID 是 9300060）會共用基礎怪物的美術檔（圖檔名是 4230103.png），檔名跟
+    自己的 ID 對不上；前端固定用 assets/db/monsters/<id>.png 找圖，用來源
+    檔名存的話這種怪物就會顯示破圖。呼叫端知道「這張圖是給誰用的」，所以
+    monsters 這條路徑會明確帶 dest_name=f"{id}.png"。
+    """
     if not rel_path:
         return False
     src = os.path.join(src_root, rel_path.lstrip("./").replace("/", os.sep))
     if not os.path.exists(src):
         return False
     os.makedirs(dest_dir, exist_ok=True)
-    shutil.copy2(src, os.path.join(dest_dir, os.path.basename(src)))
+    shutil.copy2(src, os.path.join(dest_dir, dest_name or os.path.basename(src)))
     return True
 
 
@@ -1170,7 +1181,8 @@ def main():
 
     # 圖片：怪物本體 + 牠們會掉的道具 + 技能圖示
     shutil.rmtree(OUT_ASSETS, ignore_errors=True)
-    mon_imgs = sum(copy_image(src, m.get("image"), os.path.join(OUT_ASSETS, "monsters"))
+    mon_imgs = sum(copy_image(src, m.get("image"), os.path.join(OUT_ASSETS, "monsters"),
+                              f"{m['id']}.png")
                    for m in kept)
     item_paths = dict(item_img_paths)
     for m in kept:

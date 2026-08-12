@@ -1,1 +1,1 @@
-{"id":1032012,"name":"骷髏耳環","desc":"","cat":"裝備","sub":"耳環","sell":75000,"equip":{"incMDD":30,"price":75000,"reqLevel":50,"tuc":5},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"2047","name":"英雄所用過的舊戰劍","kind":"獎勵","count":1}],"crafts":[],"usedIn":[]}
+{"id":1032012,"name":"骷髏耳環","desc":"","note":"","cat":"裝備","sub":"耳環","sell":75000,"equip":{"incMDD":30,"price":75000,"reqLevel":50,"tuc":5},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"2047","name":"英雄所用過的舊戰劍","kind":"獎勵","count":1}],"crafts":[],"usedIn":[]}

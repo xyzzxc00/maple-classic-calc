@@ -30,7 +30,7 @@
 
 資料整理自遊戲資料檔，**只收錄目前已開放的地區與 Lv.100 以下內容**，未開放地區、四轉任務、未上線職業的技能一律不列（刻意的範圍界定，不是資料缺漏）。
 
-- [怪物](https://mapleclassictools.com/#db-monsters): 68 種。數值、屬性抗性、楓幣掉落區間、掉落物、出沒地圖與重生點，附練等試算與命中率試算
+- [怪物](https://mapleclassictools.com/#db-monsters): 71 種。數值、屬性抗性、楓幣掉落區間、掉落物、出沒地圖與重生點，附練等試算與命中率試算
 - [地圖](https://mapleclassictools.com/#db-maps): 353 張。可點擊的小地圖標記（怪物、NPC、傳送點）、出沒怪物、通往哪些地圖
 - [世界地圖](https://mapleclassictools.com/#db-world): 楓之島、維多利亞島、奇幻村、鯨魚號四大區域的連通圖，點地名可看該張地圖
 - [道具](https://mapleclassictools.com/#db-items): 1,373 件。裝備需求與加成（含掉落浮動範圍）、由哪些怪掉落、哪裡買得到、製作配方

@@ -1,1 +1,1 @@
-{"id":1402010,"name":"鋁球棍","desc":"","cat":"裝備","sub":"雙手劍","sell":1,"equip":{"attackSpeed":5,"incPAD":48,"price":1,"reqLevel":30,"tuc":7},"float":{"incPAD":[43,53]},"floatFrom":["怪物掉落"],"drops":[{"id":"3210800","name":"猴子","level":37}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}
+{"id":1402010,"name":"鋁球棍","desc":"","note":"","cat":"裝備","sub":"雙手劍","sell":1,"equip":{"attackSpeed":5,"incPAD":48,"price":1,"reqLevel":30,"tuc":7},"float":{"incPAD":[42,54]},"floatFrom":["怪物掉落"],"drops":[{"id":"3210800","name":"猴子","level":37}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

@@ -1,1 +1,1 @@
-{"id":2040701,"name":"鞋子敏捷卷軸60%","desc":"鞋子附加敏捷提升屬性。 成功率：60%，迴避率+2，命中率+1","cat":"消耗","sub":"卷軸","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"3220000","name":"樹妖王","level":35},{"id":"6130101","name":"蘑菇王","level":60}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}
+{"id":2040701,"name":"鞋子敏捷卷軸60%","desc":"鞋子附加敏捷提升屬性。 成功率：60%，迴避率+2，命中率+1","note":"","cat":"消耗","sub":"卷軸","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"3220000","name":"樹妖王","level":35},{"id":"6130101","name":"蘑菇王","level":60}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

@@ -1,1 +1,1 @@
-{"id":2000013,"name":"新手冒險家的紅色藥水","desc":"利用紅色藥草所製作的藥水，為新手冒險家而特別製作。 可恢復約40的HP。","cat":"消耗","sub":"藥水","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"1046","name":"比格斯的維多利亞故事","kind":"獎勵","count":100}],"crafts":[],"usedIn":[]}
+{"id":2000013,"name":"新手冒險家的紅色藥水","desc":"利用紅色藥草所製作的藥水，為新手冒險家而特別製作。 可恢復約40的HP。","note":"","cat":"消耗","sub":"藥水","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"1046","name":"比格斯的維多利亞故事","kind":"獎勵","count":100}],"crafts":[],"usedIn":[]}

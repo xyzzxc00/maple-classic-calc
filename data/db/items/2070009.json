@@ -1,1 +1,1 @@
-{"id":2070009,"name":"木製陀螺","desc":"用木材製作的陀螺。消耗完可再補充。 #c等級限制：10, 攻擊力+19","cat":"消耗","sub":"飛鏢","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"2130100","name":"黑斧木妖","level":22},{"id":"3220000","name":"樹妖王","level":35}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}
+{"id":2070009,"name":"木製陀螺","desc":"用木材製作的陀螺。消耗完可再補充。 #c等級限制：10, 攻擊力+19","note":"","cat":"消耗","sub":"飛鏢","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"2130100","name":"黑斧木妖","level":22},{"id":"3220000","name":"樹妖王","level":35}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

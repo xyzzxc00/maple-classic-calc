@@ -1,1 +1,1 @@
-{"id":2001002,"name":"紅豆刨冰","desc":"清爽到能驅散酷熱的刨冰。 MP恢復約2000。","cat":"消耗","sub":"藥水","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"拜倫","price":4000,"currency":"楓幣","maps":["黃金海岸 / 黃金海灘"]}],"quests":[],"crafts":[],"usedIn":[]}
+{"id":2001002,"name":"紅豆刨冰","desc":"清爽到能驅散酷熱的刨冰。 MP恢復約2000。","note":"","cat":"消耗","sub":"藥水","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"拜倫","price":4000,"currency":"楓幣","maps":["黃金海岸 / 黃金海灘"]}],"quests":[],"crafts":[],"usedIn":[]}

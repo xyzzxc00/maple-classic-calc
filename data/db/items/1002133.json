@@ -1,1 +1,1 @@
-{"id":1002133,"name":"藍游泳帽","desc":"","cat":"裝備","sub":"帽子","sell":400,"equip":{"incPDD":7,"price":400,"reqLevel":8,"tuc":7},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"娜塔莎","price":800,"currency":"楓幣","maps":["維多利亞 / 維多利亞防具店"]}],"quests":[],"crafts":[],"usedIn":[]}
+{"id":1002133,"name":"藍游泳帽","desc":"","note":"","cat":"裝備","sub":"帽子","sell":400,"equip":{"incPDD":7,"price":400,"reqLevel":8,"tuc":7},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"娜塔莎","price":800,"currency":"楓幣","maps":["維多利亞 / 維多利亞防具店"]}],"quests":[],"crafts":[],"usedIn":[]}

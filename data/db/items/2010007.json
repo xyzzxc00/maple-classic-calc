@@ -1,1 +1,1 @@
-{"id":2010007,"name":"羅傑的蘋果","desc":"熟透可口的蘋果。 可恢復約30的HP， #c只要將滑鼠點向羅傑的蘋果後雙擊，即可服用。#","cat":"消耗","sub":"食物","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"1021","name":"羅傑與蘋果","kind":"需求","count":1}],"crafts":[],"usedIn":[]}
+{"id":2010007,"name":"羅傑的蘋果","desc":"熟透可口的蘋果。 可恢復約30的HP， #c只要將滑鼠點向羅傑的蘋果後雙擊，即可服用。#","note":"","cat":"消耗","sub":"食物","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"1021","name":"羅傑與蘋果","kind":"需求","count":1}],"crafts":[],"usedIn":[]}

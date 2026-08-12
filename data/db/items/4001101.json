@@ -1,1 +1,1 @@
-{"id":4001101,"name":"月妙的元宵","desc":"月妙搗米所製作出的美味元宵。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"1200","name":"月妙的年糕","kind":"需求","count":20}],"crafts":[],"usedIn":[]}
+{"id":4001101,"name":"月妙的元宵","desc":"月妙搗米所製作出的美味元宵。","note":"","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"1200","name":"月妙的年糕","kind":"需求","count":20}],"crafts":[],"usedIn":[]}

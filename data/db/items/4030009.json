@@ -1,1 +1,1 @@
-{"id":4030009,"name":"圍棋板","desc":"為下五目或圍棋需要的木板。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"130100","name":"木妖","level":4},{"id":"1110101","name":"黑木妖","level":10}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}
+{"id":4030009,"name":"圍棋板","desc":"為下五目或圍棋需要的木板。","note":"","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"130100","name":"木妖","level":4},{"id":"1110101","name":"黑木妖","level":10}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

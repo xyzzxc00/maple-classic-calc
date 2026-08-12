@@ -1,1 +1,1 @@
-{"id":1032018,"name":"紫荊花耳環","desc":"","cat":"裝備","sub":"耳環","sell":65000,"equip":{"incMDD":25,"price":65000,"reqLevel":45,"tuc":5},"float":{"incMDD":[22,28]},"floatFrom":["怪物掉落"],"drops":[{"id":"4230400","name":"鋼之黑肥肥","level":45}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}
+{"id":1032018,"name":"紫荊花耳環","desc":"","note":"","cat":"裝備","sub":"耳環","sell":65000,"equip":{"incMDD":25,"price":65000,"reqLevel":45,"tuc":5},"float":{"incMDD":[22,28]},"floatFrom":["怪物掉落"],"drops":[{"id":"4230400","name":"鋼之黑肥肥","level":45}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

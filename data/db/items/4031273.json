@@ -1,1 +1,1 @@
-{"id":4031273,"name":"紅色毛線球","desc":"神奇的貓咪-潘喜所遺失的紅色毛線球。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"210100","name":"綠水靈","level":6}],"shops":[],"quests":[{"id":"2104","name":"潘喜的紅色毛球","kind":"需求","count":1}],"crafts":[],"usedIn":[]}
+{"id":4031273,"name":"紅色毛線球","desc":"神奇的貓咪-潘喜所遺失的紅色毛線球。","note":"","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"210100","name":"綠水靈","level":6}],"shops":[],"quests":[{"id":"2104","name":"潘喜的紅色毛球","kind":"需求","count":1}],"crafts":[],"usedIn":[]}

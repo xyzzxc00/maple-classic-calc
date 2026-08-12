@@ -1,1 +1,1 @@
-{"id":4031161,"name":"老舊螺絲","desc":"將沒有其他用途的箱子加以回收後所收得的老舊螺絲，不曉得可不可以廢物利用…","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"1008","name":"皮奧資源回收","kind":"需求","count":1}],"crafts":[],"usedIn":[]}
+{"id":4031161,"name":"老舊螺絲","desc":"將沒有其他用途的箱子加以回收後所收得的老舊螺絲，不曉得可不可以廢物利用…","note":"","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"1008","name":"皮奧資源回收","kind":"需求","count":1}],"crafts":[],"usedIn":[]}

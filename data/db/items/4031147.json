@@ -1,1 +1,1 @@
-{"id":4031147,"name":"植物樹葉化石","desc":"看似是古代生長的植物樹葉化石。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"1130100","name":"斧木妖","level":17}],"shops":[],"quests":[{"id":"2065","name":"尋找化石","kind":"需求","count":100}],"crafts":[],"usedIn":[]}
+{"id":4031147,"name":"植物樹葉化石","desc":"看似是古代生長的植物樹葉化石。","note":"","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"1130100","name":"斧木妖","level":17}],"shops":[],"quests":[{"id":"2065","name":"尋找化石","kind":"需求","count":100}],"crafts":[],"usedIn":[]}

@@ -1,1 +1,1 @@
-{"id":4031016,"name":"神秘書","desc":"誰都不知道內容的神秘的書。","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"2023","name":"找回神秘書","kind":"獎勵","count":1},{"id":"2023","name":"找回神秘書","kind":"需求","count":1}],"crafts":[],"usedIn":[]}
+{"id":4031016,"name":"神秘書","desc":"誰都不知道內容的神秘的書。","note":"","cat":"其他","sub":"任務道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[],"shops":[],"quests":[{"id":"2023","name":"找回神秘書","kind":"獎勵","count":1},{"id":"2023","name":"找回神秘書","kind":"需求","count":1}],"crafts":[],"usedIn":[]}

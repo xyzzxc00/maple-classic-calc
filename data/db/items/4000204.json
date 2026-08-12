@@ -1,1 +1,1 @@
-{"id":4000204,"name":"骷髏犬骨頭","desc":"骷髏犬身上掉下的骨頭。","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"4230125","name":"骷髏犬","level":44}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}
+{"id":4000204,"name":"骷髏犬骨頭","desc":"骷髏犬身上掉下的骨頭。","note":"","cat":"其他","sub":"掉落道具","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"4230125","name":"骷髏犬","level":44}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}

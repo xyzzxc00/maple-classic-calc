@@ -1,1 +1,1 @@
-{"id":1072017,"name":"藍多羅鞋","desc":"","cat":"裝備","sub":"鞋子","sell":5000,"equip":{"incPDD":10,"price":5000,"reqLevel":21,"tuc":5},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"娜塔莎","price":10000,"currency":"楓幣","maps":["維多利亞 / 維多利亞防具店"]}],"quests":[],"crafts":[],"usedIn":[]}
+{"id":1072017,"name":"藍多羅鞋","desc":"","note":"","cat":"裝備","sub":"鞋子","sell":5000,"equip":{"incPDD":10,"price":5000,"reqLevel":21,"tuc":5},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"娜塔莎","price":10000,"currency":"楓幣","maps":["維多利亞 / 維多利亞防具店"]}],"quests":[],"crafts":[],"usedIn":[]}

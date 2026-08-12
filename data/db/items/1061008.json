@@ -1,1 +1,1 @@
-{"id":1061008,"name":"藍超短裙","desc":"","cat":"裝備","sub":"褲裙","sell":25,"equip":{"incPDD":2,"price":25,"tuc":7},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"潘","price":50,"currency":"楓幣","maps":["楓之島 / 楓之港防具店"]}],"quests":[],"crafts":[],"usedIn":[]}
+{"id":1061008,"name":"藍超短裙","desc":"","note":"","cat":"裝備","sub":"褲裙","sell":25,"equip":{"incPDD":2,"price":25,"tuc":7},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"潘","price":50,"currency":"楓幣","maps":["楓之島 / 楓之港防具店"]}],"quests":[],"crafts":[],"usedIn":[]}
