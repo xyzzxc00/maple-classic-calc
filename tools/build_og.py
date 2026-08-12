@@ -42,10 +42,13 @@ for y in range(icon.height):
         r, g, b = px[x, y]
         if r > 200 and g > 200 and b > 200:
             mk[x, y] = 255
-LEAF = 300
+LEAF = 220
 leaf_mask = mask.resize((LEAF, LEAF), Image.LANCZOS)
 leaf = Image.new("RGB", (LEAF, LEAF), "#FFFFFF")
-img.paste(leaf, (96, 120), leaf_mask)
+img.paste(leaf, (96, 150), leaf_mask)
+
+# 品牌名：icon 旁邊掛「楓錄」，跟站上側邊欄 logo 同一種排法（icon + 站名並排）
+d.text((340, 190), "楓錄", font=font(120, 900), fill="#FFFFFF")
 
 # 站名：兩行式，撐滿側欄寬度不外溢
 d.text((96, 440), "新楓之谷", font=font(150, 900), fill="#FFFFFF")
