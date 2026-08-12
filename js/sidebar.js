@@ -6,7 +6,7 @@
  * 3. 監聽 nav.js switchNav() 發出的 maplenav:pagechange 事件，自動展開
  *    對應的群組（不管切換是側邊欄點擊、app.js「去哪練」、還是 timer.js
  *    的跨頁連結觸發的都會收到）
- * 4. 首頁儀表板卡片／CTA／最新更新清單的 [data-nav-page] 通用跳轉
+ * 4. 首頁儀表板卡片／CTA／新手上路清單的 [data-nav-page] 通用跳轉
  * -----------------------------------------------------------------
  */
 (function () {
@@ -139,7 +139,7 @@
     bannerHomeBtn.addEventListener("click", () => window.MapleNav && window.MapleNav.switchNav("home"));
   }
 
-  // ---------- 首頁儀表板：卡片／CTA／最新更新清單的跳轉 ----------
+  // ---------- 首頁儀表板：卡片／CTA／新手上路清單的跳轉 ----------
   const SUBTAB_SETTERS = {
     calc: (key) => window.MapleNav && window.MapleNav.showCalcSubtab(key),
     guides: (key) => window.MapleGuides && window.MapleGuides.showTab(key),

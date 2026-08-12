@@ -2693,6 +2693,9 @@ body.has-sidebar .theme-toggle {
   border-radius: 0;
   padding: 13px 16px;
   cursor: pointer;
+  /* 新手上路清單裡有一項是連到獨立文章（<a>），不是站內分頁切換
+     （<button>）——兩種元素共用這個 class，<a> 預設的底線在這裡拔掉 */
+  text-decoration: none;
 }
 .feed-item + .feed-item { border-top: 1px solid var(--border); }
 .feed-item:hover { background: var(--surface-tint); }

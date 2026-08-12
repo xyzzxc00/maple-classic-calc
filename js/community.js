@@ -748,7 +748,7 @@
     // 計算機結果區的「看 Lv.X 附近的推薦練功地點」導流用，跟 showRecordsTab
     // 同一套包裝
     showSuggestTab: (skipSave) => showCmSubtab("suggest", skipSave),
-    // 首頁卡片／最新更新清單的 [data-nav-subtab] 通用入口。原本 sidebar.js
+    // 首頁卡片／新手上路清單的 [data-nav-subtab] 通用入口。原本 sidebar.js
     // 只能靠 showRecordsTab／showSuggestTab 兩個包裝去猜，結果「推薦地點」
     // （picks）永遠會被導到建議練功地點
     showCmSubtab,

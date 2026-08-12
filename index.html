@@ -434,42 +434,46 @@
     </button>
   </div>
 
-  <!-- 最新更新：手寫的，不會自己跟著 commit 更新。每次有使用者看得出差別的
-       改動上線，記得回來補一則、並把最舊的那則拿掉（維持四則）。日期用實際
-       上線日 -->
-  <div class="section-head"><h2>最新更新</h2></div>
+  <!-- 新手上路清單：靜態內容，不用跟著 commit 更新。四個步驟對應新玩家
+       實際會卡住的順序：選職業 → 接任務 → 找練功點 → 抓進度。日期欄位
+       這裡借來放「適合的時機」（等級／階段），不是真的日期。
+
+       之前這個位置是手寫 changelog，2026-08-12 使用者決定換掉：舊玩家才
+       在乎「這裡改了什麼」，新玩家更需要「我現在該做什麼」。changelog
+       沒有刪掉功能，只是不再佔首頁版面——之後若想找回來，見 git 歷史。 -->
+  <div class="section-head"><h2>新手上路</h2></div>
   <div class="feed-list">
-    <button class="feed-item" type="button" data-nav-page="db" data-nav-subtab="items">
-      <span class="feed-tag">資料庫</span>
-      <span class="feed-text">
-        <span class="feed-title">修正裝備浮動範圍算錯的問題，怪物新增 3 隻（月妙鋼豬活動變體）</span>
-        <span class="feed-desc">武器物攻／魔攻的浮動範圍先前封頂算成 ±5，實際規律是 ±7，全站 90 件武器、180 個欄位重新算過；改用拆包原始給的數值，不再自行反推公式。怪物資料庫同步更新到最新拆包，新增鋼豬等 3 隻月妙獎勵地圖限定怪物</span>
-      </span>
-      <span class="feed-date">08/12</span>
-    </button>
-    <button class="feed-item" type="button" data-nav-page="guides" data-nav-subtab="jobs">
+    <a class="feed-item" href="guides/job-selection-guide/">
       <span class="feed-tag">攻略</span>
       <span class="feed-text">
-        <span class="feed-title">盜賊確認不能「卡屬」、狼牙該幾等換；任務新增卷軸速查，推薦地點新增月妙刷鋼豬</span>
-        <span class="feed-desc">依開服兩週來的社群回報更新：盜賊系補上卡屬實測與換武器時機的完整討論、法師系補上冰雷進猴子森林的水錢缺口；任務攻略新增「哪幾個任務給卷軸、哪幾個經驗最肥」速查，並更新紅寶王現在搶不搶得到、休咪忍耐關卡的實測獎勵</span>
+        <span class="feed-title">還沒決定要玩哪個職業？</span>
+        <span class="feed-desc">選職業指南整理了五大系的優缺點與適合的玩法，創角前先定好方向，比玩到一半後悔重練省事</span>
       </span>
-      <span class="feed-date">08/11</span>
+      <span class="feed-date">創角前</span>
+    </a>
+    <button class="feed-item" type="button" data-nav-page="guides" data-nav-subtab="quests">
+      <span class="feed-tag">攻略</span>
+      <span class="feed-text">
+        <span class="feed-title">新手任務別漏接</span>
+        <span class="feed-desc">職業手套、斗笠、桑拿服這幾個任務 CP 值最高，任務攻略幫你整理好流程跟該注意的地方</span>
+      </span>
+      <span class="feed-date">Lv.10~40</span>
     </button>
-    <button class="feed-item" type="button" data-nav-page="calc" data-nav-subtab="attack">
+    <button class="feed-item" type="button" data-nav-page="cm" data-nav-subtab="suggest">
+      <span class="feed-tag">社群</span>
+      <span class="feed-text">
+        <span class="feed-title">卡關不知道去哪練</span>
+        <span class="feed-desc">練功地點收錄玩家實測回報的效率，輸入你現在的等級，同段位去哪打最快一目了然</span>
+      </span>
+      <span class="feed-date">卡關時</span>
+    </button>
+    <button class="feed-item" type="button" data-nav-page="calc" data-nav-subtab="exp">
       <span class="feed-tag">計算工具</span>
       <span class="feed-text">
-        <span class="feed-title">攻擊力計算新增主教「群體治癒」對不死系怪物的傷害</span>
-        <span class="feed-desc">群體治癒的傷害同時吃智力與幸運、不吃熟練度，公式跟一般魔法技能完全不同；選好範圍內的不死怪數量就會算出上下限，補到的怪越少單隻傷害越高</span>
+        <span class="feed-title">想知道升等還要多久</span>
+        <span class="feed-desc">練等計算輸入目前等級與經驗，馬上算出升級還差多少、大概要練多久</span>
       </span>
-      <span class="feed-date">08/09</span>
-    </button>
-    <button class="feed-item" type="button" data-nav-page="db" data-nav-subtab="items">
-      <span class="feed-tag">資料庫</span>
-      <span class="feed-text">
-        <span class="feed-title">道具可依職業篩選、技能改依轉職路線分類，BOSS 楓幣不再顯示推估值</span>
-        <span class="feed-desc">道具新增劍士／法師／弓箭手／盜賊／海盜篩選，類型下拉分成防具・武器・飾品；技能改成「冰／雷」這種一次看完整條路線的分法；BOSS 的楓幣掉落因為推估值與玩家實測對不上，改成標明沒有可靠資料</span>
-      </span>
-      <span class="feed-date">08/09</span>
+      <span class="feed-date">隨時</span>
     </button>
   </div>
 
