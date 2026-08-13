@@ -189,7 +189,7 @@
     // 打錯字（例如打了看不懂的字元）跟「沒填」原本都會落到同一個「尚無效率資料」，
     // 使用者不知道自己的輸入被拒絕了；這裡跟 EXP 測速一樣明講出來
     if (els.expPer10Min.value.trim() && isNaN(MapleCalculator.parseExpVal(els.expPer10Min.value))) {
-      warnings.push("看不懂「每10分鐘經驗」這個數值，請輸入數字或用 W 代表萬（例如 5W 或 50000）");
+      warnings.push("看不懂「每10分鐘經驗」這個數值，請輸入數字，或用 W／萬／億 當單位（例如 5W、3.5萬、50000）");
     } else if (els.expPer10Min.value.trim() && MapleCalculator.parseExpVal(els.expPer10Min.value) <= 0) {
       warnings.push("「每10分鐘經驗」需大於 0 才能估算時間");
     }

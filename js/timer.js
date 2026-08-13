@@ -273,7 +273,7 @@
 
     if (isNaN(before) || isNaN(after)) {
       els.expRateBox.hidden = true;
-      els.expRateHint.textContent = "看不懂這個數值，請輸入數字或用 W 代表萬（例如 5W 或 50000）";
+      els.expRateHint.textContent = "看不懂這個數值，請輸入數字，或用 W／萬／億 當單位（例如 5W、3.5萬、50000）";
       els.expRateHint.hidden = false;
       return;
     }

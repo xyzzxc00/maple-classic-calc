@@ -46,16 +46,21 @@ const MapleCalculator = (() => {
   }
 
   /**
-   * 解析經驗輸入字串，支援用 W 代替萬（例如 "5W" = 50000）
+   * 解析經驗輸入字串，支援 W／萬（×1萬）與 億（×1億）當單位。
+   *
+   * 一定要整串都解析得了才回傳數字，不能用裸的 parseFloat——parseFloat
+   * 對「數字開頭、後面接垃圾」的字串會靜默截斷：「5萬」會變成 5（差一萬
+   * 倍！）、「50000k」會變成 50000。這種輸入以前不會報錯、直接用錯的數字
+   * 算下去，還可能被回報進社群資料庫污染大家的參考值。整串驗證失敗就回
+   * NaN，讓各呼叫端的「看不懂這個數值」訊息接手。
    */
   function parseExpVal(val) {
     if (!val || !String(val).trim()) return NaN;
-    const s = String(val).trim().toUpperCase().replace(/[,\s]/g, "");
-    if (s.endsWith("W")) {
-      const n = parseFloat(s.slice(0, -1));
-      return isNaN(n) ? NaN : n * 10000;
-    }
-    return parseFloat(s);
+    const s = String(val).trim().toUpperCase().replace(/[,，\s]/g, "");
+    const m = s.match(/^(\d*\.?\d+)(W|萬|億)?$/);
+    if (!m) return NaN;
+    const unit = m[2] === "億" ? 1e8 : m[2] ? 1e4 : 1;
+    return parseFloat(m[1]) * unit;
   }
 
   /**
