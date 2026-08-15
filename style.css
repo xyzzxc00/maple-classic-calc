@@ -1311,7 +1311,7 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 .db-chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .db-chip {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: 6px;
   font-family: 'Noto Sans TC', sans-serif;
   font-size: 12.5px;
@@ -1321,6 +1321,19 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   border-radius: 999px;
   padding: 4px 12px;
   cursor: pointer;
+}
+/* 晶片內的小圖示：怪物/道具/技能貼圖大小不一，用固定框 + contain 對齊；
+   負邊距把圖示拉到跟純文字晶片視覺上對齊的左邊界，不然圖示晶片會比純文
+   字晶片多墊一截 */
+.db-chip-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  object-fit: contain;
+  image-rendering: pixelated;
+  border-radius: 50%;
+  background: var(--surface);
+  margin-left: -6px;
 }
 .db-chip:hover { border-color: var(--accent-text); }
 /* 命中計算選中的怪物晶片 */

@@ -1812,15 +1812,23 @@
 
   // ------------------------------------------------------------- 任務
 
-  function linkChip(set, id, name, extra) {
-    const tail = extra ? `<span class="db-sub-num">${esc(extra)}</span>` : "";
-    return `<button class="db-chip" type="button" data-db-goto="${set}" data-db-id="${esc(id)}">
-      ${esc(name)}${tail}</button>`;
+  // 圖檔不一定存在（部分道具/怪物沒有貼圖來源），載入失敗就整個 <img> 移除，
+  // 不留破圖示占位
+  function chipIcon(src) {
+    return src
+      ? `<img class="db-chip-icon" src="${esc(src)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">`
+      : "";
   }
 
-  function plainChip(name, extra) {
+  function linkChip(set, id, name, extra, icon) {
     const tail = extra ? `<span class="db-sub-num">${esc(extra)}</span>` : "";
-    return `<span class="db-chip db-chip--plain">${esc(name)}${tail}</span>`;
+    return `<button class="db-chip" type="button" data-db-goto="${set}" data-db-id="${esc(id)}">
+      ${chipIcon(icon)}${esc(name)}${tail}</button>`;
+  }
+
+  function plainChip(name, extra, icon) {
+    const tail = extra ? `<span class="db-sub-num">${esc(extra)}</span>` : "";
+    return `<span class="db-chip db-chip--plain">${chipIcon(icon)}${esc(name)}${tail}</span>`;
   }
 
   // 任務「城鎮」檢視：依接取 NPC 所在的城鎮分組。卡片列等級最低的前三個
@@ -1984,11 +1992,14 @@
             </div>`
           : "";
 
-      // 未命名道具不在道具資料集裡，照列但不做成連結
-      const itemChip = (i) =>
-        i.link
-          ? linkChip("item", i.id, i.name, i.count ? `×${i.count}` : "")
-          : plainChip(i.name, i.count ? `×${i.count}` : "");
+      // 未命名道具不在道具資料集裡，照列但不做成連結；圖示一律嘗試載入
+      // （id 不一定在道具資料集裡，但貼圖是同一批匯入的，仍可能存在）
+      const itemChip = (i) => {
+        const icon = `assets/db/items/${encodeURIComponent(i.id)}.png`;
+        return i.link
+          ? linkChip("item", i.id, i.name, i.count ? `×${i.count}` : "", icon)
+          : plainChip(i.name, i.count ? `×${i.count}` : "", icon);
+      };
       const startBits = [];
       if (d.start.level) startBits.push(plainChip(`Lv.${d.start.level} 以上`));
       (d.start.items || []).forEach((i) => startBits.push(itemChip(i)));
@@ -2000,13 +2011,14 @@
 
       const compBits = [];
       (d.complete.items || []).forEach((i) => compBits.push(itemChip(i)));
-      (d.complete.monsters || []).forEach((m) =>
+      (d.complete.monsters || []).forEach((m) => {
+        const icon = `assets/db/monsters/${encodeURIComponent(m.id)}.png`;
         compBits.push(
           m.link
-            ? linkChip("monster", m.id, m.name, m.count ? `×${m.count}` : "")
-            : plainChip(m.name, m.count ? `×${m.count}` : "")
-        )
-      );
+            ? linkChip("monster", m.id, m.name, m.count ? `×${m.count}` : "", icon)
+            : plainChip(m.name, m.count ? `×${m.count}` : "", icon)
+        );
+      });
 
       const rw = d.rewards;
       const rwBits = [];
@@ -2014,9 +2026,14 @@
       if (rw.money) rwBits.push(plainChip("楓幣", num(rw.money)));
       if (rw.pop) rwBits.push(plainChip("人氣", num(rw.pop)));
       (rw.items || []).forEach((i) => rwBits.push(itemChip(i)));
-      (rw.skills || []).forEach((s) =>
-        rwBits.push(s.link ? linkChip("skill", s.id, s.name || "技能") : plainChip(s.name || "技能"))
-      );
+      (rw.skills || []).forEach((s) => {
+        const icon = s.id ? `assets/db/skills/${encodeURIComponent(s.id)}.png` : "";
+        rwBits.push(
+          s.link
+            ? linkChip("skill", s.id, s.name || "技能", "", icon)
+            : plainChip(s.name || "技能", "", icon)
+        );
+      });
 
       const section = (title, bits) =>
         bits.length
