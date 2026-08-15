@@ -76,6 +76,54 @@ def check_faq(problems):
     print(f"FAQ    {len(ld)} 題，JSON-LD 與可見 HTML 逐字比對完成")
 
 
+def check_guides_faq(problems):
+    """guides 頁的 FAQPage JSON-LD 也要跟可見文字逐字一致。
+
+    index.html 的 FAQ 是 <details class="faq-item"> 結構、上面 check_faq 管；
+    guides 頁是 article-faq-q/a 結構，且答案文字可能夾在更長的內文段落裡，
+    所以這裡放寬成「LD 的問題與答案文字（去空白後）必須逐字出現在頁面的
+    可見文字裡」——Google 的要求本來就是「使用者在頁面上看得到這些字」，
+    不要求一模一樣的排版。2026-08-15 的稽核抓到 6 頁只有 JSON-LD、頁面上
+    完全沒有可見的 FAQ 區塊，這種會整組 rich result 無聲消失。
+    """
+    import html as htmllib
+
+    pages = []
+    guides_dir = os.path.join(ROOT, "guides")
+    for d in sorted(os.listdir(guides_dir)):
+        p = os.path.join(guides_dir, d, "index.html")
+        if os.path.isdir(os.path.join(guides_dir, d)) and os.path.exists(p):
+            pages.append(os.path.relpath(p, ROOT).replace("\\", "/"))
+
+    checked = 0
+    for rel in pages:
+        raw = read(rel)
+        faq = None
+        for block in re.findall(r'<script type="application/ld\+json">(.*?)</script>', raw, re.S):
+            try:
+                data = json.loads(block)
+            except json.JSONDecodeError as e:
+                problems.append(f"{rel} JSON-LD 解析失敗：{e}")
+                continue
+            if data.get("@type") == "FAQPage":
+                faq = data
+        if not faq:
+            continue
+        checked += 1
+        visible = re.sub(r"<script.*?</script>", "", raw, flags=re.S)
+        visible = re.sub(r"<style.*?</style>", "", visible, flags=re.S)
+        visible = re.sub(r"<[^>]+>", "", visible)
+        visible = re.sub(r"\s+", "", htmllib.unescape(visible))
+        for q in faq.get("mainEntity") or []:
+            name = (q.get("name") or "").strip()
+            text = ((q.get("acceptedAnswer") or {}).get("text") or "").strip()
+            if re.sub(r"\s+", "", htmllib.unescape(name)) not in visible:
+                problems.append(f"{rel} FAQ 問題不在可見文字裡：{name[:40]}")
+            if re.sub(r"\s+", "", htmllib.unescape(text)) not in visible:
+                problems.append(f"{rel} FAQ 答案不在可見文字裡：{name[:40]}")
+    print(f"FAQ    guides {checked} 頁的 FAQPage 與可見文字比對完成")
+
+
 def check_counts(problems):
     """文案裡寫的筆數要對得上實際資料檔"""
     def count(name):
@@ -166,6 +214,7 @@ def check_sitemap_indexable(problems):
 def main():
     problems = []
     check_faq(problems)
+    check_guides_faq(problems)
     check_counts(problems)
     check_copy_rules(problems)
     check_sitemap_indexable(problems)
