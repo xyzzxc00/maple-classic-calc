@@ -3454,3 +3454,10 @@ body.has-sidebar .theme-toggle {
   box-shadow: 0 8px 28px var(--shadow-color);
   border-radius: var(--radius-md);
 }
+
+/* 手機版直接拿掉這功能：PiP 只有桌面版瀏覽器支援，手機唯一會走到的
+   路徑是頁內懸浮面板——但手機螢幕本來就小，再疊一個小視窗只會更難用，
+   不如引導手機使用者直接用下面本來就有的計時器/測速區塊 */
+@media (max-width: 480px) {
+  .miniwin-open-btn { display: none; }
+}
