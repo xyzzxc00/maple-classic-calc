@@ -3461,3 +3461,96 @@ body.has-sidebar .theme-toggle {
 @media (max-width: 480px) {
   .miniwin-open-btn { display: none; }
 }
+
+/* ---------- 小視窗的自動讀取區（expocr.js） ---------- */
+.miniwin-ocr {
+  margin: 8px 10px 0;
+  padding: 8px 10px;
+  background: var(--surface-tint);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.miniwin-ocr-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.miniwin-ocr-title { font-weight: 700; color: var(--ink); font-size: 13px; }
+.miniwin-ocr-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent-text);
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  padding: 1px 7px;
+  margin-left: 6px;
+  vertical-align: 1px;
+}
+.miniwin-ocr .miniwin-btn {
+  width: 64px;
+  height: 31px;
+  min-height: 31px; /* 擋手機版 .btn-ghost 的 min-height: 44px，同其他 miniwin 按鈕 */
+  box-sizing: border-box;
+  padding: 0;
+  white-space: nowrap;
+}
+.miniwin-ocr-status {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.miniwin-ocr-stats { margin-top: 4px; }
+.miniwin-ocr-stats .miniwin-res-row { border-bottom-color: var(--border); font-size: 12.5px; }
+
+/* 自動讀取的診斷預覽：三張實際裁切區塊的縮圖 */
+.miniwin-ocr-debug { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.miniwin-ocr-crop { display: flex; align-items: center; gap: 6px; }
+.miniwin-ocr-crop span { font-size: 11px; color: var(--ink-soft); width: 30px; flex: none; }
+.miniwin-ocr-crop img {
+  max-width: 100%;
+  height: 22px;
+  object-fit: contain;
+  object-position: left center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  image-rendering: pixelated;
+}
+
+/* 自動測速視窗的頁內懸浮退路：跟練等小視窗錯開位置，兩個同時開不會疊 */
+.miniwin-float--ocr { right: 332px; }
+
+/* EXP 測速 panel-head 同時放「自動測速視窗」與「清除」兩顆鈕：
+   標題靠左、按鈕靠右並排 */
+#timerPanel + .calc-section .panel-head { gap: 8px; }
+
+/* 畫面讀取卡的收合鈕：標題本身就是按鈕，箭頭指示開合狀態 */
+.miniwin-ocr-fold {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+.miniwin-ocr-chevron { margin-right: 4px; color: var(--ink-soft); font-size: 12px; }
+
+/* 除錯匯出鈕：小顆、不搶畫面 */
+.miniwin-ocr-debugbtn { width: auto; padding: 4px 10px; margin-top: 6px; font-size: 12px; }
+
+/* 除錯匯出鈕被 .miniwin-ocr .miniwin-btn 的 64px 定寬蓋住、六個字爆框——
+   用同權重的選擇器放後面蓋回自動寬度 */
+.miniwin-ocr .miniwin-ocr-debugbtn {
+  width: auto;
+  min-width: 0;
+  height: auto;
+  padding: 4px 12px;
+  white-space: nowrap;
+}
