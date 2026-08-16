@@ -3277,3 +3277,180 @@ body.has-sidebar .theme-toggle {
 @media (pointer: coarse) {
   .cm-sort-btn { padding: 14px 16px; min-height: 44px; }
 }
+
+/* ---------- 練等迷你小視窗（miniwin.js） ---------- */
+/* 開啟鈕擠進計時器的 panel-head：h2＋badge 靠左、按鈕靠右，
+   不吃預設 space-between（三個子元素會被平均散開，badge 卡在正中間很怪） */
+#timerPanel .panel-head { justify-content: flex-start; gap: 10px; }
+#timerPanel .miniwin-open-btn { margin-left: auto; padding: 6px 10px; font-size: 13px; white-space: nowrap; }
+
+.miniwin {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  overflow: hidden;
+  width: 100%;
+}
+/* PiP 視窗的 body：整個視窗就是面板，鋪滿、不留邊 */
+.miniwin-body { margin: 0; background: var(--bg-page); padding: 6px; box-sizing: border-box; }
+.miniwin-body .miniwin { border: none; }
+
+.miniwin-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: var(--accent-tint);
+  border-bottom: 1px solid var(--border);
+  cursor: grab;
+  user-select: none;
+  touch-action: none; /* 頁內懸浮模式用 pointer 事件拖曳，擋掉觸控捲動的干擾 */
+}
+.miniwin-title { font-weight: 700; color: var(--accent-text); font-size: 13px; }
+.miniwin-close {
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.miniwin-close:hover { background: var(--surface-tint); color: var(--ink); }
+
+.miniwin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 8px;
+  padding: 8px 10px 0;
+}
+.miniwin-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 700;
+}
+.miniwin-grid input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  font-family: inherit;
+}
+.miniwin-grid input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.miniwin-timerrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px;
+}
+.miniwin-clock {
+  font-size: 26px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  margin-right: auto;
+}
+.miniwin-clock-done { color: var(--danger); animation: miniwinFlash 0.8s ease-in-out 4; }
+@keyframes miniwinFlash { 50% { opacity: 0.25; } }
+@media (prefers-reduced-motion: reduce) {
+  .miniwin-clock-done { animation: none; }
+}
+.miniwin-minfield {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+.miniwin-minfield input {
+  width: 48px;
+  padding: 6px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  box-sizing: border-box;
+}
+.miniwin-btn { padding: 6px 10px; font-size: 13px; }
+/* 開始/重置直接鎖同一組寬高（flex 均分在兩顆按鈕 border 不同時會差 2px，
+   btn-ghost 的 1px 邊框也會讓高度多 2px），nowrap 擋掉「重置」被壓成直排；
+   64px 塞得下最長的「重新開始」四個字 */
+.miniwin-timerrow .miniwin-btn {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 33px;
+  /* min-height 一定要跟著鎖：手機版 media query 有 .btn-ghost { min-height: 44px }，
+     PiP 小視窗寬度只有 ~316px 一定會命中它，而 min-height 會直接壓過 height，
+     兩顆按鈕就變不一樣高（重置是 ghost、開始不是）——實測踩到過 */
+  min-height: 33px;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 0;
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* 測速列：兩個輸入欄縮一點，右邊塞一顆小小的「套用」鈕，
+   對齊輸入框的底邊（label 文字在上面一行） */
+.miniwin-trackgrid { grid-template-columns: 1fr 1fr auto; align-items: end; }
+.miniwin-apply {
+  width: 46px;
+  height: 31px;
+  min-height: 31px; /* 同 .miniwin-timerrow .miniwin-btn：擋手機版 .btn-ghost 的 min-height: 44px */
+  box-sizing: border-box;
+  padding: 0;
+  font-size: 13px;
+  white-space: nowrap;
+  align-self: end;
+}
+
+.miniwin-raterow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 8px 10px 0;
+  padding: 6px 10px;
+  background: var(--surface-tint);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--ink-soft);
+}
+.miniwin-raterow b { color: var(--ink); }
+.miniwin-rate-basis { font-size: 11px; margin-left: 4px; }
+
+.miniwin-results { padding: 8px 10px 10px; }
+.miniwin-res-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+}
+.miniwin-res-row:last-child { border-bottom: none; }
+.miniwin-res-row span { color: var(--ink-soft); }
+.miniwin-res-row b { font-weight: 700; }
+.miniwin-res-row.hl b { color: var(--accent-text); }
+
+/* 頁內懸浮模式（PiP 不支援時的退路）：釘在右下、可拖曳。
+   z-index 要壓過側邊欄抽屜與回頂鈕 */
+.miniwin-float {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  width: 300px;
+  max-width: calc(100vw - 24px);
+  z-index: 1200;
+  box-shadow: 0 8px 28px var(--shadow-color);
+  border-radius: var(--radius-md);
+}
