@@ -244,9 +244,12 @@
     }
   }
 
-  function openFormWithExpPer10Min(val) {
+  function openFormWithExpPer10Min(val, level) {
     openForm();
     els.expPer10Min.value = val;
+    // level 是後來（自動測速視窗）才加的可選參數，帶了才填，維持舊呼叫
+    // 端（EXP 測速手動套用）的行為不變——那邊沒有角色等級可以帶
+    if (level != null) els.level.value = level;
   }
 
   async function submitRecord() {

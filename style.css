@@ -3554,3 +3554,27 @@ body.has-sidebar .theme-toggle {
   padding: 4px 12px;
   white-space: nowrap;
 }
+
+/* 自動測速視窗底部：上傳到社群回報鈕＋可收合的說明文字（預設收起，
+   面板本來就窄，展開的長說明會把視窗撐得很長） */
+.miniwin-ocr-upload { width: calc(100% - 20px); margin: 10px 10px 0; box-sizing: border-box; }
+.miniwin-ocr-note {
+  margin: 8px 10px 10px;
+  padding: 6px 10px;
+  background: var(--surface-tint);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+.miniwin-ocr-note summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--ink);
+  padding: 2px 0;
+  list-style: none;
+}
+.miniwin-ocr-note summary::-webkit-details-marker { display: none; }
+.miniwin-ocr-note summary::before { content: "▸ "; }
+.miniwin-ocr-note[open] summary::before { content: "▾ "; }
+.miniwin-ocr-note p { margin: 6px 0 2px; line-height: 1.6; }
