@@ -433,21 +433,28 @@
     bar.addEventListener("pointerup", () => (dragging = false));
   }
 
+  let opening = false; // PiP 開啟中連點第二下會把面板搶進懸浮模式，鎖住
   openBtn.addEventListener("click", async () => {
+    if (opening) return;
     if (isOpen()) {
       closeAll();
       return;
     }
     if (!panel) buildPanel();
     else { renderResult(); renderRate(); }
-    if (PIP_OK) {
-      try {
-        await openPip();
-      } catch {
-        openFloat(); // 權限被擋或其他失敗：退回頁內懸浮
+    opening = true;
+    try {
+      if (PIP_OK) {
+        try {
+          await openPip();
+        } catch {
+          openFloat(); // 權限被擋或其他失敗：退回頁內懸浮
+        }
+      } else {
+        openFloat();
       }
-    } else {
-      openFloat();
+    } finally {
+      opening = false;
     }
     openBtn.textContent = "⧉ 收回小視窗";
   });

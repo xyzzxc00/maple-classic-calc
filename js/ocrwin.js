@@ -100,8 +100,15 @@
     }
     if (!s.samples) {
       // 重置／還沒收到任何樣本：上傳鈕鎖住，不然重開一輪會沿用上次殘留的
-      // per10 值，讓人誤按到舊數據
+      // per10 值，讓人誤按到舊數據；結果列也要清掉，不然停止後再按開始，
+      // 上一輪的等級／經驗／速率會一直掛在畫面上，看起來像還在讀
       els.uploadBtn.disabled = true;
+      els.lv.textContent = "—";
+      els.exp.textContent = "—";
+      els.exp5.textContent = "—";
+      els.exp10.textContent = "—";
+      els.toLevel.textContent = "—";
+      els.elapsed.textContent = "—";
       return;
     }
     els.lv.textContent = "Lv." + s.level;
@@ -138,9 +145,10 @@
     }
     els.elapsed.textContent = fmtDuration(s.elapsedMs) + "・" + s.samples + " 筆";
 
-    // 上傳到社群回報：至少要滿 5 分鐘實測才給按，優先帶最準的 10 分鐘數字
+    // 上傳到社群回報：至少要滿 5 分鐘實測才給按，優先帶最準的 10 分鐘數字。
+    // 實測是 0（掛網沒打怪）也不給按——回報 0 經驗沒有意義
     const bestPer10 = s.exp10Actual !== null ? s.exp10Actual : s.exp5Actual !== null ? s.exp5Actual * 2 : null;
-    els.uploadBtn.disabled = bestPer10 === null;
+    els.uploadBtn.disabled = !(bestPer10 > 0);
     els.uploadBtn.dataset.per10 = bestPer10 !== null ? Math.round(bestPer10) : "";
     els.uploadBtn.dataset.level = s.level;
   }
@@ -158,14 +166,17 @@
     // 社群分頁可能停在其他子分頁，表單在隱藏的「回報紀錄」裡；不先切過去
     // openForm 的 scrollIntoView/focus 都對隱藏元素無效
     window.MapleCommunity.showRecordsTab();
+    const original = btn.textContent;
     if (!window.MapleCommunity.isSubmissionsOpen()) {
       const addBtn = document.getElementById("cmAddBtn");
       if (addBtn) addBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+      // 從 PiP 按的話主頁面在遊戲後面，捲動了也看不到——按鈕上要給回饋
+      btn.textContent = "回報尚未開放";
+      setTimeout(() => { btn.textContent = original; }, 2000);
       return;
     }
     const level = parseInt(btn.dataset.level, 10);
     window.MapleCommunity.openFormWithExpPer10Min(per10, Number.isFinite(level) ? level : null);
-    const original = btn.textContent;
     btn.textContent = "✓ 已帶入回報表單";
     setTimeout(() => { btn.textContent = original; }, 1500);
   }
@@ -283,21 +294,28 @@
     bar.addEventListener("pointerup", () => (dragging = false));
   }
 
+  let opening = false; // PiP 開啟中連點第二下會把面板搶進懸浮模式，鎖住
   openBtn.addEventListener("click", async () => {
+    if (opening) return;
     if (isOpen()) {
       closeAll();
       return;
     }
     if (!panel) buildPanel();
     else render(engine.getState());
-    if (PIP_OK) {
-      try {
-        await openPip();
-      } catch {
+    opening = true;
+    try {
+      if (PIP_OK) {
+        try {
+          await openPip();
+        } catch {
+          openFloat();
+        }
+      } else {
         openFloat();
       }
-    } else {
-      openFloat();
+    } finally {
+      opening = false;
     }
     openBtn.textContent = "⧉ 收回測速視窗";
   });

@@ -72,7 +72,9 @@ def stamp_assets(html, root=""):
     同一個版本參數——那些檔案是 fetch 來的、沒有 <script src> 可以蓋戳記，
     資料更新後瀏覽器會照吃快取（實測 transferSize=0），使用者會看到舊資料
     """
-    pattern = r'(src|href)="(' + re.escape(root) + r'(?:js/[^"?]+\.js|style\.css))"'
+    # /? 讓 404.html 的絕對路徑（/style.css、/js/theme.js）也吃得到戳記——
+    # 它掛在任意不存在的網址下，只能用絕對路徑引資產（root 是空字串）
+    pattern = r'(src|href)="(' + re.escape(root) + r'/?(?:js/[^"?]+\.js|style\.css))"'
     html = re.sub(pattern, lambda m: f'{m.group(1)}="{m.group(2)}?v={VERSION}"', html)
     if "data-asset-ver=" not in html:
         html = re.sub(r"<html\b", f'<html data-asset-ver="{VERSION}"', html, count=1)

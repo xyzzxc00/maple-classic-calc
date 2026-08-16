@@ -152,7 +152,11 @@
     const ms = minutes * 60000;
     if (!state.firstAt || !state.lastAt || state.lastAt - state.firstAt < ms) return null;
     const target = state.lastAt - ms;
-    let base = { t: state.firstAt, gained: 0 };
+    // 歷史樣本裡沒有「N 分鐘前（或更早）」的基準點＝中間讀取斷過太久、
+    // 舊樣本被修剪掉了。這時不能退回「從開始累計」當基準——那會把整場
+    // 的經驗當成 N 分鐘量報出來。老實回 null，等視窗重新填滿再顯示實測
+    if (!state.history.length || state.history[0].t > target) return null;
+    let base = state.history[0];
     for (const h of state.history) {
       if (h.t <= target) base = h;
       else break;

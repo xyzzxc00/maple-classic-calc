@@ -350,6 +350,9 @@
         return (index || []).filter((r) => r.name.toLowerCase().includes(q));
       },
       ensure: load,
+      // 全站搜尋用：ensure() 就算載入失敗也會 resolve（錯誤畫面顯示在各自
+      // 子分頁裡），搜尋端要能分辨「沒資料」跟「根本沒載到」
+      hasIndex: () => !!index,
       searchRow: cfg.searchRow,
     };
   }
@@ -2833,7 +2836,11 @@
       searchEls.results.innerHTML = "";
       return;
     }
-    // 索引各自才幾十 KB，搜尋時才一次全載；載完就留著
+    // 索引各自才幾十 KB，搜尋時才一次全載；載完就留著。
+    // 首次搜尋會觸發下載，期間給載入占位——不然結果區一片空白像沒反應
+    if (SETS.some((s) => !s.hasIndex())) {
+      searchEls.results.innerHTML = '<p class="cm-empty">搜尋資料載入中…</p>';
+    }
     Promise.all(SETS.map((s) => s.ensure())).then(() => {
       const blocks = SETS.map((s) => {
         const hits = s.search(q);
@@ -2858,8 +2865,15 @@
         </div>`;
       }).filter(Boolean);
 
-      searchEls.results.innerHTML = blocks.length
-        ? blocks.join("")
+      // 載入失敗的資料集 search() 只會回空陣列——不能讓「載入失敗」被誤報
+      // 成「找不到符合的資料」（community.js 特地防過同一型的斷線誤報）。
+      // ensure() 失敗後 loading 會清掉，下一次打字就會自動重試下載
+      const failed = SETS.filter((s) => !s.hasIndex());
+      const failNote = failed.length
+        ? `<p class="cm-empty cm-empty--error">有 ${failed.length} 類資料載入失敗（${esc(failed.map((s) => s.label).join("、"))}），結果可能不完整——請檢查網路後再打一個字重試</p>`
+        : "";
+      searchEls.results.innerHTML = blocks.length || failNote
+        ? failNote + blocks.join("")
         : '<p class="cm-empty">找不到符合的資料</p>';
     });
   }
@@ -3065,6 +3079,9 @@
         })
         .catch(() => {
           listEl.innerHTML = LOAD_ERROR;
+          // 失敗要放行重試——不歸零的話這個子分頁這輩子都只剩錯誤畫面，
+          // 其他 db 子分頁失敗後都可以重進重試，這裡不該是例外
+          loadedOnce = false;
         });
     }
     if (btn) btn.addEventListener("click", activate);

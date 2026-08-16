@@ -326,11 +326,16 @@ a:hover { text-decoration-color: var(--accent-hover); }
   outline-offset: 2px;
   border-radius: 4px;
 }
-/* 側邊欄／頂欄是橄欖綠底，同色框看不出來，改用白框加深色描邊 */
+/* 側邊欄／頂欄底色接近表面色：淺色模式用 accent 框（白框在淺底上隱形），
+   深色模式蓋回白框；深色描邊 halo 兩種模式都留著當第二層保險 */
 .sidebar :focus-visible,
 .top-banner :focus-visible {
-  outline-color: #FFFFFF;
+  outline-color: var(--accent);
   box-shadow: 0 0 0 5px rgba(41, 42, 36, 0.55);
+}
+body.dark .sidebar :focus-visible,
+body.dark .top-banner :focus-visible {
+  outline-color: #FFFFFF;
 }
 /* 圓角元件的焦點框跟著自己的圓角走，不要出現方框套圓鈕的違和感 */
 .btn:focus-visible,
@@ -1663,10 +1668,13 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   color: var(--accent-text);
   border: 1px solid var(--accent-border);
 }
-.db-eltag--weak { background: #f6e8e6; color: #a3392f; border-color: #d8a49d; }
-.db-eltag--undead { background: #e8e6f0; color: #4d4470; border-color: #b0a8cc; }
-body.dark .db-eltag--weak { background: #3d2523; color: #e8a49b; border-color: #6e443f; }
-body.dark .db-eltag--undead { background: #2b2838; color: #b7addb; border-color: #565073; }
+/* 屬性弱點／不死標籤刻意用紅／紫跳出單一強調色系——這是語意色（弱點＝危險、
+   不死＝亡靈），不能跟其他 accent 標籤長一樣。邊框直接用各自的文字色，
+   文字過 AA 的對比邊框就一定過 3:1，不會再出現淡邊框貼淡底的問題 */
+.db-eltag--weak { background: #f6e8e6; color: #a3392f; border-color: #a3392f; }
+.db-eltag--undead { background: #e8e6f0; color: #4d4470; border-color: #4d4470; }
+body.dark .db-eltag--weak { background: #3d2523; color: #e8a49b; border-color: #e8a49b; }
+body.dark .db-eltag--undead { background: #2b2838; color: #b7addb; border-color: #b7addb; }
 /* 快速篩選晶片列 */
 .db-quick-filters {
   display: flex;
@@ -2930,7 +2938,7 @@ body.has-sidebar .theme-toggle {
 .atk-skill-ctrl input {
   width: 64px;
   padding: 6px 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong); /* 輸入框底色＝容器底色，邊框是唯一輪廓，要用 strong 才過 3:1（同 .field input） */
   border-radius: var(--radius-md);
   background: var(--surface);
   color: var(--ink);
@@ -2964,7 +2972,7 @@ body.has-sidebar .theme-toggle {
 .atk-buff-level input {
   width: 56px;
   padding: 6px 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   background: var(--surface);
   color: var(--ink);
@@ -3139,7 +3147,7 @@ body.has-sidebar .theme-toggle {
 .ssim-strategy-inputs input {
   width: 96px;
   padding: 6px 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   background: var(--surface);
   color: var(--ink);
@@ -3338,7 +3346,7 @@ body.has-sidebar .theme-toggle {
   width: 100%;
   box-sizing: border-box;
   padding: 6px 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   border-radius: 6px;
   background: var(--surface);
   color: var(--ink);
@@ -3375,7 +3383,7 @@ body.has-sidebar .theme-toggle {
 .miniwin-minfield input {
   width: 48px;
   padding: 6px 6px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   border-radius: 6px;
   background: var(--surface);
   color: var(--ink);
@@ -3476,7 +3484,6 @@ body.has-sidebar .theme-toggle {
   justify-content: space-between;
   gap: 8px;
 }
-.miniwin-ocr-title { font-weight: 700; color: var(--ink); font-size: 13px; }
 .miniwin-ocr-tag {
   font-size: 11px;
   font-weight: 700;
@@ -3502,9 +3509,6 @@ body.has-sidebar .theme-toggle {
   line-height: 1.5;
   color: var(--ink-soft);
 }
-.miniwin-ocr-stats { margin-top: 4px; }
-.miniwin-ocr-stats .miniwin-res-row { border-bottom-color: var(--border); font-size: 12.5px; }
-
 /* 自動讀取的診斷預覽：三張實際裁切區塊的縮圖 */
 .miniwin-ocr-debug { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
 .miniwin-ocr-crop { display: flex; align-items: center; gap: 6px; }
