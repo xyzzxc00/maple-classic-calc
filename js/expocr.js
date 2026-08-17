@@ -529,26 +529,30 @@
       }
       columns.push(count);
     }
+    // 分欄用「有白像素就算」，切完再要求整團至少有一根實心欄（≥minColumnPixels）。
+    // 以前是逐欄先過雜訊門檻，會把「1」最左欄那顆單獨的白點砍掉、字形削窄，
+    // 小字（原生 1 倍）時比對分數直接爆掉——等級尾數是 1 的玩家整個讀不到
     const runs = [];
-    let start = null, gap = 0;
+    let start = null, gap = 0, peak = 0;
+    const flush = (end) => {
+      if (end - start + 1 >= 2 && peak >= minColumnPixels) {
+        runs.push({ x1: minX + start, x2: minX + end });
+      }
+      start = null;
+      gap = 0;
+      peak = 0;
+    };
     for (let i = 0; i < columns.length; i++) {
-      if (columns[i] >= minColumnPixels) {
+      if (columns[i] > 0) {
         if (start === null) start = i;
+        peak = Math.max(peak, columns[i]);
         gap = 0;
       } else if (start !== null) {
         gap++;
-        if (gap >= 2) {
-          const end = i - gap;
-          if (end - start + 1 >= 2) runs.push({ x1: minX + start, x2: minX + end });
-          start = null;
-          gap = 0;
-        }
+        if (gap >= 2) flush(i - gap);
       }
     }
-    if (start !== null) {
-      const end = columns.length - 1;
-      if (end - start + 1 >= 2) runs.push({ x1: minX + start, x2: minX + end });
-    }
+    if (start !== null) flush(columns.length - 1);
     return runs
       .map((run) => {
         let gMinX = run.x2, gMinY = maxY, gMaxX = run.x1, gMaxY = minY, found = false;
