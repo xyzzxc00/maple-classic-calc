@@ -132,6 +132,7 @@
     rejects: 0,
     history: [], // 每筆收下的樣本 {t, gained}——算「實測 5/10 分鐘視窗」用
     pendingFirst: null, // 第一筆錨定備援：上一輪的候選讀值
+    contRejects: 0, // 連續「驗證有過卻跟前一筆接不上」的筆數（重新對齊用）
   };
 
   const listeners = [];
@@ -450,15 +451,18 @@
     return best;
   }
 
-  function isLikelyDot(g, img) {
-    return g.width <= Math.max(3, Math.round(img.width * 0.02)) &&
-      g.height <= Math.max(4, Math.round(img.height * 0.4));
+  // 小數點的判斷基準要用「文字行本身的高度」（refH＝綠括號那行的高度），
+  // 不能用裁切框的尺寸——校準給的鎖定框常比文字高很多，用框的比例判斷時，
+  // 百分比裡最窄的數字「1」會整顆被誤認成小數點吃掉（11.43% 變 1.43%），
+  // 交叉驗證就一直過不了。點跟 1 寬度可能一樣窄，唯一可靠的區別是高度
+  function isLikelyDot(g, refH) {
+    return g.height <= Math.max(2, Math.round(refH * 0.5));
   }
 
-  function readDigits(img, groups, skipDots) {
+  function readDigits(img, groups, skipDots, refH) {
     const out = [];
     for (const g of groups) {
-      if (skipDots && isLikelyDot(g, img)) continue;
+      if (skipDots && isLikelyDot(g, refH || img.height)) continue;
       const m = classifyExpDigit(img, g);
       if (m && m.score <= 0.3) out.push(m.digit); // 分數太差的字不算（雜訊/標籤字母）
     }
@@ -500,7 +504,8 @@
     const pctDigits = readDigits(
       img,
       whites.filter((g) => g.minX > open.maxX && g.maxX < close.minX),
-      true
+      true,
+      band ? band.y1 - band.y0 + 1 : img.height
     ).join("");
     let percent = null;
     if (pctDigits.length >= 3) {
@@ -700,6 +705,26 @@
     return true;
   }
 
+  // 重新對齊錨點：連續多筆「交叉驗證有過、卻跟前一筆接不上」代表錨點本身
+  // 錯了——切角色（經驗值看似倒退）、讀取中斷期間升了兩級以上、或先前收進
+  // 一筆偏高的誤讀，這三種都會讓之後的真讀值永遠被防呆規則拒收。對齊時
+  // 不知道中間發生什麼，所以這段獲得量直接放棄不計，之後從新錨點續算
+  function reAnchor(level, exp, percent) {
+    const now = Date.now();
+    if (!state.firstAt) state.firstAt = now;
+    state.lastLevel = level;
+    state.lastExp = exp;
+    state.lastAt = now;
+    state.level = level;
+    state.exp = exp;
+    state.percent = percent;
+    state.samples++;
+    state.contRejects = 0;
+    state.history.push({ t: now, gained: state.gainedExp });
+    const cutoff = now - 11 * 60000;
+    while (state.history.length && state.history[0].t < cutoff) state.history.shift();
+  }
+
   // ---------- 主循環 ----------
   async function tick(sourceOverride) {
     if (state.ticking) return;
@@ -824,7 +849,14 @@
       }
       if (acceptSample(level, parsed.exp, parsed.percent)) {
         state.pendingFirst = null;
+        state.contRejects = 0;
         setStatus("讀取中（每秒更新）");
+      } else if (
+        ++state.contRejects >= 10 &&
+        crossCheck(level, parsed.exp, parsed.percent)
+      ) {
+        reAnchor(level, parsed.exp, parsed.percent);
+        setStatus("讀值持續對不上先前紀錄，已重新對齊（切角色或中斷後跳級會這樣；累計不歸零，但對不上那段不計入）");
       } else {
         setStatus("這筆讀值異常已略過（等級跳動或經驗倒退，屬正常防呆）");
       }
@@ -877,6 +909,7 @@
     state.samples = 0; state.rejects = 0;
     state.history = [];
     state.pendingFirst = null;
+    state.contRejects = 0;
   }
 
   function stop() {
