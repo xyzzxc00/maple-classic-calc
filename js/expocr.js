@@ -522,9 +522,45 @@
     const insetY = Math.max(1, Math.round(band.height * 0.12));
     const minX = Math.min(img.width - 1, band.minX + insetX);
     const maxX = Math.max(minX, band.maxX - insetX);
-    const minY = Math.min(img.height - 1, band.minY + insetY);
-    const maxY = Math.max(minY, band.maxY - insetY);
-    const minColumnPixels = Math.max(1, Math.round((maxY - minY + 1) * 0.12));
+    const scanY0 = Math.min(img.height - 1, band.minY + insetY);
+    const scanY1 = Math.max(scanY0, band.maxY - insetY);
+
+    // 第一步：橫列直方圖找出數字真正佔據的「列帶」。真實遊戲的徽章有
+    // 光澤亮紋（1px 的近白色橫線，橫貫整個徽章），不先排除的話每一欄都
+    // 會有白點、欄切分直接失效。亮紋跟數字列帶之間有空列隔開，取「最高
+    // 的連續有墨列段」＝數字本體（7×縮放 列高，遠高於 1px 的亮紋）
+    const rowInk = [];
+    for (let y = scanY0; y <= scanY1; y++) {
+      let count = 0;
+      for (let x = minX; x <= maxX; x++) {
+        const [r, g, b] = px(img, x, y);
+        if (lvWhiteInk(r, g, b)) count++;
+      }
+      rowInk.push(count);
+    }
+    let bandY0 = -1, bandY1 = -1, curStart = -1;
+    for (let i = 0; i <= rowInk.length; i++) {
+      if (i < rowInk.length && rowInk[i] > 0) {
+        if (curStart < 0) curStart = i;
+      } else if (curStart >= 0) {
+        if (bandY0 < 0 || i - curStart > bandY1 - bandY0 + 1) {
+          bandY0 = curStart;
+          bandY1 = i - 1;
+        }
+        curStart = -1;
+      }
+    }
+    if (bandY0 < 0) return [];
+    const minY = scanY0 + bandY0;
+    const maxY = scanY0 + bandY1;
+
+    // 第二步：在乾淨的列帶內做欄切分。門檻固定 2 顆像素，不跟高度連動：
+    // 「1」「7」的稀疏邊欄在字模裡只有 1 顆點，放大 N 倍後變 N 顆——
+    // 2 倍以上自然過門檻、完整保留；間隙裡的抗鋸齒雜點永遠只有 1 顆，
+    // 被門檻擋掉。門檻跟高度連動的版本會在放大時把稀疏邊欄又切掉，
+    // 補回來還會讓取樣網格偏移、比對分數剛好爆線（實測踩過）。
+    // 任一低於門檻的欄就切團——間隙可能只有 1 欄寬，等 2 欄才切會黏字
+    const minColumnPixels = 2;
     const columns = [];
     for (let x = minX; x <= maxX; x++) {
       let count = 0;
@@ -534,30 +570,28 @@
       }
       columns.push(count);
     }
-    // 分欄用「有白像素就算」，切完再要求整團至少有一根實心欄（≥minColumnPixels）。
-    // 以前是逐欄先過雜訊門檻，會把「1」最左欄那顆單獨的白點砍掉、字形削窄，
-    // 小字（原生 1 倍）時比對分數直接爆掉——等級尾數是 1 的玩家整個讀不到
     const runs = [];
-    let start = null, gap = 0, peak = 0;
+    let start = null;
     const flush = (end) => {
-      if (end - start + 1 >= 2 && peak >= minColumnPixels) {
-        runs.push({ x1: minX + start, x2: minX + end });
-      }
+      if (end - start + 1 >= 2) runs.push({ x1: start, x2: end });
       start = null;
-      gap = 0;
-      peak = 0;
     };
     for (let i = 0; i < columns.length; i++) {
-      if (columns[i] > 0) {
+      if (columns[i] >= minColumnPixels) {
         if (start === null) start = i;
-        peak = Math.max(peak, columns[i]);
-        gap = 0;
       } else if (start !== null) {
-        gap++;
-        if (gap >= 2) flush(i - gap);
+        flush(i - 1);
       }
     }
     if (start !== null) flush(columns.length - 1);
+    // 第三步：每團往「左」補回一欄有像素但低於門檻的邊欄——原生 1 倍時
+    // 「1」「7」的稀疏左緣只有 1 顆點、會被門檻切掉，字形削窄到比對爆掉
+    // （Lv.51 讀不到的根因）。只補左邊：所有數字字模的「右」緣至少 2 顆
+    // 點不會被切，往右補只會把間隙雜點黏進字形、反而害比對偏移
+    for (const run of runs) {
+      if (run.x1 > 0 && columns[run.x1 - 1] > 0) run.x1--;
+    }
+    runs.forEach((run) => { run.x1 += minX; run.x2 += minX; });
     return runs
       .map((run) => {
         let gMinX = run.x2, gMinY = maxY, gMaxX = run.x1, gMaxY = minY, found = false;
