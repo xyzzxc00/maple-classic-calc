@@ -50,7 +50,7 @@
       <div class="miniwin-ocr">
         <div class="miniwin-ocr-head">
           <button class="miniwin-ocr-fold" data-ow="foldBtn" type="button" aria-expanded="true"
-            title="收合／展開讀取狀態"><span class="miniwin-ocr-chevron" data-ow="chevron">▾</span>畫面讀取<span class="miniwin-ocr-tag">實驗性 v9</span></button>
+            title="收合／展開讀取狀態"><span class="miniwin-ocr-chevron" data-ow="chevron">▾</span>畫面讀取<span class="miniwin-ocr-tag">實驗性 v10</span></button>
           <button class="btn btn-ghost miniwin-btn" data-ow="startBtn" type="button">▶ 開始</button>
         </div>
         <div data-ow="foldBody">

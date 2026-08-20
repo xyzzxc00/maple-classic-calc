@@ -579,10 +579,17 @@
       }
       columns.push(count);
     }
+    // 團寬至少 2 欄（擋雜訊欄），但「單欄且幾乎滿高」放行——1px 的細光棍
+    // 「1」就是一整根滿高的單欄，跟只有 1-2 顆像素的雜訊欄分得開。不放行
+    // 的話細光棍被整根丟掉，Lv.51 會漏字讀成 Lv.5（幸好有交叉驗證擋著，
+    // 但等級就讀不到了）
+    const bandH = maxY - minY + 1;
     const runs = [];
     let start = null;
     const flush = (end) => {
-      if (end - start + 1 >= 2) runs.push({ x1: start, x2: end });
+      if (end - start + 1 >= 2 || columns[start] >= bandH * 0.7) {
+        runs.push({ x1: start, x2: end });
+      }
       start = null;
     };
     for (let i = 0; i < columns.length; i++) {
