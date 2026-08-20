@@ -72,7 +72,16 @@
   };
   const LV_TPL = {
     "0": [{ w: 7, h: 7, bits: "0111110110001111000111100011110001111000110111110" }],
-    "1": [{ w: 3, h: 7, bits: "011111011011011011011" }],
+    // 「1」三種變體：有左襯線（移植字模的原样）、2px 光棍、1px 光棍。
+    // 實機（1368x800 視窗）的徽章「1」渲染出來就是光棍——襯線那顆點被
+    // 顏色過濾吃掉或字型本身沒有。只有有襯線字模時，光棍的比對分數是
+    // 0.286、剛好超過容錯上限被整個否決（Lv.51 讀不到的實際元兇，跟
+    // EXP 字模的「1」本來就備有窄版變體是同一個道理）
+    "1": [
+      { w: 3, h: 7, bits: "011111011011011011011" },
+      { w: 2, h: 7, bits: "11111111111111" },
+      { w: 1, h: 7, bits: "1111111" },
+    ],
     "2": [{ w: 7, h: 7, bits: "0111110110001100000110011110011000011000001111111" }],
     "3": [{ w: 7, h: 7, bits: "0111110110001100000110011110000001111000110111110" }],
     "4": [{ w: 7, h: 7, bits: "0001110001111001101101100110111111100001100000110" }],
@@ -635,8 +644,11 @@
     if (!badges.length) return null;
     const digits = levelDigitGroups(img, badges[0]).sort((a, b) => a.minX - b.minX);
     if (!digits.length || digits.length > 3) return null;
+    // 容錯上限 0.31：實機渲染跟字模的正常落差在 0.25~0.30（例如筆畫少一
+    // 顆邊點就 +0.02~0.03），錯誤數字的分數則在 0.35 以上，中間有安全帶；
+    // 就算真的誤讀，後面還有經驗值百分比交叉驗證擋著
     const matches = digits.map((g) => classifyLevelDigit(img, g));
-    if (matches.some((m) => !m || m.score > 0.28)) return null;
+    if (matches.some((m) => !m || m.score > 0.31)) return null;
     const level = Number(matches.map((m) => m.digit).join(""));
     if (!Number.isFinite(level) || level < 1 || level > 200) return null;
     return level;
