@@ -695,11 +695,12 @@
     })
   );
 
-  // 「建議練功地點」/「回報紀錄」兩個子分頁切換，記住使用者上次選的分頁。
+  // 社群資料的子分頁切換，記住使用者上次選的分頁。
   const CM_SUBTAB_KEY = "maple_classic_cm_subtab";
   const cmSubtabs = [
     { key: "suggest", btn: document.getElementById("cmSubSuggest"), view: document.getElementById("cmSuggestView") },
     { key: "picks", btn: document.getElementById("cmSubPicks"), view: document.getElementById("cmPicksView") },
+    { key: "tips", btn: document.getElementById("cmSubTips"), view: document.getElementById("cmTipsView") },
     { key: "records", btn: document.getElementById("cmSubRecords"), view: document.getElementById("cmRecordsView") },
   ];
 

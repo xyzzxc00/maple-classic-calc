@@ -2258,6 +2258,66 @@ body.dark .db-eltag--undead { background: #2b2838; color: #b7addb; border-color:
   color: var(--ink);
 }
 .pq-card-body li + li { margin-top: 4px; }
+.pq-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 4px 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.pq-table {
+  width: 100%;
+  min-width: 650px;
+  border-collapse: collapse;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.pq-table th,
+.pq-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+.pq-table th {
+  color: var(--accent-text);
+  background: var(--accent-tint);
+  white-space: nowrap;
+}
+.pq-table tr:last-child td { border-bottom: 0; }
+.pq-table td:first-child { font-weight: 700; white-space: nowrap; }
+@media (max-width: 560px) {
+  /* 桌機的比較表在手機不可以只剩水平捲動：每一列改成一張
+     四欄資訊卡，同時保留 table 的語意結構給輔助科技讀取。 */
+  .pq-table-wrap { overflow: visible; border: 0; border-radius: 0; }
+  .pq-table { min-width: 0; }
+  .pq-table thead { display: none; }
+  .pq-table tbody,
+  .pq-table tr,
+  .pq-table td { display: block; width: 100%; }
+  .pq-table tr {
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+  }
+  .pq-table tr + tr { margin-top: 8px; }
+  .pq-table td {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 10px;
+    padding: 7px 9px;
+  }
+  .pq-table td::before {
+    color: var(--accent-text);
+    font-weight: 700;
+  }
+  .pq-table td:nth-child(1)::before { content: "項目"; }
+  .pq-table td:nth-child(2)::before { content: "條件"; }
+  .pq-table td:nth-child(3)::before { content: "數值／獎勵"; }
+  .pq-table td:nth-child(4)::before { content: "備註"; }
+  .pq-table td:first-child { white-space: normal; }
+}
 .pq-source {
   margin-top: 12px;
   padding-top: 10px;
