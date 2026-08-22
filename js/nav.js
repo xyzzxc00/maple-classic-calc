@@ -4,6 +4,19 @@
 (function () {
   const STORAGE_KEY = "maple_classic_nav_v1";
 
+  // 全站規則：圖載不到就整個藏起來，乾淨留白，不留破圖圖示（沒有正確的
+  // 圖寧可空白也不要誤導——站長 2026-08-22 定的）。放在 nav.js 是因為
+  // 這支每一頁都會載（含 guides 與怪物靜態頁），db.js 那些各自的處理
+  // 照舊，這裡是兜底。error 事件不會冒泡，要用捕獲階段
+  document.addEventListener(
+    "error",
+    (e) => {
+      const t = e.target;
+      if (t && t.tagName === "IMG") t.style.visibility = "hidden";
+    },
+    true
+  );
+
   const pages = {
     home: document.getElementById("pageHome"),
     calc: document.getElementById("pageCalc"),
