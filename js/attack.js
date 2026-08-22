@@ -346,11 +346,38 @@
       .reduce((sum, advancement) => sum + skillBudget(advancement), 0);
   }
 
+  // 解鎖下一轉看的是「前面所有階段的累計 SP 是否都已投入」，不是要求
+  // 每一轉只能把自己的 SP 點在自己的技能。例如二轉 SP 回補一轉後，
+  // 一轉可以顯示 65/61；只要一、二轉合計用滿，三轉仍可正常解鎖。
+  function skillUsedThrough(stageIndex) {
+    return jobSkills()
+      .filter((skill) => {
+        const index = advancementIndex(skillAdvancement(skill));
+        return index >= 0 && index <= stageIndex;
+      })
+      .reduce((sum, skill) => sum + skillLevel(skill.id), 0);
+  }
+
+  function skillBudgetThrough(stageIndex) {
+    return ADVANCEMENT_ORDER
+      .slice(0, Math.max(0, stageIndex) + 1)
+      .reduce((sum, advancement) => sum + skillBudget(advancement), 0);
+  }
+
+  function previousAdvancementsComplete(stageIndex) {
+    if (stageIndex <= 0) return true;
+    return skillUsedThrough(stageIndex - 1) >= skillBudgetThrough(stageIndex - 1);
+  }
+
   function skillGateReason(skill) {
     const advancement = skillAdvancement(skill);
     const stageIndex = advancementIndex(advancement);
     if (stageIndex < 0) return "";
     if (stageIndex > 0 && characterLevel() < advancementStartLevel(advancement)) return "等級不足";
+    if (!previousAdvancementsComplete(stageIndex)) {
+      const previous = ADVANCEMENT_ORDER[stageIndex - 1] || "";
+      return "需先用盡" + previous + "點數";
+    }
     return "";
   }
 
@@ -426,6 +453,14 @@
       if (overBudget <= 0) continue;
       const affectedSkills = skills.filter((skill) => advancementIndex(skillAdvancement(skill)) >= index);
       reducePoints(affectedSkills, overBudget);
+    }
+
+    // 尚未投入完前面階段的累計 SP 時，後面的技能保持鎖定。這只控制
+    // 解鎖順序，不限制高轉 SP 回補：前面技能的已用點數可以高於原生預算。
+    for (let index = 1; index < ADVANCEMENT_ORDER.length; index += 1) {
+      if (previousAdvancementsComplete(index)) continue;
+      const lockedSkills = skills.filter((skill) => advancementIndex(skillAdvancement(skill)) >= index);
+      reducePoints(lockedSkills, skillUsedFrom(index));
     }
   }
 
@@ -852,15 +887,10 @@
 
   function renderSkillBudget() {
     els.skillBudget.innerHTML = availableSkillAdvancements().map((advancement) => {
-      const stageIndex = advancementIndex(advancement);
-      const beginner = stageIndex === 0;
-      const used = beginner ? skillBudgetUsed(advancement) : skillUsedFrom(stageIndex);
-      const budget = beginner ? skillBudget(advancement) : skillBudgetFrom(stageIndex);
-      const label = beginner
-        ? "初心者 SP"
-        : (stageIndex === 1 ? "職業 SP" : advancement + "以上 SP");
+      const used = skillBudgetUsed(advancement);
+      const budget = skillBudget(advancement);
       return '<span class="atk-pill' + (budget ? "" : " atk-pill--empty") + '">' +
-        esc(label) + " " + fmt(used) + " / " + fmt(budget) + "</span>";
+        esc(advancement) + " " + fmt(used) + " / " + fmt(budget) + "</span>";
     }).join("");
   }
 
