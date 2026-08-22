@@ -901,14 +901,17 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 }
 .cm-filter-lv { flex: 1; min-width: 60px; }
 .cm-filter-sep { color: var(--ink-soft); }
-/* 篩選列的「清空」：有任何條件生效才出現（沒條件時不佔位）。實色靜音底，
+/* 篩選列的「清空」：有任何條件生效才出現（沒條件時不佔位）。推到列的
+   最右邊自成一格，不要卡在輸入欄中間看起來像掉出來的（玩家回饋）。
+   虛線框＝輔助動作，跟「再顯示 N 筆」同一種視覺語言；實色靜音底，
    不用 opacity 稀釋（見上方切換器的註解，對比會掉到 AA 以下） */
 .cm-filter-clear {
+  margin-left: auto;
   font-family: inherit;
   font-size: 13px;
   color: var(--ink-soft);
   background: var(--surface-tint);
-  border: 1px solid var(--border-strong);
+  border: 1px dashed var(--border-strong);
   border-radius: var(--radius-md);
   padding: 10px 14px;
   cursor: pointer;
@@ -916,8 +919,21 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   white-space: nowrap;
 }
 .cm-filter-clear:hover {
-  color: var(--ink);
+  color: var(--accent-text);
+  border-style: solid;
   border-color: var(--accent-text);
+}
+/* 道具那排是 grid（.cm-filter-row--pairs）：清空鈕獨佔一整排、靠右對齊，
+   不然會被當成第六個格子塞進欄位裡 */
+.cm-filter-row--pairs > .cm-filter-clear {
+  grid-column: 1 / -1;
+  justify-self: end;
+  margin-left: 0;
+}
+/* 手機上篩選欄位會換行堆疊，清空鈕改成整列滿版比較好按（44px 觸控高） */
+@media (max-width: 560px) {
+  .cm-filter-clear { width: 100%; margin-left: 0; padding: 12px; }
+  .cm-filter-row--pairs > .cm-filter-clear { justify-self: stretch; }
 }
 .cm-form {
   background: var(--surface-tint);
@@ -1324,7 +1340,22 @@ a.db-chip { text-decoration: none; }
 /* 沒有對應詳情頁的掉落物（遊戲資料裡未命名的那些）：照列但不可點 */
 .db-drop-item--plain { cursor: default; }
 .db-drop-item--plain:hover { background: none; }
-.db-drop-icon { width: 32px; height: 32px; flex-shrink: 0; object-fit: contain; }
+.db-drop-icon { width: 32px; height: 32px; flex-shrink: 0; object-fit: contain; image-rendering: pixelated; }
+/* 拆包裡沒有頭像檔的 NPC：名字首字的文字頭像（尺寸由行內樣式帶入）。
+   空白圖框看起來像壞掉，這個看起來是刻意的 */
+.db-npc-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--surface-tint);
+  border: 1px solid var(--border-strong);
+  color: var(--ink-soft);
+  font-weight: 700;
+  font-family: 'Noto Sans TC', sans-serif;
+  line-height: 1;
+}
 .db-drop-text { min-width: 0; }
 .db-drop-name {
   display: block;
@@ -1446,6 +1477,17 @@ a.db-chip { text-decoration: none; }
   filter: drop-shadow(0 0 1px #fff) drop-shadow(0 0 2px rgba(0, 0, 0, 0.6));
 }
 .db-marker--mob:hover img { filter: drop-shadow(0 0 2px var(--accent-text)); }
+/* 沒被收錄的事件怪（任務/懸賞生成）：無圖無頁面，畫成小圓點。暖棕色跟
+   NPC 的綠點、傳送點的紫塊分得開；底圖永遠是亮色，顏色寫死即可 */
+.db-marker--mob-dot {
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  background: #a04b28;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  cursor: default;
+}
 .db-marker--npc { background: var(--accent-text); }
 /* 傳送點：跨地圖是實心紫色圓角方塊（會離開這張圖），同圖是同色的空心圓環
    （還在原地，視覺份量輕一點）。形狀跟顏色都跟圓點的 NPC 分得開 */
@@ -1456,8 +1498,9 @@ a.db-chip { text-decoration: none; }
   margin: -6.5px 0 0 -6.5px;
 }
 .db-marker--portal { background: #8a5cc4; border-radius: 3px; }
-/* 通往開放地圖的傳送點整顆是按鈕，點了跳過去 */
-.db-marker--portal-link { cursor: pointer; }
+/* 通往開放地圖的傳送點整顆是連結，點了跳過去。墊高一層，永遠不被
+   同圖傳送的裝飾性標記蓋住（單向落點有時剛好落在傳送點上） */
+.db-marker--portal-link { cursor: pointer; z-index: 1; }
 /* 標記只有十來像素，手機上手指點不準。用透明的偽元素把可點範圍往外撐，
    視覺大小不變。不敢撐太大——旁邊常常就是怪物圖示，會把它的點擊搶走 */
 .db-marker--portal-link::after { content: ""; position: absolute; inset: -6px; }

@@ -999,6 +999,7 @@ def build_npc_index(details):
             "where": d["maps"][0]["label"] if d["maps"] else "",
             "quests": len(d["quests"]),
             "shop": len(d["shop"]) + len(d["crafts"]),
+            "img": d["img"],
         }
         for d in details
     ]
@@ -1143,6 +1144,28 @@ def main():
     npc_details = build_npc_details(
         maps_db["maps"], quests_db["quests"], items_db["items"], map_ids, quest_ids, item_ids
     )
+    # NPC 頭像：任務與商店來源物件帶的路徑優先，沒帶的退一步直接找
+    # assets/npcs/<id>.png——來源資料常常沒把圖掛在物件上、檔案卻存在
+    # （1012002 就是這樣漏掉的）。約半數 NPC 拆包裡真的沒有頭像，把有無
+    # 寫進 `img` 旗標讓前端畫文字頭像佔位，不要留一個看起來像壞掉的空框
+    npc_ids = {d["id"] for d in npc_details}
+    npc_img_paths = {}
+    for q in quests_db["quests"]:
+        for key in ("startNpc", "endNpc"):
+            n = q.get(key) or {}
+            if n.get("id") in npc_ids and n.get("image"):
+                npc_img_paths[n["id"]] = n["image"]
+    for it in items_db["items"]:
+        for s in (it.get("sources") or {}).get("shops") or []:
+            n = s.get("npc") or {}
+            if n.get("id") in npc_ids and n.get("image"):
+                npc_img_paths.setdefault(n["id"], n["image"])
+    for nid in npc_ids:
+        if nid not in npc_img_paths and \
+           os.path.exists(os.path.join(src, "assets", "npcs", f"{nid}.png")):
+            npc_img_paths[nid] = f"./assets/npcs/{nid}.png"
+    for d in npc_details:
+        d["img"] = d["id"] in npc_img_paths
     os.makedirs(os.path.join(OUT_DATA, "npcs"), exist_ok=True)
     with open(os.path.join(OUT_DATA, "npcs.json"), "w", encoding="utf-8") as f:
         json.dump(build_npc_index(npc_details), f, ensure_ascii=False, separators=(",", ":"))
@@ -1159,6 +1182,7 @@ def main():
             "name": d["name"],
             "region": d["maps"][0]["region"] if d["maps"] else "",
             "where": d["maps"][0]["label"] if d["maps"] else "",
+            "img": d["img"],
             "items": d["shop"],
             "crafts": d["crafts"],
         }
@@ -1168,19 +1192,6 @@ def main():
     shops.sort(key=lambda s: (s["region"], s["where"], s["name"]))
     with open(os.path.join(OUT_DATA, "shops.json"), "w", encoding="utf-8") as f:
         json.dump(shops, f, ensure_ascii=False, separators=(",", ":"))
-    # 地圖上的 NPC 記錄沒有圖片路徑，圖只出現在任務與商店那邊的 NPC 物件裡
-    npc_ids = {d["id"] for d in npc_details}
-    npc_img_paths = {}
-    for q in quests_db["quests"]:
-        for key in ("startNpc", "endNpc"):
-            n = q.get(key) or {}
-            if n.get("id") in npc_ids and n.get("image"):
-                npc_img_paths[n["id"]] = n["image"]
-    for it in items_db["items"]:
-        for s in (it.get("sources") or {}).get("shops") or []:
-            n = s.get("npc") or {}
-            if n.get("id") in npc_ids and n.get("image"):
-                npc_img_paths.setdefault(n["id"], n["image"])
 
     # 地圖（詳情在最前面就算好了，怪物的出沒地圖連結要用）
     os.makedirs(os.path.join(OUT_DATA, "maps"), exist_ok=True)
@@ -1238,6 +1249,20 @@ def main():
         for d in m.get("drops") or []:
             if d.get("image"):
                 item_paths[d["id"]] = d["image"]
+    # 資料物件沒帶圖片路徑、但來源其實有同名檔的：直接補。兩個來源——
+    # 收錄道具本身，以及任務詳情的條件/獎勵晶片（那些道具不一定被收錄，
+    # 但前端會嘗試載圖；來源沒檔的前端會把 <img> 拿掉、顯示純文字晶片）
+    quest_item_refs = set()
+    for qd in quest_details:
+        for i in ((qd.get("start") or {}).get("items") or []) \
+               + ((qd.get("complete") or {}).get("items") or []) \
+               + ((qd.get("rewards") or {}).get("items") or []):
+            if i.get("id"):
+                quest_item_refs.add(i["id"])
+    for iid in set(item_ids) | quest_item_refs:
+        if iid not in item_paths and \
+           os.path.exists(os.path.join(src, "assets", "items", f"{iid}.png")):
+            item_paths[iid] = f"./assets/items/{iid}.png"
     item_imgs = sum(copy_image(src, p, os.path.join(OUT_ASSETS, "items"))
                     for p in item_paths.values())
     skill_imgs = sum(copy_image(src, s.get("image"), os.path.join(OUT_ASSETS, "skills"))

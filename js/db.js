@@ -1203,16 +1203,24 @@
       // 也不會跑掉。原圖只有一百多像素寬，放大時保留鋸齒比糊掉好看。
       // 怪物標記直接用該怪的圖示——一顆紅點只能告訴你「這裡有怪」，圖示
       // 能一眼看出是哪一種，密度分布也更好認
+      const mobById = new Map(d.mobs.map((m) => [m.id, m]));
       const markers = d.hasMini
         ? [
-            ...d.spawns.map(
-              (s) => `<a class="db-marker db-marker--mob" href="${dbHref("monster", s.id)}"
+            ...d.spawns.map((s) => {
+              const mob = mobById.get(s.id) || {};
+              const pos = `style="left:${s.x}%;top:${s.y}%"`;
+              // 沒被收錄的怪（多半是任務/懸賞的事件怪）沒有圖也沒有頁面：
+              // 畫成小圓點就好，不要放一顆看不見卻點得下去的透明標記
+              if (!mob.link) {
+                return `<span class="db-marker db-marker--mob db-marker--mob-dot"
+                          ${pos} title="${esc(mob.name || "")}"></span>`;
+              }
+              return `<a class="db-marker db-marker--mob" href="${dbHref("monster", s.id)}"
                         data-db-goto="monster" data-db-id="${esc(s.id)}"
-                        style="left:${s.x}%;top:${s.y}%"
-                        title="${esc((d.mobs.find((m) => m.id === s.id) || {}).name || "")}">
+                        ${pos} title="${esc(mob.name || "")}">
                         <img src="assets/db/monsters/${encodeURIComponent(s.id)}.png" alt=""
-                             loading="lazy" decoding="async"></a>`
-            ),
+                             loading="lazy" decoding="async"></a>`;
+            }),
             ...d.npcs
               .filter((n) => n.x != null)
               .map(
@@ -1233,10 +1241,19 @@
                 // 同圖傳送有配對資料時帶編號：同號互通。村莊常一次好幾組長得
                 // 一樣的傳送點，沒有編號看不出哪個通哪個（玩家回饋）
                 if (p.same && p.group) {
+                  // 單向落點如果剛好落在另一顆已畫的傳送點上（例如弓箭手村
+                  // up00 的落點就是通往菇菇公園的傳送點），別再疊一顆虛線點
+                  // 上去擋住人家可點的標記，改在提示文字裡講清楚
+                  const overlap = p.two ? null : d.portals.find(
+                    (q) => q !== p && q.x != null && p.tx != null &&
+                           Math.hypot(q.x - p.tx, q.y - p.ty) < 1.6
+                  );
                   const title = p.two
                     ? `同圖傳送 ${p.group} 號：兩個 ${p.group} 號互通`
-                    : `同圖傳送 ${p.group} 號：單向，傳到虛線 ${p.group} 號的位置`;
-                  const land = !p.two && p.tx != null
+                    : overlap
+                      ? `同圖傳送 ${p.group} 號：單向，傳到「${overlap.same ? "另一個同圖傳送點" : overlap.name}」的位置`
+                      : `同圖傳送 ${p.group} 號：單向，傳到虛線 ${p.group} 號的位置`;
+                  const land = !p.two && p.tx != null && !overlap
                     ? `<span class="db-marker db-marker--portal-same db-marker--portal-land"
                          style="left:${p.tx}%;top:${p.ty}%"
                          title="同圖傳送 ${p.group} 號的單向落點">${p.group}</span>`
@@ -1252,7 +1269,12 @@
 
       const hasSame = d.portals.some((p) => p.same && p.x != null);
       const hasPair = d.portals.some((p) => p.same && p.x != null && p.group);
-      const hasOneWay = d.portals.some((p) => p.same && p.x != null && p.group && !p.two);
+      // 圖例只列真的有畫出來的東西：單向落點跟別的傳送點重合時不會畫
+      // 虛線點（見下面 overlap 的註解），圖例也就不該出現這一項
+      const hasLand = d.portals.some(
+        (p) => p.same && p.x != null && p.group && !p.two && p.tx != null &&
+          !d.portals.find((q) => q !== p && q.x != null && Math.hypot(q.x - p.tx, q.y - p.ty) < 1.6)
+      );
       const figure = d.hasMini
         ? `<div class="db-map-figure" id="dbMapFigure">
              <img class="db-map-img" src="assets/db/maps/${encodeURIComponent(d.id)}.png"
@@ -1263,7 +1285,7 @@
              <span><i class="db-marker db-marker--npc"></i>NPC</span>
              <span><i class="db-marker db-marker--portal"></i>跨地圖傳送</span>
              ${hasSame ? `<span><i class="db-marker db-marker--portal-same${hasPair ? " db-marker--portal-pair" : ""}"></i>同圖傳送${hasPair ? "（同號互通）" : ""}</span>` : ""}
-             ${hasOneWay ? '<span><i class="db-marker db-marker--portal-same db-marker--portal-land"></i>單向落點</span>' : ""}
+             ${hasLand ? '<span><i class="db-marker db-marker--portal-same db-marker--portal-land"></i>單向落點</span>' : ""}
            </div>
            <div class="db-map-toggles">
              ${d.spawns.length ? '<button class="cm-sort-btn active" type="button" data-map-toggle="mob">怪物</button>' : ""}
@@ -1271,7 +1293,7 @@
              ${d.portals.some((p) => !p.same && p.x != null) ? '<button class="cm-sort-btn active" type="button" data-map-toggle="portal">跨地圖傳送</button>' : ""}
              ${hasSame ? '<button class="cm-sort-btn active" type="button" data-map-toggle="portal-same">同圖傳送</button>' : ""}
            </div>
-           <p class="db-section-note">點小地圖上的怪物圖示可以看那隻怪的資料，點紫色的傳送點可以直接前往那張地圖，點地圖空白處可以放大檢視；上面的按鈕可以切換要顯示哪一類標記。${hasPair ? "帶數字的圓點是同圖傳送：同號碼的兩點互通" + (hasOneWay ? "，虛線圓是單向傳送的落點" : "") + "。" : ""}</p>`
+           <p class="db-section-note">點小地圖上的怪物圖示可以看那隻怪的資料，點紫色的傳送點可以直接前往那張地圖，點地圖空白處可以放大檢視；上面的按鈕可以切換要顯示哪一類標記。${hasPair ? "帶數字的圓點是同圖傳送：同號碼的兩點互通" + (hasLand ? "，虛線圓是單向傳送的落點" : "") + "。" : ""}</p>`
         : '<p class="cm-empty">這張地圖沒有小地圖資料</p>';
 
       const mobs = d.mobs.length
@@ -1674,6 +1696,18 @@
       alt="" loading="lazy" decoding="async" width="${size}" height="${size}">`;
   }
 
+  // 約半數 NPC 拆包資料裡本來就沒有頭像檔（索引的 img 旗標）。沒圖的畫
+  // 「名字首字」文字頭像——空白圖框看起來像壞掉（玩家回饋），文字頭像
+  // 則是刻意的設計，資訊量也比較高
+  function npcAvatar(name, size) {
+    const ch = String(name || "？").trim().charAt(0) || "？";
+    return `<span class="db-npc-avatar" style="width:${size}px;height:${size}px;font-size:${Math.round(size * 0.42)}px" aria-hidden="true">${esc(ch)}</span>`;
+  }
+
+  function npcFace(n, size) {
+    return n && n.img === false ? npcAvatar(n.name, size) : npcImg(n.id, size);
+  }
+
   // NPC「分類」檢視：一排轉職教官＋三張角色卡（任務／商店與製作／居民）。
   // 教官用名字對照——資料檔沒有「教官」旗標，這五位是查證過的一轉教官
   const NPC_VIEW_KEY = "maple_classic_db_npc_view";
@@ -1710,9 +1744,10 @@
         const n = byName.get(name);
         return `<a class="db-npc-instructor" href="${dbHref("npc", n.id)}"
             data-db-goto="npc" data-db-id="${esc(n.id)}">
-          <img src="assets/db/npcs/${encodeURIComponent(n.id)}.png" alt=""
+          ${n.img === false ? npcAvatar(n.name, 44)
+            : `<img src="assets/db/npcs/${encodeURIComponent(n.id)}.png" alt=""
                width="44" height="44" loading="lazy" decoding="async"
-               onerror="this.style.visibility='hidden'">
+               onerror="this.style.visibility='hidden'">`}
           <strong>${esc(name)}</strong>
           <span>${esc(job)}教官</span>
           <small>${esc(n.where)}</small>
@@ -1739,9 +1774,10 @@
           <ul class="db-town-top">
             ${top.map((n) => `<li><a class="db-inline-link db-npc-top" href="${dbHref("npc", n.id)}"
                 data-db-goto="npc" data-db-id="${esc(n.id)}">
-                <img src="assets/db/npcs/${encodeURIComponent(n.id)}.png" alt=""
+                ${n.img === false ? npcAvatar(n.name, 24)
+                  : `<img src="assets/db/npcs/${encodeURIComponent(n.id)}.png" alt=""
                      width="24" height="24" loading="lazy" decoding="async"
-                     onerror="this.style.visibility='hidden'">${esc(n.name)}</a>
+                     onerror="this.style.visibility='hidden'">`}${esc(n.name)}</a>
                 <span class="db-sub-num">${meta(n)}</span></li>`).join("")}
           </ul>
         </section>`;
@@ -1817,7 +1853,7 @@
     },
     renderRow(n) {
       return `<a class="db-row" href="${dbHref("npc", n.id)}" data-db-id="${esc(n.id)}">
-        ${npcImg(n.id, 44)}
+        ${npcFace(n, 44)}
         <div class="db-row-main">
           <div class="db-row-title"><span class="db-row-name">${esc(n.name)}</span></div>
           <div class="db-row-meta">${esc([n.region, n.where].filter(Boolean).join(" · "))}</div>
@@ -1868,7 +1904,7 @@
       const empty = !d.quests.length && !d.shop.length && !(d.crafts || []).length;
       return `<button class="db-back" type="button" data-db-back>← 回到 NPC 列表</button>
         <div class="db-detail-head">
-          ${npcImg(d.id, 64)}
+          ${npcFace(d, 64)}
           <div>
             <div class="db-row-title"><h2 class="db-detail-name">${esc(d.name)}</h2></div>
           </div>
@@ -2790,9 +2826,10 @@
         .join("");
       return `<section class="db-shop-card">
         <a class="db-town-head" href="${dbHref("npc", s.id)}" data-db-goto="npc" data-db-id="${esc(s.id)}">
-          <img src="assets/db/npcs/${encodeURIComponent(s.id)}.png" alt=""
+          ${s.img === false ? npcAvatar(s.name, 38)
+            : `<img src="assets/db/npcs/${encodeURIComponent(s.id)}.png" alt=""
                width="38" height="38" loading="lazy" decoding="async"
-               onerror="this.style.visibility='hidden'">
+               onerror="this.style.visibility='hidden'">`}
           <span class="db-town-title">${esc(s.name)}</span>
           <span class="db-sub-num">${esc(s.where)} · ${s.items.length + s.crafts.length} 項</span>
         </a>
