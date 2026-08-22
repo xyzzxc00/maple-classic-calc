@@ -535,6 +535,7 @@ def build_quest_index(details, mark_of):
 
 
 GACHA_ARCHIVE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "gacha_archive.json")
+ICON_OVERRIDES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icon_overrides")
 
 
 def load_gacha_pools(src):
@@ -1330,6 +1331,25 @@ def main():
                    for p in npc_img_paths.values())
     world_imgs = sum(copy_image(src, p, os.path.join(OUT_ASSETS, "worldmaps"))
                      for p in world_img_paths.values())
+
+    # 圖示人工校正：morris 拆包有少數圖檔「檔名對、內容錯」（例如玫瑰椅
+    # 拿到紅沙發圖、蘑菇友情椅子拿到玫瑰椅的王座圖），他自己網站也一樣錯，
+    # 上游修不了。確認過的正確圖（來源 maplestory.io，WZ 直出）放在
+    # tools/icon_overrides/<類別>/<id>.png，最後蓋回去——一定要排在所有
+    # 複製之後，重跑匯入修正才不會消失
+    n_over = 0
+    if os.path.isdir(ICON_OVERRIDES):
+        for kind in os.listdir(ICON_OVERRIDES):
+            kdir = os.path.join(ICON_OVERRIDES, kind)
+            if not os.path.isdir(kdir):
+                continue
+            os.makedirs(os.path.join(OUT_ASSETS, kind), exist_ok=True)
+            for fn in os.listdir(kdir):
+                if fn.endswith(".png"):
+                    shutil.copy2(os.path.join(kdir, fn), os.path.join(OUT_ASSETS, kind, fn))
+                    n_over += 1
+    if n_over:
+        print(f"圖示校正   覆蓋 {n_over} 張（tools/icon_overrides/，morris 原圖錯位的人工修正）")
 
     # 報告
     def dirsize(path):
