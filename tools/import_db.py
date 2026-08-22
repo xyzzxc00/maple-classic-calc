@@ -534,9 +534,53 @@ def build_quest_index(details, mark_of):
     return out
 
 
-def build_item_details(items, kept_monster_ids, map_ids, quest_ids):
+GACHA_ARCHIVE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "gacha_archive.json")
+
+
+def load_gacha_pools(src):
+    """轉蛋收錄清單：合併「來源目前掛的池子」與 repo 裡的歷史檔。
+
+    政策（2026-08-22 與站長確認）：資料庫只收拿得到的，官方轉蛋池出現過的
+    道具算拿得到——活動下檔後玩家背包裡的還在，資料庫要答得出「這是什麼」，
+    所以出現過就永久收錄。來源檔 gacha-simulator-data.js 是 morris 抓官方
+    beanfun 活動 API 產的，只含「進行中」的活動；歷史靠 tools/
+    gacha_archive.json（進版控）累積，活動結束後重匯道具才不會消失。
+
+    只收 kind == "standardGachapon"（遊戲內道具的轉蛋機）。彗星兌換（現金
+    時裝）與皇家美容院（髮型臉型，不是背包道具）站長決定不收；未來要收
+    再放寬這個過濾。
+    """
+    archive = {"pools": []}
+    if os.path.exists(GACHA_ARCHIVE):
+        with open(GACHA_ARCHIVE, encoding="utf-8") as f:
+            archive = json.load(f)
+    by_id = {p["id"]: p for p in archive.get("pools") or []}
+    if os.path.exists(os.path.join(src, "gacha-simulator-data.js")):
+        data = load(src, "gacha-simulator-data.js")
+        for p in data.get("pools") or []:
+            if p.get("kind") != "standardGachapon":
+                continue
+            items = sorted({x["itemId"] for x in (p.get("prizes") or []) if x.get("itemId")})
+            if not items:
+                continue
+            by_id[p["id"]] = {
+                "id": p["id"],
+                "name": p.get("name") or "轉蛋機",
+                "period": p.get("period") or "",
+                "items": items,
+            }
+    else:
+        print("  ⚠ 來源沒有 gacha-simulator-data.js，轉蛋收錄沿用歷史檔")
+    pools = sorted(by_id.values(), key=lambda p: (p.get("period") or "", p["id"]))
+    with open(GACHA_ARCHIVE, "w", encoding="utf-8") as f:
+        json.dump({"pools": pools}, f, ensure_ascii=False, indent=1)
+        f.write("\n")
+    return pools
+
+
+def build_item_details(items, kept_monster_ids, map_ids, quest_ids, gacha_of=None):
     """道具：只收「在開放範圍內拿得到」的——被收錄的怪掉的、開放地圖的商店賣的、
-    或收錄任務給的／要的。拿不到的東西列出來只會讓人白找"""
+    收錄任務給的／要的，或官方轉蛋池出現過的。拿不到的東西列出來只會讓人白找"""
     out = []
     for it in items:
         # 未命名道具：遊戲資料裡沒有名字也沒有圖示（顯示成「未命名道具
@@ -588,6 +632,7 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids):
             }
 
         crafts = [craft_row(c) for c in (src.get("crafts") or []) if craft_open(c)]
+        gacha = (gacha_of or {}).get(it["id"]) or []
         # 這個道具被拿去做什麼（同一個產出只留一筆）
         used_in = {}
         for c in (src.get("craftRequirements") or []):
@@ -597,7 +642,7 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids):
             if prod.get("id") and not prod.get("unnamed"):
                 used_in[prod["id"]] = {"id": prod["id"], "name": prod.get("name") or ""}
 
-        if not (drops or shops or q_rewards or q_reqs or crafts):
+        if not (drops or shops or q_rewards or q_reqs or crafts or gacha):
             continue
 
         equip = it.get("equipStats") or {}
@@ -664,6 +709,9 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids):
             "crafts": crafts,
             "usedIn": sorted(used_in.values(), key=lambda x: x["name"]),
         })
+        # 轉蛋來源只有一小部分道具有，不塞空欄位進其他一千多個檔
+        if gacha:
+            out[-1]["gacha"] = gacha
     out.sort(key=lambda d: (d["cat"], d["sub"], d["name"]))
     return out
 
@@ -680,7 +728,8 @@ def build_item_index(details):
             "lv": (d["equip"] or {}).get("reqLevel") or 0,
             "job": (d["equip"] or {}).get("reqJob") or 0,
             "sell": d["sell"],
-            "from": len(d["drops"]) + len(d["shops"]) + len(d["quests"]) + len(d["crafts"]),
+            "from": len(d["drops"]) + len(d["shops"]) + len(d["quests"]) + len(d["crafts"])
+                    + len(d.get("gacha") or []),
         }
         for d in details
     ]
@@ -1090,7 +1139,13 @@ def main():
     # 被收錄（未命名道具會被濾掉）。反過來，道具的收錄條件只看怪物／任務／
     # 地圖的成員資格，不需要它們的詳情，所以先算道具不會有循環相依
     items_db = load(src, "items-data.js")
-    item_details = build_item_details(items_db["items"], monster_ids, map_ids, quest_ids)
+    # 官方轉蛋池出現過的道具視為「拿得到」，納入收錄（詳見 load_gacha_pools）
+    gacha_pools = load_gacha_pools(src)
+    gacha_of = {}
+    for p in gacha_pools:
+        for iid in p["items"]:
+            gacha_of.setdefault(iid, []).append({"pool": p["name"], "period": p["period"]})
+    item_details = build_item_details(items_db["items"], monster_ids, map_ids, quest_ids, gacha_of)
     item_ids = {d["id"] for d in item_details}
 
     # 地圖詳情要先算：怪物的出沒地圖能不能點進去，取決於那張圖最後有沒有

@@ -1,1 +1,1 @@
-{"id":2048000,"name":"寵物速度卷軸100%","desc":"寵物裝備附加移動速度提升屬性。 成功率：100%，移動速度+1","note":"","cat":"消耗","sub":"卷軸","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"1110100","name":"綠菇菇","level":15}],"shops":[],"quests":[],"crafts":[],"usedIn":[]}
+{"id":2048000,"name":"寵物速度卷軸100%","desc":"寵物裝備附加移動速度提升屬性。 成功率：100%，移動速度+1","note":"","cat":"消耗","sub":"卷軸","sell":0,"equip":{},"float":{},"floatFrom":[],"drops":[{"id":"1110100","name":"綠菇菇","level":15}],"shops":[],"quests":[],"crafts":[],"usedIn":[],"gacha":[{"pool":"轉蛋機","period":"2026/08/20 09:00 ~ 2026/09/10 00:00"}]}

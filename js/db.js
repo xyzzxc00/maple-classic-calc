@@ -1634,6 +1634,16 @@
           <span class="db-sub-num">${num(s.price)} ${esc(s.currency)}</span>
         </div>`
       );
+      // 官方轉蛋池出現過的道具（收錄政策：出現過就永久保留——活動下檔後
+      // 玩家背包裡的還在，資料庫要答得出「這是什麼」）
+      const gachaRows = (d.gacha || []).map(
+        (g) => `<div class="db-sub-item">
+          <span class="db-sub-name">${esc(g.pool)}</span>
+          <span class="db-sub-meta">${esc(g.period)}</span>
+          <span class="db-sub-num"><button class="db-inline-link" type="button"
+            data-open-gacha>轉蛋模擬 →</button></span>
+        </div>`
+      );
 
       // 製作：材料點得進各自的道具頁（材料本身也是道具，多半在收錄範圍內；
       // 不在的就維持純文字）
@@ -1683,9 +1693,21 @@
           <h3 class="db-section-title">哪裡買得到<span class="db-sub-num">${shopRows.length}</span></h3>
           <div class="db-sub-list">${shopRows.join("")}</div>
         </section>` : ""}
+        ${gachaRows.length ? `<section class="db-section">
+          <h3 class="db-section-title">哪裡抽得到<span class="db-sub-num">${gachaRows.length}</span></h3>
+          <div class="db-sub-list">${gachaRows.join("")}</div>
+          <p class="db-section-note">期間限定：活動結束後就抽不到，已抽到的道具不受影響。機率與期望花費可以用轉蛋模擬試算。</p>
+        </section>` : ""}
         ${sourceSection("相關任務", questBits)}
         ${crafts}
         ${sourceSection("拿來做什麼", usedInBits)}`;
+    },
+    onDetailClick(e) {
+      // 「哪裡抽得到」的轉蛋模擬捷徑：切到計算工具的轉蛋模擬子分頁
+      if (e.target.closest("[data-open-gacha]") && window.MapleNav) {
+        window.MapleNav.switchNav("calc");
+        window.MapleNav.showCalcSubtab("gacha");
+      }
     },
   });
 
