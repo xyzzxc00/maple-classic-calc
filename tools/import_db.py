@@ -686,6 +686,50 @@ def build_item_index(details):
     ]
 
 
+def pair_same_portals(entries, mm):
+    """同圖傳送的配對編號。entries 是 [(輸出的 portal dict, 來源 portal), …]。
+
+    來源的 sameMapTarget 記著這顆傳過去的落點座標，雙向一對會互指。配好
+    組別（`group` 同號＝互通、`two`＝雙向）前端才畫得出「哪個通哪個」——
+    村莊常一次好幾組長一樣的傳送點，沒編號分不出來（玩家回饋）。單向的
+    （例如弓箭手村跳上樹屋的 up00）另帶 `tx`/`ty` 落點百分比，前端畫虛線
+    落點。沒有 sameMapTarget 的照舊不標號。組號照 x 座標由左到右。"""
+
+    def pct(v, center, span):
+        return round((v + center) / span * 100, 3) if span else None
+
+    entries = sorted(entries, key=lambda t: (t[1].get("x") or 0, t[1].get("y") or 0))
+    used = set()
+    group = 0
+    for i, (out, p) in enumerate(entries):
+        if i in used:
+            continue
+        t = p.get("sameMapTarget") or {}
+        if t.get("x") is None:
+            continue
+        group += 1
+        partner = None
+        for j, (out2, q) in enumerate(entries):
+            if j == i or j in used:
+                continue
+            qt = q.get("sameMapTarget") or {}
+            if (q.get("x"), q.get("y")) == (t.get("x"), t.get("y")) and \
+               (qt.get("x"), qt.get("y")) == (p.get("x"), p.get("y")):
+                partner = j
+                break
+        out["group"] = group
+        used.add(i)
+        if partner is not None:
+            out["two"] = True
+            entries[partner][0]["group"] = group
+            entries[partner][0]["two"] = True
+            used.add(partner)
+        else:
+            out["two"] = False
+            out["tx"] = pct(t["x"], mm["centerX"], mm["width"])
+            out["ty"] = pct(t["y"], mm["centerY"], mm["height"])
+
+
 def build_map_details(maps, map_ids, monster_ids):
     """地圖：小地圖上的標記位置用百分比存，畫面才能隨寬度縮放。
     換算方式是 (座標 + center) / 世界範圍——驗證過所有重生點都會落在圖內；
@@ -736,6 +780,7 @@ def build_map_details(maps, map_ids, monster_ids):
         # 顏色，跟跨地圖的分開
         portals = []
         seen = set()
+        same_entries = []
         for p in m.get("portals") or []:
             tid = p.get("targetMapId")
             same = bool(p.get("sameMap"))
@@ -760,6 +805,10 @@ def build_map_details(maps, map_ids, monster_ids):
                 "x": pct(p["x"], mm["centerX"], mm["width"]) if has_mini and p.get("x") is not None else None,
                 "y": pct(p["y"], mm["centerY"], mm["height"]) if has_mini and p.get("y") is not None else None,
             })
+            if same and has_mini and p.get("x") is not None:
+                same_entries.append((portals[-1], p))
+        if same_entries:
+            pair_same_portals(same_entries, mm)
 
         # 沒有怪物、沒有 NPC、也沒有跨地圖傳送點的地圖，畫面上什麼都給不出來。
         # 這些多半是遊戲內部的隱藏圖（「未命名地圖 910320011」）或測試用的圖

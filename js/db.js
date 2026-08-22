@@ -57,6 +57,28 @@
 
   const LOAD_ERROR = '<p class="cm-empty cm-empty--error">資料載入失敗，請重新整理頁面</p>';
 
+  // 資料庫內部連結一律給真的 href（?db=…&id=…）：中鍵、Ctrl/Cmd+左鍵開新
+  // 分頁、右鍵複製連結這些瀏覽器內建行為都靠它（玩家回饋）。一般左鍵仍走
+  // SPA 導頁，由 navClick 攔下來
+  function dbHref(set, id) {
+    return `?db=${encodeURIComponent(set)}&id=${encodeURIComponent(String(id))}`;
+  }
+
+  /**
+   * 導頁元素的統一點擊入口。回傳三種結果：
+   *   null   —— 點的不是 selector 指到的元素，呼叫端繼續別的分支
+   *   "skip" —— 帶修飾鍵（Ctrl/Cmd/Shift/Alt）或非左鍵：整個不處理，
+   *             交給瀏覽器的預設行為（在真連結上就是開新分頁/新視窗）
+   *   元素   —— 已經 preventDefault（真連結不整頁重載），呼叫端做 SPA 導頁
+   */
+  function navClick(e, selector) {
+    const el = e.target.closest(selector);
+    if (!el) return null;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return "skip";
+    e.preventDefault();
+    return el;
+  }
+
   // ------------------------------------------------------------ 放大檢視
   // 點底圖把整個圖組（底圖＋標記）複製一份放進全螢幕燈箱。放大不只是看
   // 清楚，也是讓小螢幕上十幾像素的傳送點變得點得到——標記在燈箱裡照樣
@@ -83,8 +105,9 @@
       '<button class="db-lightbox-close" type="button" aria-label="關閉放大檢視">✕</button>';
     lightboxBody = lightbox.querySelector(".db-lightbox-body");
     lightbox.addEventListener("click", (e) => {
-      const goto = e.target.closest("[data-db-goto]");
+      const goto = navClick(e, "[data-db-goto]");
       const reg = e.target.closest("[data-world-region]");
+      if (goto === "skip") return; // 開新分頁：燈箱留著，回來還在原地
       if (goto) {
         closeLightbox();
         openDetail(goto.dataset.dbGoto, goto.dataset.dbId, true);
@@ -142,6 +165,8 @@
     (cfg.filters || []).forEach((f) => {
       filterEls[f.id] = document.getElementById(cfg.prefix + f.id);
     });
+    // 「清空篩選」：有任何條件生效才出現（跟城鎮晶片同一種有才顯示的邏輯）
+    const clearBtn = document.getElementById(cfg.prefix + "ClearFilters");
 
     let index = null;
     let loading = null;
@@ -186,6 +211,7 @@
     function render(keepShown) {
       if (!index) return;
       const v = filterValues();
+      if (clearBtn) clearBtn.hidden = Object.keys(v).every((k) => !v[k]);
       let rows = index.filter((row) => (cfg.filters || []).every((f) => f.test(row, v[f.id])));
       const sorter = (cfg.sorts || []).find((s) => s.key === sortKey);
       if (sorter) {
@@ -279,6 +305,20 @@
       if (el.tagName === "SELECT") el.addEventListener("change", render);
       else el.addEventListener("input", renderSoon);
     });
+    if (clearBtn) {
+      clearBtn.addEventListener("click", () => {
+        Object.keys(filterEls).forEach((k) => {
+          const el = filterEls[k];
+          if (!el || !el.value) return;
+          el.value = "";
+          // 連動選單（地區→區域、分類→類型）與城鎮晶片都掛在 change 上，
+          // 讓它們自己重整；文字欄位交給最後的 render() 一次收
+          if (el.tagName === "SELECT") el.dispatchEvent(new Event("change"));
+        });
+        if (cfg.onClearFilters) cfg.onClearFilters();
+        render();
+      });
+    }
     page.querySelectorAll(`[data-db-sort][data-db-set="${cfg.route}"]`).forEach((btn) => {
       btn.addEventListener("click", () => {
         setSort(btn.dataset.dbSort);
@@ -297,17 +337,20 @@
       if (e.target.closest("[data-db-more]")) {
         shown += PAGE;
         paint();
-        // 焦點移到新一批的第一列，鍵盤使用者不會被丟回列表最上面
+        // 焦點移到新一批的第一列，鍵盤使用者不會被丟回列表最上面。
+        // 列可能本身是 <a>（自己可聚焦），怪物表格則聚焦列內的名稱連結
         const first = els.list.querySelectorAll("[data-db-id]")[shown - PAGE];
-        if (first) first.focus();
+        if (first) (first.matches("a[href]") ? first : first.querySelector("a[href]") || first).focus();
         return;
       }
-      const row = e.target.closest("[data-db-id]");
-      if (row) openDetail(cfg.route, row.dataset.dbId, true);
+      const row = navClick(e, "[data-db-id]");
+      if (row && row !== "skip") openDetail(cfg.route, row.dataset.dbId, true);
     });
-    // 表格列與欄位標題不是原生 button，鍵盤的 Enter/空白鍵要自己接
+    // 欄位標題不是原生 button，鍵盤的 Enter/空白鍵要自己接；<a> 的 Enter
+    // 是瀏覽器原生行為，不要再攔（會觸發兩次）
     els.list.addEventListener("keydown", (e) => {
       if (e.key !== "Enter" && e.key !== " ") return;
+      if (e.target.closest && e.target.closest("a[href]")) return;
       const t = e.target.closest("[data-db-id],[data-db-sort]");
       if (t && els.list.contains(t)) {
         e.preventDefault();
@@ -315,7 +358,8 @@
       }
     });
     els.detail.addEventListener("click", (e) => {
-      const goto = e.target.closest("[data-db-goto]");
+      const goto = navClick(e, "[data-db-goto]");
+      if (goto === "skip") return;
       if (e.target.closest("[data-db-back]")) closeDetail(true);
       // 詳情裡跨資料集的連結（任務→怪物、任務→技能…）：只有本站真的收錄
       // 那一筆時才會產生這種元素，不然點了會開到 404
@@ -719,6 +763,15 @@
         sel.dispatchEvent(new Event("change"));
       });
     },
+    onClearFilters() {
+      // 快速晶片的高亮跟著隱藏選單歸位（值已由通用清空邏輯清成空字串）
+      document
+        .querySelectorAll("#dbMonsterQuick [data-mon-band],#dbMonsterQuick [data-mon-weak]")
+        .forEach((b) => {
+          const v = b.dataset.monBand !== undefined ? b.dataset.monBand : b.dataset.monWeak;
+          b.classList.toggle("active", v === "");
+        });
+    },
     // 表格式列表：欄位標題可排序（點一下排序、再點反轉），效率欄
     // HP÷EXP 是「每 1 點經驗要打掉多少血」，越低越好打
     wrapTable(rowsHtml, sortKey, sortDir) {
@@ -743,9 +796,9 @@
       );
       if (m.undead) tags.push('<span class="db-eltag db-eltag--undead">不死</span>');
       const ratio = hpPerExp(m);
-      return `<tr class="db-trow" data-db-id="${esc(m.id)}" tabindex="0"
-                role="button" aria-label="${esc(m.name)}">
-        <td class="db-td-name">${monsterImg(m.id, 32)}<span>${esc(m.name)}</span></td>
+      // 名稱是真連結（可開新分頁），整列照樣可點（點列＝點名稱）
+      return `<tr class="db-trow" data-db-id="${esc(m.id)}">
+        <td class="db-td-name"><a class="db-td-link" href="${dbHref("monster", m.id)}">${monsterImg(m.id, 32)}<span>${esc(m.name)}</span></a></td>
         <td class="db-td-num">${m.level}</td>
         <td class="db-td-num">${shortNum(m.hp)}</td>
         <td class="db-td-num">${shortNum(m.mp)}</td>
@@ -785,8 +838,8 @@
                 <span class="db-sub-meta">${esc([m.region, m.street].filter(Boolean).join(" · "))}</span>
                 <span class="db-sub-num">${m.spawns} 個重生點</span>`;
               return m.link
-                ? `<button class="db-sub-item db-sub-item--link" type="button"
-                     data-db-goto="map" data-db-id="${esc(m.id)}">${inner}</button>`
+                ? `<a class="db-sub-item db-sub-item--link" href="${dbHref("map", m.id)}"
+                     data-db-goto="map" data-db-id="${esc(m.id)}">${inner}</a>`
                 : `<div class="db-sub-item">${inner}</div>`;
             })
             .join("")}</div>`
@@ -812,9 +865,9 @@
                   if (x.sell) bits.push(`賣店 ${num(x.sell)}`);
                   // 未命名道具不在道具資料集裡（沒名字沒圖），照列但不能點，
                   // 不然會開到不存在的頁面
-                  const tag = x.link ? "button" : "div";
+                  const tag = x.link ? "a" : "div";
                   const attrs = x.link
-                    ? ` type="button" data-db-goto="item" data-db-id="${esc(x.id)}"`
+                    ? ` href="${dbHref("item", x.id)}" data-db-goto="item" data-db-id="${esc(x.id)}"`
                     : "";
                   return `<${tag} class="db-drop-item${x.link ? "" : " db-drop-item--plain"}"${attrs}>
                     <img class="db-drop-icon" src="assets/db/items/${encodeURIComponent(x.id)}.png"
@@ -1029,8 +1082,8 @@
           <span class="db-sub-num">${rows.length} 張地圖 →</span>
         </button>
         <ul class="db-town-top">
-          ${top.map((m) => `<li><button class="db-inline-link" type="button"
-              data-db-goto="map" data-db-id="${esc(m.id)}">${esc(m.name)}</button>
+          ${top.map((m) => `<li><a class="db-inline-link" href="${dbHref("map", m.id)}"
+              data-db-goto="map" data-db-id="${esc(m.id)}">${esc(m.name)}</a>
               <span class="db-sub-num">${m.spawns} 重生點</span></li>`).join("")}
         </ul>
       </section>`);
@@ -1045,7 +1098,8 @@
     els.listBtn.addEventListener("click", () => showMapView("list"));
     showMapView(localStorage.getItem(MAP_VIEW_KEY) === "list" ? "list" : "towns", true);
     els.towns.addEventListener("click", (e) => {
-      const goto = e.target.closest("[data-db-goto]");
+      const goto = navClick(e, "[data-db-goto]");
+      if (goto === "skip") return;
       if (goto) {
         openDetail("map", goto.dataset.dbId, true);
         return;
@@ -1130,7 +1184,7 @@
       buildMapTowns(index);
     },
     renderRow(m) {
-      return `<button class="db-row db-row--text" type="button" data-db-id="${esc(m.id)}">
+      return `<a class="db-row db-row--text" href="${dbHref("map", m.id)}" data-db-id="${esc(m.id)}">
         <div class="db-row-main">
           <div class="db-row-title">
             <span class="db-row-name">${esc(m.name)}</span>
@@ -1142,7 +1196,7 @@
           <div><dt>重生點</dt><dd>${m.spawns}</dd></div>
           <div><dt>傳送</dt><dd>${m.portals}</dd></div>
         </dl>
-      </button>`;
+      </a>`;
     },
     renderDetail(d) {
       // 小地圖上的標記：位置在匯入時就換算成百分比，這裡直接套，畫面縮放
@@ -1152,12 +1206,12 @@
       const markers = d.hasMini
         ? [
             ...d.spawns.map(
-              (s) => `<button class="db-marker db-marker--mob" type="button"
+              (s) => `<a class="db-marker db-marker--mob" href="${dbHref("monster", s.id)}"
                         data-db-goto="monster" data-db-id="${esc(s.id)}"
                         style="left:${s.x}%;top:${s.y}%"
                         title="${esc((d.mobs.find((m) => m.id === s.id) || {}).name || "")}">
                         <img src="assets/db/monsters/${encodeURIComponent(s.id)}.png" alt=""
-                             loading="lazy" decoding="async"></button>`
+                             loading="lazy" decoding="async"></a>`
             ),
             ...d.npcs
               .filter((n) => n.x != null)
@@ -1165,23 +1219,40 @@
                 (n) => `<span class="db-marker db-marker--npc" style="left:${n.x}%;top:${n.y}%"
                           title="${esc(n.name)}"></span>`
               ),
-            // 跨地圖傳送點整顆是按鈕，點了直接跳到那張圖——在圖上看到出口就
-            // 能一路走下去。同圖傳送沒有目標可跳，維持不可點
+            // 跨地圖傳送點整顆是連結，點了直接跳到那張圖——在圖上看到出口就
+            // 能一路走下去。同圖傳送沒有目標頁可跳，維持不可點
             ...d.portals
               .filter((p) => p.x != null)
               .map((p) => {
                 const pos = `style="left:${p.x}%;top:${p.y}%"`;
-                return p.link
-                  ? `<button class="db-marker db-marker--portal db-marker--portal-link" type="button"
-                       data-db-goto="map" data-db-id="${esc(p.id)}" ${pos}
-                       title="前往 ${esc(p.name)}"></button>`
-                  : `<span class="db-marker db-marker--${p.same ? "portal-same" : "portal"}"
-                       ${pos} title="${esc(p.same ? "同圖傳送" : p.name)}"></span>`;
+                if (p.link) {
+                  return `<a class="db-marker db-marker--portal db-marker--portal-link"
+                       href="${dbHref("map", p.id)}" data-db-goto="map" data-db-id="${esc(p.id)}"
+                       ${pos} title="前往 ${esc(p.name)}"></a>`;
+                }
+                // 同圖傳送有配對資料時帶編號：同號互通。村莊常一次好幾組長得
+                // 一樣的傳送點，沒有編號看不出哪個通哪個（玩家回饋）
+                if (p.same && p.group) {
+                  const title = p.two
+                    ? `同圖傳送 ${p.group} 號：兩個 ${p.group} 號互通`
+                    : `同圖傳送 ${p.group} 號：單向，傳到虛線 ${p.group} 號的位置`;
+                  const land = !p.two && p.tx != null
+                    ? `<span class="db-marker db-marker--portal-same db-marker--portal-land"
+                         style="left:${p.tx}%;top:${p.ty}%"
+                         title="同圖傳送 ${p.group} 號的單向落點">${p.group}</span>`
+                    : "";
+                  return `<span class="db-marker db-marker--portal-same db-marker--portal-pair"
+                       ${pos} title="${title}">${p.group}</span>` + land;
+                }
+                return `<span class="db-marker db-marker--${p.same ? "portal-same" : "portal"}"
+                     ${pos} title="${esc(p.same ? "同圖傳送" : p.name)}"></span>`;
               }),
           ].join("")
         : "";
 
       const hasSame = d.portals.some((p) => p.same && p.x != null);
+      const hasPair = d.portals.some((p) => p.same && p.x != null && p.group);
+      const hasOneWay = d.portals.some((p) => p.same && p.x != null && p.group && !p.two);
       const figure = d.hasMini
         ? `<div class="db-map-figure" id="dbMapFigure">
              <img class="db-map-img" src="assets/db/maps/${encodeURIComponent(d.id)}.png"
@@ -1191,7 +1262,8 @@
            <div class="db-map-legend">
              <span><i class="db-marker db-marker--npc"></i>NPC</span>
              <span><i class="db-marker db-marker--portal"></i>跨地圖傳送</span>
-             ${hasSame ? '<span><i class="db-marker db-marker--portal-same"></i>同圖傳送</span>' : ""}
+             ${hasSame ? `<span><i class="db-marker db-marker--portal-same${hasPair ? " db-marker--portal-pair" : ""}"></i>同圖傳送${hasPair ? "（同號互通）" : ""}</span>` : ""}
+             ${hasOneWay ? '<span><i class="db-marker db-marker--portal-same db-marker--portal-land"></i>單向落點</span>' : ""}
            </div>
            <div class="db-map-toggles">
              ${d.spawns.length ? '<button class="cm-sort-btn active" type="button" data-map-toggle="mob">怪物</button>' : ""}
@@ -1199,7 +1271,7 @@
              ${d.portals.some((p) => !p.same && p.x != null) ? '<button class="cm-sort-btn active" type="button" data-map-toggle="portal">跨地圖傳送</button>' : ""}
              ${hasSame ? '<button class="cm-sort-btn active" type="button" data-map-toggle="portal-same">同圖傳送</button>' : ""}
            </div>
-           <p class="db-section-note">點小地圖上的怪物圖示可以看那隻怪的資料，點紫色的傳送點可以直接前往那張地圖，點地圖空白處可以放大檢視；上面的按鈕可以切換要顯示哪一類標記。</p>`
+           <p class="db-section-note">點小地圖上的怪物圖示可以看那隻怪的資料，點紫色的傳送點可以直接前往那張地圖，點地圖空白處可以放大檢視；上面的按鈕可以切換要顯示哪一類標記。${hasPair ? "帶數字的圓點是同圖傳送：同號碼的兩點互通" + (hasOneWay ? "，虛線圓是單向傳送的落點" : "") + "。" : ""}</p>`
         : '<p class="cm-empty">這張地圖沒有小地圖資料</p>';
 
       const mobs = d.mobs.length
@@ -1486,7 +1558,7 @@
       buildItemCats(index, els, render);
     },
     renderRow(i) {
-      return `<button class="db-row" type="button" data-db-id="${esc(i.id)}">
+      return `<a class="db-row" href="${dbHref("item", i.id)}" data-db-id="${esc(i.id)}">
         ${itemImg(i.id, 44)}
         <div class="db-row-main">
           <div class="db-row-title">
@@ -1500,7 +1572,7 @@
           <div><dt>賣店</dt><dd>${i.sell ? shortNum(i.sell) : "—"}</dd></div>
           <div><dt>來源</dt><dd>${i.from}</dd></div>
         </dl>
-      </button>`;
+      </a>`;
     },
     renderDetail(d) {
       const eq = d.equip || {};
@@ -1636,7 +1708,7 @@
     const instructors = INSTRUCTORS.filter(([name]) => byName.has(name))
       .map(([name, job]) => {
         const n = byName.get(name);
-        return `<button class="db-npc-instructor" type="button"
+        return `<a class="db-npc-instructor" href="${dbHref("npc", n.id)}"
             data-db-goto="npc" data-db-id="${esc(n.id)}">
           <img src="assets/db/npcs/${encodeURIComponent(n.id)}.png" alt=""
                width="44" height="44" loading="lazy" decoding="async"
@@ -1644,7 +1716,7 @@
           <strong>${esc(name)}</strong>
           <span>${esc(job)}教官</span>
           <small>${esc(n.where)}</small>
-        </button>`;
+        </a>`;
       })
       .join("");
 
@@ -1665,11 +1737,11 @@
             <span class="db-sub-num">${rows.length} 位 →</span>
           </button>
           <ul class="db-town-top">
-            ${top.map((n) => `<li><button class="db-inline-link db-npc-top" type="button"
+            ${top.map((n) => `<li><a class="db-inline-link db-npc-top" href="${dbHref("npc", n.id)}"
                 data-db-goto="npc" data-db-id="${esc(n.id)}">
                 <img src="assets/db/npcs/${encodeURIComponent(n.id)}.png" alt=""
                      width="24" height="24" loading="lazy" decoding="async"
-                     onerror="this.style.visibility='hidden'">${esc(n.name)}</button>
+                     onerror="this.style.visibility='hidden'">${esc(n.name)}</a>
                 <span class="db-sub-num">${meta(n)}</span></li>`).join("")}
           </ul>
         </section>`;
@@ -1684,7 +1756,8 @@
       <div class="db-town-grid">${cards}</div>`;
 
     roles.addEventListener("click", (e) => {
-      const goto = e.target.closest("[data-db-goto]");
+      const goto = navClick(e, "[data-db-goto]");
+      if (goto === "skip") return;
       if (goto) {
         openDetail("npc", goto.dataset.dbId, true);
         return;
@@ -1743,7 +1816,7 @@
       buildNpcRoles(index, els, render);
     },
     renderRow(n) {
-      return `<button class="db-row" type="button" data-db-id="${esc(n.id)}">
+      return `<a class="db-row" href="${dbHref("npc", n.id)}" data-db-id="${esc(n.id)}">
         ${npcImg(n.id, 44)}
         <div class="db-row-main">
           <div class="db-row-title"><span class="db-row-name">${esc(n.name)}</span></div>
@@ -1753,7 +1826,7 @@
           <div><dt>任務</dt><dd>${n.quests}</dd></div>
           <div><dt>商品</dt><dd>${n.shop}</dd></div>
         </dl>
-      </button>`;
+      </a>`;
     },
     renderDetail(d) {
       const where = d.maps.length
@@ -1774,12 +1847,12 @@
             <h3 class="db-section-title">商店<span class="db-sub-num">${d.shop.length} 項</span></h3>
             <div class="db-sub-list">${d.shop
               .map(
-                (s) => `<button class="db-sub-item db-sub-item--link" type="button"
+                (s) => `<a class="db-sub-item db-sub-item--link" href="${dbHref("item", s.id)}"
                           data-db-goto="item" data-db-id="${esc(s.id)}">
                   <span class="db-sub-name">${esc(s.name)}</span>
                   <span class="db-sub-meta"></span>
                   <span class="db-sub-num">${num(s.price)} ${esc(s.currency)}</span>
-                </button>`
+                </a>`
               )
               .join("")}</div>
           </section>`
@@ -1825,8 +1898,8 @@
 
   function linkChip(set, id, name, extra, icon) {
     const tail = extra ? `<span class="db-sub-num">${esc(extra)}</span>` : "";
-    return `<button class="db-chip" type="button" data-db-goto="${set}" data-db-id="${esc(id)}">
-      ${chipIcon(icon)}${esc(name)}${tail}</button>`;
+    return `<a class="db-chip" href="${dbHref(set, id)}" data-db-goto="${set}" data-db-id="${esc(id)}">
+      ${chipIcon(icon)}${esc(name)}${tail}</a>`;
   }
 
   function plainChip(name, extra, icon) {
@@ -1897,8 +1970,8 @@
           <span class="db-sub-num">${rows.length} 個任務 →</span>
         </button>
         <ul class="db-town-top">
-          ${top.map((q) => `<li><button class="db-inline-link" type="button"
-              data-db-goto="quest" data-db-id="${esc(q.id)}">${esc(q.name)}</button>
+          ${top.map((q) => `<li><a class="db-inline-link" href="${dbHref("quest", q.id)}"
+              data-db-goto="quest" data-db-id="${esc(q.id)}">${esc(q.name)}</a>
               <span class="db-sub-num">${q.lv ? "Lv." + q.lv : "不限等級"}</span></li>`).join("")}
         </ul>
       </section>`);
@@ -1906,7 +1979,8 @@
     towns.innerHTML = `<div class="db-town-grid">${cards.join("")}</div>`;
 
     towns.addEventListener("click", (e) => {
-      const goto = e.target.closest("[data-db-goto]");
+      const goto = navClick(e, "[data-db-goto]");
+      if (goto === "skip") return;
       if (goto) {
         openDetail("quest", goto.dataset.dbId, true);
         return;
@@ -1972,7 +2046,7 @@
       });
     },
     renderRow(q) {
-      return `<button class="db-row db-row--text" type="button" data-db-id="${esc(q.id)}">
+      return `<a class="db-row db-row--text" href="${dbHref("quest", q.id)}" data-db-id="${esc(q.id)}">
         <div class="db-row-main">
           <div class="db-row-title">
             <span class="db-row-name">${esc(q.name)}</span>
@@ -1984,7 +2058,7 @@
         <dl class="db-row-stats">
           <div><dt>EXP</dt><dd>${q.exp ? shortNum(q.exp) : "—"}</dd></div>
         </dl>
-      </button>`;
+      </a>`;
     },
     renderDetail(d) {
       const npcLine = (n, label) =>
@@ -2146,10 +2220,10 @@
           .slice()
           .sort((a, b) => a.name.localeCompare(b.name, "zh-TW"))
           .map(
-            (s) => `<button class="db-skill-icon" type="button" data-db-goto="skill"
+            (s) => `<a class="db-skill-icon" href="${dbHref("skill", s.id)}" data-db-goto="skill"
                 data-db-id="${esc(s.id)}" title="${esc(s.name)}" aria-label="${esc(s.name)}">
               <img src="assets/db/skills/${encodeURIComponent(s.id)}.png" alt=""
-                   width="32" height="32" loading="lazy" decoding="async"></button>`
+                   width="32" height="32" loading="lazy" decoding="async"></a>`
           )
           .join("");
         return `<section class="db-town-card db-skill-card">
@@ -2164,7 +2238,8 @@
     });
     tree.innerHTML = parts.join("");
     tree.addEventListener("click", (e) => {
-      const goto = e.target.closest("[data-db-goto]");
+      const goto = navClick(e, "[data-db-goto]");
+      if (goto === "skip") return;
       if (goto) {
         openDetail("skill", goto.dataset.dbId, true);
         return;
@@ -2205,7 +2280,7 @@
         .map((l) => `<span class="db-skill-label">${esc(l)}</span>`)
         .join("");
       return `<article class="db-skill-entry${isFollow ? " db-skill-entry--follow" : ""}">
-        <button class="db-skill-entry-btn" type="button" data-db-goto="skill" data-db-id="${esc(s.id)}">
+        <a class="db-skill-entry-btn" href="${dbHref("skill", s.id)}" data-db-goto="skill" data-db-id="${esc(s.id)}">
           <img src="assets/db/skills/${encodeURIComponent(s.id)}.png" alt=""
                width="32" height="32" loading="lazy" decoding="async">
           <div class="db-skill-entry-body">
@@ -2218,7 +2293,7 @@
             </div>
           </div>
           <span class="db-skill-entry-go" aria-hidden="true">→</span>
-        </button>
+        </a>
       </article>`;
     };
     panel.innerHTML = `
@@ -2271,7 +2346,9 @@
         showSkillView("tree");
         return;
       }
-      // 前置徽章：卡在外層按鈕裡面，要先攔下來才不會變成開這一招
+      const goto = navClick(e, "[data-db-goto]");
+      if (goto === "skip") return; // 開新分頁（開的是整張技能卡的連結）
+      // 前置徽章：卡在外層連結裡面，要先攔下來才不會變成開這一招
       const req = e.target.closest("[data-req-skill]");
       if (req) {
         e.preventDefault();
@@ -2280,7 +2357,6 @@
         openDetail("skill", req.dataset.reqSkill, true);
         return;
       }
-      const goto = e.target.closest("[data-db-goto]");
       if (goto) {
         // 只收起面板，skillJobReturn 要留著——詳情的返回鍵靠它回到這一頁
         panel.hidden = true;
@@ -2388,7 +2464,7 @@
       buildSkillTree(index);
     },
     renderRow(s) {
-      return `<button class="db-row" type="button" data-db-id="${esc(s.id)}">
+      return `<a class="db-row" href="${dbHref("skill", s.id)}" data-db-id="${esc(s.id)}">
         ${skillImg(s.id, 44)}
         <div class="db-row-main">
           <div class="db-row-title">
@@ -2400,7 +2476,7 @@
         <dl class="db-row-stats">
           <div><dt>上限</dt><dd>Lv.${s.maxLevel}</dd></div>
         </dl>
-      </button>`;
+      </a>`;
     },
     renderDetail(d) {
       const labels = d.labels || {};
@@ -2504,10 +2580,10 @@
           const at = `style="left:${n.x}%;top:${n.y}%"`;
           const label = esc([n.street, n.name].filter(Boolean).join(" / "));
           return n.link
-            ? `<button class="db-wdot" type="button" data-db-goto="map"
+            ? `<a class="db-wdot" href="${dbHref("map", n.id)}" data-db-goto="map"
                  data-db-id="${esc(n.id)}" data-wname="${esc(n.name)}"
                  data-wstreet="${esc(n.street || "")}" ${at}
-                 aria-label="${label}"></button>`
+                 aria-label="${label}"></a>`
             : `<span class="db-wdot db-wdot--plain" ${at} title="${label}"></span>`;
         })
         .join("");
@@ -2655,9 +2731,13 @@
 
     view.addEventListener("click", (e) => {
       const reg = e.target.closest("[data-world-region]");
-      const goto = e.target.closest("[data-db-goto]");
-      if (reg) show(reg.dataset.worldRegion);
-      else if (goto) openDetail(goto.dataset.dbGoto, goto.dataset.dbId, true);
+      if (reg) {
+        show(reg.dataset.worldRegion);
+        return;
+      }
+      const goto = navClick(e, "[data-db-goto]");
+      if (goto === "skip") return;
+      if (goto) openDetail(goto.dataset.dbGoto, goto.dataset.dbId, true);
       else if (e.target.classList.contains("db-world-img")) zoom();
     });
 
@@ -2688,34 +2768,34 @@
     function shopCard(s) {
       const goods = s.items
         .map(
-          (i) => `<button class="db-shop-item" type="button"
+          (i) => `<a class="db-shop-item" href="${dbHref("item", i.id)}"
               data-db-goto="item" data-db-id="${esc(i.id)}">
             <img src="assets/db/items/${encodeURIComponent(i.id)}.png" alt=""
                  width="26" height="26" loading="lazy" decoding="async">
             <span class="db-shop-item-name">${esc(i.name)}</span>
             <span class="db-sub-num">${num(i.price)} ${esc(i.currency || "楓幣")}</span>
-          </button>`
+          </a>`
         )
         .join("");
       const crafts = s.crafts
         .map(
-          (c) => `<button class="db-shop-item" type="button"
+          (c) => `<a class="db-shop-item" href="${dbHref("item", c.id)}"
               data-db-goto="item" data-db-id="${esc(c.id)}">
             <img src="assets/db/items/${encodeURIComponent(c.id)}.png" alt=""
                  width="26" height="26" loading="lazy" decoding="async">
             <span class="db-shop-item-name">${esc(c.name)}<small>（製作）</small></span>
             <span class="db-sub-num">${c.meso ? num(c.meso) + " 楓幣" : "材料"}</span>
-          </button>`
+          </a>`
         )
         .join("");
       return `<section class="db-shop-card">
-        <button class="db-town-head" type="button" data-db-goto="npc" data-db-id="${esc(s.id)}">
+        <a class="db-town-head" href="${dbHref("npc", s.id)}" data-db-goto="npc" data-db-id="${esc(s.id)}">
           <img src="assets/db/npcs/${encodeURIComponent(s.id)}.png" alt=""
                width="38" height="38" loading="lazy" decoding="async"
                onerror="this.style.visibility='hidden'">
           <span class="db-town-title">${esc(s.name)}</span>
           <span class="db-sub-num">${esc(s.where)} · ${s.items.length + s.crafts.length} 項</span>
-        </button>
+        </a>
         <div class="db-shop-goods">${goods}${crafts}</div>
       </section>`;
     }
@@ -2723,6 +2803,8 @@
     function render() {
       const q = (searchEl.value || "").trim().toLowerCase();
       const region = regionEl.value;
+      const clearEl = document.getElementById("dbShopClearFilters");
+      if (clearEl) clearEl.hidden = !q && !region;
       const rows = data.filter((s) => {
         if (region && s.region !== region) return false;
         if (!q) return true;
@@ -2774,9 +2856,18 @@
       timer = setTimeout(() => data && render(), 150);
     });
     regionEl.addEventListener("change", () => data && render());
+    const shopClear = document.getElementById("dbShopClearFilters");
+    if (shopClear) {
+      shopClear.addEventListener("click", () => {
+        searchEl.value = "";
+        regionEl.value = "";
+        if (data) render();
+        else shopClear.hidden = true;
+      });
+    }
     view.addEventListener("click", (e) => {
-      const goto = e.target.closest("[data-db-goto]");
-      if (goto) openDetail(goto.dataset.dbGoto, goto.dataset.dbId, true);
+      const goto = navClick(e, "[data-db-goto]");
+      if (goto && goto !== "skip") openDetail(goto.dataset.dbGoto, goto.dataset.dbId, true);
     });
 
     return { key: "shops", load };
@@ -2848,11 +2939,11 @@
         const rows = hits
           .slice(0, PER_SET)
           .map(
-            (r) => `<button class="db-search-hit" type="button"
+            (r) => `<a class="db-search-hit" href="${dbHref(s.route, r.id)}"
                       data-db-goto="${s.route}" data-db-id="${esc(r.id)}">
               <span class="db-search-name">${esc(r.name)}</span>
               <span class="db-search-meta">${esc(s.searchRow ? s.searchRow(r) : "")}</span>
-            </button>`
+            </a>`
           )
           .join("");
         const more =
@@ -2885,8 +2976,8 @@
       searchTimer = setTimeout(runGlobalSearch, 180);
     });
     searchEls.results.addEventListener("click", (e) => {
-      const hit = e.target.closest("[data-db-goto]");
-      if (hit) openDetail(hit.dataset.dbGoto, hit.dataset.dbId, true);
+      const hit = navClick(e, "[data-db-goto]");
+      if (hit && hit !== "skip") openDetail(hit.dataset.dbGoto, hit.dataset.dbId, true);
     });
   }
 
@@ -3016,7 +3107,8 @@
       formEl.innerHTML = `
         <p class="db-detail-desc">目標：<strong>${esc(picked.name)}</strong>
           Lv.${picked.level} · 迴避 ${picked.eva}
-          <button class="db-inline-link" type="button" id="hitMobDetail">看這隻怪的資料 →</button></p>
+          <a class="db-inline-link" id="hitMobDetail" href="${dbHref("monster", picked.id)}"
+             data-db-goto="monster" data-db-id="${esc(picked.id)}">看這隻怪的資料 →</a></p>
         <div class="db-map-toggles">
           <button class="cm-sort-btn${magic ? "" : " active"}" type="button" data-hit2-type="phys">物理攻擊</button>
           <button class="cm-sort-btn${magic ? " active" : ""}" type="button" data-hit2-type="magic">魔法攻擊</button>
@@ -3115,7 +3207,8 @@
         renderResult();
         return;
       }
-      if (e.target.closest("#hitMobDetail") && picked) {
+      const det = navClick(e, "#hitMobDetail");
+      if (det && det !== "skip" && picked) {
         openDetail("monster", picked.id, true);
       }
     });

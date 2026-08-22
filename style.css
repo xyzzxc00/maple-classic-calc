@@ -901,6 +901,24 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 }
 .cm-filter-lv { flex: 1; min-width: 60px; }
 .cm-filter-sep { color: var(--ink-soft); }
+/* 篩選列的「清空」：有任何條件生效才出現（沒條件時不佔位）。實色靜音底，
+   不用 opacity 稀釋（見上方切換器的註解，對比會掉到 AA 以下） */
+.cm-filter-clear {
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--ink-soft);
+  background: var(--surface-tint);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.cm-filter-clear:hover {
+  color: var(--ink);
+  border-color: var(--accent-text);
+}
 .cm-form {
   background: var(--surface-tint);
   border: 1px solid var(--border);
@@ -1095,6 +1113,18 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 .db-search-meta { font-size: 12px; color: var(--ink-soft); }
 
 #dbMonsterList { display: flex; flex-direction: column; gap: 8px; }
+/* 資料庫的內部導覽從 <button> 改成真 <a>（中鍵/Ctrl+左鍵可開新分頁、可
+   複製連結），外觀沿用各自 class 的樣式，這裡只壓掉瀏覽器給連結的預設
+   底線與顏色。db-chip 與 db-inline-link 自帶文字色，不能吃 color:inherit */
+a.db-row, a.db-sub-item--link, a.db-drop-item, a.db-shop-item,
+a.db-town-head, a.db-search-hit, a.db-skill-icon, a.db-skill-entry-btn,
+a.db-npc-instructor, a.db-marker, a.db-wdot {
+  color: inherit;
+  text-decoration: none;
+}
+a.db-chip { text-decoration: none; }
+/* db-inline-link 不用重設：那個 class 本來就是「長得像連結」（自帶底線
+   與強調色），變成真 <a> 之後外觀恰好就是它原本要的樣子 */
 /* 整列是一顆按鈕（點了看詳情）。<button> 不繼承 body 字體會掉回 Arial，
    中文再掉到系統備援字型，所以 font-family 一定要明寫——側邊欄站名就是
    踩過這個坑 */
@@ -1459,6 +1489,32 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   .db-marker--portal,
   .db-marker--portal-same { width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px; }
 }
+/* 同圖傳送的配對編號（放在手機縮小規則後面，數字圓點不跟著縮——縮到
+   11px 數字就讀不了）。實心紫底白字 4.8:1、落點紫字白底 7:1，深淺主題
+   都一樣（底圖永遠是亮色手繪圖，標記色不跟主題反轉） */
+.db-marker--portal-pair,
+.db-marker--portal-land {
+  width: 15px;
+  height: 15px;
+  margin: -7.5px 0 0 -7.5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  font-family: 'Noto Sans TC', sans-serif;
+  color: #fff;
+  background: #8a5cc4;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  box-shadow: none;
+}
+/* 單向傳送的落點：虛線空心，跟出發點同號 */
+.db-marker--portal-land {
+  color: #6d43a6;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1.5px dashed #8a5cc4;
+}
 
 /* 標記類別的顯示開關 */
 .db-map-toggles { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
@@ -1630,7 +1686,9 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 .db-table th:hover { color: var(--accent-text); }
 .db-table th:first-child { cursor: default; }
 .db-table th:first-child:hover { color: var(--ink-soft); }
-.db-th-num, .db-td-num { text-align: right; }
+/* 數字欄標題跟內容一起靠右（.db-table th 的 text-align:left 特異度較高，
+   要用同等級的選擇器壓回來）——標題置左、數字置右會對不上欄（玩家回饋） */
+.db-table th.db-th-num, .db-td-num { text-align: right; }
 .db-table td {
   padding: 6px 10px;
   border-bottom: 1px solid var(--border);
@@ -1643,6 +1701,14 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
   gap: 8px;
   font-weight: 700;
   color: var(--ink);
+}
+/* 怪物名是真連結（可開新分頁），外觀跟原本的儲存格內容一樣 */
+.db-td-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
 }
 .db-td-name img { image-rendering: pixelated; flex-shrink: 0; }
 /* 第一欄（怪物名）凍結：手機橫向捲表格時，不然捲到右邊就不知道在看哪隻。

@@ -1017,6 +1017,7 @@
           <!-- 快速篩選晶片的實際值放在這兩個隱藏選單，晶片按了就改它們 -->
           <select id="dbMonsterWeak" hidden aria-hidden="true"><option value=""></option></select>
           <select id="dbMonsterLvBand" hidden aria-hidden="true"><option value=""></option></select>
+          <button class="cm-filter-clear" id="dbMonsterClearFilters" type="button" hidden>✕ 清空篩選</button>
         </div>
         <!-- 排序改到表格欄位標題（點標題排序、再點反轉），這排改成快速篩選 -->
         <div class="db-quick-filters" id="dbMonsterQuick">
@@ -1080,6 +1081,7 @@
           <select class="cm-filter-input" id="dbMapMark" aria-label="依城鎮篩選地圖" hidden>
             <option value="">全部城鎮</option>
           </select>
+          <button class="cm-filter-clear" id="dbMapClearFilters" type="button" hidden>✕ 清空篩選</button>
         </div>
         <div class="cm-actions">
           <div class="cm-sort-btns"><span class="cm-group-label">排序</span>
@@ -1160,6 +1162,7 @@
             <span class="cm-filter-sep">~</span>
             <input class="cm-filter-input cm-filter-lv" id="dbItemLvMax" type="number" min="1" max="200" placeholder="最高等">
           </div>
+          <button class="cm-filter-clear" id="dbItemClearFilters" type="button" hidden>✕ 清空篩選</button>
         </div>
         <div class="cm-actions">
           <div class="cm-sort-btns"><span class="cm-group-label">排序</span>
@@ -1209,6 +1212,7 @@
             <option value="shop">有商店</option>
             <option value="none">沒有功能（居民）</option>
           </select>
+          <button class="cm-filter-clear" id="dbNpcClearFilters" type="button" hidden>✕ 清空篩選</button>
         </div>
         <div class="cm-actions">
           <div class="cm-sort-btns"><span class="cm-group-label">排序</span>
@@ -1245,6 +1249,7 @@
           <select class="cm-filter-input" id="dbShopRegion" aria-label="依地區篩選商店">
             <option value="">全部地區</option>
           </select>
+          <button class="cm-filter-clear" id="dbShopClearFilters" type="button" hidden>✕ 清空篩選</button>
         </div>
       </div>
 
@@ -1284,6 +1289,7 @@
             <input class="cm-filter-input cm-filter-lv" id="dbQuestLvMax" type="number" min="1" max="200" placeholder="最高等">
           </div>
           <select id="dbQuestMark" hidden aria-hidden="true"><option value=""></option></select>
+          <button class="cm-filter-clear" id="dbQuestClearFilters" type="button" hidden>✕ 清空篩選</button>
         </div>
         <div class="cm-actions">
           <div class="cm-sort-btns"><span class="cm-group-label">排序</span>
@@ -1332,6 +1338,7 @@
           <select class="cm-filter-input" id="dbSkillAdv" aria-label="依轉職階段篩選技能">
             <option value="">全部轉職</option>
           </select>
+          <button class="cm-filter-clear" id="dbSkillClearFilters" type="button" hidden>✕ 清空篩選</button>
         </div>
         <div class="cm-actions">
           <div class="cm-sort-btns"><span class="cm-group-label">排序</span>
