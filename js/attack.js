@@ -27,9 +27,11 @@
   const MIN_BASE_STAT = 4;
   const LEVEL_ONE_BASE_STAT_POINTS = 25;
   const ZERO_ADVANCEMENT_SP = 6;
-  // 四轉尚未開放，資料也被 tools/import_calc.py 的 MAX_ADVANCEMENT 擋掉了。
-  // 開放時這裡要一起加回「四轉」，並把 MAX_CHARACTER_LEVEL 提高
-  const ADVANCEMENT_ORDER = ["零轉", "一轉", "二轉", "三轉"];
+  // 四轉雖尚未開放，仍先放進 SP 階段順序。目前等級上限
+  // 低於 120，四轉預算自然是 0、也沒有技能頁籤；未來資料開放後
+  // 只要提高 MAX_CHARACTER_LEVEL，「高轉 SP 可回點低轉」的共用規則就會直接涵蓋四轉。
+  const ADVANCEMENT_ORDER = ["零轉", "一轉", "二轉", "三轉", "四轉"];
+  const ADVANCEMENT_START_LEVELS = { "二轉": 30, "三轉": 70, "四轉": 120 };
   const JOB_REQUIREMENTS = {
     warrior: { level: 10, stats: { str: 35 } },
     magician: { level: 8, stats: { int: 20 } },
@@ -288,16 +290,13 @@
   function advancementStartLevel(advancement) {
     if (advancement === "零轉") return MIN_CHARACTER_LEVEL;
     if (advancement === "一轉") return jobMinLevel();
-    if (advancement === "二轉") return 30;
-    if (advancement === "三轉") return 70;
-    return MIN_CHARACTER_LEVEL;
+    return Number(ADVANCEMENT_START_LEVELS[advancement] || MIN_CHARACTER_LEVEL);
   }
 
   function advancementEndLevel(advancement) {
-    if (advancement === "零轉") return jobMinLevel();
-    if (advancement === "一轉") return 30;
-    if (advancement === "二轉") return 70;
-    return MAX_CHARACTER_LEVEL;
+    const index = advancementIndex(advancement);
+    const next = index >= 0 ? ADVANCEMENT_ORDER[index + 1] : "";
+    return next ? advancementStartLevel(next) : MAX_CHARACTER_LEVEL;
   }
 
   function skillBudget(advancement) {
@@ -328,32 +327,23 @@
       .reduce((sum, skill) => sum + skillLevel(skill.id), 0);
   }
 
-  function skillUsedThrough(stageIndex) {
+  // 從指定轉數往後的「技能已用 SP」與「取得 SP」。
+  // 舊楓的規則是高轉 SP 能點回低轉，低轉 SP 不能向後點，所以正確的
+  // 限制是這組「後綴預算」：二轉以上的技能合計不能超過二～四轉
+  // 取得的 SP；三轉以上同理。初心者 SP 是獨立池，不參與這組計算。
+  function skillUsedFrom(stageIndex) {
     return jobSkills()
       .filter((skill) => {
         const index = advancementIndex(skillAdvancement(skill));
-        return index >= 0 && index <= stageIndex;
+        return index >= stageIndex;
       })
       .reduce((sum, skill) => sum + skillLevel(skill.id), 0);
   }
 
-  function skillTotalUsed() {
-    return jobSkills().reduce((sum, skill) => sum + skillLevel(skill.id), 0);
-  }
-
-  function skillBudgetThrough(stageIndex) {
+  function skillBudgetFrom(stageIndex) {
     return ADVANCEMENT_ORDER
-      .slice(0, Math.max(0, stageIndex) + 1)
+      .slice(Math.max(0, stageIndex))
       .reduce((sum, advancement) => sum + skillBudget(advancement), 0);
-  }
-
-  function totalSkillBudget() {
-    return ADVANCEMENT_ORDER.reduce((sum, advancement) => sum + skillBudget(advancement), 0);
-  }
-
-  function previousAdvancementsComplete(stageIndex) {
-    if (stageIndex <= 0) return true;
-    return skillUsedThrough(stageIndex - 1) >= skillBudgetThrough(stageIndex - 1);
   }
 
   function skillGateReason(skill) {
@@ -361,23 +351,29 @@
     const stageIndex = advancementIndex(advancement);
     if (stageIndex < 0) return "";
     if (stageIndex > 0 && characterLevel() < advancementStartLevel(advancement)) return "等級不足";
-    if (!previousAdvancementsComplete(stageIndex)) {
-      const previous = ADVANCEMENT_ORDER[stageIndex - 1] || "";
-      return "需先用盡" + previous + "點數";
-    }
     return "";
   }
 
-  // 可加到幾級：受「該階段還剩多少 SP」限制，不是總剩餘——一轉點滿 67/67
-  // 之後就不該再拿二轉的點回頭加一轉技能（畫面上會看到一轉 68/67）
+  // 可加到幾級：初心者只吃獨立 SP；一～四轉技能則同時檢查
+  // 所有會被這次加點影響的後綴預算。例如二轉技能既受「職業總 SP」
+  // 限制，也受「二轉以上 SP」限制；一轉技能只受職業總 SP 限制，
+  // 因此可以合法地用二、三、四轉取得的 SP 往回補。
   function skillAssignableMax(skill) {
     const skillMax = Number((skill && skill.maxLevel) || 0);
     const current = skillLevel(skill && skill.id);
     if (skillMax <= 0) return 0;
     if (skillGateReason(skill)) return Math.min(skillMax, current);
     const advancement = skillAdvancement(skill);
-    const stageLeft = Math.max(0, skillBudget(advancement) - skillBudgetUsed(advancement));
-    return Math.max(0, Math.min(skillMax, current + stageLeft));
+    const stageIndex = advancementIndex(advancement);
+    if (stageIndex === 0) {
+      const beginnerLeft = Math.max(0, skillBudget(advancement) - skillBudgetUsed(advancement));
+      return Math.max(0, Math.min(skillMax, current + beginnerLeft));
+    }
+    let assignable = Number.POSITIVE_INFINITY;
+    for (let index = 1; index <= stageIndex; index += 1) {
+      assignable = Math.min(assignable, skillBudgetFrom(index) - skillUsedFrom(index));
+    }
+    return Math.max(0, Math.min(skillMax, current + Math.max(0, assignable)));
   }
 
   // 超出預算或階段被鎖時把點數收回來——優先從剛改動的那顆收，再從
@@ -418,13 +414,18 @@
       }
     }
 
-    const overBudget = skillTotalUsed() - totalSkillBudget();
-    if (overBudget > 0) reducePoints(skills, overBudget);
+    const beginnerSkills = skills.filter((skill) => advancementIndex(skillAdvancement(skill)) === 0);
+    const beginnerOverBudget = skillBudgetUsed("零轉") - skillBudget("零轉");
+    if (beginnerOverBudget > 0) reducePoints(beginnerSkills, beginnerOverBudget);
 
-    for (let index = 1; index < ADVANCEMENT_ORDER.length; index += 1) {
-      if (previousAdvancementsComplete(index)) continue;
-      const lockedSkills = skills.filter((skill) => advancementIndex(skillAdvancement(skill)) >= index);
-      reducePoints(lockedSkills, skillTotalUsed());
+    // 從最高轉數往回檢查，先修正「低轉 SP 被拿去點高轉」的非法分配，
+    // 最後 index=1 再負責職業總 SP。優先從剛改動的技能扣回，輸入超額時
+    // 不會偷改使用者之前配好的其他技能。
+    for (let index = ADVANCEMENT_ORDER.length - 1; index >= 1; index -= 1) {
+      const overBudget = skillUsedFrom(index) - skillBudgetFrom(index);
+      if (overBudget <= 0) continue;
+      const affectedSkills = skills.filter((skill) => advancementIndex(skillAdvancement(skill)) >= index);
+      reducePoints(affectedSkills, overBudget);
     }
   }
 
@@ -840,7 +841,9 @@
     const available = availableSkillAdvancements();
     const current = ensureSkillTab();
     const budget = skillBudget(current);
-    if (!budget || skillBudgetUsed(current) < budget) return;
+    // 高轉 SP 回補後，單一轉數的已用點數可能合法地高於該轉原生預算；
+    // 只有「剛好用完」時才自動翻頁，避免使用者回頭補技能時每點一下就被帶走。
+    if (!budget || skillBudgetUsed(current) !== budget) return;
     const next = available
       .slice(available.indexOf(current) + 1)
       .find((adv) => skillBudget(adv) > skillBudgetUsed(adv));
@@ -849,10 +852,15 @@
 
   function renderSkillBudget() {
     els.skillBudget.innerHTML = availableSkillAdvancements().map((advancement) => {
-      const used = skillBudgetUsed(advancement);
-      const budget = skillBudget(advancement);
+      const stageIndex = advancementIndex(advancement);
+      const beginner = stageIndex === 0;
+      const used = beginner ? skillBudgetUsed(advancement) : skillUsedFrom(stageIndex);
+      const budget = beginner ? skillBudget(advancement) : skillBudgetFrom(stageIndex);
+      const label = beginner
+        ? "初心者 SP"
+        : (stageIndex === 1 ? "職業 SP" : advancement + "以上 SP");
       return '<span class="atk-pill' + (budget ? "" : " atk-pill--empty") + '">' +
-        esc(advancement) + " " + fmt(used) + " / " + fmt(budget) + "</span>";
+        esc(label) + " " + fmt(used) + " / " + fmt(budget) + "</span>";
     }).join("");
   }
 
