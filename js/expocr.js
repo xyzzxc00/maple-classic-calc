@@ -629,6 +629,54 @@
       .filter(Boolean);
   }
 
+  // v7 使用的切字方式。v8 為了排除徽章亮紋改成上面的列帶法後，部分實機
+  // 的亮紋／抗鋸齒排列反而會讓列帶抓錯，結果是整個等級都讀不到。兩種
+  // 畫面沒有一套固定門檻能全吃，因此保留舊法作第二候選，最後再交給
+  // EXP＋百分比交叉驗證決定哪一個等級是真的。
+  function levelDigitGroupsLegacy(img, band) {
+    if (!band) return [];
+    const insetX = Math.max(2, Math.round(band.width * 0.07));
+    const insetY = Math.max(1, Math.round(band.height * 0.12));
+    const minX = Math.min(img.width - 1, band.minX + insetX);
+    const maxX = Math.max(minX, band.maxX - insetX);
+    const minY = Math.min(img.height - 1, band.minY + insetY);
+    const maxY = Math.max(minY, band.maxY - insetY);
+    const minColumnPixels = Math.max(1, Math.round((maxY - minY + 1) * 0.12));
+    const columns = [];
+    for (let x = minX; x <= maxX; x++) {
+      let count = 0;
+      for (let y = minY; y <= maxY; y++) {
+        const [r, g, b] = px(img, x, y);
+        if (lvWhiteInk(r, g, b)) count++;
+      }
+      columns.push(count);
+    }
+    const runs = [];
+    let start = null, gap = 0, peak = 0;
+    const flush = (end) => {
+      if (start !== null && end - start + 1 >= 1 && peak >= minColumnPixels) {
+        runs.push({ x1: minX + start, x2: minX + end });
+      }
+      start = null;
+      gap = 0;
+      peak = 0;
+    };
+    for (let i = 0; i < columns.length; i++) {
+      if (columns[i] > 0) {
+        if (start === null) start = i;
+        peak = Math.max(peak, columns[i]);
+        gap = 0;
+      } else if (start !== null) {
+        gap++;
+        if (gap >= 2) flush(i - gap);
+      }
+    }
+    if (start !== null) flush(columns.length - 1);
+    return runs
+      .map((run) => glyphBounds(img, run.x1, run.x2, lvWhiteInk, { y0: minY, y1: maxY }))
+      .filter(Boolean);
+  }
+
   function classifyLevelDigit(img, g) {
     let best = null;
     for (const [digit, tpls] of Object.entries(LV_TPL)) {
@@ -642,23 +690,38 @@
     return best;
   }
 
-  function readLevelFromImage(img, wideMode) {
+  function readLevelCandidatesFromImage(img, wideMode) {
     // 找橘色徽章：窄框（等級色塊的緊框）時徽章在右半（左邊是 LV. 標籤）；
     // 寬框（同行左段）時不限位置，取面積最大的橘色群
     let badges = glyphGroups(img, lvBadgeInk, 2).filter((g) => g.height >= 5 && g.width >= 8);
     if (!wideMode) badges = badges.filter((g) => g.minX > img.width * 0.2);
     badges.sort((a, b) => b.width * b.height - a.width * a.height);
-    if (!badges.length) return null;
-    const digits = levelDigitGroups(img, badges[0]).sort((a, b) => a.minX - b.minX);
-    if (!digits.length || digits.length > 3) return null;
-    // 容錯上限 0.31：實機渲染跟字模的正常落差在 0.25~0.30（例如筆畫少一
-    // 顆邊點就 +0.02~0.03），錯誤數字的分數則在 0.35 以上，中間有安全帶；
-    // 就算真的誤讀，後面還有經驗值百分比交叉驗證擋著
-    const matches = digits.map((g) => classifyLevelDigit(img, g));
-    if (matches.some((m) => !m || m.score > 0.31)) return null;
-    const level = Number(matches.map((m) => m.digit).join(""));
-    if (!Number.isFinite(level) || level < 1 || level > 200) return null;
-    return level;
+    if (!badges.length) return [];
+    const strategies = [
+      { name: "列帶", groups: levelDigitGroups(img, badges[0]) },
+      { name: "傳統", groups: levelDigitGroupsLegacy(img, badges[0]) },
+    ];
+    const candidates = [];
+    for (const strategy of strategies) {
+      const digits = strategy.groups.sort((a, b) => a.minX - b.minX);
+      if (!digits.length || digits.length > 3) continue;
+      // 容錯上限 0.31：實機渲染跟字模的正常落差在 0.25~0.30，錯誤數字
+      // 通常在 0.35 以上；最終仍須通過 EXP 百分比交叉驗證才會收樣。
+      const matches = digits.map((g) => classifyLevelDigit(img, g));
+      if (matches.some((m) => !m || m.score > 0.31)) continue;
+      const level = Number(matches.map((m) => m.digit).join(""));
+      if (!Number.isFinite(level) || level < 1 || level > 200) continue;
+      const score = matches.reduce((sum, match) => sum + match.score, 0) / matches.length;
+      if (!candidates.some((candidate) => candidate.level === level)) {
+        candidates.push({ level, score, strategy: strategy.name });
+      }
+    }
+    return candidates.sort((a, b) => a.score - b.score);
+  }
+
+  function readLevelFromImage(img, wideMode) {
+    const candidates = readLevelCandidatesFromImage(img, wideMode);
+    return candidates.length ? candidates[0].level : null;
   }
 
   // ---------- 校準：OCR 整條狀態列，用詞座標找出 EXP 的位置 ----------
@@ -821,11 +884,22 @@
       for (const c of candidates) {
         // 不加邊距：跟除錯頁走完全相同的路（邊距曾兩度造成「除錯頁讀得到、
         // 實際讀取失敗」的分歧——多框進來的經驗條/邊框線會干擾切字）
-        const lvl = readLevelFromImage(cropImageData(source, c.lv), c.wide);
+        const levelCandidates = readLevelCandidatesFromImage(cropImageData(source, c.lv), c.wide);
         const p = readExpFromImage(cropImageData(source, c.exp));
-        state.lastTickDebug.push({ tag: c.tag, lvRect: c.lv, expRect: c.exp, wide: c.wide, lvl, exp: p.exp, pct: p.percent });
-        if (lvl && crossCheck(lvl, p.exp, p.percent)) {
-          level = lvl;
+        const verified = levelCandidates.find((candidate) => crossCheck(candidate.level, p.exp, p.percent));
+        const lvl = verified ? verified.level : (levelCandidates[0] && levelCandidates[0].level) || null;
+        state.lastTickDebug.push({
+          tag: c.tag,
+          lvRect: c.lv,
+          expRect: c.exp,
+          wide: c.wide,
+          lvl,
+          levelCandidates,
+          exp: p.exp,
+          pct: p.percent,
+        });
+        if (verified) {
+          level = verified.level;
           parsed = p;
           used = c;
           // 成功的那組轉正為鎖定，下一輪直接命中
@@ -1014,8 +1088,10 @@
       return c.toDataURL();
     };
 
-    const level = readLevelFromImage(cropImageData(source, lvRect), lvWide);
     const parsed = readExpFromImage(cropImageData(source, expRect));
+    const levelCandidates = readLevelCandidatesFromImage(cropImageData(source, lvRect), lvWide);
+    const verified = levelCandidates.find((candidate) => crossCheck(candidate.level, parsed.exp, parsed.percent));
+    const level = verified ? verified.level : (levelCandidates[0] && levelCandidates[0].level) || null;
 
     const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
     const w = window.open("", "_blank");
@@ -1031,7 +1107,8 @@
       "・模式：" + esc(state.presetKey) +
       "・等級框：" + JSON.stringify(lvRect) +
       "・EXP框：" + JSON.stringify(expRect) + "</p>" +
-      "<p><b>圖樣比對結果：</b>等級=" + esc(level) + "　EXP=" + esc(parsed.exp) + "　百分比=" + esc(parsed.percent) + "</p>" +
+      "<p><b>圖樣比對結果：</b>等級=" + esc(level) + "　候選=" + esc(JSON.stringify(levelCandidates)) +
+      "　EXP=" + esc(parsed.exp) + "　百分比=" + esc(parsed.percent) + "</p>" +
       "<h3>等級框</h3>" +
       '<p>原圖：<br><img src="' + cropCanvas(source, lvRect, 4).toDataURL() + '" style="max-width:100%;border:1px solid #999"></p>' +
       '<p>橘色徽章視角：<br><img src="' + filterView(lvRect, lvBadgeInk) + '" style="max-width:100%;border:1px solid #999"></p>' +
@@ -1054,6 +1131,15 @@
     onUpdate(cb) { listeners.push(cb); },
     running() { return state.running; },
     _tickWith(canvas) { return tick(canvas); },
+    _test: {
+      readLevelCandidatesFromImage,
+      readLevelFromImage,
+      readExpFromImage,
+      crossCheck,
+      expToNext,
+      acceptSample,
+      windowGain,
+    },
     // 內部探針：把 EXP 框每個字形群的分類明細倒出來（除錯用）
     _probeExp(source, rect) {
       const img = cropImageData(source, rect);

@@ -67,6 +67,12 @@ jobs:
       - name: Check CSS syntax
         run: python3 tools/check_css.py
 
+      # 自動測速曾因只改一種等級徽章切字法，讓部分玩家從「偶爾漏讀」
+      # 退化成所有等級都沒有數字。把 Lv.1～100 的辨識與速率計算矩陣放進
+      # 部署門檻，之後任何 OCR 改動只要弄壞其中一級就不會上線。
+      - name: Check EXP screen reader
+        run: node tools/test_expocr.js
+
       - name: Check database integrity
         run: python3 tools/check_data.py
 
