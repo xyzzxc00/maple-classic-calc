@@ -35,12 +35,13 @@ import sys
 OPEN_REGIONS = {"楓之島", "維多利亞島", "奇幻村", "鯨魚號"}
 LEVEL_CAP = 100
 
-# 遊戲內說明文字本身就寫錯的道具：拆包資料照樣是錯的，只能人工註記。
-# key 是道具 ID，value 顯示在說明底下。要加新的請一併寫上實測來源與日期，
-# 沒有實測依據就不要放——這欄的用途是修正官方錯誤，不是放我們的猜測
-ITEM_NOTES = {
-    # 遊戲內寫「MP恢復約50」，實測回復 150 MP（2026-08 玩家實測回報）
-    2010004: "遊戲內說明寫「MP 恢復約 50」，但實際回復約 150 MP（玩家實測）。",
+# 官方已修正檸檬說明，目前沒有需要額外覆蓋的道具警告。
+ITEM_NOTES = {}
+
+# 同名但數值不同的任務專用怪物要標清楚，否則搜尋「鋼之肥肥」時會同時
+# 看到一般版 99 EXP 與肥肥村莊版 296 EXP，使用者無法判斷哪筆才是野外怪。
+MONSTER_NAME_OVERRIDES = {
+    "9300060": "鋼之肥肥（任務版）",
 }
 
 # 技能：本服只有五大冒險家職業。拆包檔裡還有皇家騎士團、狂狼勇士、龍魔導士、
@@ -67,6 +68,10 @@ OUT_ASSETS = os.path.join(ROOT, "assets", "db")
 def fail(msg):
     print("ERROR: " + msg)
     sys.exit(1)
+
+
+def monster_name(monster_id, fallback):
+    return MONSTER_NAME_OVERRIDES.get(str(monster_id), fallback or "")
 
 
 def load(src, name):
@@ -255,7 +260,7 @@ def build_detail(m, map_ids, quest_ids, item_ids, map_page_ids):
         meso_out = {"min": None, "max": None, "note": "", "unverified": True}
     return {
         "id": m["id"],
-        "name": m["name"],
+        "name": monster_name(m["id"], m["name"]),
         "level": m.get("level"),
         "desc": (m.get("description") or "").strip(),
         "stats": stats,
@@ -429,7 +434,7 @@ def build_quest_detail(q, map_ids, monster_ids, skill_ids, quest_ids, item_ids):
         return [
             {
                 "id": str(r["id"]),
-                "name": r.get("name") or "",
+                "name": monster_name(r["id"], r.get("name")),
                 "count": r.get("count") or 0,
                 # 本站有收錄這隻怪才給連結，不然點了會 404
                 "link": str(r["id"]) in monster_ids,
@@ -684,7 +689,8 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids, gacha_of=Non
                           (("怪物掉落", drops), ("製作取得", crafts)) if ok]
                          if float_rng else [],
             "drops": [
-                {"id": str(d["monsterId"]), "name": d.get("monsterName") or "",
+                {"id": str(d["monsterId"]),
+                 "name": monster_name(d["monsterId"], d.get("monsterName")),
                  "level": d.get("level")}
                 for d in drops
             ],
@@ -801,7 +807,7 @@ def build_map_details(maps, map_ids, monster_ids):
             if mid not in mobs:
                 mobs[mid] = {
                     "id": mid,
-                    "name": s.get("name") or "",
+                    "name": monster_name(mid, s.get("name")),
                     "level": s.get("level"),
                     "count": 0,
                     "link": mid in monster_ids,
