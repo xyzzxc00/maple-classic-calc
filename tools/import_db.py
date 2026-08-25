@@ -244,9 +244,9 @@ def build_detail(m, map_ids, quest_ids, item_ids, map_page_ids):
     meso = m.get("mesoDrop") or {}
     el = m.get("elemental") or {}
     stats = m.get("stats") or {}
-    # BOSS 的楓幣數字不能用：拆包只有「伺服器公式推估」，沒有實際掉落表，
-    # 而玩家實測沼澤巨鱷／巨居蟹／殭屍猴王都不噴錢（2026-08 巴哈回報）。
-    # 同一份資料自己也不一致——53 隻 BOSS 有 16 隻錢袋數 0、37 隻是 2。
+    # BOSS 的楓幣數字不能直接用：morris 新版雖補上其他版本伺服器資料表，
+    # 仍不是本服實際掉落紀錄；玩家實測沼澤巨鱷／巨居蟹／殭屍猴王都不噴錢
+    #（2026-08 巴哈回報）。同一份資料裡的跨版本估值也不一致。
     # 召喚後會消失的怪（noDropReason）同理，本來就不該列這欄。
     # 寧可不顯示，也不要掛一個對不上的數字
     boss = bool(stats.get("boss"))

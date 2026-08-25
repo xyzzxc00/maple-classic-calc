@@ -33,7 +33,7 @@
 - [怪物](https://mapleclassictools.com/#db-monsters): 71 種。數值、屬性抗性、楓幣掉落區間、掉落物、出沒地圖與重生點，附練等試算與命中率試算
 - [地圖](https://mapleclassictools.com/#db-maps): 353 張。可點擊的小地圖標記（怪物、NPC、傳送點）、出沒怪物、通往哪些地圖
 - [世界地圖](https://mapleclassictools.com/#db-world): 楓之島、維多利亞島、奇幻村、鯨魚號四大區域的連通圖，點地名可看該張地圖
-- [道具](https://mapleclassictools.com/#db-items): 1,444 件。裝備需求與加成（含掉落浮動範圍）、由哪些怪掉落、哪裡買得到、製作配方
+- [道具](https://mapleclassictools.com/#db-items): 1,443 件。裝備需求與加成（含掉落浮動範圍）、由哪些怪掉落、哪裡買得到、製作配方
 - [NPC](https://mapleclassictools.com/#db-npcs): 236 位。所在地圖、經手的任務、販售的商品
 - [任務](https://mapleclassictools.com/#db-quests): 264 個。接取條件、完成條件、獎勵、後續任務
 - [技能](https://mapleclassictools.com/#db-skills): 208 個。每一級的數值明細
@@ -48,7 +48,7 @@
 道具可依職業（劍士／法師／弓箭手／盜賊／海盜）與類型（防具／武器／飾品分組）篩選；
 技能可依五大職業的轉職路線篩選（例如「冰／雷」會一次列出法師入門到魔導士(冰雷)的全部技能）。
 
-BOSS 的楓幣掉落刻意不列數字：遊戲資料檔只有依等級推估的公式值，玩家實測 BOSS 多半
+BOSS 的楓幣掉落刻意不列數字：現有數字來自其他版本伺服器資料表或公式推估，玩家實測多隻 BOSS
 不會掉落楓幣，兩者對不上，所以標示為「沒有可靠資料」而不是給一個推估值。
 
 ## 攻略文章

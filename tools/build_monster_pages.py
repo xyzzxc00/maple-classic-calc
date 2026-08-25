@@ -84,8 +84,8 @@ def page(mon, prev_next):
         # （理由見 tools/import_db.py，跟站上的動態頁維持一致）
         meso_html = (
             '<section class="db-section"><h2 class="db-section-title">楓幣掉落</h2>'
-            '<p class="db-section-note">這隻的楓幣掉落沒有可靠資料。遊戲資料檔只有依等級推估的'
-            '公式值，未經實測確認，玩家實測 BOSS 多半不會掉落楓幣，因此這裡不列數字。</p></section>'
+            '<p class="db-section-note">這隻的楓幣掉落沒有可靠資料。現有數字來自其他版本伺服器'
+            '資料表或公式推估，未經本服實測確認；玩家實測多隻 BOSS 不會掉落楓幣，因此這裡不列數字。</p></section>'
         )
     elif meso.get("min") is not None:
         note = f"（{esc(meso['note'])}）" if meso.get("note") else ""

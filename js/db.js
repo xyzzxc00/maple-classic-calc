@@ -905,7 +905,7 @@
         ? `<section class="db-section">
              <h3 class="db-section-title">楓幣掉落</h3>
              <p class="db-section-note db-section-note--flush">這隻的楓幣掉落沒有可靠資料。
-               遊戲資料檔只有依等級推估的公式值，未經實測確認，玩家實測 BOSS 多半不會掉落楓幣，
+               現有數字來自其他版本伺服器資料表或公式推估，未經本服實測確認；玩家實測多隻 BOSS 不會掉落楓幣，
                因此這裡不列數字。</p>
            </section>`
         : d.meso && d.meso.max
