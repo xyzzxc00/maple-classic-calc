@@ -73,6 +73,11 @@ jobs:
       - name: Check EXP screen reader
         run: node tools/test_expocr.js
 
+      # 每次換期最容易漏掉活動時間、獎項列或把男女共用機率算兩次；在打包
+      # 前檢查所有轉蛋池的筆數、唯一性與機率總和，避免錯池直接部署。
+      - name: Check gachapon pools
+        run: node tools/test_gacha_data.js
+
       - name: Check database integrity
         run: python3 tools/check_data.py
 

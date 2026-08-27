@@ -50,7 +50,9 @@
   let totalWeight = 0;
 
   function formatChance(weight) {
-    return ((weight / totalWeight) * 100).toFixed(2) + "%";
+    // 畫面要忠實顯示官方公告的原始機率；總和因官方四捨五入可能不是
+    // 100%，只有抽取時才按總權重等比例處理該微小誤差。
+    return Number(weight).toFixed(2) + "%";
   }
 
   function renderBoxOptions() {
