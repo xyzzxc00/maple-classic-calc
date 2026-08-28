@@ -1,6 +1,6 @@
 /**
- * sidebar.js — 側邊欄排版的行為（跟 nav.js／guides.js／community.js／
- * legacySpots.js 的分頁切換邏輯完全無關，純粹是外殼行為）：
+ * sidebar.js — 側邊欄排版的行為（跟 nav.js／guides.js／community.js 的
+ * 分頁切換邏輯完全無關，純粹是外殼行為）：
  * 1. 側邊欄群組收合／展開
  * 2. 手機版漢堡選單開關
  * 3. 監聽 nav.js switchNav() 發出的 maplenav:pagechange 事件，自動展開
@@ -96,7 +96,7 @@
   }
 
   // ---------- 側邊欄子分頁連結：點擊時順便切到對應的主分頁 ----------
-  // guides.js／community.js／legacySpots.js／nav.js 原本各自的監聽器
+  // guides.js／community.js／nav.js 原本各自的監聽器
   // 還在（負責顯示正確的子分頁內容），這裡另外掛一個監聽器只負責讓
   // MapleNav 把外層主分頁也切過去——兩者互不影響，誰先執行都沒差
   // （switchNav 只動 pages[key].hidden，不會動任何子分頁自己的狀態）
@@ -121,10 +121,6 @@
     { id: "cmSubSuggest", page: "cm" },
     { id: "cmSubPicks", page: "cm" },
     { id: "cmSubRecords", page: "cm" },
-    { id: "legacySubSpots", page: "legacy" },
-    { id: "legacySubJobBuilds", page: "legacy" },
-    { id: "legacySubBosses", page: "legacy" },
-    { id: "legacySubBossPrequests", page: "legacy" },
   ];
   SUBTAB_LINKS.forEach(({ id, page }) => {
     const btn = document.getElementById(id);
@@ -145,7 +141,6 @@
     guides: (key) => window.MapleGuides && window.MapleGuides.showTab(key),
     cm: (key) => window.MapleCommunity && window.MapleCommunity.showCmSubtab(key),
     db: (key) => window.MapleDb && window.MapleDb.showTab(key),
-    legacy: (key) => window.MapleLegacy && window.MapleLegacy.showTab(key),
   };
 
   document.querySelectorAll("[data-nav-page]").forEach((el) => {

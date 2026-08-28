@@ -57,13 +57,11 @@ BOSS 的楓幣掉落刻意不列數字：現有數字來自其他版本伺服器
 - [經驗值表完整版](https://mapleclassictools.com/guides/exp-table/): Lv.1~200 每一級升級所需經驗與累積總量（滿等共約 387 億 EXP）
 - [選職業指南](https://mapleclassictools.com/guides/job-selection-guide/): 從戰鬥距離、前期容錯率、上手難度、團隊定位幫新手選擇五大職業
 - [完整轉職路線攻略](https://mapleclassictools.com/guides/job-advancement-guide/): 五大職業一轉到四轉的完整任務流程，等級需求、NPC、地點、任務步驟
-- [舊版練功地點大全](https://mapleclassictools.com/guides/legacy-leveling-spots/): Lv.1~113 共 67 筆怪物與可打地圖對照（pre-Big Bang 舊版資料）
-- [野王資料與前置任務攻略](https://mapleclassictools.com/guides/legacy-bosses/): 27 隻野王的地點/重生時間，加上殘暴炎魔、闇黑龍王、拉圖斯的前置任務步驟
 - [加倍卷解析](https://mapleclassictools.com/guides/coupon-stacking-guide/): 加倍卷疊加規則、常見誤解與最划算的使用方式
 - [經驗值曲線解析](https://mapleclassictools.com/guides/exp-curve-guide/): 用實際數字拆解為什麼後期經驗值需求成長這麼快
 - [卷軸強化期望值](https://mapleclassictools.com/guides/scroll-expected-value-guide/): 卷軸強化的期望值計算邏輯，為什麼提早停損反而省錢
 
-站內另有「玩法攻略」（任務攻略、職業攻略、組隊任務、BOSS 攻略）與「社群資料」（玩家回報的練功效率、編輯精選推薦地點）兩個分頁，內容整理自巴哈姆特哈啦板與 Threads 的玩家實測心得。
+站內另有「玩法攻略」（任務攻略、職業攻略、組隊任務，以及殘暴炎魔、闇黑龍王、拉圖斯的 BOSS 前置）與「社群資料」（玩家回報的練功效率、編輯精選推薦地點）兩個分頁，內容整理自巴哈姆特哈啦板與 Threads 的玩家實測心得。
 
 ## 引用這站時請注意
 

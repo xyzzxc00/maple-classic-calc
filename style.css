@@ -575,9 +575,7 @@ body.dark .top-banner :focus-visible {
 .nav-tab:hover { color: var(--ink); }
 .nav-tab.active { color: var(--accent-text); border-bottom-color: var(--accent-text); }
 @media (max-width: 560px) {
-  /* 4 個分頁維持等寬（flex:1），只縮小內距跟字級讓最長的「過往資料參考」
-     也能在自己的欄位裡完整顯示，不用切成不等寬、也不用橫向滑動；
-     min-height 撐住觸控目標高度（Apple HIG 建議 ≥44px） */
+  /* 小螢幕縮小內距與字級，並保留至少 44px 的觸控高度。 */
   .nav-tab { padding: 10px 8px; font-size: 12.5px; min-height: 44px; }
 }
 @media (max-width: 420px) {
@@ -1056,32 +1054,6 @@ span.gacha-rarity-tag.gacha-rarity-legendary { color: var(--danger); }
 
 /* ---------- Suggested spots ---------- */
 .cm-card.spot-fit { border-color: var(--accent-border); background: var(--accent-tint); }
-/* ---------- Legacy spots (舊版資料參考) ---------- */
-#legacySpotsList, #legacyBossPrequestList { display: flex; flex-direction: column; gap: 10px; }
-.legacy-spot-card {
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md);
-  padding: 12px 16px;
-}
-.legacy-spot-level {
-  display: inline-block;
-  font-weight: 700;
-  font-size: 13px;
-  color: var(--accent-text);
-  background: var(--accent-tint);
-  padding: 3px 10px;
-  border-radius: 999px;
-  margin-bottom: 6px;
-}
-.legacy-entry { padding: 8px 0; border-bottom: 1px solid var(--border); }
-.legacy-entry:last-of-type { border-bottom: none; }
-.legacy-entry-level { font-weight: 700; color: var(--accent-text); font-size: 12px; margin-right: 6px; }
-.legacy-entry-monster { font-weight: 700; color: var(--ink); font-size: 14px; }
-.legacy-entry-locations { font-size: 13px; color: var(--ink-soft); margin-top: 2px; line-height: 1.6; }
-.legacy-entry-respawn { font-size: 12px; color: var(--accent-text); margin-top: 4px; }
-.legacy-spot-note { font-size: 12px; color: var(--ink-soft); margin-top: 8px; }
-
 /* ---------- 資料庫：怪物列表 ----------
    一列一隻怪：左邊圖示、中間名稱與出沒地區、右邊四個數字。數字用 <dl>
    而不是純文字串接，是為了讓「HP」「EXP」這些標籤在小螢幕上換行後還看得
@@ -2137,73 +2109,13 @@ body.dark .db-eltag--undead { background: #2b2838; color: #b7addb; border-color:
 .db-level-table tbody tr:last-child th,
 .db-level-table tbody tr:last-child td { border-bottom: none; }
 
-/* ---------- Legacy job builds (職業配點) ----------
-   十二條路線如果攤平列卡片會糊成一片，所以先照職業系分組、組跟組之間留
-   明顯間距；每條路線再各自收合，預設收起來——四轉的說明本來就長，全部
-   攤開整頁捲不完。收合用 <details>，跟站上其他收合區塊同一套做法 */
-#legacyJobBuildsList { display: flex; flex-direction: column; gap: 26px; }
-.legacy-job-branch-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--ink);
-  margin: 0 0 10px;
-  padding-bottom: 8px;
-  border-bottom: 2px solid var(--accent-border);
-}
-.legacy-job-paths { display: flex; flex-direction: column; gap: 10px; }
-.legacy-job-path {
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md);
-}
-.legacy-job-path summary {
-  cursor: pointer;
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--accent-text);
-  padding: 12px 16px;
-  list-style-position: inside;
-  border-radius: var(--radius-md);
-}
-.legacy-job-path[open] summary {
-  border-bottom: 1px solid var(--border);
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
-}
-.legacy-job-path-body { padding: 12px 16px 14px; }
-/* 信心度／衝突點／但書：原本一整段跑完很難讀，改成一塊一塊、各自帶標籤。
-   衝突點常常有三四條，列點比逗號串起來好掃 */
-.legacy-job-notes {
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.legacy-job-note-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--accent-text);
-  margin-bottom: 4px;
-}
-.legacy-job-note-body {
-  margin: 0;
-  font-size: 12px;
-  color: var(--ink-soft);
-  line-height: 1.75;
-}
-.legacy-job-note-list {
-  margin: 0;
-  padding-left: 20px;
-  font-size: 12px;
-  color: var(--ink-soft);
-  line-height: 1.75;
-}
-.legacy-job-note-list li + li { margin-top: 6px; }
-
 /* ---------- 玩法攻略：組隊任務卡片 ----------
-   跟上面職業配點同一套收合卡做法（內容長、預設收起），但屬於「玩法攻略」
-   分頁的經典版當前內容，不掛 legacy- 前綴避免跟過往資料區混淆 */
+   內容長、預設收起；組隊任務、職業攻略與 BOSS 前置共用這套卡片。 */
+.guide-section-title {
+  margin: 20px 0 0;
+  font-size: 16px;
+  color: var(--ink);
+}
 .pq-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
 .pq-card {
   background: var(--surface);
@@ -2530,7 +2442,7 @@ body.has-sidebar .theme-toggle {
 /* ============================================================
    側邊欄＋卡片式排版（2026-08-02 導覽改版）
    .nav-tab／.subtab 這兩個 class 還是沿用給 nav.js／guides.js／
-   community.js／legacySpots.js 的 .active 切換邏輯用（id 不變、
+   community.js 的 .active 切換邏輯用（id 不變、
    JS 完全沒改）。舊的 .nav-tabs-wrap/.nav-tabs 容器 class 已經沒有
    任何地方在用，留著也不會被套用到；但舊的 .subtabs/.subtab 規則
    （橫向子分頁列的樣式）已經整段刪除——.subtab.active 原本無條件

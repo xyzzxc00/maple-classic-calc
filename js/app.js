@@ -113,8 +113,8 @@
 
   function calcAndRender() {
     // 資料檔（data.js）沒載入成功時明講，不要每次輸入都在 console 丟
-    // TypeError、畫面永遠停在「—」讓人以為要再多填什麼（跟 gacha/legacy
-    // 的資料檔兜底比照辦理）
+    // TypeError、畫面永遠停在「—」讓人以為要再多填什麼（跟 gacha 的
+    // 資料檔兜底比照辦理）
     if (!window.MapleData || !Array.isArray(window.MapleData.EXP_TABLE) || !window.MapleData.EXP_TABLE.length) {
       els.inputWarningHint.hidden = false;
       els.inputWarningHint.textContent = "資料載入失敗，請重新整理頁面";

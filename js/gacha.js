@@ -24,7 +24,7 @@
   const BOXES = window.MapleGachaBoxes || [];
   if (!BOXES.length) {
     // 資料檔（gachaData.js）沒載入成功時不要整頁靜默死掉——下拉選單全空、
-    // 按鈕沒反應會讓使用者以為功能壞了。跟 legacySpots.js 的兜底比照辦理
+    // 按鈕沒反應會讓使用者以為功能壞了，因此要顯示清楚的錯誤提示
     els.poolBox.innerHTML = '<p class="cm-empty cm-empty--error">資料載入失敗，請重新整理頁面</p>';
     return;
   }

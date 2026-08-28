@@ -12,8 +12,8 @@ patch_html.py — 部署前的 HTML 後製（只動 dist/，原始檔一律不�
 
    改寫的重點是把「按鈕」換成「連結」：主站的側邊欄按鈕是就地切換分頁
    （不換頁），文章頁沒有那些分頁容器可切，所以改成指回首頁的錨點連結
-   （例如 ../../#calc-scroll）。首頁的 nav.js／guides.js／community.js／
-   legacySpots.js 本來就看得懂這種 #主分頁-子分頁 錨點，不用寫新邏輯。
+   （例如 ../../#calc-scroll）。首頁的 nav.js／guides.js／community.js
+   本來就看得懂這種 #主分頁-子分頁 錨點，不用寫新邏輯。
 """
 
 import os
@@ -149,9 +149,10 @@ def extract_shell(index_html):
 
 
 def subtab_hash(el_id):
-    """側邊欄子分頁的 id → 首頁錨點。calcSubExp → calc-exp、
-    legacySubJobBuilds → legacy-jobBuilds（大小寫要跟各模組的 key 一致，
-    那些 key 是拿去跟 hash 字串直接比對的）"""
+    """側邊欄子分頁的 id → 首頁錨點。calcSubExp → calc-exp。
+
+    大小寫要跟各模組的 key 一致，那些 key 會直接與 hash 字串比對。
+    """
     page, _, rest = el_id.partition("Sub")
     if not page or not rest:
         fail(f"側邊欄子分頁 id「{el_id}」不是預期的 <主分頁>Sub<子分頁> 格式")

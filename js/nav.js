@@ -1,5 +1,5 @@
 /**
- * nav.js — 分頁切換（練等計算 / 玩法攻略 / 社群資料庫 / 過往資料參考）
+ * nav.js — 分頁切換（首頁 / 計算工具 / 資料庫 / 玩法攻略 / 社群資料 / FAQ）
  */
 (function () {
   const STORAGE_KEY = "maple_classic_nav_v1";
@@ -23,7 +23,6 @@
     db: document.getElementById("pageDb"),
     guides: document.getElementById("pageGuides"),
     cm: document.getElementById("pageCm"),
-    legacy: document.getElementById("pageLegacy"),
     faq: document.getElementById("pageFaq"),
   };
   const tabs = {
@@ -32,7 +31,6 @@
     db: document.getElementById("navDb"),
     guides: document.getElementById("navGuides"),
     cm: document.getElementById("navCm"),
-    legacy: document.getElementById("navLegacy"),
     faq: document.getElementById("navFaqLink"),
   };
 
@@ -103,7 +101,7 @@
   // localStorage，使用者就被丟回練等計算。抹掉之後重整改由 localStorage 接手，
   // 跟畫面永遠一致。
   // 這段必須放在所有讀 location.hash 的模組之後——app.js／guides.js／
-  // community.js／legacySpots.js 的 script tag 都排在 nav.js 前面，載入時
+  // community.js 的 script tag 都排在 nav.js 前面，載入時
   // 已經讀完了。search 要保留：app.js 處理分享連結的參數時有自己的清法
   if (location.hash) {
     history.replaceState(null, "", location.pathname + location.search);
