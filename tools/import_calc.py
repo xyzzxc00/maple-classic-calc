@@ -15,6 +15,8 @@
 - 技能只收到三轉（MAX_ADVANCEMENT），四轉還沒開
 - 裝備、卷軸、道具 BUFF 只留 data/db/items.json 有的
 - 隊伍 BUFF 只留 data/db/skills.json 有的
+- 裝備的天然浮動範圍只沿用道具詳情已確認的開放取得方式，不把未開放地區
+  的怪物掉落或一般 NPC 製作誤算進來
 沒開放的東西列出來，使用者點下去在站上也查不到，只會誤導；所以寧可少列。
 所以**跑這支之前一定要先跑 import_db.py**（會直接讀它的產出當白名單）。
 
@@ -127,6 +129,20 @@ def slim_stats(stats):
     return out
 
 
+def load_open_item_details(open_item_ids):
+    """讀 import_db.py 產出的道具詳情，讓卷軸模擬與資料庫使用同一份
+    「目前開放來源」判斷。只靠 Morris 的全版本 statRanges，會把未開放地區
+    的掉落範圍也帶進目前版本。"""
+    detail_dir = os.path.join(DB_DIR, "items")
+    out = {}
+    for item_id in open_item_ids:
+        path = os.path.join(detail_dir, f"{item_id}.json")
+        if os.path.exists(path):
+            with open(path, encoding="utf-8") as f:
+                out[item_id] = json.load(f)
+    return out
+
+
 def main():
     if len(sys.argv) != 2 or not os.path.isdir(sys.argv[1]):
         print(__doc__)
@@ -140,6 +156,7 @@ def main():
     if open_item_ids is None or open_skill_names is None:
         print("⚠ 找不到 data/db/items.json 或 skills.json，請先跑 tools/import_db.py")
         return 1
+    open_item_details = load_open_item_details(open_item_ids)
 
     # ---------------------------------------------------------- 攻擊力計算
     dmg = load_window_json(os.path.join(src_root, "damage-calculator-data.js"))
@@ -198,10 +215,24 @@ def main():
             "image": copy_image(src_root, item.get("image"), ITEM_IMG_DIR, copied, missing),
             "stats": slim_stats(item.get("stats")),
         }
-        if item.get("statRanges"):
-            row["statRanges"] = item["statRanges"]
-        if item.get("statRangeSources"):
-            row["statRangeSources"] = item["statRangeSources"]
+        detail = open_item_details.get(str(item["id"])) or {}
+        detail_ranges = detail.get("float") or {}
+        if detail_ranges:
+            upstream_ranges = item.get("statRanges") or {}
+            row_ranges = {}
+            for key, bounds in detail_ranges.items():
+                upstream = upstream_ranges.get(key) or {}
+                base = (detail.get("equip") or {}).get(key)
+                if (upstream.get("base") != base
+                        or upstream.get("min") != bounds[0]
+                        or upstream.get("max") != bounds[1]):
+                    raise ValueError(
+                        f"裝備 {item['id']} {item['name']} 的 {key} 浮動範圍"
+                        "與道具詳情不一致，請先重跑 import_db.py"
+                    )
+                row_ranges[key] = {"base": base, "min": bounds[0], "max": bounds[1]}
+            row["statRanges"] = row_ranges
+            row["statRangeSources"] = detail.get("floatFrom") or []
         equipment.append(row)
 
     scrolls = []

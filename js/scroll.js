@@ -944,7 +944,7 @@
     const sourceText = ((equipment.statRangeSources) || []).join("、");
     els.initialStats.innerHTML =
       '<div class="ssim-init-head"><strong>初始屬性</strong><span>' +
-      (hasFloating ? "可在" + esc(sourceText || "裝備") + "浮動範圍內調整" : "此裝備沒有浮動範圍") + "</span>" +
+      (hasFloating ? "乾淨裝備由" + esc(sourceText || "指定來源") + "取得時可浮動" : "目前開放來源皆為固定基準值") + "</span>" +
       '<button class="btn btn-ghost" id="ssimResetInitStats" type="button">↺ 重置</button></div>' +
       '<div class="ssim-init-grid">' +
       keys.map((key) => {

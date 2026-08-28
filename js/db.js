@@ -1610,7 +1610,7 @@
         return `<div><dt>${label}</dt><dd>+${num(eq[k])}${range}</dd></div>`;
       });
       const floatNote = Object.keys(fl).length
-        ? `<p class="db-section-note">標示範圍的欄位：由${esc((d.floatFrom || []).join("或"))}拿到時，數值會在括號範圍內隨機浮動；商店購買與任務獎勵固定是基準值。</p>`
+        ? `<p class="db-section-note">括號是乾淨裝備的天然浮動範圍，僅適用於${esc((d.floatFrom || []).join("或"))}；商店、任務、轉蛋與一般 NPC 製作皆為基準值，卷軸加成另計。</p>`
         : "";
 
       const sourceSection = (title, bits) =>

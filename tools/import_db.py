@@ -615,9 +615,18 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids, gacha_of=Non
                 for m in (n.get("maps") or [])
             )
 
+        def is_catalyst_craft(c):
+            # Morris 的「可使用催化劑合成」不是指所有 NPC 製作；只有配方
+            # requirements 裡明確標成「催化材料」的強化合成才會讓成品能力
+            # 浮動。一般冶煉／換色／NPC 製作仍是基準值。
+            return any(
+                req.get("role") == "催化材料"
+                for req in (c.get("requirements") or [])
+            )
+
         def craft_row(c):
             npc = (c.get("npcs") or [{}])[0]
-            return {
+            row = {
                 "npc": npc.get("name") or "",
                 "maps": [
                     m.get("label") or m.get("name") or ""
@@ -636,8 +645,12 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids, gacha_of=Non
                     "count": (c.get("primaryOutput") or {}).get("count") or 1,
                 },
             }
+            if is_catalyst_craft(c):
+                row["catalyst"] = True
+            return row
 
-        crafts = [craft_row(c) for c in (src.get("crafts") or []) if craft_open(c)]
+        open_crafts = [c for c in (src.get("crafts") or []) if craft_open(c)]
+        crafts = [craft_row(c) for c in open_crafts]
         gacha = (gacha_of or {}).get(it["id"]) or []
         # 這個道具被拿去做什麼（同一個產出只留一筆）
         used_in = {}
@@ -653,11 +666,10 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids, gacha_of=Non
 
         equip = it.get("equipStats") or {}
 
-        # 裝備數值浮動：從怪物掉落或製作取得的裝備，能力值會在「基準 ± Δ」內
-        # 隨機。直接讀拆包本身給的 equipStatRanges（原始資料就算好了，不是
-        # 我們反推的），只在有掉落／製作來源時才會出現，跟本檔的
-        # drops/crafts 判斷邏輯完全一致（2026-08-12 驗證：1,449 件裝備裡
-        # 沒有任何一件是「沒有 drops/crafts 卻有這個欄位」的例外）。
+        # 裝備數值浮動：Morris 依遊戲基準能力與可浮動來源整理出的
+        # equipStatRanges／equipStatRangeSources。範圍不能只看「這件裝備有沒有
+        # 製作配方」：一般 NPC 製作是固定基準值，只有怪物掉落或明確帶
+        # 「催化材料」的強化合成才浮動，而且來源還必須位於本站已開放範圍。
         #
         # 2026-08-07~12 教訓：先前這裡是用「反推公式」（Δ = ceil(基準/10)，
         # 武器封頂 ±5）——反推來源是參考網站當時*顯示出來*的範圍，不是原始
@@ -667,8 +679,15 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids, gacha_of=Non
         # 徹底避免這種「反推公式錯了都不知道」的風險，以後拆包只要更新，
         # 這裡自動跟著對，不用再猜規律。
         raw_rng = it.get("equipStatRanges") or {}
+        raw_range_sources = set(it.get("equipStatRangeSources") or [])
+        float_from = []
+        if drops and "怪物掉落" in raw_range_sources:
+            float_from.append("怪物掉落")
+        if (any(is_catalyst_craft(c) for c in open_crafts)
+                and "可使用催化劑合成" in raw_range_sources):
+            float_from.append("使用催化劑合成")
         float_rng = {}
-        if equip and (drops or crafts):
+        if equip and float_from:
             for k, v in raw_rng.items():
                 mn, mx = v.get("min"), v.get("max")
                 if isinstance(mn, (int, float)) and isinstance(mx, (int, float)):
@@ -685,9 +704,7 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids, gacha_of=Non
             "equip": {k: v for k, v in equip.items()
                       if k not in ("islot", "vslot", "cash") and v},
             "float": float_rng,
-            "floatFrom": [lbl for lbl, ok in
-                          (("怪物掉落", drops), ("製作取得", crafts)) if ok]
-                         if float_rng else [],
+            "floatFrom": float_from if float_rng else [],
             "drops": [
                 {"id": str(d["monsterId"]),
                  "name": monster_name(d["monsterId"], d.get("monsterName")),
