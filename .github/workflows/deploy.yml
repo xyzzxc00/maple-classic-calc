@@ -143,22 +143,12 @@ jobs:
           # 這 68 頁讓每隻怪各自有能被索引、能被分享的網址
           cp -r db dist/
 
-          # Bundle all JS in load order → single minified file.
-          # 檔案清單直接從 index.html 現有的 <script defer src="js/...">
-          # 標籤解析出來，不再手動維護一份清單——新增 js 檔案只要記得在
-          # index.html 加一行 script tag，打包就一定跟得上，不會像
-          # countdown.js 那次漏加到清單裡卻沒有任何錯誤訊息。
-          mapfile -t JS_FILES < <(grep -oE 'src="js/[^"]+\.js"' index.html | sed -E 's/^src="(.*)"$/\1/')
+          # Bundle all JS in load order → single minified file. 使用 HTML parser
+          # 讀取 index.html，因此屬性順序、單／雙引號與 ?v=... 都不會讓檔案
+          # 默默漏出 bundle；同時檢查必要導覽檔、重複項目與不存在的路徑。
+          mapfile -t JS_FILES < <(python3 tools/list_bundle_js.py index.html)
           echo "Bundling JS files in this order:"
           printf '  %s\n' "${JS_FILES[@]}"
-          # 保險：script tag 格式哪天漂移（換單引號、加 ?v=、改 type=module），
-          # grep 會默默抓不到 → 空清單的 cat 產出空 bundle、照樣過 terser 照樣
-          # 部署，整站 JS 全壞但 CI 全綠。實際檔數會隨功能成長（上面的
-          # printf 每次 build 都會列出來），門檻 10 只抓「整批漂移」的災難
-          if [ "${#JS_FILES[@]}" -lt 10 ]; then
-            echo "::error::JS 打包清單只抓到 ${#JS_FILES[@]} 個檔案，index.html 的 script tag 格式可能漂移了"
-            exit 1
-          fi
           cat "${JS_FILES[@]}" > dist/js/bundle.raw.js
           terser dist/js/bundle.raw.js --compress --mangle --output dist/js/bundle.js
           rm dist/js/bundle.raw.js
