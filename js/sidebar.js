@@ -100,31 +100,19 @@
   // 還在（負責顯示正確的子分頁內容），這裡另外掛一個監聽器只負責讓
   // MapleNav 把外層主分頁也切過去——兩者互不影響，誰先執行都沒差
   // （switchNav 只動 pages[key].hidden，不會動任何子分頁自己的狀態）
-  const SUBTAB_LINKS = [
-    { id: "calcSubExp", page: "calc" },
-    { id: "calcSubAttack", page: "calc" },
-    { id: "calcSubScroll", page: "calc" },
-    { id: "calcSubGacha", page: "calc" },
-    { id: "calcSubHit", page: "calc" },
-    { id: "dbSubMonsters", page: "db" },
-    { id: "dbSubMaps", page: "db" },
-    { id: "dbSubWorld", page: "db" },
-    { id: "dbSubItems", page: "db" },
-    { id: "dbSubNpcs", page: "db" },
-    { id: "dbSubShops", page: "db" },
-    { id: "dbSubQuests", page: "db" },
-    { id: "dbSubSkills", page: "db" },
-    { id: "guidesSubQuests", page: "guides" },
-    { id: "guidesSubJobs", page: "guides" },
-    { id: "guidesSubTeamQuest", page: "guides" },
-    { id: "guidesSubBoss", page: "guides" },
-    { id: "cmSubSuggest", page: "cm" },
-    { id: "cmSubPicks", page: "cm" },
-    { id: "cmSubRecords", page: "cm" },
-  ];
-  SUBTAB_LINKS.forEach(({ id, page }) => {
-    const btn = document.getElementById(id);
-    if (btn) btn.addEventListener("click", () => window.MapleNav && window.MapleNav.switchNav(page));
+  // 直接依群組標題的 aria-controls 找出外層主分頁，不再手動維護每一顆
+  // 子分頁按鈕的清單。原本清單漏了 cmSubTips，導致從「玩法攻略」點
+  // 「實用情報」時只有內層內容切換，外層仍停在玩法攻略；往後新增子分頁
+  // 也會自動套用同一套跨區切換行為。
+  groups.forEach((group) => {
+    const header = group.querySelector(".nav-group-btn");
+    const controlledPage = header && header.getAttribute("aria-controls");
+    if (!controlledPage || !controlledPage.startsWith("page")) return;
+    const page = controlledPage.slice(4);
+    const pageKey = page.charAt(0).toLowerCase() + page.slice(1);
+    group.querySelectorAll(".sidebar-link.subtab").forEach((btn) => {
+      btn.addEventListener("click", () => window.MapleNav && window.MapleNav.switchNav(pageKey));
+    });
   });
 
   // ---------- 頂欄站名：點了回首頁 ----------
