@@ -50,13 +50,17 @@
       <div class="miniwin-ocr">
         <div class="miniwin-ocr-head">
           <button class="miniwin-ocr-fold" data-ow="foldBtn" type="button" aria-expanded="true"
-            title="收合／展開讀取狀態"><span class="miniwin-ocr-chevron" data-ow="chevron">▾</span>畫面讀取<span class="miniwin-ocr-tag">實驗性 v11</span></button>
+            title="收合／展開讀取狀態"><span class="miniwin-ocr-chevron" data-ow="chevron">▾</span>畫面讀取<span class="miniwin-ocr-tag">實驗性 v12</span></button>
           <button class="btn btn-ghost miniwin-btn" data-ow="startBtn" type="button">▶ 開始</button>
         </div>
         <div data-ow="foldBody">
           <p class="miniwin-ocr-status" data-ow="status">分享遊戲視窗後自動讀等級與 EXP</p>
-          <button class="btn btn-ghost miniwin-btn miniwin-ocr-debugbtn" data-ow="debugBtn" type="button"
-            title="讀不到時按這個，把畫面診斷資料開在新分頁，截圖回報用">匯出除錯資料</button>
+          <div class="miniwin-ocr-actions">
+            <button class="btn btn-ghost miniwin-btn miniwin-ocr-debugbtn" data-ow="debugBtn" type="button"
+              title="讀不到時按這個，把畫面診斷資料開在新分頁，截圖回報用">匯出除錯資料</button>
+            <button class="btn btn-ghost miniwin-btn miniwin-ocr-debugbtn" data-ow="recalibrateBtn" type="button"
+              title="遊戲視窗改過大小，或預覽沒有框到正確位置時使用">↻ 重新定位</button>
+          </div>
           <div class="miniwin-ocr-debug" data-ow="debug" hidden>
             <div class="miniwin-ocr-crop"><span>等級</span><img data-ow="cropLv" alt="等級區塊預覽"></div>
             <div class="miniwin-ocr-crop"><span>EXP</span><img data-ow="cropExp" alt="EXP 區塊預覽"></div>
@@ -75,7 +79,9 @@
       <details class="miniwin-ocr-note">
         <summary>這個功能是怎麼算的？</summary>
         <p>
-          這是實驗性功能：自動讀取畫面上的數字來算速率，偶爾會讀錯，已經有做交叉比對過濾。
+          請分享「遊戲視窗」，不要分享本站分頁。常見 720p、1080p、2K、4K、16:10、超寬與視窗模式
+          都會自動嘗試多組版型；若中途調整遊戲視窗大小，或上方預覽沒有框到等級／EXP，請按「重新定位」。
+          這是實驗性功能：自動讀取畫面上的數字來算速率，偶爾會讀錯，已經有做交叉比對過濾；仍無法讀取時可匯出除錯資料回報。
           「5/10分鐘經驗」在還沒真的滿 5／10 分鐘時，是用目前的平均速率往前推算（會標「推算」），
           時間到了才會換成那段時間真正量到的數字，數字剛開始跳動比較大是正常的，會自己收斂。
           上傳按鈕要滿 5 分鐘實測才會亮，按下去只會帶入等級跟每10分經驗到回報表單，
@@ -198,6 +204,8 @@
       else engine.start(t.ownerDocument.defaultView || window);
     } else if (t.dataset.ow === "debugBtn") {
       engine.debugDump();
+    } else if (t.dataset.ow === "recalibrateBtn") {
+      engine.recalibrate();
     } else if (t.dataset.ow === "uploadBtn") {
       uploadToCommunity(t);
     } else if (t.dataset.ow === "foldBtn") {
@@ -251,7 +259,27 @@
   }
 
   async function openPip() {
-    pipWin = await window.documentPictureInPicture.requestWindow({ width: 316, height: 470 });
+    // 少數 Chromium／嵌入式瀏覽器雖然暴露 documentPictureInPicture API，
+    // requestWindow 卻可能一直 pending（不成功也不 reject），使用者看起來
+    // 就像按鈕完全壞掉。限時後交給外層退回頁內浮動視窗；若原請求很晚才
+    // 成功，立刻關掉遲到的空視窗，避免同時出現兩份面板。
+    const request = window.documentPictureInPicture.requestWindow({ width: 316, height: 470 });
+    let timeoutId = null;
+    try {
+      pipWin = await Promise.race([
+        request,
+        new Promise((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error("PiP timeout")), 2500);
+        }),
+      ]);
+      clearTimeout(timeoutId);
+    } catch (error) {
+      clearTimeout(timeoutId);
+      request.then((lateWindow) => {
+        try { lateWindow.close(); } catch {}
+      }).catch(() => {});
+      throw error;
+    }
     copyStylesInto(pipWin.document);
     pipWin.document.documentElement.lang = "zh-Hant";
     pipWin.document.body.className = document.body.className + " miniwin-body";

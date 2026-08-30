@@ -5,9 +5,10 @@
  * 讀出等級與 EXP，自動累計獲得經驗、換算速率。
  *
  * 辨識架構（實測演化到第三版的結果）：
- * - 定位：校準時把整條狀態列丟給 Tesseract OCR（只在這一步用），
+ * - 定位：先依擷取尺寸／長寬比嘗試全部已知 HUD 版型；仍讀不到時，
+ *   再把整條狀態列丟給 Tesseract OCR（只在這一步用），
  *   利用它會回報「每個詞的座標」，找到「數字[百分比%]」樣式的詞
- *   （＝EXP）鎖定位置；等級用同一行左段。任何解析度都行。
+ *   （＝EXP）鎖定位置；等級用同一行左段，可涵蓋未預先收錄的解析度。
  * - 讀值：不用 OCR——遊戲數字是固定點陣字形（EXP 5×7、等級徽章 7×7），
  *   直接用像素圖樣比對（移植自另一位玩家工具作者的公開實作，同一款
  *   遊戲實機驗證過的字模）。比 OCR 快百倍且不會有 3↔2、小數點被吃
@@ -235,15 +236,22 @@
   }
 
   // ---------- 裁切工具 ----------
+  function presetChoices(w, h) {
+    const exactKey = w + "x" + h;
+    const targetAspect = w / Math.max(1, h);
+    return Object.keys(PRESETS)
+      .map((key) => {
+        const [pw, ph] = key.split("x").map(Number);
+        const sizeDistance = Math.abs(Math.log(w / pw)) + Math.abs(Math.log(h / ph));
+        const aspectDistance = Math.abs(Math.log(targetAspect / (pw / ph)));
+        return { key, preset: PRESETS[key], exact: key === exactKey, score: sizeDistance + aspectDistance * 3 };
+      })
+      .sort((a, b) => Number(b.exact) - Number(a.exact) || a.score - b.score);
+  }
+
   function pickPreset(w, h) {
-    const key = w + "x" + h;
-    if (PRESETS[key]) return { key, preset: PRESETS[key] };
-    let best = null;
-    for (const k of Object.keys(PRESETS)) {
-      const kw = parseInt(k, 10);
-      if (!best || Math.abs(kw - w) < Math.abs(parseInt(best, 10) - w)) best = k;
-    }
-    return { key: best + "（近似）", preset: PRESETS[best] };
+    const best = presetChoices(w, h)[0];
+    return { key: best.exact ? best.key : best.key + "（近似）", preset: best.preset };
   }
 
   function rectFor(preset, name, w, h) {
@@ -254,6 +262,33 @@
       width: Math.max(1, Math.round(r.width * w)),
       height: Math.max(1, Math.round(r.height * h)),
     };
+  }
+
+  // 未收錄的解析度不能只看「最接近的寬度」猜一組座標：同樣 2560 寬可能是
+  // 16:9、21:9 或視窗模式，HUD 版型不一定相同。圖樣比對成本很低，因此把
+  // 所有已知版型依尺寸／長寬比排序後逐一嘗試；座標完全相同的版型去重。
+  // 這讓 1280×720、1600×900、1920×1200、3440×1440、5120×1440 等
+  // 非精準 preset 也能命中，而不是在第一組猜錯後立刻依賴外部 OCR 校準。
+  function presetReadCandidates(w, h) {
+    const seen = new Set();
+    const out = [];
+    for (const choice of presetChoices(w, h)) {
+      // 比例座標在某些高度會因四捨五入超出底邊 1px；候選、鎖定、
+      // 預覽與除錯全部從這裡就使用同一個合法矩形，避免各自裁出不同結果。
+      const lv = clampRect(rectFor(choice.preset, "lv", w, h), w, h);
+      const exp = clampRect(rectFor(choice.preset, "exp", w, h), w, h);
+      const signature = [lv.x, lv.y, lv.width, lv.height, exp.x, exp.y, exp.width, exp.height].join(":");
+      if (seen.has(signature)) continue;
+      seen.add(signature);
+      out.push({
+        key: choice.key,
+        lv,
+        exp,
+        wide: false,
+        tag: choice.exact ? "精準版型 " + choice.key : "候選版型 " + choice.key,
+      });
+    }
+    return out;
   }
 
   function clampRect(rect, w, h) {
@@ -452,8 +487,19 @@
     let best = null;
     for (const [digit, tpls] of Object.entries(EXP_TPL)) {
       for (const t of tpls) {
-        const mask = sampleGlyph(img, g, expWhiteInk, t.w, t.h);
-        const score = bitDistance(mask, t.bits);
+        // 寬字形不可能是 1；面積重採樣到 1×7 時，任何每列都有墨的寬字
+        // 都會退化成一條直線，若不先用長寬比排除會把 6／8 等誤判成 1。
+        if (digit === "1" && g.width > g.height * 0.5) continue;
+        // 點取樣對原生／整數倍點陣最準；Windows 125%／150%／175% 會把
+        // 部分網格拉成 1px、部分 2px，單一取樣點可能剛好落在空白。再用
+        // 不同門檻的面積取樣補判，取最貼近字模者，最後仍受 EXP 百分比
+        // 交叉驗證約束，不會因放寬縮放容錯就直接收進錯值。
+        const masks = [
+          sampleGlyph(img, g, expWhiteInk, t.w, t.h),
+          sampleGrid(img, g, expWhiteInk, t.w, t.h, 0.2),
+          sampleGrid(img, g, expWhiteInk, t.w, t.h, 0.4),
+        ];
+        const score = Math.min(...masks.map((mask) => bitDistance(mask, t.bits)));
         if (!best || score < best.score) best = { digit, score };
       }
     }
@@ -783,7 +829,9 @@
 
   function crossCheck(level, exp, percent) {
     const need = expToNext(level);
-    if (!need) return exp !== null;
+    // 沒有對應 EXP 表的等級無法做百分比驗證，不能因為「有讀到一個數字」
+    // 就直接放行；否則 Lv.100 被誤讀成資料表外等級時反而完全失去防呆。
+    if (!need) return false;
     if (exp === null || percent === null) return false;
     if (exp > need) return false;
     return Math.abs((exp / need) * 100 - percent) <= 2;
@@ -862,24 +910,28 @@
         state.lockSize = source.width + "x" + source.height;
       }
 
-      const picked = pickPreset(source.width, source.height);
-      // 兩組候選框都試（圖樣比對是毫秒級，多讀一組沒成本）：
-      // 校準框優先，預設座標當備援——校準偶爾會「假成功」給出歪的框，
-      // 哪組讀出來能通過交叉驗證就用哪組，並把它轉正為鎖定（自我修復）
+      // 所有已知版型都試（圖樣比對是毫秒級）：校準框優先，其次依目前
+      // 擷取尺寸／長寬比排序。哪組通過 EXP 百分比交叉驗證就鎖定；後續每秒
+      // 只需先試鎖定框，未知解析度也不必每次依賴 Tesseract。
       const candidates = [];
+      const candidateSignatures = new Set();
+      const addCandidate = (candidate) => {
+        const signature = [candidate.lv.x, candidate.lv.y, candidate.lv.width, candidate.lv.height,
+          candidate.exp.x, candidate.exp.y, candidate.exp.width, candidate.exp.height].join(":");
+        if (candidateSignatures.has(signature)) return;
+        candidateSignatures.add(signature);
+        candidates.push(candidate);
+      };
       if (state.expRectLock) {
-        candidates.push({ lv: state.lvRectLock, exp: state.expRectLock, wide: state.lvWide, tag: "已定位" });
+        addCandidate({ lv: state.lvRectLock, exp: state.expRectLock, wide: state.lvWide, tag: "已定位" });
       }
-      candidates.push({
-        lv: rectFor(picked.preset, "lv", source.width, source.height),
-        exp: rectFor(picked.preset, "exp", source.width, source.height),
-        wide: false,
-        tag: "預設座標",
-      });
+      presetReadCandidates(source.width, source.height).forEach(addCandidate);
 
       let level = null;
       let parsed = { exp: null, percent: null };
       let used = candidates[0];
+      let bestPartialScore = -1;
+      let pairComplete = false;
       state.lastTickDebug = [];
       for (const c of candidates) {
         // 不加邊距：跟除錯頁走完全相同的路（邊距曾兩度造成「除錯頁讀得到、
@@ -902,6 +954,7 @@
           level = verified.level;
           parsed = p;
           used = c;
+          pairComplete = true;
           // 成功的那組轉正為鎖定，下一輪直接命中
           state.lvRectLock = c.lv;
           state.expRectLock = c.exp;
@@ -909,9 +962,17 @@
           state.lockMisses = 0;
           break;
         }
-        // 沒全過的話留讀得比較多的那組當顯示與預覽
-        if (level === null && lvl) { level = lvl; used = c; }
-        if (parsed.exp === null && p.exp !== null) { parsed = p; used = c; }
+        // 沒全過時保留「同一版型」裡資訊最完整的一組。不能從 A 框拿
+        // 等級、B 框拿 EXP 再拼起來驗證；版型變多後這種混搭更容易偶然
+        // 對上百分比，既會收錯值，也會誤以為已定位而不再啟動校準。
+        const partialScore = (lvl !== null ? 2 : 0) + (p.exp !== null ? 2 : 0) + (p.percent !== null ? 1 : 0);
+        if (partialScore > bestPartialScore) {
+          bestPartialScore = partialScore;
+          level = lvl;
+          parsed = p;
+          used = c;
+          pairComplete = lvl !== null && p.exp !== null;
+        }
       }
       state.presetKey = source.width + "x" + source.height + "・" + used.tag;
 
@@ -920,9 +981,9 @@
         exp: cropCanvas(source, clampRect(used.exp, source.width, source.height), 2).toDataURL(),
       };
 
-      // 兩組候選框都讀不到時才動用校準（OCR 整條狀態列找位置）——
+      // 所有候選框都讀不到時才動用校準（OCR 整條狀態列找位置）——
       // 預設座標就能用的人（全螢幕玩家）連 Tesseract 都不用載
-      if ((parsed.exp === null || level === null) && !state.expRectLock && state.calibrateAttempts < 2) {
+      if (!pairComplete && !state.expRectLock && state.calibrateAttempts < 2) {
         state.calibrateAttempts++;
         setStatus("預設座標讀不到，改用整條狀態列定位中…（第一次要載辨識元件）");
         const found = await calibrate(source);
@@ -934,7 +995,7 @@
         }
       }
 
-      if (state.expRectLock && (parsed.exp === null || level === null)) {
+      if (state.expRectLock && !pairComplete) {
         state.lockMisses = (state.lockMisses || 0) + 1;
         if (state.lockMisses >= 12) {
           state.lvRectLock = null;
@@ -1022,6 +1083,9 @@
     stream.getVideoTracks().forEach((t) => t.addEventListener("ended", stop));
     state.running = true;
     resetCounters();
+    // 每次重新開始都是一個新的擷取來源；不能沿用上一輪已失敗的座標、
+    // 校準次數或 CDN 載入結果，否則使用者按停止再開始仍會永久卡住。
+    resetPositioning(true);
     setStatus("已連接畫面分享，開始讀取…");
     state.timer = setInterval(() => { tick(); }, INTERVAL_MS);
     tick();
@@ -1037,6 +1101,31 @@
     state.history = [];
     state.pendingFirst = null;
     state.contRejects = 0;
+  }
+
+  function resetPositioning(retryCalibration) {
+    state.lvRectLock = null;
+    state.expRectLock = null;
+    state.lockSize = "";
+    state.lockMisses = 0;
+    state.calibrateAttempts = 0;
+    state.lvWide = false;
+    state.presetKey = "";
+    state.crops = null;
+    state.lastTickDebug = [];
+    // CDN 或網路瞬斷不該讓這個分頁永久放棄校準；使用者重新開始／重新定位
+    // 時允許再試一次。成功建立的 worker 則繼續沿用，不重複下載。
+    if (retryCalibration && state.tesseractFailed) {
+      state.tesseractFailed = false;
+      workerPromise = null;
+    }
+  }
+
+  function recalibrate() {
+    resetPositioning(true);
+    setStatus(state.running
+      ? "已清除舊定位，下一秒會重新嘗試所有解析度版型"
+      : "定位已重置，按開始後會重新偵測");
   }
 
   function stop() {
@@ -1069,9 +1158,9 @@
     source.height = v.videoHeight;
     source.getContext("2d", { willReadFrequently: true }).drawImage(v, 0, 0);
 
-    const picked = pickPreset(source.width, source.height);
-    const lvRect = clampRect(state.lvRectLock || rectFor(picked.preset, "lv", source.width, source.height), source.width, source.height);
-    const expRect = clampRect(state.expRectLock || rectFor(picked.preset, "exp", source.width, source.height), source.width, source.height);
+    const fallback = presetReadCandidates(source.width, source.height)[0];
+    const lvRect = clampRect(state.lvRectLock || fallback.lv, source.width, source.height);
+    const expRect = clampRect(state.expRectLock || fallback.exp, source.width, source.height);
     const lvWide = state.lvRectLock ? state.lvWide : false;
 
     const filterView = (rect, inkFn) => {
@@ -1109,6 +1198,8 @@
       "・EXP框：" + JSON.stringify(expRect) + "</p>" +
       "<p><b>圖樣比對結果：</b>等級=" + esc(level) + "　候選=" + esc(JSON.stringify(levelCandidates)) +
       "　EXP=" + esc(parsed.exp) + "　百分比=" + esc(parsed.percent) + "</p>" +
+      "<details><summary>本輪全部候選版型結果</summary><pre style=\"white-space:pre-wrap\">" +
+      esc(JSON.stringify(state.lastTickDebug || [], null, 2)) + "</pre></details>" +
       "<h3>等級框</h3>" +
       '<p>原圖：<br><img src="' + cropCanvas(source, lvRect, 4).toDataURL() + '" style="max-width:100%;border:1px solid #999"></p>' +
       '<p>橘色徽章視角：<br><img src="' + filterView(lvRect, lvBadgeInk) + '" style="max-width:100%;border:1px solid #999"></p>' +
@@ -1128,6 +1219,7 @@
     stop,
     getState,
     debugDump,
+    recalibrate,
     onUpdate(cb) { listeners.push(cb); },
     running() { return state.running; },
     _tickWith(canvas) { return tick(canvas); },
@@ -1139,6 +1231,10 @@
       expToNext,
       acceptSample,
       windowGain,
+      presetChoices,
+      pickPreset,
+      presetReadCandidates,
+      clampRect,
     },
     // 內部探針：把 EXP 框每個字形群的分類明細倒出來（除錯用）
     _probeExp(source, rect) {
@@ -1156,12 +1252,7 @@
     },
     _reset() {
       resetCounters();
-      state.lvRectLock = null;
-      state.expRectLock = null;
-      state.lockSize = "";
-      state.lockMisses = 0;
-      state.calibrateAttempts = 0;
-      state.lvWide = false;
+      resetPositioning(true);
     },
   };
 })();

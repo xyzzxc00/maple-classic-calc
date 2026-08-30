@@ -3627,8 +3627,9 @@ body.has-sidebar .theme-toggle {
 }
 .miniwin-ocr-chevron { margin-right: 4px; color: var(--ink-soft); font-size: 12px; }
 
-/* 除錯匯出鈕：小顆、不搶畫面 */
-.miniwin-ocr-debugbtn { width: auto; padding: 4px 10px; margin-top: 6px; font-size: 12px; }
+/* 診斷操作：窄視窗可自然換行，不讓兩顆長按鈕把小視窗撐寬 */
+.miniwin-ocr-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.miniwin-ocr-debugbtn { width: auto; padding: 4px 10px; margin-top: 0; font-size: 12px; }
 
 /* 除錯匯出鈕被 .miniwin-ocr .miniwin-btn 的 64px 定寬蓋住、六個字爆框——
    用同權重的選擇器放後面蓋回自動寬度 */

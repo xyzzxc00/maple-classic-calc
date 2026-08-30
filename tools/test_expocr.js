@@ -1,8 +1,9 @@
 "use strict";
 
 // 自動測速的純演算法回歸測試；不需要 npm 套件，直接 `node tools/test_expocr.js`。
-// 測 1～100 每個等級、多種縮放／徽章亮紋／窄版 1、EXP 數字與百分比、
-// 同級累計、升級跨級、倒退與跳級防呆、5／10 分鐘視窗。
+// 測 EXP 表涵蓋的全部等級、1～4 倍與常見系統縮放、徽章亮紋／窄版 1、
+// EXP 數字與百分比、720p～4K／超寬裁切矩陣、同級累計、升級跨級、
+// 倒退與跳級防呆、5／10 分鐘視窗。
 
 const assert = require("node:assert/strict");
 
@@ -13,6 +14,8 @@ require("../js/expocr.js");
 const engine = global.MapleExpOcr;
 const test = engine && engine._test;
 assert.ok(test, "MapleExpOcr 測試介面不存在");
+assert.equal(typeof engine.recalibrate, "function", "缺少手動重新定位介面");
+const MAX_LEVEL = global.MapleData.EXP_TABLE.length;
 
 const LV_MASKS = {
   "0": { w: 7, bits: "0111110110001111000111100011110001111000110111110" },
@@ -61,6 +64,21 @@ function fill(image, x, y, width, height, color) {
   }
 }
 
+function resizeNearest(image, factor) {
+  const resized = makeImage(Math.round(image.width * factor), Math.round(image.height * factor));
+  for (let y = 0; y < resized.height; y++) {
+    for (let x = 0; x < resized.width; x++) {
+      const sourceX = Math.min(image.width - 1, Math.floor(x / factor));
+      const sourceY = Math.min(image.height - 1, Math.floor(y / factor));
+      const sourceOffset = (sourceY * image.width + sourceX) * 4;
+      pixel(resized, x, y, [
+        image.data[sourceOffset], image.data[sourceOffset + 1], image.data[sourceOffset + 2],
+      ]);
+    }
+  }
+  return resized;
+}
+
 function drawMask(image, mask, x, y, scale, color) {
   for (let row = 0; row < 7; row++) {
     for (let col = 0; col < mask.w; col++) {
@@ -101,35 +119,35 @@ function levelFixture(level, { scale = 1, highlight = false, narrowOne = false, 
   return image;
 }
 
-function expFixture(exp, percent) {
-  const image = makeImage(420, 24);
+function expFixture(exp, percent, { scale = 1 } = {}) {
+  const image = makeImage(420 * scale, 24 * scale);
   const white = [255, 255, 255];
   const green = [55, 185, 70];
-  let x = 8;
+  let x = 8 * scale;
   const drawDigits = (text) => {
     for (const char of String(text)) {
       if (char === ".") {
-        pixel(image, x, 14, white);
-        x += 2;
+        fill(image, x, 14 * scale, scale, scale, white);
+        x += 2 * scale;
         continue;
       }
-      x += drawMask(image, EXP_MASKS[char], x, 6, 1, white) + 1;
+      x += drawMask(image, EXP_MASKS[char], x, 6 * scale, scale, white) + scale;
     }
   };
   drawDigits(exp);
-  x += 2;
-  fill(image, x, 5, 1, 9, green);
-  x += 3;
+  x += 2 * scale;
+  fill(image, x, 5 * scale, scale, 9 * scale, green);
+  x += 3 * scale;
   drawDigits(Number(percent).toFixed(2));
-  x += 1;
-  fill(image, x, 5, 1, 9, green);
+  x += scale;
+  fill(image, x, 5 * scale, scale, 9 * scale, green);
   return image;
 }
 
 let levelCases = 0;
 let legacyFallbackCases = 0;
-for (let level = 1; level <= 100; level++) {
-  for (const scale of [1, 2, 3]) {
+for (let level = 1; level <= MAX_LEVEL; level++) {
+  for (const scale of [1, 2, 3, 4]) {
     for (const highlight of [false, true]) {
       for (const narrowOne of [false, true]) {
         const candidates = test.readLevelCandidatesFromImage(
@@ -147,7 +165,7 @@ for (let level = 1; level <= 100; level++) {
     }
   }
 }
-for (let level = 1; level <= 100; level++) {
+for (let level = 1; level <= MAX_LEVEL; level++) {
   const candidates = test.readLevelCandidatesFromImage(
     levelFixture(level, { scale: 1, brokenRow: true }),
     false
@@ -164,19 +182,80 @@ for (let level = 1; level <= 100; level++) {
 }
 assert.ok(legacyFallbackCases > 0, "斷列矩陣沒有實際走到 v7 傳統切字備援");
 
+// Windows 常見顯示縮放 125%／150%／175% 會產生非整數比例字形；以最近鄰
+// 重採樣模擬像素邊界不平均的情況，不能只在整數 1～4 倍時能辨識。
+let fractionalScaleCases = 0;
+for (let level = 1; level <= MAX_LEVEL; level++) {
+  for (const factor of [1.25, 1.5, 1.75]) {
+    const candidates = test.readLevelCandidatesFromImage(
+      resizeNearest(levelFixture(level), factor),
+      false
+    );
+    assert.ok(
+      candidates.some((candidate) => candidate.level === level),
+      `Lv.${level} 非整數縮放辨識失敗（${factor * 100}%）：${JSON.stringify(candidates)}`
+    );
+    fractionalScaleCases++;
+  }
+}
+
 let expCases = 0;
-for (let level = 1; level <= 100; level++) {
+for (let level = 1; level <= MAX_LEVEL; level++) {
   const need = global.MapleData.EXP_TABLE[level - 1];
   assert.equal(test.expToNext(level), need, `Lv.${level} EXP 表索引錯誤`);
-  for (const ratio of [0, 0.0111, 0.4321, 0.9999]) {
-    const exp = Math.floor(need * ratio);
-    const percent = Number(((exp / need) * 100).toFixed(2));
-    const parsed = test.readExpFromImage(expFixture(exp, percent));
-    assert.equal(parsed.exp, exp, `Lv.${level} EXP 數字辨識錯誤`);
-    assert.equal(parsed.percent, percent, `Lv.${level} 百分比辨識錯誤`);
-    assert.equal(test.crossCheck(level, parsed.exp, parsed.percent), true, `Lv.${level} 交叉驗證失敗`);
-    expCases++;
+  for (const scale of [1, 2, 3, 4]) {
+    for (const ratio of [0, 0.0111, 0.4321, 0.9999]) {
+      const exp = Math.floor(need * ratio);
+      const percent = Number(((exp / need) * 100).toFixed(2));
+      const parsed = test.readExpFromImage(expFixture(exp, percent, { scale }));
+      assert.equal(parsed.exp, exp, `Lv.${level} EXP 數字辨識錯誤（scale=${scale}）`);
+      assert.equal(parsed.percent, percent, `Lv.${level} 百分比辨識錯誤（scale=${scale}）`);
+      assert.equal(test.crossCheck(level, parsed.exp, parsed.percent), true, `Lv.${level} 交叉驗證失敗（scale=${scale}）`);
+      expCases++;
+    }
   }
+  for (const factor of [1.25, 1.5, 1.75]) {
+    const exp = Math.floor(need * 0.4321);
+    const percent = Number(((exp / need) * 100).toFixed(2));
+    const parsed = test.readExpFromImage(resizeNearest(expFixture(exp, percent), factor));
+    assert.equal(parsed.exp, exp, `Lv.${level} EXP 非整數縮放辨識錯誤（${factor * 100}%）`);
+    assert.equal(parsed.percent, percent, `Lv.${level} 百分比非整數縮放辨識錯誤（${factor * 100}%）`);
+    assert.equal(test.crossCheck(level, parsed.exp, parsed.percent), true, `Lv.${level} 非整數縮放交叉驗證失敗（${factor * 100}%）`);
+    fractionalScaleCases++;
+  }
+}
+
+// 資料表外的等級無法用百分比交叉驗證，不得只因為讀到 EXP 就放行。
+assert.equal(test.crossCheck(MAX_LEVEL + 1, 123, 0.01), false, "資料表外等級未被擋下");
+
+// 擷取串流拿到的是分享來源的實際像素尺寸，並不一定等於使用者口中的
+// 「螢幕解析度」。把常見 16:9、16:10、超寬、雙寬與高 DPI 尺寸全跑過，
+// 確認每個候選框都在畫面內；已知尺寸必須優先選到精準版型。
+const captureSizes = [
+  [1280, 720], [1366, 768], [1600, 900], [1920, 1080], [1920, 1200],
+  [2048, 1152], [2560, 1080], [2560, 1440], [2732, 1440], [2732, 1536],
+  [2880, 1800], [3200, 1800], [3440, 1440], [3840, 1600], [3840, 2160],
+  [4096, 2160], [5120, 1440], [5120, 2160], [7680, 4320],
+];
+let resolutionCases = 0;
+for (const [width, height] of captureSizes) {
+  const candidates = test.presetReadCandidates(width, height);
+  assert.ok(candidates.length >= 4, `${width}x${height} 候選版型不足`);
+  for (const candidate of candidates) {
+    for (const [name, rect] of [["等級", candidate.lv], ["EXP", candidate.exp]]) {
+      const clamped = test.clampRect(rect, width, height);
+      assert.deepEqual(clamped, rect, `${width}x${height} ${candidate.key} ${name}框超出畫面`);
+      assert.ok(rect.width > 0 && rect.height > 0, `${width}x${height} ${name}框尺寸無效`);
+      resolutionCases++;
+    }
+  }
+}
+for (const key of ["1366x768", "1920x1080", "2560x1440", "2732x1440", "2732x1536", "3840x2160"]) {
+  const [width, height] = key.split("x").map(Number);
+  const choices = test.presetChoices(width, height);
+  assert.equal(choices[0].key, key, `${key} 沒有優先選精準版型`);
+  assert.equal(choices[0].exact, true, `${key} 沒有標成精準版型`);
+  assert.equal(test.presetReadCandidates(width, height)[0].key, key, `${key} 第一讀取候選錯誤`);
 }
 
 const realNow = Date.now;
@@ -214,5 +293,6 @@ try {
 
 console.log(
   `自動測速測試通過：${levelCases} 組等級辨識（${legacyFallbackCases} 組由 v7 備援救回）、` +
-  `${expCases} 組 EXP／百分比、累計／升級／防呆／時間視窗。`
+  `${expCases} 組 EXP／百分比、${fractionalScaleCases} 組 125%／150%／175% 縮放、` +
+  `${resolutionCases} 組解析度裁切、累計／升級／防呆／時間視窗。`
 );
