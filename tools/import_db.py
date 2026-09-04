@@ -38,6 +38,17 @@ LEVEL_CAP = 100
 # 官方已修正檸檬說明，目前沒有需要額外覆蓋的道具警告。
 ITEM_NOTES = {}
 
+# 遊戲內實測修正：拆包／Morris 的商店資料偶爾會與正式服實際售價不同。
+# key = (道具 ID, NPC ID)。珍販售的白色藥水實價為 310，其他 NPC 仍為 320。
+SHOP_PRICE_OVERRIDES = {
+    (2000002, 1002100): 310,
+}
+
+
+def shop_price(item_id, shop):
+    npc_id = (shop.get("npc") or {}).get("id")
+    return SHOP_PRICE_OVERRIDES.get((item_id, npc_id), shop.get("price") or 0)
+
 # 同名但數值不同的任務專用怪物要標清楚，否則搜尋「鋼之肥肥」時會同時
 # 看到一般版 99 EXP 與肥肥村莊版 296 EXP，使用者無法判斷哪筆才是野外怪。
 MONSTER_NAME_OVERRIDES = {
@@ -714,7 +725,7 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids, gacha_of=Non
             "shops": [
                 {
                     "npc": (s.get("npc") or {}).get("name") or s.get("merchantName") or "",
-                    "price": s.get("price") or 0,
+                    "price": shop_price(it["id"], s),
                     "currency": s.get("currency") or "楓幣",
                     "maps": [
                         m.get("label") or m.get("name") or ""
@@ -976,7 +987,7 @@ def build_npc_details(maps, quests, items, map_ids, quest_ids, item_ids):
                 e["shop"].append({
                     "id": it["id"],
                     "name": it.get("name") or "",
-                    "price": s.get("price") or 0,
+                    "price": shop_price(it["id"], s),
                     "currency": s.get("currency") or "楓幣",
                 })
 
