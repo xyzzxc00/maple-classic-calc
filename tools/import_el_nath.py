@@ -1,4 +1,4 @@
-"""Build an isolated, reproducible third-job / El Nath preview from Morris's dump.
+"""Build an isolated, reproducible third-job / El Nath preview from a data dump.
 
 Usage: python tools/import_el_nath.py <source checkout>
 Never changes data/db, live calculator pools, or existing images. Unknown map
@@ -6,7 +6,6 @@ geometry remains unknown; NPC references are not fabricated spawn coordinates.
 """
 import json
 import os
-import subprocess
 import sys
 from pathlib import Path
 
@@ -26,9 +25,6 @@ def main():
     if len(sys.argv) != 2:
         raise SystemExit(__doc__)
     source = Path(sys.argv[1]).resolve()
-    # Per-command trust only for the explicitly supplied read-only checkout.
-    commit = subprocess.check_output(["git", "-c", f"safe.directory={source.as_posix()}",
-                                      "-C", str(source), "rev-parse", "HEAD"], text=True).strip()
     original_load = db.load
     raw = {n: original_load(str(source), n) for n in
            ("data.js", "maps-data.js", "worldmaps-data.js", "quests-data.js", "items-data.js", "skills-data.js")}
@@ -167,8 +163,7 @@ def main():
     metadata = raw["maps-data.js"].get("metadata") or {}
     manifest = {
         "title": "三轉與冰原雪域預覽", "status": "preview", "checkedAt": "2026-09-09",
-        "source": "https://github.com/morrisrrrrrrr-svg/morrisrrrrrrr-svg.github.io",
-        "sourceCommit": commit, "gameVersion": metadata.get("gameVersion"),
+        "gameVersion": metadata.get("gameVersion"),
         "provenanceSchemaVersion": 1,
         "excludedQuestItems": sorted(db.PREVIEW_EXCLUDED_QUEST_ITEMS),
         "generatedAt": metadata.get("generatedAt"), "regions": sorted(REGIONS), "sets": summary,

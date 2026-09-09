@@ -41,7 +41,7 @@ PREVIEW_EXCLUDED_QUEST_ITEMS = set()
 # 官方已修正檸檬說明，目前沒有需要額外覆蓋的道具警告。
 ITEM_NOTES = {}
 
-# 遊戲內實測修正：拆包／Morris 的商店資料偶爾會與正式服實際售價不同。
+# 遊戲內實測修正：匯入的商店資料偶爾會與正式服實際售價不同。
 # key = (道具 ID, NPC ID)。珍販售的白色藥水實價為 310，其他 NPC 仍為 320。
 SHOP_PRICE_OVERRIDES = {
     (2000002, 1002100): 310,
@@ -341,7 +341,7 @@ def build_detail(m, map_ids, quest_ids, item_ids, map_page_ids):
     meso = m.get("mesoDrop") or {}
     el = m.get("elemental") or {}
     stats = m.get("stats") or {}
-    # BOSS 的楓幣數字不能直接用：morris 新版雖補上其他版本伺服器資料表，
+    # BOSS 的楓幣數字不能直接用：新版資料雖補上其他版本伺服器資料表，
     # 仍不是本服實際掉落紀錄；玩家實測沼澤巨鱷／巨居蟹／殭屍猴王都不噴錢
     #（2026-08 巴哈回報）。同一份資料裡的跨版本估值也不一致。
     # 召喚後會消失的怪（noDropReason）同理，本來就不該列這欄。
@@ -645,8 +645,8 @@ def load_gacha_pools(src):
 
     政策（2026-08-22 與站長確認）：資料庫只收拿得到的，官方轉蛋池出現過的
     道具算拿得到——活動下檔後玩家背包裡的還在，資料庫要答得出「這是什麼」，
-    所以出現過就永久收錄。來源檔 gacha-simulator-data.js 是 morris 抓官方
-    beanfun 活動 API 產的，只含「進行中」的活動；歷史靠 tools/
+    所以出現過就永久收錄。來源檔 gacha-simulator-data.js 依官方
+    beanfun 活動 API 產生，只含「進行中」的活動；歷史靠 tools/
     gacha_archive.json（進版控）累積，活動結束後重匯道具才不會消失。
 
     只收 kind == "standardGachapon"（遊戲內道具的轉蛋機）。彗星兌換（現金
@@ -715,7 +715,7 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids, gacha_of=Non
             )
 
         def is_catalyst_craft(c):
-            # Morris 的「可使用催化劑合成」不是指所有 NPC 製作；只有配方
+            # 資料中的「可使用催化劑合成」不是指所有 NPC 製作；只有配方
             # requirements 裡明確標成「催化材料」的強化合成才會讓成品能力
             # 浮動。一般冶煉／換色／NPC 製作仍是基準值。
             return any(
@@ -771,14 +771,14 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids, gacha_of=Non
 
         equip = it.get("equipStats") or {}
 
-        # 裝備數值浮動：Morris 依遊戲基準能力與可浮動來源整理出的
+        # 裝備數值浮動：依遊戲基準能力與可浮動來源整理出的
         # equipStatRanges／equipStatRangeSources。範圍不能只看「這件裝備有沒有
         # 製作配方」：一般 NPC 製作是固定基準值，只有怪物掉落或明確帶
         # 「催化材料」的強化合成才浮動，而且來源還必須位於本站已開放範圍。
         #
         # 2026-08-07~12 教訓：先前這裡是用「反推公式」（Δ = ceil(基準/10)，
         # 武器封頂 ±5）——反推來源是參考網站當時*顯示出來*的範圍，不是原始
-        # 資料。事後比對 morris 拆包本身的 equipStatRanges 才發現公式錯了：
+        # 資料。事後比對資料快照中的 equipStatRanges 才發現公式錯了：
         # 武器物攻/魔攻真正的封頂是 ±7、且係數多 +1（Δ = min(ceil(基準/10)+1,
         # 7)），全站 90 件武器、180 個欄位當時全部算錯。直接讀原始欄位可以
         # 徹底避免這種「反推公式錯了都不知道」的風險，以後拆包只要更新，
@@ -1484,9 +1484,9 @@ def main():
     world_imgs = sum(copy_image(src, p, os.path.join(OUT_ASSETS, "worldmaps"))
                      for p in world_img_paths.values())
 
-    # 圖示人工校正：morris 拆包有少數圖檔「檔名對、內容錯」（例如玫瑰椅
-    # 拿到紅沙發圖、蘑菇友情椅子拿到玫瑰椅的王座圖），他自己網站也一樣錯，
-    # 上游修不了。確認過的正確圖（來源 maplestory.io，WZ 直出）放在
+    # 圖示人工校正：資料快照有少數圖檔「檔名對、內容錯」（例如玫瑰椅
+    # 拿到紅沙發圖、蘑菇友情椅子拿到玫瑰椅的王座圖），重新匯入也無法修正。
+    # 確認過的正確圖（來源 maplestory.io，WZ 直出）放在
     # tools/icon_overrides/<類別>/<id>.png，最後蓋回去——一定要排在所有
     # 複製之後，重跑匯入修正才不會消失
     n_over = 0
@@ -1503,7 +1503,7 @@ def main():
                         shutil.copy2(os.path.join(kdir, fn), dest)
                     n_over += 1
     if n_over:
-        print(f"圖示校正   覆蓋 {n_over} 張（tools/icon_overrides/，morris 原圖錯位的人工修正）")
+        print(f"圖示校正   覆蓋 {n_over} 張（tools/icon_overrides/，原圖錯位的人工修正）")
 
     # 報告
     def dirsize(path):

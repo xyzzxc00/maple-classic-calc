@@ -57,7 +57,7 @@ BOSS 的楓幣掉落刻意不列數字：現有數字來自其他版本伺服器
 - [預覽怪物](https://mapleclassictools.com/?preview=el-nath#db-monsters)、[預覽地圖](https://mapleclassictools.com/?preview=el-nath#db-maps)、[預覽世界地圖](https://mapleclassictools.com/?preview=el-nath#db-world)
 - [預覽道具](https://mapleclassictools.com/?preview=el-nath#db-items)、[預覽 NPC](https://mapleclassictools.com/?preview=el-nath#db-npcs)、[預覽任務](https://mapleclassictools.com/?preview=el-nath#db-quests)、[預覽技能](https://mapleclassictools.com/?preview=el-nath#db-skills)
 
-預覽取自 [Morris 彙整資料](https://github.com/morrisrrrrrrr-svg/morrisrrrrrrr-svg.github.io)（來源 commit `6c1def9`，2026-09-03；本站檢視日期 2026-09-09），包含客戶端資料與另標來源的舊版補充；其中部分預覽出沒地圖與道具掉落關聯由 Morris 以 TMS v113 資料補充，並非純客戶端拆包，也尚未經本服確認。以現行資料加上擴充的聯集另存於 `data/preview/el-nath`。只有資料庫的 `preview=el-nath` 模式選用此根目錄；分享預覽請保留參數。一般計算器的怪物選單、現行建議地點與社群回報不隨之擴充。
+預覽包含客戶端資料與另標來源的舊版補充（資料日期 2026-09-03；本站檢視日期 2026-09-09）；其中部分出沒地圖與道具掉落關聯以 TMS v113 資料補充，並非純客戶端拆包，也尚未經本服確認。以現行資料加上擴充的聯集另存於 `data/preview/el-nath`。只有資料庫的 `preview=el-nath` 模式選用此根目錄；分享預覽請保留參數。一般計算器的怪物選單、現行建議地點與社群回報不隨之擴充。
 
 **拆包存在不等於已開放。** 廢礦、炎魔與其他關聯資料不代表與三轉／冰原雪域同批推出。缺少的重生點、地圖座標、傳送點或任務原始流程一律視為未知，不是零，也不據此補造新任務步驟或獎勵。三轉技能理論試算不代表現行職業輸出；四轉仍只是舊版路線參考。預覽不引用尚在整理中的筆數。
 

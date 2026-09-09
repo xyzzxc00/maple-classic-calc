@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""把 morris 拆包 repo 的攻擊力計算／卷軸模擬資料匯進本站。
+"""把遊戲資料快照中的攻擊力計算／卷軸模擬資料匯進本站。
 
-用法：python tools/import_calc.py <morris-clone-dir>
+用法：python tools/import_calc.py <source-clone-dir>
 
 產出：
   data/db/damage_calc.json  攻擊力計算用（職業、技能、精靈祝福、隊伍/道具 BUFF）
@@ -72,14 +72,14 @@ def open_reference_sets():
 
 
 def load_window_json(path):
-    """morris 的資料檔是 `window.XXX = {...};` 單行 JS，去頭去尾當 JSON 讀"""
+    """資料檔是 `window.XXX = {...};` 單行 JS，去頭去尾當 JSON 讀"""
     with open(path, encoding="utf-8") as f:
         text = f.read()
     return json.loads(text[text.index("=") + 1:].strip().rstrip(";"))
 
 
 def copy_image(src_dir, image_path, dest_dir, copied, missing):
-    """把 morris 的 ./assets/... 圖片補進本站資產夾；回傳本站相對路徑或 None"""
+    """把來源資料夾的 ./assets/... 圖片補進本站資產夾；回傳本站相對路徑或 None"""
     if not image_path:
         return None
     name = os.path.basename(image_path)
@@ -131,7 +131,7 @@ def slim_stats(stats):
 
 def load_open_item_details(open_item_ids):
     """讀 import_db.py 產出的道具詳情，讓卷軸模擬與資料庫使用同一份
-    「目前開放來源」判斷。只靠 Morris 的全版本 statRanges，會把未開放地區
+    「目前開放來源」判斷。只靠全版本 statRanges，會把未開放地區
     的掉落範圍也帶進目前版本。"""
     detail_dir = os.path.join(DB_DIR, "items")
     out = {}

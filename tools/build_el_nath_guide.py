@@ -3,7 +3,7 @@
 Run after tools/import_el_nath.py: py -3 tools/build_el_nath_guide.py
 Use --check to validate the committed page without writing it. No network access.
 
-Source audit (2026-09-09): Morris 6c1def9 / game data 1.14.7. Instructor
+Data audit (2026-09-09): game data 1.14.7. Instructor
 identities come from quests 6900/6910/6920/6930/6940, which are FOURTH-job
 quests, not third-job procedures. Map geometry absent from the dump stays
 unknown. MonsterBook associations do not establish spawn counts or routes.
@@ -107,12 +107,8 @@ def fold(title, content, subtitle="", identifier=None):
             f'<div class="expansion-detail-body">{content}</div></details>')
 
 
-def source_note(manifest, files, extra=""):
-    # Pin every section to the same source revision as the imported preview.
-    source = manifest["source"].rstrip("/")
-    refs = '、'.join(f'<a href="{esc(source)}/blob/{esc(manifest["sourceCommit"])}/{esc(f)}">{esc(f)}</a>'
-                    for f in files)
-    return f'<p class="expansion-source">來源：Morris {refs}。{esc(extra)}</p>'
+def section_note(text):
+    return f'<p class="expansion-source">{esc(text)}</p>' if text else ''
 
 
 def relation_evidence(record):
@@ -142,7 +138,7 @@ def relation_note(record):
     for evidence in relation_evidence(record):
         source = evidence.get('source')
         label = evidence.get('sourceLabel') or {'tmsv113': 'TMS v113',
-                'monsterBook': 'Morris 怪物圖鑑關聯', 'monsterCard': '怪物圖鑑卡關聯',
+                'monsterBook': '怪物圖鑑關聯', 'monsterCard': '怪物圖鑑卡關聯',
                 'quest': '任務限定關聯'}.get(source, source)
         note = evidence.get('sourceNote')
         if note and note not in label:
@@ -221,7 +217,7 @@ def skill_section(manifest, indices, ids):
              '點「逐級數值與完整說明」可在預覽資料庫檢查每一級。這些是拆包參考數值，正式上線後仍可能調整。</p>'
              '<p class="expansion-note">教官身分由來源中的後續轉職任務交叉確認，但本份任務表沒有完整三轉測驗流程。'
              '因此這裡不提供未經確認的技能配點順序、答題題庫、材料數量或進場路線。</p>')
-    return intro + source_note(manifest, ["skills-data.js", "quests-data.js"], "技能最高等級不是角色等級；教官地圖引用不代表已提供座標。") + '\n'.join(cards), len(skills), len(jobs)
+    return intro + section_note("技能最高等級不是角色等級；教官地圖引用不代表已提供座標。") + '\n'.join(cards), len(skills), len(jobs)
 
 
 def map_section(manifest, maps, monsters, ids):
@@ -250,11 +246,11 @@ def map_section(manifest, maps, monsters, ids):
         panels.append(fold(group, table(group + '地圖索引', ["地圖", "關聯怪物 · 等級／EXP／屬性／來源", "資料完整度"], rows), f'{len(rows)} 張地圖'))
     intro = ('<p>按天空之城、天空之塔、雪域與廢礦整理。這是閱讀分組，並非已驗證的交通動線。'
              '地圖名稱為原始資料名稱；「未命名」項目保留ID，方便日後核對。</p>'
-             '<p class="expansion-note">缺少地圖資料時，以Morris收錄的出沒關聯反查。'
+             '<p class="expansion-note">缺少地圖資料時，以已收錄的出沒關聯反查。'
              '明確標記source=tmsv113的個別關聯會註明「TMS v113／跨版本補充」，不是本次客戶端原始重生資料；'
              '沒有該標記也不代表已驗證為客戶端原始資料。這些關聯無法確認實際重生點、密度或前往方式。'
              '廢礦及炎魔也不代表與三轉同批推出。</p>')
-    return intro + source_note(manifest, ["maps-data.js", "worldmaps-data.js", "data.js"], '逐筆來源按關聯的source／sourceLabel欄位保留，不把整張地圖或所有怪物一概標成TMS v113。') + '\n'.join(panels)
+    return intro + section_note('跨版本補充會依個別關聯標示，不代表整張地圖或所有怪物都來自TMS v113。') + '\n'.join(panels)
 
 
 def monster_section(manifest, monsters, map_ids):
@@ -274,7 +270,7 @@ def monster_section(manifest, monsters, map_ids):
     if bosses:
         panels += fold('Boss與關聯型態', '<p>不同ID可能是階段、手臂或其他版本型態。不能將多筆經驗值相加視為一次討伐收益；亦未確認開放批次。</p>'
                        + table('Boss與關聯型態資料', headers, bosses), f'{len(bosses)} 筆')
-    return intro + source_note(manifest, ["data.js", "maps-data.js"], "出沒關聯旁的TMS v113註記只適用於該筆關聯，不適用於整隻怪物的能力。掉落率及楓幣含外部伺服器推估，本攻略不以它們估算收益。") + panels
+    return intro + section_note("出沒關聯旁的TMS v113註記只適用於該筆關聯，不適用於整隻怪物的能力。掉落率及楓幣含外部伺服器推估，本攻略不以它們估算收益。") + panels
 
 
 def resource_list(kind, records, ids, counts=False):
@@ -321,9 +317,9 @@ def quest_section(manifest, quests, ids):
              '資料未列出不等於不需要，也不能據此推定任務完整可解。</p>'
              '<p class="expansion-note">目前來源未提供完整三轉任務、查理中士交換、阿爾法部隊聯絡網、'
              '豪克的魔法材料或亞凱斯特古書任務鏈。這些常見舊版攻略不能直接當作本次更新的任務清單。</p>')
-    empty = ('<div class="expansion-note"><h3>任務資料待補</h3><p>Morris本次來源沒有正式可用的三轉／雪域任務明細。'
+    empty = ('<div class="expansion-note"><h3>任務資料待補</h3><p>目前缺少可確認的三轉／雪域任務明細。'
              '沒有可確認的等級、材料、獎勵或流程可列出；後續取得完整資料後再補入。</p></div>')
-    return intro + source_note(manifest, ['quests-data.js']) + ('\n'.join(panels) or empty)
+    return intro + ('\n'.join(panels) or empty)
 
 
 def npc_section(manifest, npcs, ids):
@@ -343,7 +339,7 @@ def npc_section(manifest, npcs, ids):
                               + table(n['name'] + '製作產物', ['產物／材料詳情', '製作費'], crafts), f'{len(crafts)} 項產物'))
     intro = ('<p>NPC地點來自任務、商店或製作引用。未命名地圖和缺少座標會保留原樣；'
              '商店售價及供貨內容仍待正式服核對。沒有列出商店，表示這份資料沒有販售紀錄。</p>')
-    return (intro + source_note(manifest, ['items-data.js', 'quests-data.js', 'maps-data.js'])
+    return (intro
             + fold('NPC所在地與功能', table('新區域NPC索引', ['NPC', '地點', '補給／製作', '相關任務'], roster), f'{len(roster)} 位NPC')
             + '\n'.join(shops)), len([n for n in npcs if n.get('shop')])
 
@@ -390,7 +386,7 @@ def equipment_section(manifest, indices, ids, monster_ids, npcs):
     intro = ('<p>以下是需求Lv.60～100、且在預覽地區有掉落、販售或製作關聯的裝備。'
              '每個分類依需求等級、道具ID排序取前三件，作為查詢入口，並非強度排行或推薦購物清單。'
              '能力列基準值，完整穿戴條件、天然浮動與材料請看詳情。</p>')
-    return intro + source_note(manifest, ['items-data.js', 'data.js'], '掉落關聯按每筆source／sourceLabel及sourceEvidence註記；TMS v113代表跨版本補充，不是本服實測。掉落率的外部來源不會被當成掉落關聯的來源。不列未驗證的機率或價格預測。') + '\n'.join(panels), selected_count, tms_drop_count
+    return intro + section_note('掉落關聯逐筆標示；TMS v113代表跨版本補充，不是本服實測。掉落率的外部來源不會被當成掉落關聯的來源。不列未驗證的機率或價格預測。') + '\n'.join(panels), selected_count, tms_drop_count
 
 
 def build():
@@ -401,7 +397,7 @@ def build():
         raise ValueError('This generator requires a preview manifest.')
     if manifest.get('provenanceSchemaVersion') != 1:
         raise ValueError('Wait for the completed provenance schema v1 import before rebuilding the guide.')
-    for key in ('source', 'sourceCommit', 'gameVersion', 'generatedAt', 'checkedAt', 'regions', 'sets'):
+    for key in ('gameVersion', 'generatedAt', 'checkedAt', 'regions', 'sets'):
         if not manifest.get(key):
             raise ValueError(f'Manifest is missing {key}')
     indices = {kind: load(f'{plural}.json') for kind, plural in KINDS.items()}
@@ -451,7 +447,7 @@ def build():
         'author': {'@type': 'Person', 'name': 'xyzzxc00'},
         'publisher': {'@type': 'Person', 'name': 'xyzzxc00'},
         'datePublished': '2026-09-09', 'dateModified': date,
-        'citation': [manifest['source'] + '/tree/' + manifest['sourceCommit'], OFFICIAL_STATUS],
+        'citation': [OFFICIAL_STATUS, OFFICIAL_MAINTENANCE],
     }
     missing = sum(bool(m.get('dataMissing')) for m in maps)
     html = f'''<!DOCTYPE html>
@@ -505,21 +501,21 @@ def build():
 <p class="expansion-eyebrow">版本資料預覽 · 正式開放待公告</p>
 <h1>三轉與冰原雪域<br><span>先認識下一段冒險</span></h1>
 <p class="expansion-lead">從三轉技能到天空之城、雪域與廢礦，按資料查職業、怪物與補給。展開感興趣的章節，所有詳情連結都會保留預覽模式。</p>
-<p class="expansion-meta">來源版本 {esc(manifest['gameVersion'])} · 資料產生 <time datetime="{esc(generated)}">{esc(generated.replace('T', ' '))}</time><br>來源核對 <time datetime="{esc(date)}">{esc(date)}</time> · Morris commit <a href="{esc(manifest['source'])}/commit/{esc(manifest['sourceCommit'])}">{esc(manifest['sourceCommit'][:7])}</a></p>
+<p class="expansion-meta">資料版本 {esc(manifest['gameVersion'])} · 資料產生 <time datetime="{esc(generated)}">{esc(generated.replace('T', ' '))}</time><br>資料核對 <time datetime="{esc(date)}">{esc(date)}</time></p>
 <dl class="expansion-stats">{stat_html}</dl>
 </header>
 <aside class="expansion-status" aria-labelledby="preview-status-title">
 <h2 id="preview-status-title">這份資料不代表已開放</h2>
 <p>截至 {OFFICIAL_DATE} 的官方公告查核，<a href="{OFFICIAL_STATUS}">9/3 V001開機公告</a>仍列角色等級上限100、轉職開放至二轉。<a href="{OFFICIAL_MAINTENANCE}">9/4公告</a>將9/10維護調整為00:00～12:00，但沒有確認三轉或雪域的開放日期。</p>
 <p>{esc(manifest.get('notice') or '拆包存在不代表已開放。')}</p>
-<p>{section_link('db-skills', '開啟三轉技能資料庫')} · {section_link('db-maps', '開啟預覽地圖資料庫')} · <a href="#sources">查看來源與缺漏</a></p>
+<p>{section_link('db-skills', '開啟三轉技能資料庫')} · {section_link('db-maps', '開啟預覽地圖資料庫')} · <a href="#sources">查看資料限制</a></p>
 </aside>
 <nav class="expansion-toc" aria-label="攻略章節">{nav}</nav>
 {section_html}
 <section class="expansion-section" id="sources" aria-labelledby="sources-title">
-<h2 id="sources-title">來源與尚待確認的部分</h2>
+<h2 id="sources-title">資料範圍與待確認項目</h2>
 <ul class="expansion-source-list">
-<li>資料庫快照：<a href="../../data/preview/el-nath/manifest.json">預覽資料 manifest</a>；本頁從同一份資料產生，版本為 {esc(manifest['gameVersion'])}。</li>
+<li>資料版本：<a href="../../data/preview/el-nath/manifest.json">預覽資料摘要</a>；本頁從同一份資料產生，版本為 {esc(manifest['gameVersion'])}。</li>
 <li>{len(maps)} 張區域地圖中，{missing} 張缺少單張地圖資料。NPC引用與怪物出沒關聯不能還原實際座標、傳點和重生密度。</li>
 <li>任務表目前能對應 {len(quests)} 個相關任務。高等級或其他版本的關聯資料不等於本次擴充內容；三轉考驗流程仍待官方或正式服驗證。</li>
 <li>掉落率、楓幣推估與部分商店／製作資料混有其他版本資料；本頁保留可追溯的取得來源，不推算掉寶收益。</li>
@@ -527,7 +523,7 @@ def build():
 <li>本頁明確標記TMS v113的地圖－怪物關聯有 {len(tms_map_relations)} 筆（地圖與怪物兩節會重複顯示，同一配對只計一次）；裝備取得節選中有 {tms_equip_relations} 筆TMS v113掉落關聯。數量只計本頁所列資料，不代表整份資料庫，也不包含單純掉落率來源的標記。</li>
 <li>正式開放範圍、等級上限變更、Boss批次、任務條件和技能調整，以<a href="https://maplestoryclassic.beanfun.com/Main">台版官方最新公告</a>為準。</li>
 </ul>
-{source_note(manifest, ['patch-notes.html'], '客戶端資料版本不是官方的開放範圍承諾。')}
+{section_note('客戶端資料版本不是官方的開放範圍承諾。')}
 <p>{section_link('db-monsters', '繼續查怪物')} · {section_link('db-items', '繼續查道具')} · {section_link('db-quests', '繼續查任務')} · <a href="#guide-content">回到頁首</a></p>
 </section>
 </main>

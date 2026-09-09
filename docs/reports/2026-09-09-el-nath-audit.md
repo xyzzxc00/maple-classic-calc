@@ -29,7 +29,7 @@
 - `verified-live`（本機瀏覽器）：375px 技能長表格限制在容器內橫向捲動，文件不橫向溢出；展開／收合、主題按鈕正常。
 - `code-inference`（色值計算）：預覽徽章以主題 token 搭配背景，亮色對比 5.55:1、暗色 5.52:1，符合一般文字 AA。
 - 移除世界區域按鈕原本禁止換行與固定限寬的衝突；城鎮卡片的最小欄寬不再超過狹窄容器。
-- 缺圖沿用留白／隱藏機制；既有人工更正圖片不以 Morris 快照覆蓋。
+- 缺圖沿用留白／隱藏機制；既有人工更正圖片不以資料快照覆蓋。
 
 ## UX
 
@@ -63,13 +63,12 @@
 
 ## 資料來源與重建
 
-- Morris repository：`https://github.com/morrisrrrrrrr-svg/morrisrrrrrrr-svg.github.io`
-- 固定快照：`6c1def991afdc39cf8ef606e478bfd71dda6d648`；資料版本 `1.14.7`、產生時間 `2026-09-03T16:09:17+08:00`。
+- 資料版本 `1.14.7`、產生時間 `2026-09-03T16:09:17+08:00`。
 - 最終新增範圍為 74 怪物、83 地圖、457 道具、26 NPC；攻略涵蓋區域內 75 怪物（含既有蝴蝶精）、29 NPC、9 商店。三轉 89 技能原先已收錄，本次補上整合入口與語意正確的逐級展示。
 - `manifest.excludedQuestItems` 記錄任務專用資料的排除。預覽不會把已排除的四轉專用道具從舊快照回填；因此預覽不是逐項無條件包含所有歷史資料。現行 `data/db/` 與既有人工圖片仍維持本次作業前內容。
 - 本次產生但程式、攻略與資料完全未引用的 214 張圖片移出網站，保留在工作區外層 `.build-tools-20260909/unused-assets-backup/`；未刪除任何原有圖片。
 - 最後執行預覽完整性、21 項非同步／來源顯示測試、技能文字、OCR、裝備浮動、轉蛋、現行 DB、SEO、CSS、攻略 `--check` 與完整壓縮建置皆通過。二次匯入的獨立快照比較未執行，不宣稱已測。
-- 以 `python tools/import_el_nath.py <Morris checkout>` 建立預覽；不直接以一般匯入覆蓋 `data/db/`。
+- 以 `python tools/import_el_nath.py <source checkout>` 建立預覽；不直接以一般匯入覆蓋 `data/db/`。
 - 執行 `python tools/build_el_nath_guide.py` 同步靜態攻略；`--check` 檢查攻略是否落後於資料。
 - 執行 `node tools/test_el_nath.js` 與 `node tools/test_skill_text.js`。前者的 `--compare <preview snapshot directory>` 可比較重建一致性。
 - 正式開放後仍須先核對官方範圍與正式服差異，再決定哪些資料升為現行；不可把整個預覽資料夾直接覆蓋現行，尤其廢礦／炎魔不代表同批開放。

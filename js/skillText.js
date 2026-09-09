@@ -11,7 +11,7 @@
   // Returns plain text / a fresh label map. HTML escaping belongs to the caller.
   // No values, descriptions, units or percentages are recalculated here.
   //
-  // Evidence: Morris 6c1def9, skills-data.js (2026-09-03), all 89 imported
+  // Evidence: the 2026-09-03 snapshot, skills-data.js (2026-09-03), all 89 imported
   // adventurer third-job skills / 2,330 levels. valueLabels contains heuristic
   // labels, NOT authoritative field semantics: xAddHun/xSubHun are reused for
   // EXP and extra damage; y can be either duration or a skill interval.
@@ -90,7 +90,7 @@
       if (Object.prototype.hasOwnProperty.call(corrections, key)) return [key, corrections[key]];
       // These are algebraic source keys, not universal combo semantics. An
       // unreviewed ID/name must display the raw key rather than the misleading
-      // global Morris fallback. Never derive semantics from its numeric value.
+      // global upstream fallback. Never derive semantics from its numeric value.
       if (key === "xAddHun" || key === "xSubHun") return [key, key];
       // Keep other per-skill source labels (including neutral "效果值").
       // Unknown fields without labels keep their raw keys; do not invent units.

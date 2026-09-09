@@ -6,7 +6,7 @@
  * node tools/test_el_nath.js --compare <preview snapshot from the previous import>
  *
  * The optional comparison checks every JSON file, including the manifest, after
- * a second import. CI needs no Morris checkout. Live data/images are protected
+ * a second import. CI needs no upstream checkout. Live data/images are protected
  * against the pre-expansion commit; deliberate future live updates must review
  * and advance LIVE_BASELINE rather than silently accepting import side effects.
  */
@@ -19,8 +19,6 @@ const ROOT = path.resolve(__dirname, "..");
 const PREVIEW = path.join(ROOT, "data/preview/el-nath");
 const LIVE_BASELINE = "943f43972446496565e1090f725aaef2f678cdb5";
 const SOURCE = {
-  source: "https://github.com/morrisrrrrrrr-svg/morrisrrrrrrr-svg.github.io",
-  sourceCommit: "6c1def991afdc39cf8ef606e478bfd71dda6d648",
   gameVersion: "1.14.7",
   generatedAt: "2026-09-03T16:09:17+08:00",
 };
@@ -62,7 +60,7 @@ const id = (value) => String(value);
 const sameIds = (a, b) => JSON.stringify(a.map(id).sort()) === JSON.stringify(b.map(id).sort());
 const isCount = (value) => Number.isSafeInteger(value) && value >= 0;
 
-// Independent fixtures audited directly from Morris 6c1def9, not generated
+// Independent fixtures audited directly from the 2026-09-03 snapshot, not generated
 // from the preview. These prevent a missing label from making itself invisible
 // to a source-filtered test. Pair identity matters as much as aggregate counts.
 const TMS_MAP_MOBS = [6130104, 6230101, 6300003, 6400003, 6400004,
@@ -164,6 +162,7 @@ function validatePreview(bundle, live) {
   }
 
   check(manifest.status === "preview", "manifest.status 必須是 preview");
+  check(!Object.hasOwn(manifest, "source") && !Object.hasOwn(manifest, "sourceCommit"), "公開 manifest 不應包含外部作者網址或版本庫提交資訊");
   check(Array.isArray(manifest.excludedQuestItems) && sameIds(manifest.excludedQuestItems, CLOSED_QUEST_DROPS.map(([, iid]) => iid)), "manifest.excludedQuestItems: 任務限定排除清單不符來源審核");
   for (const [key, value] of Object.entries(SOURCE)) {
     check(manifest[key] === value, `manifest.${key}: 來源版本漂移，需核對拆包後更新測試基準`);

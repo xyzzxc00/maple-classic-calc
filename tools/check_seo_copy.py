@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """SEO 文案把關：擋掉「畫面看起來正常、其實對搜尋引擎有害」的錯。
 
-這支防的是三類人工維護遲早會破的東西：
+這支防的是人工維護遲早會破的幾類問題：
 
 1. **FAQ 的 JSON-LD 與可見 HTML 逐字一致** — Google 對 FAQPage 的硬性要求，
    對不上整組 rich result 會消失，而且不會通知你。兩邊是分開手寫的，改一
@@ -17,6 +17,9 @@
 
 4. **sitemap 列的網址不能帶 noindex** — 兩邊在對 Google 講相反的話。
    2026-08-10 收過一次 Search Console 提醒，來源是隱私政策頁。
+
+5. **公開文案使用本站識別** — 檢查頁面、JS 與 JSON，避免匯入或重建時
+   把已移除的外站名稱／網址帶回網站；保留遊戲版本與資料限制。
 
 用法：python tools/check_seo_copy.py
 有問題時 exit 1。
@@ -181,6 +184,20 @@ def check_copy_rules(problems):
     print(f"文案   檢查 {len(targets)} 個檔案的 Artale 與更新承諾")
 
 
+def check_public_copy_identity(problems):
+    """只檢查會上線的內容；不限制巴哈、Threads 與官方公告的引用。"""
+    targets = {"index.html", "privacy.html", "404.html", "llms.txt", "manifest.webmanifest"}
+    for folder in ("guides", "privacy", "js", "data", "db"):
+        for root, _, files in os.walk(os.path.join(ROOT, folder)):
+            for name in files:
+                if name.endswith((".html", ".js", ".json")):
+                    targets.add(os.path.relpath(os.path.join(root, name), ROOT))
+    for rel in sorted(targets):
+        if re.search(r"morris|莫里斯", read(rel), re.I):
+            problems.append(f"{rel} 帶回已移除的外站名稱或網址，請整理為本站文案")
+    print(f"識別   檢查 {len(targets)} 個公開頁面、程式與資料檔")
+
+
 def check_sitemap_indexable(problems):
     """sitemap 列出來的網址，頁面不能帶 noindex。
 
@@ -217,6 +234,7 @@ def main():
     check_guides_faq(problems)
     check_counts(problems)
     check_copy_rules(problems)
+    check_public_copy_identity(problems)
     check_sitemap_indexable(problems)
     print()
     if problems:

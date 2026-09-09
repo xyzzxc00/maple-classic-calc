@@ -1,7 +1,7 @@
 "use strict";
 
 // Run: node tools/test_skill_text.js
-// Source audit (optional in CI): node tools/test_skill_text.js --source ../.morris-source-20260909/skills-data.js
+// Source audit (optional in CI): node tools/test_skill_text.js --source ../source-data/skills-data.js
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -60,7 +60,7 @@ const current = readDetails("data/db/skills");
 const preview = readDetails("data/preview/el-nath/skills");
 const third = current.filter((d) => d.adv === "三轉");
 const byId = new Map(current.map((d) => [Number(d.id), d]));
-assert.equal(third.length, 89, "Review third-job scope against Morris before changing this baseline");
+assert.equal(third.length, 89, "Review third-job scope against upstream before changing this baseline");
 assert.equal(new Set(third.map((d) => d.job)).size, 12);
 for (const [name, corpus] of [["current", current], ["preview", preview]]) {
   let levelCount = 0;
@@ -151,14 +151,14 @@ assert.equal(typeof context.window.MapleSkillText.labels, "function");
 assert.equal(context.window.MapleSkillText.effect(holy), skillText.effect(holy));
 assert.equal(context.window.MapleSkillText.labels(holy).xAddHun, skillText.labels(holy).xAddHun);
 
-// Optional source comparison never executes Morris JS. The file is one JSON
+// Optional source comparison never executes upstream JS. The file is one JSON
 // assignment, parsed as data; tests remain runnable without the external clone.
 const args = process.argv.slice(2);
 assert.ok(args.length === 0 || (args.length === 2 && args[0] === "--source"), "Usage: node tools/test_skill_text.js [--source path/to/skills-data.js]");
 if (args.length) {
   const raw = fs.readFileSync(path.resolve(args[1]), "utf8");
   const prefix = /^\s*window\.MS_SKILL_DB\s*=\s*/;
-  assert.ok(prefix.test(raw), "Unexpected Morris data wrapper");
+  assert.ok(prefix.test(raw), "Unexpected upstream data wrapper");
   const source = JSON.parse(raw.replace(prefix, "").replace(/;\s*$/, ""));
   const sourceThird = source.skills.filter((s) => s.advancement === "三轉");
   const sourceById = new Map(source.skills.map((s) => [s.id, s]));
@@ -167,7 +167,7 @@ if (args.length) {
   for (const s of sourceThird) {
     const d = { id: s.id, name: s.name, labels: s.valueLabels || {}, levels: s.levels.map((l) => ({ level: l.level, desc: (l.description || "").trim(), values: l.values || {} })) };
     if (!d.levels.length) noLevels.push(`${s.id} ${s.name}`);
-    count += checkDetail(d, `Morris/${s.id}`, true);
+    count += checkDetail(d, `upstream/${s.id}`, true);
   }
   for (const corpus of [current, preview]) {
     for (const d of corpus.filter((skill) => skill.adv === "三轉")) {
@@ -178,10 +178,10 @@ if (args.length) {
       assert.deepEqual(d.levels, s.levels.map((l) => ({ level: l.level, desc: (l.description || "").trim(), values: l.values || {} })), `${d.id}: imported values/descriptions drifted`);
     }
   }
-  console.log(`Morris: ${sourceThird.length} third-job skills / ${count} levels verified; unimported skills receive no name-only corrections`);
+  console.log(`upstream: ${sourceThird.length} third-job skills / ${count} levels verified; unimported skills receive no name-only corrections`);
   assert.deepEqual(sourceThird.filter((s) => !s.levels.length).map((s) => s.id).sort(), [21110007, 21110008], "Review new missing source-level data");
   console.log(`Source unknowns (unimported hidden skills without levels): ${noLevels.join(", ") || "none"}`);
 } else {
-  console.log("Morris source comparison not run: pass --source path/to/skills-data.js to include it.");
+  console.log("upstream source comparison not run: pass --source path/to/skills-data.js to include it.");
 }
 console.log("Skill text tests passed: exact source effects, preserved values, contextual labels, pure Node/browser API.");
