@@ -20,6 +20,7 @@ import_db.py — 把拆包出來的遊戲資料匯入成本站資料庫要用的
 """
 
 import json
+import copy
 import os
 import re
 import shutil
@@ -34,6 +35,8 @@ import sys
 # 也是世界地圖的一環。之後開新地區，改這裡再重跑就好。
 OPEN_REGIONS = {"楓之島", "維多利亞島", "奇幻村", "鯨魚號"}
 LEVEL_CAP = 100
+PREVIEW_MODE = False
+PREVIEW_EXCLUDED_QUEST_ITEMS = set()
 
 # 官方已修正檸檬說明，目前沒有需要額外覆蓋的道具警告。
 ITEM_NOTES = {}
@@ -170,7 +173,7 @@ def pick_monsters(monsters, map_ids):
     等級不能當主要判準——桃花仙境的穆魯是 Lv.1，地區沒開，等級再低也不該出現"""
     out = []
     for m in monsters:
-        if m.get("unnamed") or (m.get("level") or 0) > LEVEL_CAP:
+        if m.get("unnamed") or (not PREVIEW_MODE and (m.get("level") or 0) > LEVEL_CAP):
             continue
         if any(mp.get("id") in map_ids for mp in (m.get("maps") or [])):
             out.append(m)
@@ -178,6 +181,87 @@ def pick_monsters(monsters, map_ids):
 
 
 # ------------------------------------------------------------------ 欄位精簡
+
+
+PROVENANCE_FIELDS = (
+    "source", "sourceLabel", "sourceNote", "sourceUrl", "questIds", "questNames",
+    "spawnNote", "coordinateMissing", "referenceOnly", "sourceMonsterId",
+    "regionSource", "mapDataMissingReason", "referenceFile", "referenceKind", "referenceId",
+    "provenance", "questRefs", "dropConditions",
+)
+
+
+def preview_provenance(row):
+    """Keep upstream evidence on preview relationships; never export drop-rate estimates.
+
+    sourceNote is a display alias for the original sourceLabel/spawnNote when the
+    upstream row has no sourceNote. The original fields remain available verbatim.
+    Multiple distinct evidence rows remain in sourceEvidence, rather than overwriting
+    one another when several spawns/references are collapsed into one relation.
+    """
+    if not PREVIEW_MODE:
+        return {}
+    out = {key: copy.deepcopy(row[key]) for key in PROVENANCE_FIELDS if key in row}
+    if "dropRates" in row:
+        # questId=0 is explicit unrestricted evidence; a missing questId remains
+        # unknown. Preserve that distinction without importing probability values.
+        out["dropConditions"] = [
+            {key: copy.deepcopy(rate[key]) for key in
+             ("source", "sourceLabel", "sourceNote", "sourceUrl", "provenance", "rawMonsterId", "questId")
+             if key in rate}
+            for rate in (row.get("dropRates") or [])
+        ]
+    if row.get("sourceEvidence"):
+        out["sourceEvidence"] = copy.deepcopy(row["sourceEvidence"])
+    if "sourceNote" not in out:
+        notes = list(dict.fromkeys(str(row[key]) for key in
+                                  ("sourceLabel", "spawnNote", "mapDataMissingReason")
+                                  if row.get(key)))
+        if notes or "source" in out:
+            out["sourceNote"] = "；".join(notes)
+    return out
+
+
+def merge_preview_provenance(target, row):
+    if not PREVIEW_MODE:
+        return
+    incoming = preview_provenance(row)
+    if not incoming:
+        return
+    previous = preview_provenance(target)
+    records = []
+    for entry in (previous, incoming):
+        for evidence in entry.get("sourceEvidence") or ([entry] if entry else []):
+            if evidence not in records:
+                records.append(copy.deepcopy(evidence))
+    for key in PROVENANCE_FIELDS:
+        values = [r[key] for r in records if key in r]
+        if values and all(v == values[0] for v in values):
+            target[key] = copy.deepcopy(values[0])
+        elif values:
+            target.pop(key, None)
+    if len(records) > 1:
+        target["sourceEvidence"] = records
+    elif records:
+        target.pop("sourceEvidence", None)
+
+
+def preview_drop_allowed(drop, quest_ids):
+    """Only explicit quest-only evidence is gated; missing conditions stay unknown."""
+    if not PREVIEW_MODE:
+        return True
+    required = drop.get("questIds") or []
+    if drop.get("source") == "quest" and required:
+        return any(str(qid) in quest_ids for qid in required)
+    rates = drop.get("dropRates") or []
+    # Supplemental rows can carry the only condition in dropRates[].questId
+    # (e.g. TMS v113 item 4031459). Never treat empty top-level questIds as proof
+    # of an unrestricted drop. Unknown or explicitly unrestricted alternatives
+    # keep the relationship; the exported evidence explains the distinction.
+    if rates and all(str(rate.get("questId", "")).isdigit()
+                     and int(rate["questId"]) > 0 for rate in rates):
+        return any(str(rate["questId"]) in quest_ids for rate in rates)
+    return True
 
 
 def trim_equip(stats):
@@ -204,8 +288,9 @@ def trim_map(mp, page_ids):
         "street": mp.get("street") or "",
         "name": mp.get("name") or "",
         "region": mp.get("regionName") or "",
-        "spawns": mp.get("spawnCount") or 0,
+        "spawns": mp.get("spawnCount") if mp.get("spawnCount") else None,
         "link": mp["id"] in page_ids,
+        **preview_provenance(mp),
     }
 
 
@@ -218,6 +303,7 @@ def trim_drop(d, item_ids):
         # 未命名道具不會進道具資料集（沒名字沒圖，列出來只是雜訊），但牠們
         # 確實在掉落表裡，所以照列、只是不做成連結，掉落筆數才不會失真
         "link": d["id"] in item_ids,
+        **preview_provenance(d),
     }
     if d.get("sellPrice"):
         out["sell"] = d["sellPrice"]
@@ -239,7 +325,7 @@ def trim_quest(q):
 def build_detail(m, map_ids, quest_ids, item_ids, map_page_ids):
     """單隻怪的詳情。出沒地圖要再過濾一次——有些怪同時住在開放與未開放地區
     （例如蝴蝶精在維多利亞島也在冰原雪域），只能列出進得去的那些"""
-    all_drops = m.get("drops") or []
+    all_drops = [d for d in (m.get("drops") or []) if preview_drop_allowed(d, quest_ids)]
     drops = [trim_drop(d, item_ids) for d in all_drops if d["id"] in item_ids]
     hidden_drops = len(all_drops) - len(drops)
     maps = [
@@ -278,7 +364,7 @@ def build_detail(m, map_ids, quest_ids, item_ids, map_page_ids):
         "boss": boss,
         "elemental": {"summary": el.get("summary") or "", "values": el.get("values") or {}},
         "meso": meso_out,
-        "maps": sorted(maps, key=lambda x: -x["spawns"]),
+        "maps": sorted(maps, key=lambda x: -(x["spawns"] or 0)),
         # 拆包資料只有「會掉什麼」，沒有掉落率——畫面上不能顯示機率。
         # 未命名道具（遊戲資料裡沒名字沒圖的，顯示成「未命名道具 2040824」）
         # 不列出來——讀者看了也不知道那是什麼，只是雜訊；但筆數要另外標，
@@ -589,9 +675,10 @@ def load_gacha_pools(src):
     else:
         print("  ⚠ 來源沒有 gacha-simulator-data.js，轉蛋收錄沿用歷史檔")
     pools = sorted(by_id.values(), key=lambda p: (p.get("period") or "", p["id"]))
-    with open(GACHA_ARCHIVE, "w", encoding="utf-8") as f:
-        json.dump({"pools": pools}, f, ensure_ascii=False, indent=1)
-        f.write("\n")
+    if not PREVIEW_MODE:
+        with open(GACHA_ARCHIVE, "w", encoding="utf-8") as f:
+            json.dump({"pools": pools}, f, ensure_ascii=False, indent=1)
+            f.write("\n")
     return pools
 
 
@@ -606,7 +693,8 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids, gacha_of=Non
             continue
         src = it.get("sources") or {}
         drops = [d for d in (src.get("monsterDrops") or [])
-                 if str(d.get("monsterId")) in kept_monster_ids]
+                 if str(d.get("monsterId")) in kept_monster_ids
+                 and preview_drop_allowed(d, quest_ids)]
         shops = [
             s
             for s in (src.get("shops") or [])
@@ -673,6 +761,12 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids, gacha_of=Non
                 used_in[prod["id"]] = {"id": prod["id"], "name": prod.get("name") or ""}
 
         if not (drops or shops or q_rewards or q_reqs or crafts or gacha):
+            if PREVIEW_MODE and any(
+                str(d.get("monsterId")) in kept_monster_ids
+                and not preview_drop_allowed(d, quest_ids)
+                for d in (src.get("monsterDrops") or [])
+            ):
+                PREVIEW_EXCLUDED_QUEST_ITEMS.add(str(it["id"]))
             continue
 
         equip = it.get("equipStats") or {}
@@ -719,7 +813,7 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids, gacha_of=Non
             "drops": [
                 {"id": str(d["monsterId"]),
                  "name": monster_name(d["monsterId"], d.get("monsterName")),
-                 "level": d.get("level")}
+                 "level": d.get("level"), **preview_provenance(d)}
                 for d in drops
             ],
             "shops": [
@@ -841,11 +935,13 @@ def build_map_details(maps, map_ids, monster_ids):
                     "link": mid in monster_ids,
                 }
             mobs[mid]["count"] += 1
+            merge_preview_provenance(mobs[mid], s)
             if has_mini and s.get("x") is not None and s.get("y") is not None:
                 spawns.append({
                     "id": mid,
                     "x": pct(s["x"], mm["centerX"], mm["width"]),
                     "y": pct(s["y"], mm["centerY"], mm["height"]),
+                    **preview_provenance(s),
                 })
 
         npcs = [
@@ -853,6 +949,7 @@ def build_map_details(maps, map_ids, monster_ids):
                 "name": n.get("name") or "",
                 "x": pct(n["x"], mm["centerX"], mm["width"]) if has_mini else None,
                 "y": pct(n["y"], mm["centerY"], mm["height"]) if has_mini else None,
+                **preview_provenance(n),
             }
             for n in (m.get("npcSpawns") or [])
             # 沒有名字的 NPC（隱藏觸發器之類，顯示成「NPC 9050009」）是雜訊
@@ -897,7 +994,7 @@ def build_map_details(maps, map_ids, monster_ids):
         # 沒有怪物、沒有 NPC、也沒有跨地圖傳送點的地圖，畫面上什麼都給不出來。
         # 這些多半是遊戲內部的隱藏圖（「未命名地圖 910320011」）或測試用的圖
         # （真的有一張就叫「測試」），列出來只是把列表灌水
-        if not (mobs or npcs or portals):
+        if not (mobs or npcs or portals) and not (PREVIEW_MODE and m.get("mapDataMissing")):
             continue
 
         # 零星的徽章代碼（"2"、空值）併進 Other，前端顯示成「其他」
@@ -917,6 +1014,11 @@ def build_map_details(maps, map_ids, monster_ids):
             "npcs": npcs,
             "portals": portals,
         })
+        if m.get("mapDataMissing"):
+            out[-1]["dataMissing"] = True
+            out[-1].update(preview_provenance(m))
+            for mob in out[-1]["mobs"]:
+                mob["count"] = None  # 怪物圖鑑關聯不是實際重生點，不能偽造為 1。
     out.sort(key=lambda d: (d["region"], d["street"], d["name"]))
     return out
 
@@ -932,10 +1034,11 @@ def build_map_index(details):
             # 「依城鎮分組」的瀏覽視圖——street 欄位太粗（維多利亞島 138 張的
             # street 都叫「維多利亞」），只有徽章分得出弓箭手村跟勇士之村
             "mark": d["mark"],
-            "mobs": len(d["mobs"]),
-            "spawns": sum(x["count"] for x in d["mobs"]),
-            "npcs": len(d["npcs"]),
-            "portals": sum(1 for p in d["portals"] if not p["same"]),
+            "mobs": None if d.get("dataMissing") and not d["mobs"] else len(d["mobs"]),
+            "spawns": None if d.get("dataMissing") else sum(x["count"] for x in d["mobs"]),
+            "npcs": None if d.get("dataMissing") else len(d["npcs"]),
+            "portals": None if d.get("dataMissing") else sum(1 for p in d["portals"] if not p["same"]),
+            **({"dataMissing": True} if d.get("dataMissing") else {}),
         }
         for d in details
     ]
@@ -961,6 +1064,7 @@ def build_npc_details(maps, quests, items, map_ids, quest_ids, item_ids):
                     "id": m["id"],
                     "label": label or m.get("name") or "",
                     "region": m.get("regionName") or "",
+                    **preview_provenance(n),
                 })
 
     for q in quests:
@@ -1031,6 +1135,8 @@ def build_world_maps(worldmaps_db, map_page_ids):
     就能一路走。碰到子地圖的連線也一起略過，跨區的連線由 proxy 節點代替
     （畫成「前往◯◯」的按鈕，點了切到那塊區域）"""
     order = {"楓之島": 0, "維多利亞島": 1, "奇幻村": 2, "鯨魚號": 3}
+    if PREVIEW_MODE:
+        order.update({"冰原雪域": 4, "廢礦": 5})
     out = []
     for r in worldmaps_db["worldMaps"]["regions"]:
         if r["name"] not in order:
@@ -1068,6 +1174,7 @@ def build_world_maps(worldmaps_db, map_page_ids):
                     "y": p["y"],
                 }
                 for p in (r.get("proxyNodes") or [])
+                if p.get("targetRegionName") in order
             ],
         })
     out.sort(key=lambda r: order[r["name"]])
@@ -1142,11 +1249,15 @@ def copy_image(src_root, rel_path, dest_dir, dest_name=None):
     if not os.path.exists(src):
         return False
     os.makedirs(dest_dir, exist_ok=True)
-    shutil.copy2(src, os.path.join(dest_dir, dest_name or os.path.basename(src)))
+    dest = os.path.join(dest_dir, dest_name or os.path.basename(src))
+    # 預覽和現行資料共用圖檔；保留已人工核對或刻意留白的既有圖片。
+    if not (PREVIEW_MODE and os.path.exists(dest)):
+        shutil.copy2(src, dest)
     return True
 
 
 def main():
+    PREVIEW_EXCLUDED_QUEST_ITEMS.clear()
     src = (sys.argv[1] if len(sys.argv) > 1 else os.environ.get("MS_DB_SOURCE", "")).strip()
     if not src or not os.path.isdir(src):
         fail("請指定拆包資料夾：python tools/import_db.py <資料夾>")
@@ -1191,7 +1302,10 @@ def main():
     details = [build_detail(m, map_ids, quest_ids, item_ids, map_page_ids) for m in kept]
 
     # 產出
-    shutil.rmtree(OUT_DATA, ignore_errors=True)
+    expected = os.path.join(ROOT, "data", "preview", "el-nath") if PREVIEW_MODE else os.path.join(ROOT, "data", "db")
+    if os.path.realpath(OUT_DATA) != os.path.realpath(expected):
+        fail("拒絕清除非預期的資料輸出目錄")
+    shutil.rmtree(expected, ignore_errors=True)
     os.makedirs(os.path.join(OUT_DATA, "monsters"), exist_ok=True)
     with open(os.path.join(OUT_DATA, "monsters.json"), "w", encoding="utf-8") as f:
         json.dump(build_index(details), f, ensure_ascii=False, separators=(",", ":"))
@@ -1330,14 +1444,18 @@ def main():
     }
 
     # 圖片：怪物本體 + 牠們會掉的道具 + 技能圖示
-    shutil.rmtree(OUT_ASSETS, ignore_errors=True)
+    if not PREVIEW_MODE:
+        if os.path.realpath(OUT_ASSETS) != os.path.realpath(os.path.join(ROOT, "assets", "db")):
+            fail("拒絕清除非預期的圖片輸出目錄")
+        shutil.rmtree(OUT_ASSETS, ignore_errors=True)
     mon_imgs = sum(copy_image(src, m.get("image"), os.path.join(OUT_ASSETS, "monsters"),
                               f"{m['id']}.png")
                    for m in kept)
     item_paths = dict(item_img_paths)
     for m in kept:
         for d in m.get("drops") or []:
-            if d.get("image"):
+            if d.get("image") and (not PREVIEW_MODE or
+                                    (d["id"] in item_ids and preview_drop_allowed(d, quest_ids))):
                 item_paths[d["id"]] = d["image"]
     # 資料物件沒帶圖片路徑、但來源其實有同名檔的：直接補。兩個來源——
     # 收錄道具本身，以及任務詳情的條件/獎勵晶片（那些道具不一定被收錄，
@@ -1380,7 +1498,9 @@ def main():
             os.makedirs(os.path.join(OUT_ASSETS, kind), exist_ok=True)
             for fn in os.listdir(kdir):
                 if fn.endswith(".png"):
-                    shutil.copy2(os.path.join(kdir, fn), os.path.join(OUT_ASSETS, kind, fn))
+                    dest = os.path.join(OUT_ASSETS, kind, fn)
+                    if not (PREVIEW_MODE and os.path.exists(dest)):
+                        shutil.copy2(os.path.join(kdir, fn), dest)
                     n_over += 1
     if n_over:
         print(f"圖示校正   覆蓋 {n_over} 張（tools/icon_overrides/，morris 原圖錯位的人工修正）")

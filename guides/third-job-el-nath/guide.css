@@ -1,0 +1,79 @@
+/* Standalone preview guide. Every selector is scoped; shared theme tokens apply. */
+.expansion-guide { max-width: 1160px; min-width: 0; margin: 0 auto; padding: 42px 28px 72px; color: var(--ink); }
+.expansion-guide a { text-underline-offset: 3px; overflow-wrap: anywhere; }
+.expansion-guide p, .expansion-guide li { line-height: 1.8; }
+.expansion-guide p { margin: 0 0 16px; }
+.expansion-guide :is(h1, h2, h3) { line-height: 1.35; }
+.expansion-guide h2 { margin: 0 0 18px; font-size: clamp(21px, 3vw, 27px); }
+.expansion-guide h3 { margin: 0 0 12px; font-size: 18px; }
+.expansion-guide :is(a, summary, [tabindex]):focus-visible, .expansion-skip:focus-visible { outline: 3px solid var(--accent-text); outline-offset: 4px; border-radius: 3px; }
+.expansion-guide :is(section, details), .expansion-guide { scroll-margin-top: calc(var(--top-banner-h) + 24px); }
+.expansion-skip { position: absolute; top: -100px; left: 12px; z-index: 1000; background: var(--surface); color: var(--ink); padding: 12px 18px; }
+.expansion-skip:focus { position: fixed; top: 10px; }
+.expansion-hero { padding: 18px 0 30px; }
+.expansion-eyebrow { color: var(--accent-text); font-size: 13px; font-weight: 700; letter-spacing: .08em; }
+.expansion-hero h1 { margin: 0 0 20px; font-size: clamp(30px, 5vw, 48px); letter-spacing: -.035em; }
+.expansion-hero h1 span { color: var(--ink-soft); font-weight: 500; }
+.expansion-lead { max-width: 720px; color: var(--ink); font-size: 17px; }
+.expansion-meta { color: var(--ink-soft); font-size: 13px; overflow-wrap: anywhere; }
+.expansion-stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); margin: 28px 0 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.expansion-stats > div { padding: 20px 8px 16px; display: flex; flex-direction: column-reverse; gap: 6px; }
+.expansion-stats dt { color: var(--ink-soft); font-size: 13px; }
+.expansion-stats dd { color: var(--ink); font-weight: 700; font-size: 30px; margin: 0; }
+.expansion-status { background: var(--accent-tint); border: 1px solid var(--accent-border); border-radius: var(--radius-md); padding: 24px; }
+.expansion-status h2 { font-size: 18px; }
+.expansion-status p { font-size: 14px; }
+.expansion-status p:last-child { margin-bottom: 0; }
+.expansion-toc { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 18px; margin: 24px 0 44px; }
+.expansion-toc a { display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 10px 0; color: var(--ink); border-bottom: 1px solid var(--border); font-size: 14px; text-decoration: none; }
+.expansion-toc a:hover { color: var(--accent-text); border-color: var(--accent-border); text-decoration: underline; }
+.expansion-toc span { color: var(--accent-text); font-variant-numeric: tabular-nums; font-size: 12px; }
+.expansion-section { margin-top: 44px; padding-top: 30px; border-top: 1px solid var(--border); }
+.expansion-section > p { max-width: 900px; font-size: 15px; }
+.expansion-source { color: var(--ink-soft); font-size: 12px !important; overflow-wrap: anywhere; }
+.expansion-note { background: var(--surface-tint); border-left: 3px solid var(--accent-border); padding: 14px 18px; font-size: 14px !important; }
+.expansion-detail { margin: 12px 0; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); min-width: 0; }
+.expansion-detail > summary { cursor: pointer; padding: 17px 20px; font-size: 16px; font-weight: 700; color: var(--ink); min-height: 54px; line-height: 1.5; }
+.expansion-detail > summary::marker { color: var(--accent-text); }
+.expansion-detail > summary:hover { background: var(--surface-tint); }
+.expansion-detail-meta { color: var(--ink-soft); font-weight: 400; font-size: 12px; margin-left: 14px; }
+.expansion-detail[open] > summary { border-bottom: 1px solid var(--border); }
+.expansion-detail-body { padding: 22px 20px; min-width: 0; }
+.expansion-detail-body > :last-child { margin-bottom: 0; }
+.expansion-detail-body p { font-size: 14px; }
+.expansion-table-wrap { overflow-x: auto; max-width: 100%; margin: 14px 0 22px; border: 1px solid var(--border); border-radius: var(--radius-md); }
+.expansion-table { width: 100%; border-collapse: collapse; min-width: 620px; font-size: 13px; }
+.expansion-table caption { text-align: left; padding: 12px 14px; color: var(--ink-soft); font-size: 12px; background: var(--surface); border-bottom: 1px solid var(--border); }
+.expansion-table th { text-align: left; background: var(--surface-tint); color: var(--ink); font-weight: 700; }
+.expansion-table :is(th, td) { padding: 13px 14px; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.75; }
+.expansion-table td { color: var(--ink); min-width: 70px; overflow-wrap: anywhere; }
+.expansion-table td:first-child { min-width: 140px; }
+.expansion-table tr:last-child td { border-bottom: 0; }
+.expansion-table td a { display: inline-block; padding-block: 3px; }
+.expansion-code { display: block; color: var(--ink-soft); font-size: 11px; font-variant-numeric: tabular-nums; }
+.expansion-provenance { color: var(--ink-soft); font-size: 12px; overflow-wrap: anywhere; }
+.expansion-detail-body .expansion-skill-desc { font-size: 12px; color: var(--ink-soft); margin: 8px 0 0; }
+.expansion-compact-list { margin: 0; padding-left: 18px; }
+.expansion-compact-list li + li { margin-top: 7px; }
+.expansion-quest + .expansion-quest { border-top: 1px solid var(--border); padding-top: 28px; margin-top: 28px; }
+.expansion-source-list { padding-left: 22px; font-size: 14px; }
+.expansion-source-list li { margin-bottom: 12px; }
+@media (max-width: 760px) {
+  .expansion-guide { padding: 28px 18px 48px; }
+  .expansion-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .expansion-stats dd { font-size: 26px; }
+  .expansion-toc { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px; }
+  .expansion-status { padding: 18px; }
+  .expansion-detail > summary { padding: 16px; }
+  .expansion-detail-meta { display: block; margin: 5px 0 0 17px; }
+  .expansion-detail-body { padding: 16px 12px; }
+  .expansion-note { padding: 12px; }
+}
+@media (max-width: 380px) {
+  .expansion-toc { grid-template-columns: minmax(0, 1fr); }
+}
+@media print {
+  .expansion-guide { max-width: none; padding: 0; }
+  .expansion-table-wrap { overflow: visible; }
+  .expansion-table { min-width: 0; }
+}

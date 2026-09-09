@@ -3,7 +3,7 @@
  * -----------------------------------------------------------------
  * 資料放在 data/db/ 底下，切到資料庫分頁才抓（初次載入由 nav.js 觸發，
  * 見那邊的註解）。索引檔只有幾十 KB，但沒來看資料庫的人不該為它付流量，
- * 所以不進主 bundle。
+ * 資料 JSON 不進主 bundle；本檔的互動程式仍隨主站載入。
  *
  * 每個資料集（怪物／技能／…）都是「索引 + 逐筆詳情」兩層：索引供列表與
  * 篩選用、要夠小；詳情點開才抓、抓過就留著。列表與詳情是同一個子分頁裡
@@ -42,6 +42,60 @@
   // patch_html.py 寫在 <html data-asset-ver>；直接開原始碼（沒跑建置）
   // 時沒有這個屬性，就不帶參數
   const ASSET_VER = document.documentElement.dataset.assetVer || "";
+  const PREVIEW = new URLSearchParams(location.search).get("preview") === "el-nath";
+  const DB_ROOT = PREVIEW ? "data/preview/el-nath" : "data/db";
+
+  function previewBadge(row) {
+    return row.preview || row.adv === "三轉"
+      ? '<span class="db-preview-badge">拆包預覽</span>' : "";
+  }
+
+  function previewNotice(row) {
+    return PREVIEW || row.preview || row.adv === "三轉"
+      ? '<p class="db-preview-notice">拆包預覽：實際開放、取得方式與正式服數值待確認。<a href="guides/third-job-el-nath/">查看三轉／冰原雪域整理與資料限制 →</a></p>' : "";
+  }
+
+  // Evidence belongs to a relationship, not to every item on the page. Keep
+  // cross-version supplements and quest-only drops visibly distinct.
+  function relationNotes(row) {
+    if (!row) return "";
+    const evidence = row.sourceEvidence && row.sourceEvidence.length ? row.sourceEvidence : [row];
+    const notes = evidence.map((ref) => {
+      const bits = [];
+      const conditions = Array.isArray(ref.dropConditions) ? ref.dropConditions : [];
+      const isQuestId = (id) => Number.isInteger(Number(id)) && Number(id) > 0;
+      const questOnly = conditions.length
+        ? conditions.every((c) => isQuestId(c.questId))
+        : ref.source === "quest";
+      const questIds = [...new Set([...(ref.questIds || []), ...conditions.map((c) => c.questId)].filter(isQuestId).map(String))];
+      if (ref.source === "tmsv113") bits.push("TMS v113 舊版補充，本服待確認");
+      if (questOnly) bits.push("任務限定掉落");
+      const sourceNote = ref.sourceNote || ref.sourceLabel || "";
+      if (sourceNote && ref.source !== "tmsv113") bits.push(sourceNote);
+      if (questIds.length) {
+        bits.push("任務：" + questIds.map((id) => {
+          const i = (ref.questIds || []).findIndex((qid) => String(qid) === id);
+          return i >= 0 && (ref.questNames || [])[i] ? `${ref.questNames[i]}（${id}）` : id;
+        }).join("、"));
+        bits.push(questOnly ? "需符合任務條件，非一般掉落" : "來源條件不一，請分別核對；未註明不等於無條件");
+      }
+      return bits.join("；");
+    }).filter(Boolean);
+    return [...new Set(notes)].join("／");
+  }
+
+  function annotatedChip(html, row) {
+    const note = relationNotes(row);
+    return note ? `<span class="db-relation">${html}<small class="db-relation-note">${esc(note)}</small></span>` : html;
+  }
+
+  const scope = document.getElementById("dbScope");
+  if (scope) {
+    scope.innerHTML = `<div class="db-scope-head"><strong>${PREVIEW ? "三轉／冰原雪域預覽模式" : "目前收錄資料"}</strong>
+      <a class="btn btn-ghost" href="${PREVIEW ? "?#db-monsters" : "?preview=el-nath#db-monsters"}">${PREVIEW ? "回到現行資料" : "開啟改版預覽"}</a></div>
+      <p>${PREVIEW ? "包含現行資料與三轉、天空之城、冰原雪域及廢礦關聯資料。標示「拆包預覽」的內容尚待實裝確認；廢礦與殘暴炎魔不代表同批開放。此模式不更動練等建議、測速或計算機的現行資料。" : "查詢現行地區資料；三轉技能僅供預覽，不代表已開放。即將改版的地區另列在預覽模式。"}</p>
+      <a href="guides/third-job-el-nath/">三轉技能、地圖、任務與準備清單 →</a>`;
+  }
 
   function verUrl(url) {
     if (!ASSET_VER) return url;
@@ -61,7 +115,7 @@
   // 分頁、右鍵複製連結這些瀏覽器內建行為都靠它（玩家回饋）。一般左鍵仍走
   // SPA 導頁，由 navClick 攔下來
   function dbHref(set, id) {
-    return `?db=${encodeURIComponent(set)}&id=${encodeURIComponent(String(id))}`;
+    return `?${PREVIEW ? "preview=el-nath&" : ""}db=${encodeURIComponent(set)}&id=${encodeURIComponent(String(id))}`;
   }
 
   /**
@@ -162,6 +216,22 @@
     if (!els.list || !els.detail) return null;
 
     const filterEls = {};
+    if (PREVIEW) {
+      const row = els.listPanel.querySelector(".cm-filter-row");
+      if (row) {
+        const label = document.createElement("label");
+        label.className = "db-availability-filter";
+        label.textContent = "列表範圍 ";
+        const select = document.createElement("select");
+        select.id = cfg.prefix + "Availability";
+        select.className = "cm-filter-input";
+        select.setAttribute("aria-label", "列表範圍");
+        select.innerHTML = '<option value="">現行＋預覽</option><option value="preview">只看拆包預覽</option>';
+        label.appendChild(select);
+        row.appendChild(label);
+        cfg.filters = [...(cfg.filters || []), { id: "Availability", test: (r, v) => !v || r.preview }];
+      }
+    }
     (cfg.filters || []).forEach((f) => {
       filterEls[f.id] = document.getElementById(cfg.prefix + f.id);
     });
@@ -174,6 +244,7 @@
     // 再點一次同一個排序鍵會反轉方向（表格欄位標題的慣例）
     let sortDir = 1;
     const cache = new Map();
+    let detailRequestVersion = 0;
 
     function filterValues() {
       const out = {};
@@ -235,40 +306,47 @@
     }
 
     function showList() {
+      ++detailRequestVersion;
       els.detail.hidden = true;
       els.detail.innerHTML = "";
       els.listPanel.hidden = false;
     }
 
     function showDetail(id) {
+      const requestVersion = ++detailRequestVersion;
       els.listPanel.hidden = true;
       els.detail.hidden = false;
       const cached = cache.get(String(id));
       if (cached) {
-        els.detail.innerHTML = cfg.renderDetail(cached);
+        els.detail.innerHTML = previewNotice(cached) + cfg.renderDetail(cached);
         if (cfg.afterDetail) cfg.afterDetail(cached);
-        return Promise.resolve();
+        return Promise.resolve(true);
       }
       els.detail.innerHTML = '<p class="cm-loading">載入中...</p>';
-      return getJson(`data/db/${cfg.dir}/${encodeURIComponent(id)}.json`)
+      return getJson(`${DB_ROOT}/${cfg.dir}/${encodeURIComponent(id)}.json`)
         .then((d) => {
+          // 換到另一筆或回列表後，舊回應不能重畫內容或執行 afterDetail。
+          if (requestVersion !== detailRequestVersion) return false;
           cache.set(String(id), d);
-          els.detail.innerHTML = cfg.renderDetail(d);
+          els.detail.innerHTML = previewNotice(d) + cfg.renderDetail(d);
           if (cfg.afterDetail) cfg.afterDetail(d);
+          return true;
         })
         .catch((err) => {
+          if (requestVersion !== detailRequestVersion) return false;
           // 顯示給使用者的是友善訊息，但原因要留在 console，不然渲染函式
           // 拋錯會跟網路錯誤混在一起，除錯時完全瞎猜
           console.error(`[db] ${cfg.label} 詳情渲染失敗`, err);
           els.detail.innerHTML =
             '<button class="db-back" type="button" data-db-back>← 回到列表</button>' +
             `<p class="cm-empty cm-empty--error">這筆${cfg.label}資料載入失敗</p>`;
+          return true;
         });
     }
 
     function load() {
       if (index || loading) return loading || Promise.resolve();
-      loading = getJson(`data/db/${cfg.dir}.json`)
+      loading = getJson(`${DB_ROOT}/${cfg.dir}.json`)
         .then((data) => {
           index = Array.isArray(data) ? data : [];
           // fillFilters 裡的連動選單（分類→類型、地區→區域）在重設下層選單
@@ -412,8 +490,8 @@
 
   function routeUrl(set, id) {
     return set && id
-      ? `${location.pathname}?db=${encodeURIComponent(set)}&id=${encodeURIComponent(id)}`
-      : location.pathname;
+      ? location.pathname + dbHref(set, id)
+      : location.pathname + (PREVIEW ? "?preview=el-nath" : "");
   }
 
   function openDetail(set, id, push) {
@@ -426,12 +504,24 @@
     showTab(s.key, true);
     s.load();
     if (push) history.pushState({ db: set, id: String(id) }, "", routeUrl(set, id));
-    s.showDetail(id).then(() => window.scrollTo(0, 0));
+    s.showDetail(id).then((shown) => {
+      const route = currentRoute();
+      if (shown && route && route.set === set && String(route.id) === String(id)) {
+        window.scrollTo(0, 0);
+      }
+    });
   }
 
   // 職業技能總覽用的狀態：索引快取，以及「詳情是從哪個職業頁點進來的」
   let skillIndexCache = null;
   let skillJobReturn = null;
+  let activeSkillDetail = null;
+
+  function skillEffect(d, level) {
+    if (window.MapleSkillText) return window.MapleSkillText.effect(d, level);
+    const row = (d.levels || []).find((r) => r.level === Number(level));
+    return row && !/#[A-Za-z_]/.test(row.desc || "") ? row.desc : "";
+  }
 
   function closeDetail(push) {
     if (push) history.pushState({}, "", routeUrl(null));
@@ -513,7 +603,7 @@
       out.innerHTML = '<p class="db-section-note">填入 1~199 的等級與每分鐘隻數就會算出來。</p>';
       return;
     }
-    localStorage.setItem(DB_RATE_KEY, String(rate));
+    if (!PREVIEW) localStorage.setItem(DB_RATE_KEY, String(rate));
     const kills = Math.ceil(need / exp);
     const minutes = kills / rate;
     const per10 = exp * rate * 10;
@@ -526,13 +616,14 @@
         <div><dt>大約耗時</dt><dd>${hh ? hh + " 小時 " : ""}${mm} 分</dd></div>
         <div><dt>每 10 分鐘經驗</dt><dd>${num(per10)}</dd></div>
       </dl>
-      <p class="db-section-note">純理論值：只算怪物經驗，沒有扣掉移動、補血、撿裝備的時間，也沒有計入加倍卷。想要含加倍卷、每日時數的完整估算，用下面的按鈕把數字帶進練等計算機。</p>
-      <button class="btn btn-ghost" type="button" id="dbToCalc">把每 10 分鐘 ${num(per10)} EXP 帶進練等計算機 →</button>`;
+      <p class="db-section-note">純理論值：只算怪物經驗，沒有扣掉移動、補血、撿裝備的時間，也沒有計入加倍卷。${PREVIEW ? "預覽數值不會套用至現行練等計算或玩家實測資料。" : "可用下方按鈕帶入完整計算。"}</p>
+      ${PREVIEW ? "" : `<button class="btn btn-ghost" type="button" id="dbToCalc">把每 10 分鐘 ${num(per10)} EXP 帶進練等計算機 →</button>`}`;
   }
 
   // 把算出來的效率寫進計算機的欄位、跑一次計算，再切過去。用 MapleApp
   // 現成的 runCalculation（它內部會存 prefs），不另外碰 localStorage
   function sendToCalculator() {
+    if (PREVIEW) return;
     const box = document.getElementById("dbKillCalc");
     if (!box) return;
     const exp = parseInt(box.dataset.exp, 10);
@@ -657,7 +748,7 @@
     const acc = parseInt(document.getElementById("dbHitAcc").value, 10) || 0;
     const intv = parseInt(document.getElementById("dbHitInt").value, 10) || 0;
     const luk = parseInt(document.getElementById("dbHitLuk").value, 10) || 0;
-    localStorage.setItem(HIT_PREFS_KEY, JSON.stringify(
+    if (!PREVIEW) localStorage.setItem(HIT_PREFS_KEY, JSON.stringify(
       magic ? { type: "magic", level, int: intv, luk } : { type: "phys", level, acc }
     ));
     out.innerHTML = hitResultHtml(computeHit({ eva, mobLv, level, magic, acc, intv, luk }), magic);
@@ -798,7 +889,7 @@
       const ratio = hpPerExp(m);
       // 名稱是真連結（可開新分頁），整列照樣可點（點列＝點名稱）
       return `<tr class="db-trow" data-db-id="${esc(m.id)}">
-        <td class="db-td-name"><a class="db-td-link" href="${dbHref("monster", m.id)}">${monsterImg(m.id, 32)}<span>${esc(m.name)}</span></a></td>
+        <td class="db-td-name"><a class="db-td-link" href="${dbHref("monster", m.id)}">${monsterImg(m.id, 32)}<span>${esc(m.name)}${previewBadge(m)}</span></a></td>
         <td class="db-td-num">${m.level}</td>
         <td class="db-td-num">${shortNum(m.hp)}</td>
         <td class="db-td-num">${shortNum(m.mp)}</td>
@@ -835,8 +926,8 @@
         ? `<div class="db-sub-list">${d.maps
             .map((m) => {
               const inner = `<span class="db-sub-name">${esc(m.name)}</span>
-                <span class="db-sub-meta">${esc([m.region, m.street].filter(Boolean).join(" · "))}</span>
-                <span class="db-sub-num">${m.spawns} 個重生點</span>`;
+                <span class="db-sub-meta">${esc([m.region, m.street].filter(Boolean).join(" · "))}${relationNotes(m) ? `<small class="db-relation-note">${esc(relationNotes(m))}</small>` : ""}</span>
+                <span class="db-sub-num">${m.spawns == null ? "重生點待確認" : m.spawns + " 個重生點"}</span>`;
               return m.link
                 ? `<a class="db-sub-item db-sub-item--link" href="${dbHref("map", m.id)}"
                      data-db-goto="map" data-db-id="${esc(m.id)}">${inner}</a>`
@@ -863,6 +954,7 @@
                   const bits = [];
                   if (x.equip && x.equip.reqLevel) bits.push(`需求 Lv.${x.equip.reqLevel}`);
                   if (x.sell) bits.push(`賣店 ${num(x.sell)}`);
+                  const evidenceNote = relationNotes(x);
                   // 未命名道具不在道具資料集裡（沒名字沒圖），照列但不能點，
                   // 不然會開到不存在的頁面
                   const tag = x.link ? "a" : "div";
@@ -875,6 +967,7 @@
                     <span class="db-drop-text">
                       <span class="db-drop-name">${esc(x.name)}</span>
                       <span class="db-drop-meta">${esc([x.sub, ...bits].filter(Boolean).join(" · "))}</span>
+                      ${evidenceNote ? `<small class="db-relation-note">${esc(evidenceNote)}</small>` : ""}
                     </span>
                   </${tag}>`;
                 })
@@ -942,8 +1035,8 @@
         <section class="db-section">
           <h3 class="db-section-title">出沒地圖<span class="db-sub-num">${d.maps.length}</span></h3>
           ${maps}
-          <p class="db-section-note">上面是遊戲資料檔記錄的重生點數量，不等於實際練功效率。
-            <button class="db-inline-link" type="button" id="dbToSpots">看玩家實測的練功效率 →</button></p>
+          <p class="db-section-note">有完整地圖資料時才列重生點數量；僅有出沒關聯時標示待確認，都不等於實際練功效率。
+            ${PREVIEW ? "尚未把這些預覽地圖列為實測推薦地點。" : '<button class="db-inline-link" type="button" id="dbToSpots">看玩家實測的練功效率 →</button>'}</p>
         </section>
         <section class="db-section">
           <h3 class="db-section-title">掉落物品<span class="db-sub-num">${d.drops.length}</span></h3>
@@ -955,8 +1048,7 @@
           ${drops}
         </section>
         ${quests}
-        <p class="db-section-note">這隻怪也有<a href="db/monster/${esc(d.id)}/">獨立的資料頁</a>，
-          網址可以直接分享，也查得到 Google。</p>`;
+        <p class="db-section-note">${PREVIEW ? `<a href="${dbHref("monster", d.id)}">分享這筆預覽資料</a>，網址會保留預覽模式。` : `這隻怪也有<a href="db/monster/${esc(d.id)}/">獨立的資料頁</a>，網址可以直接分享，也查得到 Google。`}</p>`;
     },
     afterDetail() {
       renderKillResult();
@@ -1006,6 +1098,11 @@
     ["KerningCity", "墮落城市", "維多利亞島"],
     ["Dungeon", "奇幻村", "奇幻村"],
     ["Nautilus", "鯨魚號", "鯨魚號"],
+    ["Orbis", "天空之城", "冰原雪域"],
+    ["GoddessTower", "天空之城塔", "冰原雪域"],
+    ["ElNath", "冰原雪域", "冰原雪域"],
+    ["ElNathDungeon", "廢礦／雪山深處", "廢礦"],
+    ["Zakum", "殘暴炎魔關聯地圖", "廢礦"],
     ["KerningParty", "組隊任務區", "特殊區域"],
     ["Quest", "忍耐／任務地圖", "特殊區域"],
     ["Other", "其他", "特殊區域"],
@@ -1084,7 +1181,7 @@
         <ul class="db-town-top">
           ${top.map((m) => `<li><a class="db-inline-link" href="${dbHref("map", m.id)}"
               data-db-goto="map" data-db-id="${esc(m.id)}">${esc(m.name)}</a>
-              <span class="db-sub-num">${m.spawns} 重生點</span></li>`).join("")}
+              <span class="db-sub-num">${m.spawns == null ? "重生點待確認" : m.spawns + " 重生點"}</span></li>`).join("")}
         </ul>
       </section>`);
     });
@@ -1187,14 +1284,14 @@
       return `<a class="db-row db-row--text" href="${dbHref("map", m.id)}" data-db-id="${esc(m.id)}">
         <div class="db-row-main">
           <div class="db-row-title">
-            <span class="db-row-name">${esc(m.name)}</span>
+            <span class="db-row-name">${esc(m.name)}</span>${previewBadge(m)}
           </div>
           <div class="db-row-meta">${esc([m.region, m.street].filter(Boolean).join(" · "))}</div>
         </div>
         <dl class="db-row-stats">
-          <div><dt>怪物</dt><dd>${m.mobs}</dd></div>
-          <div><dt>重生點</dt><dd>${m.spawns}</dd></div>
-          <div><dt>傳送</dt><dd>${m.portals}</dd></div>
+          <div><dt>怪物</dt><dd>${m.mobs == null ? "待確認" : m.mobs}</dd></div>
+          <div><dt>重生點</dt><dd>${m.spawns == null ? "待確認" : m.spawns}</dd></div>
+          <div><dt>傳送</dt><dd>${m.portals == null ? "待確認" : m.portals}</dd></div>
         </dl>
       </a>`;
     },
@@ -1294,18 +1391,18 @@
              ${hasSame ? '<button class="cm-sort-btn active" type="button" data-map-toggle="portal-same">同圖傳送</button>' : ""}
            </div>
            <p class="db-section-note">點小地圖上的怪物圖示可以看那隻怪的資料，點紫色的傳送點可以直接前往那張地圖，點地圖空白處可以放大檢視；上面的按鈕可以切換要顯示哪一類標記。${hasPair ? "帶數字的圓點是同圖傳送：同號碼的兩點互通" + (hasLand ? "，虛線圓是單向傳送的落點" : "") + "。" : ""}</p>`
-        : '<p class="cm-empty">這張地圖沒有小地圖資料</p>';
+        : `<p class="cm-empty">${d.dataMissing ? "來源尚未提供此圖的地形、重生點與傳送座標。以下僅列出沒關聯，不代表怪物密度或可通行路線。" : "這張地圖沒有小地圖資料"}</p>`;
 
       const mobs = d.mobs.length
         ? `<div class="db-chip-row">${d.mobs
             .map((m) => {
               const name = `${m.name} Lv.${m.level}`;
-              return m.link
-                ? linkChip("monster", m.id, name, `${m.count} 點`)
-                : plainChip(name, `${m.count} 點`);
+              return annotatedChip(m.link
+                ? linkChip("monster", m.id, name, m.count == null ? "重生點待確認" : `${m.count} 點`)
+                : plainChip(name, m.count == null ? "重生點待確認" : `${m.count} 點`), m);
             })
             .join("")}</div>`
-        : '<p class="cm-empty">這張地圖沒有怪物</p>';
+        : `<p class="cm-empty">${d.dataMissing ? "尚無怪物出沒資料，不能據此判定沒有怪物。" : "這張地圖沒有怪物"}</p>`;
 
       const crossPortals = d.portals.filter((p) => !p.same);
       const portals = crossPortals.length
@@ -1344,7 +1441,7 @@
           ${portals}
         </section>` : ""}
         ${npcs ? `<section class="db-section">
-          <h3 class="db-section-title">NPC</h3>
+          <h3 class="db-section-title">NPC${d.dataMissing ? "（任務／商店關聯，位置待確認）" : ""}</h3>
           ${npcs}
         </section>` : ""}`;
     },
@@ -1584,7 +1681,7 @@
         ${itemImg(i.id, 44)}
         <div class="db-row-main">
           <div class="db-row-title">
-            <span class="db-row-name">${esc(i.name)}</span>
+            <span class="db-row-name">${esc(i.name)}</span>${previewBadge(i)}
             ${i.lv ? `<span class="db-row-level">Lv.${i.lv}</span>` : ""}
             <span class="db-tag">${esc(i.sub || i.cat)}</span>
           </div>
@@ -1622,7 +1719,7 @@
           : "";
 
       const dropBits = (d.drops || []).map((m) =>
-        linkChip("monster", m.id, m.name, m.level ? `Lv.${m.level}` : "")
+        annotatedChip(linkChip("monster", m.id, m.name, m.level ? `Lv.${m.level}` : ""), m)
       );
       const questBits = (d.quests || []).map((q) =>
         linkChip("quest", q.id, q.name, q.kind + (q.count ? ` ×${q.count}` : ""))
@@ -1657,14 +1754,14 @@
                     <span class="db-sub-meta">${esc(c.maps.join("、"))}</span>
                     ${c.meso ? `<span class="db-sub-num">${num(c.meso)} 楓幣</span>` : ""}</div>
                   <div class="db-chip-row">${c.materials
-                    .map((m) => linkChip("item", m.id, m.name, m.count ? `×${m.count}` : ""))
+                    .map((m) => m.link === false ? plainChip(m.name, `${m.count ? "×" + m.count + " · " : ""}取得來源未收錄`) : linkChip("item", m.id, m.name, m.count ? `×${m.count}` : ""))
                     .join("")}</div>
                 </div>`
               )
               .join("")}
           </section>`
         : "";
-      const usedInBits = (d.usedIn || []).map((u) => linkChip("item", u.id, u.name));
+      const usedInBits = (d.usedIn || []).map((u) => u.link === false ? plainChip(u.name, "尚未收錄") : linkChip("item", u.id, u.name));
 
       return `<button class="db-back" type="button" data-db-back>← 回到道具列表</button>
         <div class="db-detail-head">
@@ -1739,6 +1836,7 @@
     ["赫麗娜", "弓箭手"],
     ["達克魯", "盜賊"],
     ["卡伊琳", "海盜"],
+    ...(PREVIEW ? [["泰勒斯", "劍士三轉"], ["羅貝亞", "法師三轉"], ["蕾妮", "弓箭手三轉"], ["阿里可", "盜賊三轉"], ["佩特勞", "海盜三轉"]] : []),
   ];
 
   function showNpcView(which, skipSave) {
@@ -1770,7 +1868,7 @@
             : `<img src="assets/db/npcs/${encodeURIComponent(n.id)}.png" alt=""
                width="44" height="44" loading="lazy" decoding="async"
                onerror="this.style.visibility='hidden'">`}
-          <strong>${esc(name)}</strong>
+          <strong>${esc(name)}${previewBadge(n)}</strong>
           <span>${esc(job)}教官</span>
           <small>${esc(n.where)}</small>
         </a>`;
@@ -1877,7 +1975,7 @@
       return `<a class="db-row" href="${dbHref("npc", n.id)}" data-db-id="${esc(n.id)}">
         ${npcFace(n, 44)}
         <div class="db-row-main">
-          <div class="db-row-title"><span class="db-row-name">${esc(n.name)}</span></div>
+          <div class="db-row-title"><span class="db-row-name">${esc(n.name)}</span>${previewBadge(n)}</div>
           <div class="db-row-meta">${esc([n.region, n.where].filter(Boolean).join(" · "))}</div>
         </div>
         <dl class="db-row-stats">
@@ -2107,7 +2205,7 @@
       return `<a class="db-row db-row--text" href="${dbHref("quest", q.id)}" data-db-id="${esc(q.id)}">
         <div class="db-row-main">
           <div class="db-row-title">
-            <span class="db-row-name">${esc(q.name)}</span>
+            <span class="db-row-name">${esc(q.name)}</span>${previewBadge(q)}
             ${q.lv ? `<span class="db-row-level">Lv.${q.lv}</span>` : ""}
             <span class="db-tag">${esc(q.cat)}</span>
           </div>
@@ -2208,7 +2306,7 @@
         ${section("接取條件", startBits)}
         ${section("完成條件", compBits)}
         ${section("獎勵", rwBits)}
-        ${section("後續任務", nextBits)}
+        ${section("相關任務（包含前置、互斥與後續關係，請核對接取條件）", nextBits)}
         ${d.texts.length
           ? `<section class="db-section">
               <h3 class="db-section-title">任務說明</h3>
@@ -2287,7 +2385,7 @@
         return `<section class="db-town-card db-skill-card">
           <button class="db-town-head" type="button" data-skill-job="${esc(job)}">
             <span class="db-town-title">${esc(job)}</span>
-            <span class="db-sub-num">${esc(rows[0].adv)} · ${rows.length} 招 →</span>
+            <span class="db-sub-num">${esc(rows[0].adv)} · ${rows.length} 招 ${previewBadge(rows[0])} →</span>
           </button>
           <div class="db-skill-grid">${icons}</div>
         </section>`;
@@ -2360,7 +2458,7 @@
         <div>
           <div class="db-row-title">
             <h2 class="db-detail-name">${esc(job)}</h2>
-            <span class="db-tag">${esc(rows[0].adv)}</span>
+            <span class="db-tag">${esc(rows[0].adv)}</span>${previewBadge(rows[0])}
           </div>
           <p class="db-detail-desc">共 ${rows.length} 招。需要前置技能的往內縮一階；點任一招看每一級的詳細數值。</p>
         </div>
@@ -2526,7 +2624,7 @@
         ${skillImg(s.id, 44)}
         <div class="db-row-main">
           <div class="db-row-title">
-            <span class="db-row-name">${esc(s.name)}</span>
+            <span class="db-row-name">${esc(s.name)}</span>${previewBadge(s)}
             <span class="db-tag">${esc(s.adv)}</span>
           </div>
           <div class="db-row-meta">${esc(s.group)} · ${esc(s.job)}</div>
@@ -2537,11 +2635,12 @@
       </a>`;
     },
     renderDetail(d) {
-      const labels = d.labels || {};
+      activeSkillDetail = d;
+      const labels = window.MapleSkillText ? window.MapleSkillText.labels(d) : d.labels || {};
       const keys = [...new Set(d.levels.flatMap((l) => Object.keys(l.values || {})))];
       // 每級數值攤成表格：欄位就是這個技能實際用到的那幾個值（消耗 MP、
       // 持續時間、傷害…），欄名用遊戲自己的標籤，不自己翻譯
-      const head = keys.map((k) => `<th>${esc(labels[k] || k)}</th>`).join("");
+      const head = keys.map((k) => `<th scope="col">${esc(labels[k] || k)}</th>`).join("");
       const rows = d.levels
         .map(
           (l) => `<tr>
@@ -2551,7 +2650,7 @@
         )
         .join("");
       const table = keys.length
-        ? `<div class="db-table-scroll"><table class="db-level-table">
+        ? `<div class="db-table-scroll" role="region" tabindex="0" aria-label="${esc(d.name)}每級數值（可左右捲動）"><table class="db-level-table">
              <thead><tr><th scope="col">Lv</th>${head}</tr></thead>
              <tbody>${rows}</tbody>
            </table></div>`
@@ -2576,17 +2675,26 @@
               <span class="db-row-level">上限 Lv.${d.maxLevel}</span>
             </div>
             <p class="db-detail-desc">${esc(d.group)} · ${esc(d.job)}</p>
-            ${d.desc ? `<p class="db-detail-desc">${esc(d.desc)}</p>` : ""}
+            ${d.desc ? `<p class="db-detail-desc">${esc(d.desc.replace(/#$/, ""))}</p>` : ""}
           </div>
         </div>
-        ${d.formula ? `<section class="db-section">
-          <h3 class="db-section-title">效果</h3>
-          <p class="db-detail-desc">${esc(d.formula)}</p>
-        </section>` : ""}
+        <section class="db-section">
+          <h3 class="db-section-title">各級效果</h3>
+          <label class="db-availability-filter">技能等級
+            <select class="cm-filter-input" id="dbSkillLevel" aria-label="技能等級">${d.levels.map((l) => `<option value="${l.level}"${l.level === d.maxLevel ? " selected" : ""}>Lv.${l.level}${l.level === d.maxLevel ? "（最高）" : ""}</option>`).join("")}</select>
+          </label>
+          <p class="db-detail-desc" id="dbSkillEffect" aria-live="polite">${esc(skillEffect(d, d.maxLevel) || "來源未提供此級的完整效果說明，請參考下方數值表。")}</p>
+        </section>
         <section class="db-section">
           <h3 class="db-section-title">每級數值<span class="db-sub-num">${d.levels.length} 級</span></h3>
+          <p class="db-section-note">欄名依此技能的效果說明核對；無法確認語意的欄位保留原始代碼，不推測單位。</p>
           ${table}
         </section>`;
+    },
+    onDetailInput(e) {
+      if (e.target.id !== "dbSkillLevel" || !activeSkillDetail) return;
+      const text = document.getElementById("dbSkillEffect");
+      if (text) text.textContent = skillEffect(activeSkillDetail, Number(e.target.value)) || "來源未提供此級的完整效果說明，請參考下方數值表。";
     },
   });
 
@@ -2613,12 +2721,16 @@
 
     function render() {
       const r = regions.find((x) => x.key === current) || regions[0];
+      if (!r) {
+        box.innerHTML = '<p class="cm-empty">目前沒有可顯示的世界地圖。</p>';
+        return;
+      }
       current = r.key;
       tabsBox.innerHTML = regions
         .map(
           (x) => `<button class="cm-sort-btn${x.key === r.key ? " active" : ""}" type="button"
                     role="tab" aria-selected="${x.key === r.key}"
-                    data-world-region="${esc(x.key)}">${esc(x.name)}</button>`
+                    data-world-region="${esc(x.key)}">${esc(x.name)}${["WorldMap020", "WorldMap021"].includes(x.key) ? "（預覽）" : ""}</button>`
         )
         .join("");
       if (countEl) countEl.textContent = `${r.nodes.length} 張地圖`;
@@ -2656,6 +2768,7 @@
       // 圓點不佔版面，畫布不再需要為文字撐大；只有維多利亞島在手機上
       // 保留原圖寬度（點太密會疊在一起），其餘直接隨面板縮放
       const minW = r.nodes.length > 80 ? 640 : 0;
+      const regionalMaps = [...(mapStats || new Map()).values()].filter((m) => m.region === r.name);
       box.innerHTML = `<div class="db-world-scroll">
           <div class="db-world-figure" style="min-width:${minW}px">
             <img class="db-world-img" src="assets/db/worldmaps/${esc(r.key)}.png"
@@ -2665,7 +2778,10 @@
             ${nodes}${proxies}
           </div>
         </div>
-        <p class="db-section-note">滑過圓點會浮出那張地圖的小地圖預覽，點一下開啟（手機是第一下看預覽、第二下進入）；上面的按鈕切換區域，點底圖可以放大檢視。</p>`;
+        <p class="db-section-note">滑過圓點可看地圖摘要，有圖檔時才顯示小地圖；點一下開啟（手機先看摘要、再點進入），點底圖可放大。${PREVIEW ? "預覽區域的世界連線僅供位置參考，不代表已開通的路線。" : ""}</p>
+        <details class="db-world-list"><summary>用文字清單選擇地圖（${regionalMaps.length} 張）</summary>
+          <div class="db-chip-row">${regionalMaps.map((m) => linkChip("map", m.id, m.name, m.preview ? "預覽" : "")).join("")}</div>
+        </details>`;
       const scroller = box.querySelector(".db-world-scroll");
       if (scroller) scroller.scrollLeft = 0;
     }
@@ -2695,7 +2811,7 @@
       const id = dot.dataset.dbId;
       const st = (mapStats && mapStats.get(id)) || null;
       const stats = st
-        ? `<span>怪物 ${st.mobs}</span><span>重生點 ${st.spawns}</span><span>傳送 ${st.portals}</span>`
+        ? `<span>怪物 ${st.mobs == null ? "待確認" : st.mobs}</span><span>重生點 ${st.spawns == null ? "待確認" : st.spawns}</span><span>傳送 ${st.portals == null ? "待確認" : st.portals}</span>`
         : "";
       card = document.createElement("div");
       card.className = "db-wcard";
@@ -2764,16 +2880,16 @@
     function load() {
       if (regions || loading) return loading || Promise.resolve();
       loading = Promise.all([
-        getJson("data/db/worldmaps.json"),
+        getJson(`${DB_ROOT}/worldmaps.json`),
         // 預覽卡的統計；壞了就少一行數字，不擋世界地圖本體
-        getJson("data/db/maps.json").catch(() => []),
+        getJson(`${DB_ROOT}/maps.json`).catch(() => []),
       ])
         .then(([data, idx]) => {
           regions = Array.isArray(data) ? data : [];
           mapStats = new Map((idx || []).map((m) => [String(m.id), m]));
           if (!current) {
             const saved = localStorage.getItem(REGION_KEY);
-            current = regions.some((x) => x.key === saved) ? saved : regions[0] && regions[0].key;
+            current = PREVIEW ? "WorldMap020" : regions.some((x) => x.key === saved) ? saved : regions[0] && regions[0].key;
           }
           render();
         })
@@ -2852,7 +2968,7 @@
             : `<img src="assets/db/npcs/${encodeURIComponent(s.id)}.png" alt=""
                width="38" height="38" loading="lazy" decoding="async"
                onerror="this.style.visibility='hidden'">`}
-          <span class="db-town-title">${esc(s.name)}</span>
+          <span class="db-town-title">${esc(s.name)}${previewBadge(s)}</span>
           <span class="db-sub-num">${esc(s.where)} · ${s.items.length + s.crafts.length} 項</span>
         </a>
         <div class="db-shop-goods">${goods}${crafts}</div>
@@ -2891,7 +3007,7 @@
 
     function load() {
       if (data || loading) return loading || Promise.resolve();
-      loading = getJson("data/db/shops.json")
+      loading = getJson(`${DB_ROOT}/shops.json`)
         .then((rows) => {
           data = rows || [];
           [...new Set(data.map((s) => s.region))].filter(Boolean).sort().forEach((r) => {
@@ -2979,8 +3095,10 @@
   };
   const SEARCH_MIN = 1; // 中文一個字就有意義，不用等到兩個字
   const PER_SET = 6; // 每個資料集先列幾筆，太多會把其他類別擠掉
+  let searchRequestVersion = 0;
 
   function runGlobalSearch() {
+    const requestVersion = ++searchRequestVersion;
     const q = (searchEls.input.value || "").trim().toLowerCase();
     if (q.length < SEARCH_MIN) {
       searchEls.results.innerHTML = "";
@@ -2992,6 +3110,7 @@
       searchEls.results.innerHTML = '<p class="cm-empty">搜尋資料載入中…</p>';
     }
     Promise.all(SETS.map((s) => s.ensure())).then(() => {
+      if (requestVersion !== searchRequestVersion) return;
       const blocks = SETS.map((s) => {
         const hits = s.search(q);
         if (!hits.length) return "";
@@ -3000,7 +3119,7 @@
           .map(
             (r) => `<a class="db-search-hit" href="${dbHref(s.route, r.id)}"
                       data-db-goto="${s.route}" data-db-id="${esc(r.id)}">
-              <span class="db-search-name">${esc(r.name)}</span>
+              <span class="db-search-name">${esc(r.name)}${previewBadge(r)}</span>
               <span class="db-search-meta">${esc(s.searchRow ? s.searchRow(r) : "")}</span>
             </a>`
           )
@@ -3031,7 +3150,13 @@
   if (searchEls.input) {
     let searchTimer = null;
     searchEls.input.addEventListener("input", () => {
+      // 輸入當下就失效，不能等 debounce；清空時也不讓舊結果重新出現。
+      ++searchRequestVersion;
       clearTimeout(searchTimer);
+      if ((searchEls.input.value || "").trim().length < SEARCH_MIN) {
+        searchEls.results.innerHTML = "";
+        return;
+      }
       searchTimer = setTimeout(runGlobalSearch, 180);
     });
     searchEls.results.addEventListener("click", (e) => {

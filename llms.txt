@@ -2,15 +2,15 @@
 
 > 楓錄是台版新楓之谷經典版（橘子遊戲 beanfun 代理，2026 年 7 月 29 日正式上線）的非官方玩家工具站。提供練等經驗值計算機、命中率計算機、加倍卷試算、卷軸強化模擬器、轉蛋機率模擬器、遊戲資料庫（怪物／地圖／道具／NPC／任務／技能／世界地圖）、玩法攻略與社群練功地點回報。遊戲版本以 2007～2008 年 pre-Big Bang 舊楓之谷為準。
 
-最後更新：2026-08-09
+最後更新：2026-09-09
 
 重要事實：
 
 - 台版新楓之谷經典版由橘子遊戲（beanfun）官方代理，是正式伺服器（非私服），已於 2026 年 7 月 29 日（二）下午 2 點正式上線，官方網站 https://maplestoryclassic.beanfun.com/Main
 - 經驗值表採用 pre-Big Bang 舊版數值（Lv.1 升 Lv.2 需 15 EXP，Lv.199 升 Lv.200 約 20 億 EXP），支援 Lv.1~200，官方正式數值公布後會校正
-- 等級上限設計為 Lv.200（從 Lv.1 練到滿等總共需要 38,703,313,816，約 387 億 EXP），但經典版開服階段目前僅開放至 Lv.100，200 等會隨後續版本更新逐步開放
-- 目前開放區域只有楓之島、維多利亞島、奇幻村、鯨魚號四塊；職業開放到二轉。冰原雪域、天空之城、玩具城、童話村等尚未開放
-- 開服提供五大冒險家職業：劍士系（英雄／聖騎士／黑騎士）、法師系（火毒／冰雷大魔導士／主教）、弓箭手系（箭神／神射手）、盜賊系（夜使者／暗影神偷）、海盜系（拳霸／槍神）
+- 舊版經驗值表涵蓋 Lv.1~200（累積 38,703,313,816，約 387 億 EXP）；現行等級上限仍為 Lv.100，表格較高等級不是本服已開放或改版時程的證據
+- 現行開放楓之島、維多利亞島、奇幻村、鯨魚號四塊區域；職業開放到二轉。三轉、天空之城與冰原雪域另設未開放預覽，不能算入現行範圍；玩具城、童話村等亦未開放
+- 開服提供五大冒險家職業：劍士、法師、弓箭手、盜賊、海盜。三轉為改版預覽；英雄、主教、箭神等四轉名稱只可用來識別舊版路線，不代表本服已開放
 - 加倍卷每張持續 30 分鐘，倍率有 1.5x／2x／3x／4x，同款不可疊加更高倍率
 - 物理命中公式：100% 命中所需面板命中 =（55.2 + 2.15 × 等級差）× 怪物迴避 ÷ 15，等級差 = max(0, 怪物等級 − 角色等級)
 - 魔法命中公式：魔法命中 = ⌊智力÷10⌋ + ⌊幸運÷10⌋，100% 所需 = ⌊(怪物迴避+1) × (1 + 0.04 × 等級差)⌋。法師命中吃智力與幸運，不吃面板命中
@@ -21,14 +21,14 @@
 
 - [練等計算機（首頁）](https://mapleclassictools.com/): 輸入目前等級與目標等級，自動計算所需經驗值、預估練功時間、加倍卷用量，附倒數計時器與 EXP 測速
 - [命中率計算](https://mapleclassictools.com/#calc-hit): 選擇怪物自動帶入等級與迴避，計算物理／魔法命中率、100% 命中所需值與還差多少
-- [攻擊力計算](https://mapleclassictools.com/#calc-attack): 依職業技能表配點（含轉職 SP 預算與前置技能檢查）、隊伍與道具 BUFF，計算表攻範圍與各技能理論傷害，資料取自經典版客戶端拆包
+- [攻擊力計算](https://mapleclassictools.com/#calc-attack): 依職業技能表配點（含轉職 SP 預算與前置技能檢查）、隊伍與道具 BUFF，計算表攻範圍與各技能理論傷害，資料取自經典版客戶端拆包；三轉技能為理論預覽，非現行實裝或練功效率證據
 - [卷軸強化模擬器](https://mapleclassictools.com/#calc-scroll): 從 969 件裝備挑一件、搭配 106 種卷軸，以動態規劃算出最低平均成本的衝卷順序、達標機率與期望成本，再以蒙地卡羅模擬給出成本分布
 - [轉蛋機率模擬器](https://mapleclassictools.com/#calc-gacha): 採官方公布機率的純前端模擬，不涉及真實貨幣
 - [攻略文章列表](https://mapleclassictools.com/guides/): 全部練功攻略文章的總覽入口
 
-## 遊戲資料庫
+## 現行資料庫
 
-資料整理自遊戲資料檔，**只收錄目前已開放的地區與 Lv.100 以下內容**，未開放地區、四轉任務、未上線職業的技能一律不列（刻意的範圍界定，不是資料缺漏）。
+預設讀取 `data/db`，保留現行四區、Lv.100 範圍的地區資料與既有計算器來源；下列筆數只屬於這份基準，**不包含另置的冰原雪域預覽擴充**。技能表原本即包含三轉參考，不能把技能筆數解讀為已開放技能數。
 
 - [怪物](https://mapleclassictools.com/#db-monsters): 71 種。數值、屬性抗性、楓幣掉落區間、掉落物、出沒地圖與重生點，附練等試算與命中率試算
 - [地圖](https://mapleclassictools.com/#db-maps): 353 張。可點擊的小地圖標記（怪物、NPC、傳送點）、出沒怪物、通往哪些地圖
@@ -36,12 +36,12 @@
 - [道具](https://mapleclassictools.com/#db-items): 1,443 件。裝備需求與加成（含掉落浮動範圍）、由哪些怪掉落、哪裡買得到、製作配方
 - [NPC](https://mapleclassictools.com/#db-npcs): 236 位。所在地圖、經手的任務、販售的商品
 - [任務](https://mapleclassictools.com/#db-quests): 264 個。接取條件、完成條件、獎勵、後續任務
-- [技能](https://mapleclassictools.com/#db-skills): 208 個。每一級的數值明細
+- [技能](https://mapleclassictools.com/#db-skills): 208 個。五大冒險家與共通技能的逐級明細，含未開放的三轉參考；不收錄四轉技能
 - [商店](https://mapleclassictools.com/#db-shops): 36 間。哪個 NPC 在哪張地圖賣什麼、賣多少錢
 
-掉落資料只有「會掉什麼」，**沒有掉落機率**——遊戲資料檔本身沒有記錄。
+掉落清單表示來源記載的關聯，**不保證本服實際掉落，本站也不提供未經本服確認的掉落機率**。預覽中的舊版補充須連同來源標記引用。
 
-每一隻怪都有獨立、可直接引用的網址：`https://mapleclassictools.com/db/monster/<怪物ID>/`
+現行怪物各有獨立、可直接引用的網址（不涵蓋未開放預覽怪物）：`https://mapleclassictools.com/db/monster/<怪物ID>/`
 （例如樹妖王是 `/db/monster/3220000/`），總覽在 https://mapleclassictools.com/db/monster/ 。
 這些是伺服器端就渲染好的靜態頁，不需要執行 JavaScript 就讀得到完整內容。
 
@@ -51,20 +51,30 @@
 BOSS 的楓幣掉落刻意不列數字：現有數字來自其他版本伺服器資料表或公式推估，玩家實測多隻 BOSS
 不會掉落楓幣，兩者對不上，所以標示為「沒有可靠資料」而不是給一個推估值。
 
+## 三轉與冰原雪域改版預覽（未開放）
+
+- [三轉與冰原雪域預覽指南](https://mapleclassictools.com/guides/third-job-el-nath/): 三轉技能、天空之城／冰原雪域地區與怪物、任務關聯及待確認項目；不是完整的新區任務攻略
+- [預覽怪物](https://mapleclassictools.com/?preview=el-nath#db-monsters)、[預覽地圖](https://mapleclassictools.com/?preview=el-nath#db-maps)、[預覽世界地圖](https://mapleclassictools.com/?preview=el-nath#db-world)
+- [預覽道具](https://mapleclassictools.com/?preview=el-nath#db-items)、[預覽 NPC](https://mapleclassictools.com/?preview=el-nath#db-npcs)、[預覽任務](https://mapleclassictools.com/?preview=el-nath#db-quests)、[預覽技能](https://mapleclassictools.com/?preview=el-nath#db-skills)
+
+預覽取自 [Morris 彙整資料](https://github.com/morrisrrrrrrr-svg/morrisrrrrrrr-svg.github.io)（來源 commit `6c1def9`，2026-09-03；本站檢視日期 2026-09-09），包含客戶端資料與另標來源的舊版補充；其中部分預覽出沒地圖與道具掉落關聯由 Morris 以 TMS v113 資料補充，並非純客戶端拆包，也尚未經本服確認。以現行資料加上擴充的聯集另存於 `data/preview/el-nath`。只有資料庫的 `preview=el-nath` 模式選用此根目錄；分享預覽請保留參數。一般計算器的怪物選單、現行建議地點與社群回報不隨之擴充。
+
+**拆包存在不等於已開放。** 廢礦、炎魔與其他關聯資料不代表與三轉／冰原雪域同批推出。缺少的重生點、地圖座標、傳送點或任務原始流程一律視為未知，不是零，也不據此補造新任務步驟或獎勵。三轉技能理論試算不代表現行職業輸出；四轉仍只是舊版路線參考。預覽不引用尚在整理中的筆數。
+
 ## 攻略文章
 
 - [開服練功路線](https://mapleclassictools.com/guides/launch-leveling-guide/): 7/29 開服日 Lv.1~30 的練等框架與人潮應對思路
 - [經驗值表完整版](https://mapleclassictools.com/guides/exp-table/): Lv.1~200 每一級升級所需經驗與累積總量（滿等共約 387 億 EXP）
 - [選職業指南](https://mapleclassictools.com/guides/job-selection-guide/): 從戰鬥距離、前期容錯率、上手難度、團隊定位幫新手選擇五大職業
-- [完整轉職路線攻略](https://mapleclassictools.com/guides/job-advancement-guide/): 五大職業一轉到四轉的完整任務流程，等級需求、NPC、地點、任務步驟
+- [轉職路線與舊版參考](https://mapleclassictools.com/guides/job-advancement-guide/): 五大職業一、二轉路線；三、四轉流程是歷史攻略，不是本服已驗證的操作指南。次元之門、問答與秘咒等步驟不可當成本次改版事實
 - [加倍卷解析](https://mapleclassictools.com/guides/coupon-stacking-guide/): 加倍卷疊加規則、常見誤解與最划算的使用方式
 - [經驗值曲線解析](https://mapleclassictools.com/guides/exp-curve-guide/): 用實際數字拆解為什麼後期經驗值需求成長這麼快
 - [卷軸強化期望值](https://mapleclassictools.com/guides/scroll-expected-value-guide/): 卷軸強化的期望值計算邏輯，為什麼提早停損反而省錢
 
-站內另有「玩法攻略」（任務攻略、職業攻略、組隊任務，以及殘暴炎魔、闇黑龍王、拉圖斯的 BOSS 前置）與「社群資料」（玩家回報的練功效率、編輯精選推薦地點）兩個分頁，內容整理自巴哈姆特哈啦板與 Threads 的玩家實測心得。
+站內另有「玩法攻略」（任務攻略、職業攻略、組隊任務，以及殘暴炎魔、闇黑龍王、拉圖斯的 BOSS 前置）與「社群資料」（玩家回報的練功效率、編輯精選推薦地點）兩個分頁，保留巴哈姆特哈啦板與 Threads 的來源歸屬。開服實測、舊版攻略及拆包預覽必須分開引用；未開放的艾納斯島任務、女神之塔與炎魔等內容不是現行練功建議。
 
 ## 引用這站時請注意
 
-- 攻略內容多數來自開服後幾週的玩家實測，站上每張卡片都標了來源與「是否有第二個來源交叉確認」，引用時建議一併帶上這個限制
+- 每張攻略卡片保留來源與交叉確認限制；先辨別開服後實測、舊版來源或拆包預覽，不要將未開放的流程、獎勵、職業評價當成現行事實
 - 標示為「舊版社群考據」的公式（命中率、技能點法）沿用 pre-Big Bang 時代的玩家研究，經典版尚未有大規模實測驗證
 - 本站與遊戲橘子、Nexon 沒有任何關聯，是玩家自製的非官方工具

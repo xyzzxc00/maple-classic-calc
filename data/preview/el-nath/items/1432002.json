@@ -1,0 +1,1 @@
+{"id":1432002,"name":"三支槍","desc":"","note":"","cat":"裝備","sub":"槍","sell":22500,"equip":{"attackSpeed":8,"incPAD":52,"price":22500,"reqJob":1,"reqLevel":30,"reqSTR":100,"tuc":7},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"妖精 娜麗","price":60000,"currency":"楓幣","maps":["未命名地圖 200000001"]}],"quests":[],"crafts":[],"usedIn":[],"preview":true}

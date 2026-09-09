@@ -82,7 +82,8 @@
   // 錨點是「開哪個分頁」的一次性指令、用完就抹掉，詳情網址則是要能分享、
   // 能重新整理、能加書籤的，得留在網址列上。這裡只負責認出「要開資料庫頁」，
   // 實際開哪一筆由 db.js 自己讀參數處理
-  const hasDbRoute = new URLSearchParams(location.search).has("db");
+  const dbParams = new URLSearchParams(location.search);
+  const hasDbRoute = dbParams.has("db") || (dbParams.get("preview") === "el-nath" && (!hashMain || hashMain === "db"));
   const initialPage =
     hasDbRoute && pages.db
       ? "db"

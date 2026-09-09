@@ -1,0 +1,1 @@
+{"id":1040000,"name":"黃金鎧甲","desc":"","note":"","cat":"裝備","sub":"上衣","sell":50000,"equip":{"incDEX":3,"incMMP":10,"incPDD":45,"price":50000,"reqJob":1,"reqLevel":40,"reqSTR":130,"tuc":7},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"盧米","price":200000,"currency":"楓幣","maps":["未命名地圖 211000101"]}],"quests":[],"crafts":[],"usedIn":[],"preview":true}

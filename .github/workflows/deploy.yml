@@ -87,6 +87,18 @@ jobs:
       - name: Check database integrity
         run: python3 tools/check_data.py
 
+      - name: Check El Nath preview data
+        run: node tools/test_el_nath.js
+
+      - name: Check skill text
+        run: node tools/test_skill_text.js
+
+      - name: Check database async flows
+        run: node tools/test_db_async.js
+
+      - name: Check El Nath guide
+        run: python3 tools/build_el_nath_guide.py --check
+
       # FAQ 的 JSON-LD 與可見 HTML 對不上，Google 會讓整組 rich result 消失
       # 而且不通知；文案裡的筆數與實際資料檔對不上會餵錯給 AI 檢索器
       - name: Check SEO copy

@@ -902,7 +902,7 @@
       const active = advancement === activeTab;
       return '<button class="db-chip' + (active ? " db-chip--on" : "") + '" type="button" role="tab" ' +
         'aria-selected="' + active + '" data-atk-skill-tab="' + esc(advancement) + '">' +
-        esc(advancement) + "</button>";
+        esc(advancement) + (advancement === "三轉" ? "（預覽）" : "") + "</button>";
     }).join("");
   }
 
@@ -918,7 +918,9 @@
     renderSkillTabs();
     const activeTab = ensureSkillTab();
     const rows = jobSkills().filter((skill) => skillAdvancement(skill) === activeTab);
-    els.skillList.innerHTML = rows.map((skill) => {
+    const previewHint = activeTab === "三轉"
+      ? '<p class="db-preview-notice">三轉配點為拆包預覽，尚非正式服實測。<a href="guides/third-job-el-nath/#skills">查看各職業三轉技能與資料限制 →</a></p>' : "";
+    els.skillList.innerHTML = previewHint + (rows.map((skill) => {
       const level = skillLevel(skill.id);
       const warnings = level ? prerequisiteWarnings(skill) : [];
       const maxAllowed = skillAssignableMax(skill);
@@ -936,7 +938,7 @@
         (maxAllowed <= level ? " disabled" : "") + ">MAX</button></span>" +
         (warnings.length ? '<em class="atk-warning">' + esc(warnings.join("、")) + "</em>" : "") +
         "</div>";
-    }).join("") || '<p class="cm-empty">此階段沒有技能</p>';
+    }).join("") || '<p class="cm-empty">此階段沒有技能</p>');
   }
 
   function formatBuffEffects(effects) {
@@ -1090,7 +1092,7 @@
 
   function initJobs() {
     els.job.innerHTML = (db.jobs || []).map((job) =>
-      '<option value="' + esc(job.id) + '">' + esc(job.name) + "</option>").join("");
+      '<option value="' + esc(job.id) + '">' + esc(job.name) + "路線</option>").join("");
     state.jobId = ((db.jobs || [])[0] || {}).id || "";
     restoreState();
     if (!(db.jobs || []).some((job) => job.id === state.jobId)) {

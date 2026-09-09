@@ -1,0 +1,1 @@
+{"id":1072171,"name":"黑雪鞋","desc":"只要穿上它，就算在雪地也不會滑倒。","note":"","cat":"裝備","sub":"鞋子","sell":14500,"equip":{"incMDD":5,"incPDD":18,"price":14500,"reqJob":8,"reqLevel":30,"tuc":7},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"盧米","price":29000,"currency":"楓幣","maps":["未命名地圖 211000101"]}],"quests":[],"crafts":[],"usedIn":[],"preview":true}

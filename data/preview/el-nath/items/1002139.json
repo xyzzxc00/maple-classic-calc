@@ -1,0 +1,1 @@
+{"id":1002139,"name":"紅羽翼三角帽","desc":"","note":"","cat":"裝備","sub":"帽子","sell":25000,"equip":{"incMHP":10,"incPDD":24,"price":25000,"reqDEX":120,"reqJob":4,"reqLevel":35,"reqSTR":35,"tuc":7},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"盧米","price":100000,"currency":"楓幣","maps":["未命名地圖 211000101"]}],"quests":[],"crafts":[],"usedIn":[],"preview":true}
