@@ -2778,6 +2778,10 @@ body.has-sidebar .theme-toggle {
   background: radial-gradient(circle at 12% 15%, var(--accent-tint), transparent 55%), var(--surface);
 }
 .dashboard-hero .subtitle { max-width: 560px; margin-bottom: 18px; }
+.home-retirement-notice { font-size: 15px; }
+.home-retirement-notice h2 { margin: 0 0 10px; font-size: 18px; color: var(--ink); }
+.home-retirement-notice p { margin: 0; }
+.home-retirement-notice p + p { margin-top: 8px; }
 .dashboard-hero-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
 .dashboard-hero-actions .btn-primary { width: auto; }
 
