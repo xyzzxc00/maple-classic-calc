@@ -31,12 +31,25 @@ import sys
 # （四轉技能、Lv.120 任務、還沒開的大陸），照單全收會讓站上列出遊戲裡根本
 # 進不去的東西——本站一向標榜數字查證過，這個信譽不能為了資料量犧牲。
 #
-# 2026-08 現況：這四塊，等級上限 100。鯨魚號那 10 張圖沒有怪，但有 NPC，
+# 2026-09-10 官方 V001 公告 Bid=82647：仍為這四塊、二轉、等級上限 100。
+# 三轉技能沿用既有參考資料；不代表已開放。鯨魚號沒有怪，但有 NPC，
 # 也是世界地圖的一環。之後開新地區，改這裡再重跑就好。
 OPEN_REGIONS = {"楓之島", "維多利亞島", "奇幻村", "鯨魚號"}
 LEVEL_CAP = 100
 PREVIEW_MODE = False
 PREVIEW_EXCLUDED_QUEST_ITEMS = set()
+WORLD_MAP_GEOMETRY = {}
+
+# 官方 eventAdId=19112 僅開放第一階段。1.15.0 任務文字 69099 是交付
+# 基礎戒指的結尾（後續強化尚未開放）；不能用 Lv.30 自動放行未來任務。
+RING_FIRST_STAGE = {str(i) for i in [*range(69039, 69044),
+                                    *range(69045, 69053), *range(69057, 69100)]}
+RING_SOURCE = "https://maplestoryclassic-event.beanfun.com/EventAd/EventAd?eventAdId=19112"
+OFFICIAL_ITEM_NOTES = {
+    1113372: "9/10 官方公告第一階段任務可取得：HP +500。任務資料未提供選擇獎勵的發放欄位；補發及更換屬性的指定 NPC 待確認。",
+    1113373: "9/10 官方公告第一階段任務可取得：MP +500。任務資料未提供選擇獎勵的發放欄位；補發及更換屬性的指定 NPC 待確認。",
+    1113374: "9/10 官方公告第一階段任務可取得：HP +250、MP +250。任務資料未提供選擇獎勵的發放欄位；補發及更換屬性的指定 NPC 待確認。",
+}
 
 # 官方已修正檸檬說明，目前沒有需要額外覆蓋的道具警告。
 ITEM_NOTES = {}
@@ -107,7 +120,10 @@ def open_map_ids(maps):
     return {
         m["id"]
         for m in maps
-        if m.get("regionName") in OPEN_REGIONS or m.get("street") in OPEN_REGIONS
+        if (m.get("regionName") in OPEN_REGIONS or m.get("street") in OPEN_REGIONS)
+        # 未命名的跨版本圖鑑關聯不能把菇菇王國等內容變成現行地區。
+        and (not m.get("mapDataMissing") or
+             (PREVIEW_MODE and m.get("regionName") in {"冰原雪域", "廢礦"}))
     }
 
 
@@ -123,13 +139,18 @@ def open_quest_ids(quests, map_ids, monster_ids, skill_ids, job_open, field_mob_
     """
     out = set()
     for q in quests:
+        # 特殊月光水晶是另一套商品，不能僅憑同為合作道具就視為已開放。
+        if str(q["id"]) == "505812":
+            continue
+        if q.get("name", "").startswith("[冒險家的戒指]") and str(q["id"]) not in RING_FIRST_STAGE:
+            continue
         if (q.get("minLevel") or 0) > LEVEL_CAP:
             continue
         npcs = {
             key: [mp.get("id") for mp in ((q.get(key) or {}).get("maps") or [])]
             for key in ("startNpc", "endNpc")
         }
-        if not (npcs["startNpc"] or npcs["endNpc"]):
+        if not (npcs["startNpc"] or npcs["endNpc"]) and str(q["id"]) not in RING_FIRST_STAGE:
             continue
         if any(ids and not any(i in map_ids for i in ids) for ids in npcs.values()):
             continue
@@ -199,7 +220,8 @@ def preview_provenance(row):
     Multiple distinct evidence rows remain in sourceEvidence, rather than overwriting
     one another when several spawns/references are collapsed into one relation.
     """
-    if not PREVIEW_MODE:
+    if not PREVIEW_MODE and not (row.get("source") == "quest" and
+                                any(str(q) in RING_FIRST_STAGE for q in row.get("questIds", []))):
         return {}
     out = {key: copy.deepcopy(row[key]) for key in PROVENANCE_FIELDS if key in row}
     if "dropRates" in row:
@@ -325,7 +347,8 @@ def trim_quest(q):
 def build_detail(m, map_ids, quest_ids, item_ids, map_page_ids):
     """單隻怪的詳情。出沒地圖要再過濾一次——有些怪同時住在開放與未開放地區
     （例如蝴蝶精在維多利亞島也在冰原雪域），只能列出進得去的那些"""
-    all_drops = [d for d in (m.get("drops") or []) if preview_drop_allowed(d, quest_ids)]
+    all_drops = [d for d in (m.get("drops") or []) if preview_drop_allowed(d, quest_ids)
+                 and (PREVIEW_MODE or not str(d["id"]).startswith("238"))]
     drops = [trim_drop(d, item_ids) for d in all_drops if d["id"] in item_ids]
     hidden_drops = len(all_drops) - len(drops)
     maps = [
@@ -666,6 +689,12 @@ def load_gacha_pools(src):
             items = sorted({x["itemId"] for x in (p.get("prizes") or []) if x.get("itemId")})
             if not items:
                 continue
+            previous = by_id.get(p["id"])
+            if previous and previous.get("period") != p.get("period"):
+                # 官方活動 ID 會重用。以日期留存舊期，不能用同 ID 覆蓋歷史。
+                suffix = re.sub(r"\D", "", previous.get("period", "")[:10])
+                historical = {**previous, "id": f"{previous['id']}-{suffix}"}
+                by_id[historical["id"]] = historical
             by_id[p["id"]] = {
                 "id": p["id"],
                 "name": p.get("name") or "轉蛋機",
@@ -690,6 +719,9 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids, gacha_of=Non
         # 未命名道具：遊戲資料裡沒有名字也沒有圖示（顯示成「未命名道具
         # 4004000」），多半是內部用或未啟用的東西，列出來只是雜訊＋破圖
         if it.get("unnamed"):
+            continue
+        # 怪物卡是舊版圖鑑補充；尚無本服開放證據，僅保留於預覽。
+        if not PREVIEW_MODE and str(it["id"]).startswith("238"):
             continue
         src = it.get("sources") or {}
         drops = [d for d in (src.get("monsterDrops") or [])
@@ -760,7 +792,7 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids, gacha_of=Non
             if prod.get("id") and not prod.get("unnamed"):
                 used_in[prod["id"]] = {"id": prod["id"], "name": prod.get("name") or ""}
 
-        if not (drops or shops or q_rewards or q_reqs or crafts or gacha):
+        if not (drops or shops or q_rewards or q_reqs or crafts or gacha or it["id"] in OFFICIAL_ITEM_NOTES):
             if PREVIEW_MODE and any(
                 str(d.get("monsterId")) in kept_monster_ids
                 and not preview_drop_allowed(d, quest_ids)
@@ -802,7 +834,7 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids, gacha_of=Non
             "id": it["id"],
             "name": it.get("name") or "",
             "desc": (it.get("desc") or "").strip(),
-            "note": ITEM_NOTES.get(it["id"], ""),
+            "note": ITEM_NOTES.get(it["id"], OFFICIAL_ITEM_NOTES.get(it["id"], "")),
             "cat": it.get("category") or "",
             "sub": it.get("subcategory") or "",
             "sell": it.get("sellPrice") or 0,
@@ -841,6 +873,9 @@ def build_item_details(items, kept_monster_ids, map_ids, quest_ids, gacha_of=Non
         # 轉蛋來源只有一小部分道具有，不塞空欄位進其他一千多個檔
         if gacha:
             out[-1]["gacha"] = gacha
+        if it["id"] in OFFICIAL_ITEM_NOTES:
+            out[-1]["officialSources"] = [{"title": "冒險家戒指第一階段", "url": RING_SOURCE,
+                                           "checkedAt": "2026-09-10"}]
     out.sort(key=lambda d: (d["cat"], d["sub"], d["name"]))
     return out
 
@@ -1141,6 +1176,15 @@ def build_world_maps(worldmaps_db, map_page_ids):
     for r in worldmaps_db["worldMaps"]["regions"]:
         if r["name"] not in order:
             continue
+        # 1.15.0 缺少世界圖圖片尺寸，節點採用另一組百分比，不能套在
+        # 已保留的圖片上。沿用同一張圖已核對的尺寸／座標直到取得配套圖。
+        previous = WORLD_MAP_GEOMETRY.get(r["key"])
+        if previous and not (r.get("imageWidth") and r.get("imageHeight")):
+            retained = copy.deepcopy(previous)
+            for node in retained["nodes"]:
+                node["link"] = int(node["id"]) in map_page_ids
+            out.append(retained)
+            continue
         nodes = []
         for n in r.get("nodes") or []:
             if n.get("unnamed") or n.get("worldSubMap"):
@@ -1258,6 +1302,10 @@ def copy_image(src_root, rel_path, dest_dir, dest_name=None):
 
 def main():
     PREVIEW_EXCLUDED_QUEST_ITEMS.clear()
+    previous_world = os.path.join(OUT_DATA, "worldmaps.json")
+    if os.path.exists(previous_world):
+        with open(previous_world, encoding="utf-8") as f:
+            WORLD_MAP_GEOMETRY.update({r["key"]: r for r in json.load(f)})
     src = (sys.argv[1] if len(sys.argv) > 1 else os.environ.get("MS_DB_SOURCE", "")).strip()
     if not src or not os.path.isdir(src):
         fail("請指定拆包資料夾：python tools/import_db.py <資料夾>")
@@ -1332,6 +1380,12 @@ def main():
         build_quest_detail(q, map_ids, monster_ids, skill_names, quest_ids, item_ids)
         for q in kept_quests
     ]
+    ring_rewards = {q["id"]: {i["id"] for i in q["rewards"]["items"]}
+                    for q in quest_details if q["id"] in RING_FIRST_STAGE}
+    for item in item_details:
+        item["quests"] = [q for q in item["quests"]
+                          if q["kind"] != "獎勵" or q["id"] not in ring_rewards
+                          or item["id"] in ring_rewards[q["id"]]]
     quest_details.sort(key=lambda d: (d["category"], d["minLevel"] or 0, d["name"]))
     os.makedirs(os.path.join(OUT_DATA, "quests"), exist_ok=True)
     with open(os.path.join(OUT_DATA, "quests.json"), "w", encoding="utf-8") as f:
@@ -1454,8 +1508,7 @@ def main():
     item_paths = dict(item_img_paths)
     for m in kept:
         for d in m.get("drops") or []:
-            if d.get("image") and (not PREVIEW_MODE or
-                                    (d["id"] in item_ids and preview_drop_allowed(d, quest_ids))):
+            if d.get("image") and d["id"] in item_ids and preview_drop_allowed(d, quest_ids):
                 item_paths[d["id"]] = d["image"]
     # 資料物件沒帶圖片路徑、但來源其實有同名檔的：直接補。兩個來源——
     # 收錄道具本身，以及任務詳情的條件/獎勵晶片（那些道具不一定被收錄，

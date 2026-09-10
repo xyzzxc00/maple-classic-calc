@@ -1,0 +1,1 @@
+{"id":1050007,"name":"白劍道服","desc":"","note":"","cat":"裝備","sub":"套服","sell":9000,"equip":{"incDEX":1,"incMMP":5,"incPDD":36,"price":9000,"reqJob":1,"reqLevel":20,"reqSTR":65,"tuc":10},"float":{},"floatFrom":[],"drops":[],"shops":[{"npc":"海里","price":15000,"currency":"楓幣","maps":["維多利亞 / 勇士之村武器店"]}],"quests":[],"crafts":[],"usedIn":[]}

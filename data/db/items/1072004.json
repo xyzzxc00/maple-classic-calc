@@ -1,0 +1,1 @@
+{"id":1072004,"name":"白橡膠鞋","desc":"","note":"","cat":"裝備","sub":"鞋子","sell":1000,"equip":{"incPDD":4,"incSpeed":2,"price":1000,"reqLevel":11,"tuc":5},"float":{"incSpeed":[1,3],"incPDD":[3,5]},"floatFrom":["怪物掉落"],"drops":[{"id":"1210102","name":"菇菇寶貝","level":8}],"shops":[{"npc":"瑪帕","price":2000,"currency":"楓幣","maps":["維多利亞 / 墮落城市武器店"]}],"quests":[],"crafts":[],"usedIn":[]}

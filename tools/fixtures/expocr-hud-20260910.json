@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "expocr-hud-20260910",
+  "provenance": "Unscaled pixels cropped from the user-supplied September 10 game screenshot.",
+  "sourceWidth": 1367,
+  "sourceHeight": 768,
+  "reportedResolution": "1366x768",
+  "expected": {
+    "level": 63,
+    "exp": 1208864,
+    "percent": 85.13,
+    "display": "1208864[85.13%]"
+  },
+  "encoding": "base64(zlib(RGBA8 row-major))",
+  "notes": [
+    "The actual source image is 1367x768; the reported resolution is not its pixel dimensions.",
+    "Only the level badge and EXP text row are retained; no character names, chat, or other screen contents are stored.",
+    "Brackets are green RGB(153,204,51), not white. The percentage is 85.13, not 89.13.",
+    "Glyphs are native 7-pixel-high bitmap digits: level 7x7, EXP 5x7 with a narrow 1.",
+    "Any frame reconstructed from these crops has a synthetic background. Rescaled crops and other resolutions are synthetic tests, not additional real captures."
+  ],
+  "crops": {
+    "lv": {
+      "x": 45,
+      "y": 741,
+      "width": 39,
+      "height": 17,
+      "rgbaSha256": "8babc5f7b2dd68d6d228c7a30b62c20b869198c146a7741d852f4a15e0009e12",
+      "rgbaZlibBase64": "eNrFlOsNwyAMhGfI77wZjhW8QnbqCl0hK2QFWqux6oJdMCUq0ikiuuAvZ8A5F9Z1De75JOEctSxLmOf5byKGq5mmaTIrZixZO2xdVhbvOI6JOJvGFf9LSa0aSXwlfeB+vt4BXdiZcK7VznmHYUhEDFpWnAv9tBauL41d4CvxWtk4E4kyoHH3r9p39o5ncmzMe2aG38Tevu8TxWdCy4uz7QIb1ZRyi/tpYaN9l+OS2JI+YV04tcn50bj5swfwOxv6tdySLMCQG7TL7cix+Tdbdr/5tmxfz57Q0xJvSzb1zgJlv2W8rdk+BIIM3po7RLoTLbVquWrutxbSWErZYr4rGHN6ADpyD/o="
+    },
+    "exp": {
+      "x": 837,
+      "y": 731,
+      "width": 88,
+      "height": 12,
+      "rgbaSha256": "af4005f91833db79fbc5eee1e35ddec45abd638df42e4fc68fa436975891dcc7",
+      "rgbaZlibBase64": "eNrtls1Kw0AUhR/KnWjFP6qxJdofUioVf8CF3Si+hxtB8FUEcSUi+ETZRE9gwvTMvZNpTKCFHPjIzLkzN+e2m8zvH7N5KA8ty3J1e9fSIMnFtQMkeUbJ7Kagad+um/Xrz0aO764kqS/3Dsmp3edc4HQyW8CIPWnftK9lwgzLZtOoMq9d57N2NtAfTx0gyec6n6vLLzuDGbSsIT2rzutbS9lANJg4QJJ/PEzyGp68lmpGfIZ9ltbPrDFDWU+fz2h1313N52zdeOQA6f64QNvX6bPgY4ayDIzt90bT7PPrO3t6fvHeCXkH1+xs4KB/5gDJ3mAB9sy+Ll/zMEPVDGB4fpmlaZq9vX8Evd/eS2stG9iN4oLtwyh/QrxnmTuSV6dv180aM/y3J37jvZNYnFe7K/Vhj7PtdHvBdFYEzNBZoTy+bFt//9m6Yb4z1yHX5v5RS4P8AuZ+iuI="
+    }
+  }
+}

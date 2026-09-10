@@ -755,13 +755,19 @@ body.dark .top-banner :focus-visible {
   height: 12px;
   overflow: hidden;
 }
-.scroll-sim-dist-bar-fill { height: 100%; background: var(--accent); border-radius: 6px; }
+.scroll-sim-dist-bar-fill { display: block; height: 100%; background: var(--accent); border-radius: 6px; }
 .scroll-sim-dist-count { flex: 1 1 auto; text-align: right; font-weight: 700; white-space: nowrap; }
 
 /* ---------- 轉蛋模擬（骨架階段） ---------- */
 /* 道具名稱比卷軸模擬的「成功 N」短標籤長很多，56px 會被截斷，這裡單獨
    加寬，只影響 #gachaDist 底下的列，不影響卷軸模擬原本的窄標籤 */
 #gachaDist .scroll-sim-dist-label { flex-basis: 160px; }
+@media (max-width: 560px) {
+  #gachaDist .scroll-sim-dist-row { flex-wrap: wrap; gap: 6px 10px; padding: 8px 0; }
+  #gachaDist .scroll-sim-dist-label { flex: 1 0 100%; overflow-wrap: anywhere; }
+  #gachaDist .scroll-sim-dist-bar-track { flex: 1 1 80px; }
+  #gachaDist .scroll-sim-dist-count { flex: 0 0 auto; }
+}
 
 .gacha-result-grid {
   display: grid;
@@ -3632,6 +3638,9 @@ body.has-sidebar .theme-toggle {
 
 /* 自動測速視窗的頁內懸浮退路：跟練等小視窗錯開位置，兩個同時開不會疊 */
 .miniwin-float--ocr { right: 332px; }
+@media (max-width: 660px) {
+  .miniwin-float--ocr { right: 12px; }
+}
 
 /* EXP 測速 panel-head 同時放「自動測速視窗」與「清除」兩顆鈕：
    標題靠左、按鈕靠右並排 */

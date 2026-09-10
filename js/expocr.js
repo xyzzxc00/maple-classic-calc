@@ -4,15 +4,15 @@
  * 用瀏覽器的 getDisplayMedia 請玩家分享遊戲視窗，每秒截一格畫面，
  * 讀出等級與 EXP，自動累計獲得經驗、換算速率。
  *
- * 辨識架構（實測演化到第三版的結果）：
- * - 定位：先依擷取尺寸／長寬比嘗試全部已知 HUD 版型；仍讀不到時，
+ * 辨識架構：
+ * - 定位：優先重用已驗證位置，再嘗試新版底部 HUD 與舊版型；仍讀不到時，
+ *   以綠色 EXP 括號和橘色等級徽章定位，通過數值交叉驗證才鎖定；最後
  *   再把整條狀態列丟給 Tesseract OCR（只在這一步用），
  *   利用它會回報「每個詞的座標」，找到「數字[百分比%]」樣式的詞
  *   （＝EXP）鎖定位置；等級用同一行左段，可涵蓋未預先收錄的解析度。
  * - 讀值：不用 OCR——遊戲數字是固定點陣字形（EXP 5×7、等級徽章 7×7），
- *   直接用像素圖樣比對（移植自另一位玩家工具作者的公開實作，同一款
- *   遊戲實機驗證過的字模）。比 OCR 快百倍且不會有 3↔2、小數點被吃
- *   這類字形誤讀；百分比從設計上就不讀小數點（取數字末兩位當小數）。
+ *   直接用實機點陣字模比對。每次必須以等級需求驗證 EXP 與百分比，
+ *   不能只因為連續讀到相同數字就接受；百分比取數字末兩位當小數。
  *
  * 防誤判：
  * 1. EXP 數字與百分比交叉驗證（用本站經驗值表），對不上就丟棄
@@ -26,6 +26,9 @@
 (function () {
   const INTERVAL_MS = 1000; // 圖樣比對是純像素運算，毫秒級，真的可以每秒讀
   const TESSERACT_URL = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+  const OCR_PADDING = 16;
+  const CALIBRATION_TIMEOUT_MS = 15000;
+  const HUD_SEARCH_LIMITS = Object.freeze({ pairs: 512, expReads: 48, levelReads: 16, opensPerBadge: 64 });
 
   // 校準失敗時的最後退路：常見全螢幕解析度下，等級/EXP 佔畫面的比例位置
   const PRESETS = {
@@ -116,7 +119,7 @@
     stream: null,
     video: null,
     timer: null,
-    ticking: false,
+    tickOwner: null,
     tesseractFailed: false,
     status: "",
     presetKey: "",
@@ -132,6 +135,7 @@
     lockMisses: 0,
     calibrateAttempts: 0,
     lvWide: false,
+    generation: 0, // 停止、重新定位或切換來源後，舊的非同步校準不能回寫。
     // 累計
     firstAt: 0,
     lastAt: 0,
@@ -141,7 +145,6 @@
     samples: 0,
     rejects: 0,
     history: [], // 每筆收下的樣本 {t, gained}——算「實測 5/10 分鐘視窗」用
-    pendingFirst: null, // 第一筆錨定備援：上一輪的候選讀值
     contRejects: 0, // 連續「驗證有過卻跟前一筆接不上」的筆數（重新對齊用）
   };
 
@@ -214,18 +217,44 @@
     });
   }
   let workerPromise = null;
+  let currentWorker = null;
+  let workerUse = null;
+  let workerShutdown = Promise.resolve();
   function ensureWorker() {
     if (state.tesseractFailed) return Promise.resolve(null);
     if (!workerPromise) {
       setStatus("辨識元件載入中…（第一次要下載，約幾 MB）");
-      workerPromise = (window.Tesseract ? Promise.resolve() : loadScript(TESSERACT_URL))
+      const pending = workerShutdown
+        .then(() => window.Tesseract ? null : loadScript(TESSERACT_URL))
         .then(() => window.Tesseract.createWorker("eng"))
+        .then(worker => {
+          if (workerPromise === pending) currentWorker = worker;
+          return worker;
+        })
         .catch(() => {
-          state.tesseractFailed = true;
+          if (workerPromise === pending) state.tesseractFailed = true;
           return null;
         });
+      workerPromise = pending;
     }
     return workerPromise;
+  }
+
+  function retireWorker(worker) {
+    if (!worker || currentWorker !== worker) return;
+    currentWorker = null;
+    workerPromise = null;
+    // 不在仍執行中的 worker 上開始另一輪 setParameters/recognize。
+    // 清理中的 promise 也共用；即使終止卡住，新世代的像素讀取仍可運作。
+    workerShutdown = Promise.resolve().then(() => worker.terminate());
+    workerShutdown.catch(() => {});
+  }
+
+  function invalidateTick() {
+    const previous = state.tickOwner;
+    state.generation++;
+    state.tickOwner = null;
+    if (previous && previous.cancelCalibration) previous.cancelCalibration();
   }
 
   function fixDigitConfusion(text) {
@@ -292,14 +321,136 @@
   }
 
   function clampRect(rect, w, h) {
-    const x = Math.max(0, Math.min(rect.x, w - 1));
-    const y = Math.max(0, Math.min(rect.y, h - 1));
+    const x = Math.max(0, Math.min(Math.round(rect.x), w - 1));
+    const y = Math.max(0, Math.min(Math.round(rect.y), h - 1));
     return {
       x,
       y,
-      width: Math.max(1, Math.min(rect.width, w - x)),
-      height: Math.max(1, Math.min(rect.height, h - y)),
+      width: Math.max(1, Math.min(Math.round(rect.width), w - x)),
+      height: Math.max(1, Math.min(Math.round(rect.height), h - y)),
     };
+  }
+
+  // 9/10 HUD：等級靠左、EXP 在底部右半。UI 像素大小不一定隨解析度同比
+  // 放大，所以同時涵蓋原生 UI 與常見 DPI；找不到時再用顏色特徵定位。
+  function modernReadCandidates(w, h) {
+    const scales = [...new Set([1, h / 768, 1.25, 1.5, 1.75, 2, 2.5, 3, 4])];
+    return scales.filter(s => s >= 0.75 && s <= 4).map(scale => ({
+      key: "hud-20260910-" + scale,
+      lv: clampRect({ x: 0, y: Math.round(h - 40 * scale),
+        width: Math.round(Math.min(w * 0.4, 110 * scale)), height: Math.round(40 * scale) }, w, h),
+      exp: clampRect({ x: Math.round(w * 0.55), y: Math.round(h - 39 * scale),
+        width: Math.round(w * 0.22), height: Math.round(15 * scale) }, w, h),
+      wide: true,
+      tag: "新版狀態列 " + Math.round(scale * 100) + "%",
+    }));
+  }
+
+  function slicePixels(img, rect) {
+    const r = clampRect(rect, img.width, img.height);
+    const data = new Uint8ClampedArray(r.width * r.height * 4);
+    for (let y = 0; y < r.height; y++) {
+      const start = ((r.y + y) * img.width + r.x) * 4;
+      data.set(img.data.subarray(start, start + r.width * 4), y * r.width * 4);
+    }
+    return { width: r.width, height: r.height, data };
+  }
+
+  // 連通色塊不依賴絕對座標，可涵蓋帶外框、偏移、超寬和不同 UI 比例。
+  // 只對底部裁切執行，而且必須先走完輕量版型仍失敗才執行。
+  function inkComponents(img, inkFn) {
+    const mask = new Uint8Array(img.width * img.height);
+    for (let i = 0; i < mask.length; i++) {
+      mask[i] = inkFn(img.data[i * 4], img.data[i * 4 + 1], img.data[i * 4 + 2]) ? 1 : 0;
+    }
+    const out = [];
+    for (let i = 0; i < mask.length; i++) {
+      if (!mask[i]) continue;
+      mask[i] = 0;
+      const queue = [i];
+      let minX = img.width, maxX = 0, minY = img.height, maxY = 0;
+      for (let head = 0; head < queue.length; head++) {
+        const index = queue[head], x = index % img.width, y = Math.floor(index / img.width);
+        minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+        minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+        for (let yy = Math.max(0, y - 1); yy <= Math.min(img.height - 1, y + 1); yy++) {
+          for (let xx = Math.max(0, x - 1); xx <= Math.min(img.width - 1, x + 1); xx++) {
+            const next = yy * img.width + xx;
+            if (mask[next]) { mask[next] = 0; queue.push(next); }
+          }
+        }
+      }
+      out.push({ minX, maxX, minY, maxY, width: maxX - minX + 1, height: maxY - minY + 1 });
+    }
+    return out;
+  }
+
+  function locateHudFromImage(img, offsetY = 0, stats = {}) {
+    Object.assign(stats, { pairChecks: 0, expReads: 0, levelReads: 0 });
+    const brackets = inkComponents(img, expBracketInk).filter(b =>
+      b.height >= 5 && b.height <= 64 && b.width <= b.height * 0.65);
+    const badges = inkComponents(img, lvBadgeInk).filter(b =>
+      b.height >= 6 && b.height <= 96 && b.width >= 8 && b.width <= b.height * 6 && b.minX < img.width * 0.5)
+      .sort((a, b) => b.maxY - a.maxY || a.minX - b.minX)
+      .slice(0, HUD_SEARCH_LIMITS.levelReads);
+    const out = [];
+    if (!badges.length || brackets.length < 2) return out;
+    // 依列與 x 建索引，不把整個底帶的所有色塊兩兩配對。
+    const rows = new Map();
+    for (const bracket of brackets) {
+      if (!rows.has(bracket.minY)) rows.set(bracket.minY, []);
+      rows.get(bracket.minY).push(bracket);
+    }
+    rows.forEach(row => row.sort((a, b) => a.minX - b.minX));
+    const expCache = new Map();
+    for (const badge of badges) {
+      const padY = Math.max(2, Math.round(badge.height / 6));
+      const padX = padY * 2;
+      const lvRect = clampRect({ x: Math.max(0, badge.minX - padX), y: Math.max(0, badge.minY - padY),
+        width: badge.width + padX * 2, height: badge.height + padY * 2 }, img.width, img.height);
+      stats.levelReads++;
+      const levels = readLevelCandidatesFromImage(slicePixels(img, lvRect), true);
+      if (!levels.length) continue;
+      // 先找徽章旁的實際文字行；同列時偏好 HUD 常見的畫面右半位置。
+      const rank = b => Math.abs((badge.minY - b.minY) / b.height - 1) + Math.abs(b.minX / img.width - 0.65);
+      const opens = brackets.filter(b => b.minX > badge.maxX && Math.abs(badge.minY - b.minY) <= b.height * 3)
+        .sort((a, b) => rank(a) - rank(b)).slice(0, HUD_SEARCH_LIMITS.opensPerBadge);
+      for (const open of opens) {
+        const rowTolerance = Math.floor(open.height * 0.2);
+        for (let y = open.minY - rowTolerance; y <= open.minY + rowTolerance; y++) {
+          const row = rows.get(y);
+          if (!row) continue;
+          let lo = 0, hi = row.length;
+          while (lo < hi) {
+            const mid = (lo + hi) >>> 1;
+            if (row[mid].minX <= open.maxX) lo = mid + 1;
+            else hi = mid;
+          }
+          for (let i = lo; i < row.length && row[i].minX - open.maxX <= open.height * 8; i++) {
+            if (stats.pairChecks >= HUD_SEARCH_LIMITS.pairs) return out;
+            stats.pairChecks++;
+            const close = row[i];
+            if (Math.abs(open.height - close.height) > open.height * 0.2) continue;
+            const pad = Math.max(2, Math.round(open.height / 4));
+            const expRect = clampRect({ x: Math.max(0, open.minX - open.height * 12), y: Math.max(0, open.minY - pad),
+              width: close.maxX - Math.max(0, open.minX - open.height * 12) + pad + 1,
+              height: open.height + pad * 2 }, img.width, img.height);
+            const key = [expRect.x, expRect.y, expRect.width, expRect.height].join(":");
+            if (!expCache.has(key)) {
+              if (stats.expReads >= HUD_SEARCH_LIMITS.expReads) return out;
+              stats.expReads++;
+              expCache.set(key, readExpFromImage(slicePixels(img, expRect)));
+            }
+            const parsed = expCache.get(key);
+            if (!levels.some(l => crossCheck(l.level, parsed.exp, parsed.percent))) continue;
+            out.push({ lv: { ...lvRect, y: lvRect.y + offsetY }, exp: { ...expRect, y: expRect.y + offsetY },
+              wide: true, tag: "狀態列特徵定位" });
+            if (out.length >= 12) return out;
+          }
+        }
+      }
+    }
+    return out;
   }
 
   function cropCanvas(source, rect, scale) {
@@ -331,7 +482,7 @@
     }
     ctx.putImageData(image, 0, 0);
     const padded = document.createElement("canvas");
-    const PAD = 16;
+    const PAD = OCR_PADDING;
     padded.width = canvas.width + PAD * 2;
     padded.height = canvas.height + PAD * 2;
     const pctx = padded.getContext("2d");
@@ -514,12 +665,26 @@
     return g.height <= Math.max(2, Math.round(refH * 0.5));
   }
 
-  function readDigits(img, groups, skipDots, refH) {
+  function readDigits(img, groups, skipDots, refH, strict = false) {
     const out = [];
-    for (const g of groups) {
+    for (let g of groups) {
       if (skipDots && isLikelyDot(g, refH || img.height)) continue;
-      const m = classifyExpDigit(img, g);
+      let m = classifyExpDigit(img, g);
+      if (skipDots && (!m || m.score > 0.3)) {
+        // 實機的小數點會緊貼小數第一位的「1」，欄切字把 .1 合為一團。
+        // 原生偶然能以窄 1 救回，125% 起卻超過窄字寬度。只剝離左側
+        // 位於文字下半部的短點，不放寬所有數字的寬度／相似度門檻。
+        let left = g.minX;
+        while (left < g.maxX) {
+          const col = glyphBounds(img, left, left, expWhiteInk, { y0: g.minY, y1: g.maxY });
+          if (col && (col.minY < g.minY + g.height * 0.45 || col.height > g.height * 0.4)) break;
+          left++;
+        }
+        if (left > g.minX) g = glyphBounds(img, left, g.maxX, expWhiteInk, { y0: g.minY, y1: g.maxY }) || g;
+        m = classifyExpDigit(img, g);
+      }
       if (m && m.score <= 0.3) out.push(m.digit); // 分數太差的字不算（雜訊/標籤字母）
+      else if (strict) return []; // EXP 不可漏掉某一位後，把殘缺數字當有效值。
     }
     return out;
   }
@@ -548,13 +713,15 @@
         const rightNeighbor = kept[kept.length - 1];
         const gapPx = rightNeighbor.minX - g.maxX;
         const h = Math.max(g.height, rightNeighbor.height);
-        if (gapPx > Math.max(5, Math.round(h * 0.45))) break; // 標籤與數字的分界
+        // 窄字「1」仍占固定字距，實機在 2 倍時會留下 8px 空隙；
+        // 以字高同比放大分界，否則多位 EXP 會被截成後半段。
+        if (gapPx > Math.max(5, Math.ceil(h * 0.75))) break; // 標籤與數字的分界
       }
       kept.push(g);
     }
     kept.reverse();
-    const expDigits = readDigits(img, kept, false).slice(-12);
-    if (!expDigits.length) return { exp: null, percent: null };
+    const expDigits = readDigits(img, kept, false, 0, true);
+    if (!expDigits.length || expDigits.length > 12) return { exp: null, percent: null };
     const exp = Number(expDigits.join(""));
     const pctDigits = readDigits(
       img,
@@ -771,53 +938,86 @@
   }
 
   // ---------- 校準：OCR 整條狀態列，用詞座標找出 EXP 的位置 ----------
-  async function calibrate(source) {
-    const worker = await ensureWorker();
-    if (!worker) return null;
+  function ocrBoxToRect(bb, strip, scale, padX, extraRight) {
+    return {
+      x: strip.x + Math.round((bb.x0 - OCR_PADDING) / scale) - padX,
+      y: strip.y + Math.round((bb.y0 - OCR_PADDING) / scale) - 3,
+      width: Math.round((bb.x1 - bb.x0) / scale) + padX * 2 + extraRight,
+      height: Math.round((bb.y1 - bb.y0) / scale) + 6,
+    };
+  }
+
+  function calibrate(source, owner) {
     const SCALE = 3;
     const stripH = Math.max(28, Math.round(source.height * 0.055));
     const strip = { x: 0, y: source.height - stripH, width: source.width, height: stripH };
-    const canvas = thresholdCanvas(cropCanvas(source, strip, SCALE));
-    let words = [];
-    try {
-      await worker.setParameters({
-        tessedit_char_whitelist: "0123456789[]()%.,/LV",
-        tessedit_pageseg_mode: "7",
+    const job = { finished: false, worker: null, sourceWidth: source.width, sourceHeight: source.height,
+      strip, canvas: thresholdCanvas(cropCanvas(source, strip, SCALE)) };
+    // 待載入的 worker 共用同一個 promise；取消只移除這份裁切與等待者，
+    // 不會因反覆按重新定位建立一批仍在下載的 worker。
+    return new Promise(resolve => {
+      const finish = result => {
+        if (job.finished) return;
+        job.finished = true;
+        clearTimeout(timeout);
+        job.canvas = null;
+        job.worker = null;
+        if (workerUse === job) workerUse = null;
+        if (owner.cancelCalibration === cancel) owner.cancelCalibration = null;
+        resolve(result);
+      };
+      const cancel = () => {
+        if (job.finished) return;
+        if (workerUse === job) retireWorker(job.worker);
+        finish(null);
+      };
+      owner.cancelCalibration = cancel;
+      const timeout = setTimeout(cancel, CALIBRATION_TIMEOUT_MS);
+      runCalibration(job).then(finish, () => {
+        if (!job.finished) retireWorker(job.worker);
+        finish(null);
       });
-      const result = await worker.recognize(canvas);
-      words = (result && result.data && result.data.words) || [];
-    } catch {
-      return null;
-    }
-    const toRect = (bb, padX, extraRight) => ({
-      x: strip.x + Math.round(bb.x0 / SCALE) - padX,
-      y: strip.y + Math.round(bb.y0 / SCALE) - 3,
-      width: Math.round((bb.x1 - bb.x0) / SCALE) + padX * 2 + extraRight,
-      height: Math.round((bb.y1 - bb.y0) / SCALE) + 6,
     });
+  }
+
+  async function runCalibration(job) {
+    const worker = await ensureWorker();
+    if (job.finished || !worker || workerUse) return null;
+    job.worker = worker;
+    workerUse = job;
+    let words = [];
+    await worker.setParameters({
+      tessedit_char_whitelist: "0123456789[]()%.,/LV",
+      tessedit_pageseg_mode: "7",
+    });
+    if (job.finished) return null;
+    const result = await worker.recognize(job.canvas);
+    if (job.finished) return null;
+    words = (result && result.data && result.data.words) || [];
+    const { strip, sourceWidth, sourceHeight } = job;
 
     // EXP：數字＋括號＋% 三個元素都有的詞（數字被誤讀不影響定位）
     let expRect = null;
     for (const w of words) {
       const t = fixDigitConfusion(w.text || "");
       if (/[0-9]/.test(t) && /[\[(]/.test(t) && t.includes("%") && w.bbox) {
-        expRect = toRect(w.bbox, 5, 16);
+        expRect = ocrBoxToRect(w.bbox, strip, 3, 5, 16);
         break;
       }
     }
     if (!expRect) return null;
     // 寬得離譜＝OCR 把整條狀態列黏成一個詞（實機發生過），放棄用預設座標
-    if (expRect.width > 320) return null;
+    if (expRect.width > Math.max(320, sourceWidth * 0.25)) return null;
 
     // 等級：同一行左段（等級一定是這一行最左邊的橘色徽章；徽章偵測交給
     // 圖樣比對那層自己找，這裡只要框出範圍）
     const lvRect = {
       x: 2,
-      y: expRect.y - 6,
-      width: Math.max(40, expRect.x - 12),
-      height: expRect.height + 12,
+      y: expRect.y - Math.ceil(expRect.height * 0.8),
+      width: Math.min(sourceWidth * 0.5, Math.max(40, expRect.x - 12)),
+      height: expRect.height * 3,
     };
-    return { lvRect, expRect };
+    return { lvRect: clampRect(lvRect, sourceWidth, sourceHeight), expRect: clampRect(expRect, sourceWidth, sourceHeight) };
   }
 
   // ---------- 驗證 ----------
@@ -831,10 +1031,11 @@
     const need = expToNext(level);
     // 沒有對應 EXP 表的等級無法做百分比驗證，不能因為「有讀到一個數字」
     // 就直接放行；否則 Lv.100 被誤讀成資料表外等級時反而完全失去防呆。
-    if (!need) return false;
-    if (exp === null || percent === null) return false;
-    if (exp > need) return false;
-    return Math.abs((exp / need) * 100 - percent) <= 2;
+    if (!need || !Number.isInteger(level)) return false;
+    if (!Number.isSafeInteger(exp) || exp < 0 || exp > need) return false;
+    if (!Number.isFinite(percent) || percent < 0 || percent > 100) return false;
+    // 畫面保留兩位小數；0.02 容納截斷／四捨五入，而不是容許整整 2% 的錯值。
+    return Math.abs((exp / need) * 100 - percent) <= 0.02;
   }
 
   function acceptSample(level, exp, percent) {
@@ -891,8 +1092,10 @@
 
   // ---------- 主循環 ----------
   async function tick(sourceOverride) {
-    if (state.ticking) return;
-    state.ticking = true;
+    if (state.tickOwner) return;
+    const generation = state.generation;
+    const owner = { generation, cancelCalibration: null };
+    state.tickOwner = owner;
     try {
       let source = sourceOverride;
       if (!source) {
@@ -925,6 +1128,7 @@
       if (state.expRectLock) {
         addCandidate({ lv: state.lvRectLock, exp: state.expRectLock, wide: state.lvWide, tag: "已定位" });
       }
+      modernReadCandidates(source.width, source.height).forEach(addCandidate);
       presetReadCandidates(source.width, source.height).forEach(addCandidate);
 
       let level = null;
@@ -933,7 +1137,8 @@
       let bestPartialScore = -1;
       let pairComplete = false;
       state.lastTickDebug = [];
-      for (const c of candidates) {
+      for (let ci = 0; ci < candidates.length; ci++) {
+        const c = candidates[ci];
         // 不加邊距：跟除錯頁走完全相同的路（邊距曾兩度造成「除錯頁讀得到、
         // 實際讀取失敗」的分歧——多框進來的經驗條/邊框線會干擾切字）
         const levelCandidates = readLevelCandidatesFromImage(cropImageData(source, c.lv), c.wide);
@@ -971,7 +1176,12 @@
           level = lvl;
           parsed = p;
           used = c;
-          pairComplete = lvl !== null && p.exp !== null;
+        }
+        if (ci === candidates.length - 1 && !pairComplete && !c.adaptive) {
+          const stripHeight = Math.min(source.height, Math.max(100, Math.round(source.height * 0.15)));
+          const offsetY = source.height - stripHeight;
+          const strip = cropImageData(source, { x: 0, y: offsetY, width: source.width, height: stripHeight });
+          locateHudFromImage(strip, offsetY).forEach(candidate => addCandidate({ ...candidate, adaptive: true }));
         }
       }
       state.presetKey = source.width + "x" + source.height + "・" + used.tag;
@@ -986,7 +1196,8 @@
       if (!pairComplete && !state.expRectLock && state.calibrateAttempts < 2) {
         state.calibrateAttempts++;
         setStatus("預設座標讀不到，改用整條狀態列定位中…（第一次要載辨識元件）");
-        const found = await calibrate(source);
+        const found = await calibrate(source, owner);
+        if (generation !== state.generation) return;
         if (found) {
           state.expRectLock = found.expRect;
           state.lvRectLock = found.lvRect;
@@ -1009,24 +1220,10 @@
         return;
       }
 
-      // 收樣判定：百分比交叉驗證為主；百分比讀不好（例如 11.43% 開頭
-      // 連續兩個 1 是最窄字形、容易讀壞）時走備援——
-      // a) 續讀：跟上一筆同等級、往前走、增量合理（<10% 升級需求）就收
-      // b) 第一筆錨定備援：連續兩輪讀到幾乎相同的值才收（防單輪誤讀）
+      // 每筆都需交叉驗證。穩定的錯框可能每秒讀到同一個錯誤值，不能以
+      // 重複兩次或增量不大取代百分比驗證，否則會建立錯誤錨點。
       const need = expToNext(level);
-      let admit = crossCheck(level, parsed.exp, parsed.percent);
-      if (!admit && parsed.exp !== null && need && parsed.exp <= need) {
-        if (state.lastLevel === level && parsed.exp >= state.lastExp && parsed.exp - state.lastExp <= need * 0.1) {
-          admit = true;
-        } else if (state.lastLevel === null) {
-          if (state.pendingFirst && state.pendingFirst.level === level &&
-              Math.abs(state.pendingFirst.exp - parsed.exp) <= need * 0.02) {
-            admit = true;
-          } else {
-            state.pendingFirst = { level, exp: parsed.exp };
-          }
-        }
-      }
+      const admit = pairComplete && crossCheck(level, parsed.exp, parsed.percent);
 
       if (!admit) {
         state.rejects++;
@@ -1036,7 +1233,6 @@
         return;
       }
       if (acceptSample(level, parsed.exp, parsed.percent)) {
-        state.pendingFirst = null;
         state.contRejects = 0;
         setStatus("讀取中（每秒更新）");
       } else if (
@@ -1049,8 +1245,11 @@
         setStatus("這筆讀值異常已略過（等級跳動或經驗倒退，屬正常防呆）");
       }
     } finally {
-      state.ticking = false;
-      emit();
+      // 舊校準的 finally 可以晚於新 tick；只有持有者才能釋放鎖與通知 UI。
+      if (state.tickOwner === owner) {
+        state.tickOwner = null;
+        emit();
+      }
     }
   }
 
@@ -1099,11 +1298,11 @@
     state.gainedExp = 0;
     state.samples = 0; state.rejects = 0;
     state.history = [];
-    state.pendingFirst = null;
     state.contRejects = 0;
   }
 
   function resetPositioning(retryCalibration) {
+    invalidateTick();
     state.lvRectLock = null;
     state.expRectLock = null;
     state.lockSize = "";
@@ -1129,6 +1328,7 @@
   }
 
   function stop() {
+    invalidateTick();
     clearInterval(state.timer);
     state.timer = null;
     if (state.stream) {
@@ -1234,6 +1434,12 @@
       presetChoices,
       pickPreset,
       presetReadCandidates,
+      modernReadCandidates,
+      locateHudFromImage,
+      HUD_SEARCH_LIMITS,
+      CALIBRATION_TIMEOUT_MS,
+      slicePixels,
+      ocrBoxToRect,
       clampRect,
     },
     // 內部探針：把 EXP 框每個字形群的分類明細倒出來（除錯用）

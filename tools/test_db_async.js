@@ -23,6 +23,27 @@ function deferred() {
   return { promise, resolve, reject };
 }
 
+test("official item links only render trusted HTTPS announcements with escaped text", () => {
+  const h = vm.createContext({ URL });
+  vm.runInContext(section("function esc(s) {", "  // 12345") +
+    section("function officialItemSources(sources) {", "  function itemImg("), h);
+  const url = "https://maplestoryclassic-event.beanfun.com/EventAd/EventAd?eventAdId=19112";
+  assert.equal(h.officialItemSources(undefined), "");
+  assert.equal(h.officialItemSources([null, { url: "javascript:alert(1)" },
+    { url: "https://maplestoryclassic.beanfun.com.evil.test/" },
+    { url: "https://user@maplestoryclassic.beanfun.com/" },
+    { url: "http://maplestoryclassic.beanfun.com/" }]), "");
+  const html = h.officialItemSources([{ url, title: '<img src=x onerror="alert(1)">', checkedAt: "2026-09-10" }]);
+  assert.match(html, /rel="noopener noreferrer"/);
+  assert.match(html, /核對日期：2026-09-10/);
+  assert.ok(html.includes("&lt;img"));
+  assert.ok(!html.includes("<img"));
+  for (const id of [1113372, 1113373, 1113374]) {
+    const item = JSON.parse(fs.readFileSync(path.join(__dirname, `../data/db/items/${id}.json`), "utf8"));
+    assert.ok(h.officialItemSources(item.officialSources).includes(url));
+  }
+});
+
 function element() {
   const handlers = new Map();
   return {

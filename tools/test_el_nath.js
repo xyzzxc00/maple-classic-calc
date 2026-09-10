@@ -17,17 +17,34 @@ const { execFileSync } = require("node:child_process");
 
 const ROOT = path.resolve(__dirname, "..");
 const PREVIEW = path.join(ROOT, "data/preview/el-nath");
-const LIVE_BASELINE = "943f43972446496565e1090f725aaef2f678cdb5";
+const LIVE_BASELINE = "ede90ae742e075d2c5a6347ee274c42ba9e64f39";
+// Reviewed Sep 10 refresh. Keep the original baseline for every asset and every
+// protected data field; the fingerprint pins the complete approved JSON result.
+const LIVE_REFRESH_SHA256 = "13ec54971a15f4eabf7835bb335e613b4900aa83b48306cc03b0fc922abb30a1";
 const SOURCE = {
-  gameVersion: "1.14.7",
-  generatedAt: "2026-09-03T16:09:17+08:00",
+  gameVersion: "1.15.0",
+  generatedAt: "2026-09-10T09:44:30+08:00",
 };
 const KINDS = ["monsters", "maps", "items", "npcs", "quests", "skills"];
 // Reviewed output of this exact source revision: [union total, added, preview].
 // A self-consistent manifest alone cannot catch an importer dropping new rows.
 const EXPECTED_SETS = {
-  monsters: [145, 74, 74], maps: [436, 83, 83], items: [1899, 457, 457],
-  npcs: [262, 26, 26], quests: [264, 0, 0], skills: [208, 0, 89],
+  monsters: [145, 74, 74], maps: [470, 83, 83], items: [1926, 457, 457],
+  npcs: [269, 26, 26], quests: [320, 0, 0], skills: [208, 0, 89],
+};
+const RING_QUESTS = [
+  ...Array.from({ length: 5 }, (_, i) => 69039 + i),
+  ...Array.from({ length: 8 }, (_, i) => 69045 + i),
+  ...Array.from({ length: 43 }, (_, i) => 69057 + i),
+];
+const LIVE_ADDITIONS = {
+  monsters: [], skills: [], quests: RING_QUESTS,
+  maps: Array.from({ length: 34 }, (_, i) => 876009610 + i),
+  npcs: [9402757, 9402758, 9402759, 9402760, 9402767, 9402768, 9402781],
+  items: [1050005, 1050006, 1050007, 1072004, 1072028, 1072029, 1072030, 1072031,
+    1113372, 1113373, 1113374, 2010073, 2833419, 3010063, 3019629, 3019630,
+    4037506, 4037507, 4037508, 4037509, 4037512, 4037513, 4037514, 4037515,
+    4037516, 4037517, 4037518],
 };
 const EXPANSION = new Set(["冰原雪域", "廢礦"]);
 const REGIONS = new Set(["楓之島", "維多利亞島", "奇幻村", "鯨魚號", ...EXPANSION]);
@@ -477,7 +494,7 @@ function checkLiveBaseline() {
     return { hash: match[1], file: match[2] };
   });
   if (!entries.length) throw new Error("正式資料基準為空；CI 需要 checkout fetch-depth: 0");
-  const errors = [];
+  const errors = [], changed = [];
   for (const { hash, file } of entries) {
     const full = path.join(ROOT, file);
     if (!fs.existsSync(full)) { errors.push(`正式檔案遭移除: ${file}`); continue; }
@@ -485,10 +502,74 @@ function checkLiveBaseline() {
     // Respect Windows Git text checkout without masking actual JSON changes.
     if (file.endsWith(".json")) bytes = Buffer.from(bytes.toString("utf8").replace(/\r\n/g, "\n"));
     const actual = crypto.createHash("sha1").update(`blob ${bytes.length}\0`).update(bytes).digest("hex");
-    if (actual !== hash) errors.push(`預覽匯入不可修改正式檔案: ${file}`);
+    if (actual !== hash) {
+      if (file.startsWith("assets/")) errors.push(`既有圖片不可被重新匯入覆蓋: ${file}`);
+      else changed.push({ hash, file, current: JSON.parse(bytes.toString("utf8")) });
+    }
   }
-  const expected = entries.filter((e) => e.file.startsWith("data/db/")).map((e) => e.file.slice(8));
-  if (!sameIds(jsonFiles(path.join(ROOT, "data/db")), expected)) errors.push("data/db: 預覽匯入增減了正式資料檔案");
+  // Read all changed baseline blobs in one command. Compare protected fields,
+  // not HEAD or a baseline generated from the very data being tested.
+  if (changed.length) {
+    const blobs = execFileSync("git", ["cat-file", "--batch"], {
+      cwd: ROOT, input: changed.map((r) => r.hash).join("\n") + "\n", maxBuffer: 12 * 1024 * 1024,
+    });
+    let offset = 0;
+    const protectedFields = (before, after, allowed, label) => {
+      for (const key of new Set([...Object.keys(before), ...Object.keys(after)])) {
+        if (!allowed.includes(key) && JSON.stringify(before[key]) !== JSON.stringify(after[key]))
+          errors.push(`未核准欄位改變: ${label}.${key}`);
+      }
+    };
+    const fields = {
+      monsters: ["drops", "hiddenDrops", "maps"],
+      maps: ["npcs", "portals", "hasMini", "spawns"],
+      items: ["name", "gacha", "quests"], npcs: ["img", "quests", "shop"],
+      quests: ["start"], skills: [],
+    };
+    const indexFields = {
+      monsters: ["drops"], maps: ["npcs", "portals", "spawns"],
+      items: ["name", "from"], npcs: ["img", "quests", "shop"], quests: [], skills: [],
+    };
+    for (const row of changed) {
+      const end = blobs.indexOf(10, offset);
+      const size = Number(blobs.toString("ascii", offset, end).split(" ")[2]);
+      const before = JSON.parse(blobs.toString("utf8", end + 1, end + 1 + size));
+      offset = end + 1 + size + 1;
+      const relative = row.file.slice(8), kind = relative.split(/[/.]/)[0];
+      if (relative.includes("/")) {
+        protectedFields(before, row.current, fields[kind] || [], row.file);
+      } else if (KINDS.includes(kind)) {
+        const oldIds = new Set(before.map((r) => id(r.id)));
+        const next = new Map(row.current.map((r) => [id(r.id), r]));
+        for (const old of before) {
+          if (!next.has(id(old.id))) errors.push(`既有索引被移除: ${kind}/${old.id}`);
+          else protectedFields(old, next.get(id(old.id)), indexFields[kind], `${kind}/${old.id}`);
+        }
+        if (!sameIds(row.current.filter((r) => !oldIds.has(id(r.id))).map((r) => r.id), LIVE_ADDITIONS[kind]))
+          errors.push(`${kind}: 新增 ID 超出 Sep10 核准範圍`);
+      } else if (kind === "shops") {
+        const next = new Map(row.current.map((r) => [id(r.id), r]));
+        for (const old of before) {
+          if (!next.has(id(old.id))) errors.push(`既有商店遭移除: ${old.id}`);
+          else protectedFields(old, next.get(id(old.id)), ["img", "items"], `shops/${old.id}`);
+        }
+      } else if (kind === "scroll_sim") {
+        if (JSON.stringify(before.scrolls) !== JSON.stringify(row.current.scrolls)) errors.push("卷軸既有數值遭改變");
+        const next = new Map(row.current.equipment.map((r) => [id(r.id), r]));
+        for (const old of before.equipment) {
+          if (!next.has(id(old.id))) errors.push(`既有模擬裝備遭移除: ${old.id}`);
+          else protectedFields(old, next.get(id(old.id)), [], `scroll_sim/${old.id}`);
+        }
+      } else errors.push(`未核准資料檔案改變: ${row.file}`);
+    }
+  }
+  const expected = entries.filter((e) => e.file.startsWith("data/db/")).map((e) => e.file.slice(8))
+    .concat(Object.entries(LIVE_ADDITIONS).flatMap(([kind, ids]) => ids.map((id) => `${kind}/${id}.json`)));
+  const files = jsonFiles(path.join(ROOT, "data/db"));
+  if (!sameIds(files, expected)) errors.push("data/db: 檔案增減超出 Sep10 核准清單");
+  const fingerprint = crypto.createHash("sha256");
+  for (const file of files) fingerprint.update(file + "\0").update(fs.readFileSync(path.join(ROOT, "data/db", file), "utf8").replace(/\r\n/g, "\n")).update("\0");
+  if (fingerprint.digest("hex") !== LIVE_REFRESH_SHA256) errors.push("正式資料與已審核 Sep10 結果不符；不可用更新 HEAD 規避欄位驗證");
   return errors;
 }
 
@@ -546,6 +627,36 @@ function checkKnownFixes(bundle) {
     const pig = readJson(path.join(folder, "monsters/4230103.json"));
     if (index.find((m) => id(m.id) === "4230103")?.exp !== 99 || pig.stats.exp !== 99) errors.push(`${label}: 鋼之肥肥 4230103 必須為 99 EXP`);
     if (!index.find((m) => id(m.id) === "9300060")?.name.includes("任務版")) errors.push(`${label}: 任務版鋼之肥肥必須清楚標示`);
+    const lemon = readJson(path.join(folder, "items/2010004.json"));
+    if (lemon.note) errors.push(`${label}: 檸檬不可恢復過期警告`);
+    for (const mob of index.filter((m) => m.boss)) {
+      const detail = readJson(path.join(folder, "monsters", `${mob.id}.json`));
+      if (detail.meso.min !== null || detail.meso.max !== null || !detail.meso.unverified)
+        errors.push(`${label}: Boss ${mob.id} 楓幣不得用跨版本數字推定`);
+    }
+    for (const [iid, hp, mp] of [[1113372, 500, 0], [1113373, 0, 500], [1113374, 250, 250]]) {
+      const ring = readJson(path.join(folder, "items", `${iid}.json`));
+      if ((ring.equip.incMHP || 0) !== hp || (ring.equip.incMMP || 0) !== mp || ring.equip.reqLevel !== 30)
+        errors.push(`${label}: 官方第一階段戒指 ${iid} 能力不符`);
+      if (ring.drops.length || ring.shops.length || ring.quests.length || !ring.note.includes("待確認") ||
+          !ring.officialSources?.some((s) => s.url.endsWith("eventAdId=19112")))
+        errors.push(`${label}: 戒指 ${iid} 不應捏造取得 NPC／獎勵發放欄位`);
+    }
+    const quests = readJson(path.join(folder, "quests.json"));
+    if (!sameIds(quests.filter((q) => q.name.startsWith("[冒險家的戒指]")).map((q) => q.id), RING_QUESTS))
+      errors.push(`${label}: 戒指只允許已審核的第一階段 56 筆任務`);
+    if (quests.some((q) => id(q.id) === "505812")) errors.push(`${label}: 特殊月光水晶沒有開放證據`);
+    for (const qid of RING_QUESTS) {
+      const quest = readJson(path.join(folder, "quests", `${qid}.json`));
+      if (quest.minLevel !== 30) errors.push(`${label}: 戒指任務 ${qid} 等級不符來源`);
+      for (const material of quest.complete.items) {
+        if (material.link) {
+          const item = readJson(path.join(folder, "items", `${material.id}.json`));
+          if (item.quests.some((q) => id(q.id) === id(qid) && q.kind === "獎勵"))
+            errors.push(`${label}: ${qid}/${material.id} 消耗材料不得在反向關聯列為獎勵`);
+        }
+      }
+    }
   }
   return errors;
 }

@@ -1485,6 +1485,17 @@
     return names.length ? names.join("、") : "全職業";
   }
 
+  function officialItemSources(sources) {
+    if (!Array.isArray(sources)) return "";
+    return sources.filter((source) => {
+      try {
+        const url = new URL(source.url);
+        return url.protocol === "https:" && !url.username && !url.password && !url.port &&
+          ["maplestoryclassic.beanfun.com", "maplestoryclassic-event.beanfun.com"].includes(url.hostname);
+      } catch (_) { return false; }
+    }).map((source) => `<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.title || "官方公告")}</a>${source.checkedAt ? `（核對日期：${esc(source.checkedAt)}）` : ""}`).join("、");
+  }
+
   function itemImg(id, size) {
     return `<img class="db-row-icon db-row-icon--skill" src="assets/db/items/${encodeURIComponent(id)}.png"
       alt="" loading="lazy" decoding="async" width="${size}" height="${size}">`;
@@ -1762,6 +1773,7 @@
           </section>`
         : "";
       const usedInBits = (d.usedIn || []).map((u) => u.link === false ? plainChip(u.name, "尚未收錄") : linkChip("item", u.id, u.name));
+      const officialSources = officialItemSources(d.officialSources);
 
       return `<button class="db-back" type="button" data-db-back>← 回到道具列表</button>
         <div class="db-detail-head">
@@ -1776,6 +1788,7 @@
             ${d.note ? `<p class="db-item-note">⚠ ${esc(d.note)}</p>` : ""}
           </div>
         </div>
+        ${officialSources ? `<section class="db-section"><h3 class="db-section-title">官方取得資訊</h3><p class="db-section-note">${officialSources}。取得方式依公告與遊戲內任務指引為準。</p></section>` : ""}
         ${reqs.length ? `<section class="db-section">
           <h3 class="db-section-title">裝備需求</h3>
           <dl class="db-stat-grid">${reqs.join("")}</dl>

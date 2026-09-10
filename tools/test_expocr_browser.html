@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-Hant">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>EXP reader — local browser regression</title>
+<style>body{font:16px system-ui;margin:24px;max-width:1000px}button{padding:12px}pre{white-space:pre-wrap}canvas{max-width:100%;border:1px solid #777;image-rendering:pixelated}</style>
+<h1>新版 HUD：瀏覽器 Canvas 回歸測試</h1>
+<p>僅使用去識別化的等級／EXP 像素片段。其他解析度與背景皆為合成測試，並非真實硬體擷取。此工具不隨網站建置發布。</p>
+<button id="run" type="button">執行 Canvas 測試</button>
+<pre id="result" aria-live="polite">尚未執行</pre>
+<canvas id="frame" width="1367" height="768"></canvas>
+<script src="../js/data.js"></script>
+<script src="../js/expocr.js"></script>
+<script>
+const runButton = document.querySelector('#run');
+const result = document.querySelector('#result');
+const frame = document.querySelector('#frame');
+runButton.addEventListener('click', async () => {
+  runButton.disabled = true;
+  result.textContent = '';
+  const log = text => { result.textContent += text + '\n'; };
+  try {
+    const fixture = await (await fetch('fixtures/expocr-hud-20260910.json')).json();
+    const crops = {};
+    for (const [name, crop] of Object.entries(fixture.crops)) {
+      const packed = Uint8Array.from(atob(crop.rgbaZlibBase64), c => c.charCodeAt(0));
+      const raw = await new Response(new Blob([packed]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer();
+      const canvas = document.createElement('canvas');
+      canvas.width = crop.width; canvas.height = crop.height;
+      canvas.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(raw), crop.width, crop.height), 0, 0);
+      crops[name] = canvas;
+    }
+    const cases = [[1367,768,1], [1366,768,1], [1920,1080,1], [1920,1200,1.25],
+      [2560,1440,1.5], [2560,1440,2], [3440,1440,1.75], [3840,2160,2], [3840,2160,3], [5120,1440,1]];
+    for (const [width,height,scale] of cases) {
+      frame.width = width; frame.height = height;
+      const ctx = frame.getContext('2d');
+      ctx.fillStyle = '#000'; ctx.fillRect(0,0,width,height); ctx.imageSmoothingEnabled = false;
+      for (const [name,crop] of Object.entries(fixture.crops)) {
+        const x = Math.round(name === 'lv' ? crop.x * scale : width * 0.612);
+        const y = height - Math.round((fixture.sourceHeight - crop.y) * scale);
+        ctx.drawImage(crops[name], x, y, Math.round(crop.width * scale), Math.round(crop.height * scale));
+      }
+      MapleExpOcr._reset();
+      const start = performance.now();
+      await MapleExpOcr._tickWith(frame);
+      const state = MapleExpOcr.getState();
+      if (state.level !== fixture.expected.level || state.exp !== fixture.expected.exp || state.percent !== fixture.expected.percent || state.samples !== 1) {
+        throw new Error(`${width}×${height} @${scale}: ${JSON.stringify(state)}`);
+      }
+      await MapleExpOcr._tickWith(frame);
+      if (MapleExpOcr.getState().gainedExp !== 0) throw new Error('Unchanged frame added EXP');
+      log(`PASS ${width}×${height} @${scale*100}% — Lv.${state.level}, EXP ${state.exp}, ${Math.round(performance.now()-start)}ms`);
+    }
+    log(`PASS: ${cases.length} native Canvas cases; no screen-sharing or external OCR request required.`);
+  } catch (error) { log('FAIL: ' + error.stack); }
+  finally { runButton.disabled = false; }
+});
+</script>
+</html>

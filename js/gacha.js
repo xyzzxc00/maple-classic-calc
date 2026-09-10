@@ -49,6 +49,12 @@
   let currentBox = BOXES[0];
   let totalWeight = 0;
 
+  function escapeHTML(value) {
+    return String(value).replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+    })[char]);
+  }
+
   function formatChance(weight) {
     // 畫面要忠實顯示官方公告的原始機率；總和因官方四捨五入可能不是
     // 100%，只有抽取時才按總權重等比例處理該微小誤差。
@@ -58,7 +64,7 @@
   function renderBoxOptions() {
     if (!els.boxSelect) return;
     els.boxSelect.innerHTML = BOXES.map(
-      (box) => `<option value="${box.id}">${box.name}</option>`
+      (box) => `<option value="${escapeHTML(box.id)}">${escapeHTML(box.name)}</option>`
     ).join("");
   }
 
@@ -66,12 +72,19 @@
     els.poolBox.innerHTML = currentBox.items
       .map(
         (it) => `<div class="exp-rate-row">
-        <span>${it.name}${it.rarity ? `<span class="gacha-rarity-tag ${RARITY_CLASS[it.rarity] || ""}">${it.rarity}</span>` : ""}</span>
+        <span>${escapeHTML(it.name)}${it.rarity ? `<span class="gacha-rarity-tag ${RARITY_CLASS[it.rarity] || ""}">${escapeHTML(it.rarity)}</span>` : ""}</span>
         <span>${formatChance(it.weight)}</span>
       </div>`
       )
       .join("");
-    if (els.boxPeriod) els.boxPeriod.textContent = currentBox.period ? `活動時間：${currentBox.period}` : "";
+    if (els.boxPeriod) {
+      const lines = currentBox.period ? [`機率表活動時間：${escapeHTML(currentBox.period)}`] : [];
+      if (currentBox.sourceUrl && /^https:\/\/maplestoryclassic-event\.beanfun\.com\/EventAd\/EventAd\?eventAdId=\d+$/.test(currentBox.sourceUrl)) {
+        lines.push(`<a href="${escapeHTML(currentBox.sourceUrl)}" target="_blank" rel="noopener noreferrer">官方機率表</a>（${escapeHTML(currentBox.verifiedAt)} 核對）`);
+      }
+      if (currentBox.note) lines.push(escapeHTML(currentBox.note));
+      els.boxPeriod.innerHTML = lines.join("<br>");
+    }
   }
 
   // 依權重隨機抽一個道具
@@ -88,8 +101,8 @@
     els.resultGrid.innerHTML = results
       .map(
         (it) => `<div class="gacha-result-item ${RARITY_CLASS[it.rarity] || ""}">
-          <div class="gacha-result-name">${it.name}</div>
-          ${it.rarity ? `<div class="gacha-result-rarity">${it.rarity}</div>` : ""}
+          <div class="gacha-result-name">${escapeHTML(it.name)}</div>
+          ${it.rarity ? `<div class="gacha-result-rarity">${escapeHTML(it.rarity)}</div>` : ""}
         </div>`
       )
       .join("");
@@ -107,7 +120,7 @@
         const count = state.dist[it.name] || 0;
         const pct = state.totalPulls ? (count / state.totalPulls) * 100 : 0;
         return `<div class="scroll-sim-dist-row">
-        <span class="scroll-sim-dist-label">${it.name}</span>
+        <span class="scroll-sim-dist-label">${escapeHTML(it.name)}</span>
         <span class="scroll-sim-dist-bar-track"><span class="scroll-sim-dist-bar-fill" style="width:${pct}%"></span></span>
         <span class="scroll-sim-dist-count">${count.toLocaleString()}（${pct.toFixed(1)}%）</span>
       </div>`;

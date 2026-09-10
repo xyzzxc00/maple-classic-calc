@@ -158,7 +158,8 @@ jobs:
           # Bundle all JS in load order → single minified file. 使用 HTML parser
           # 讀取 index.html，因此屬性順序、單／雙引號與 ?v=... 都不會讓檔案
           # 默默漏出 bundle；同時檢查必要導覽檔、重複項目與不存在的路徑。
-          mapfile -t JS_FILES < <(python3 tools/list_bundle_js.py index.html)
+          JS_FILE_LIST=$(python3 tools/list_bundle_js.py index.html)
+          mapfile -t JS_FILES <<< "$JS_FILE_LIST"
           echo "Bundling JS files in this order:"
           printf '  %s\n' "${JS_FILES[@]}"
           cat "${JS_FILES[@]}" > dist/js/bundle.raw.js

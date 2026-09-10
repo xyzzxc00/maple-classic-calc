@@ -2,8 +2,8 @@
  * ocrwin.js — 自動測速小視窗
  * -----------------------------------------------------------------
  * 跟練等小視窗（miniwin.js）分開的另一個彈出視窗，專門放
- * expocr.js 的螢幕自動讀取：分享遊戲視窗後自動讀 EXP／楓幣，
- * 顯示每分／每10分／每30分／每小時速率。同樣用 Document
+ * expocr.js 的螢幕自動讀取：分享遊戲視窗後自動讀等級／EXP，
+ * 顯示 5／10 分鐘經驗與升級估時。同樣用 Document
  * Picture-in-Picture 彈成置頂視窗、不支援就退回頁內懸浮。
  *
  * 注意：瀏覽器同時只允許一個 PiP 視窗——跟練等小視窗同時開的話，
@@ -50,7 +50,7 @@
       <div class="miniwin-ocr">
         <div class="miniwin-ocr-head">
           <button class="miniwin-ocr-fold" data-ow="foldBtn" type="button" aria-expanded="true"
-            title="收合／展開讀取狀態"><span class="miniwin-ocr-chevron" data-ow="chevron">▾</span>畫面讀取<span class="miniwin-ocr-tag">實驗性 v12</span></button>
+            title="收合／展開讀取狀態"><span class="miniwin-ocr-chevron" data-ow="chevron">▾</span>畫面讀取<span class="miniwin-ocr-tag">實驗性 v13</span></button>
           <button class="btn btn-ghost miniwin-btn" data-ow="startBtn" type="button">▶ 開始</button>
         </div>
         <div data-ow="foldBody">
@@ -80,8 +80,10 @@
         <summary>這個功能是怎麼算的？</summary>
         <p>
           請分享「遊戲視窗」，不要分享本站分頁。常見 720p、1080p、2K、4K、16:10、超寬與視窗模式
-          都會自動嘗試多組版型；若中途調整遊戲視窗大小，或上方預覽沒有框到等級／EXP，請按「重新定位」。
-          這是實驗性功能：自動讀取畫面上的數字來算速率，偶爾會讀錯，已經有做交叉比對過濾；仍無法讀取時可匯出除錯資料回報。
+          都會自動嘗試多組版型，並支援 9/10 新版狀態列的等級徽章／EXP 特徵定位。
+          請保留完整底部狀態列，不要被其他視窗遮住；中途調整遊戲視窗大小或預覽框錯位置時，請按「重新定位」。
+          這是實驗性功能：每筆都必須通過等級、EXP 與百分比交叉檢查，讀不清楚就略過，不會猜數字。
+          2K／4K、視窗模式與縮放已做模擬測試，但不代表每種實機 UI 都已驗證；仍讀不到時可匯出除錯資料回報。
           「5/10分鐘經驗」在還沒真的滿 5／10 分鐘時，是用目前的平均速率往前推算（會標「推算」），
           時間到了才會換成那段時間真正量到的數字，數字剛開始跳動比較大是正常的，會自己收斂。
           上傳按鈕要滿 5 分鐘實測才會亮，按下去只會帶入等級跟每10分經驗到回報表單，

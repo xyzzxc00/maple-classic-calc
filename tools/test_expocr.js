@@ -296,3 +296,8 @@ console.log(
   `${expCases} 組 EXP／百分比、${fractionalScaleCases} 組 125%／150%／175% 縮放、` +
   `${resolutionCases} 組解析度裁切、累計／升級／防呆／時間視窗。`
 );
+
+require("./test_expocr_hud.js").run().catch(error => {
+  console.error(error);
+  process.exitCode = 1;
+});

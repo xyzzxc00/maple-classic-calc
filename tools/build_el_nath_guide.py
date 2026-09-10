@@ -3,7 +3,7 @@
 Run after tools/import_el_nath.py: py -3 tools/build_el_nath_guide.py
 Use --check to validate the committed page without writing it. No network access.
 
-Data audit (2026-09-09): game data 1.14.7. Instructor
+Data audit (2026-09-10): game data 1.15.0. Instructor
 identities come from quests 6900/6910/6920/6930/6940, which are FOURTH-job
 quests, not third-job procedures. Map geometry absent from the dump stays
 unknown. MonsterBook associations do not establish spawn counts or routes.
@@ -11,7 +11,7 @@ Association provenance is distinct from drop-rate provenance. Only an explicit
 source=tmsv113 on the map/mob or item/drop relation earns the cross-version
 label; a tmsv113 entry inside dropRates must never relabel that relation.
 Official status was checked through beanfun's public BulletinDetail endpoint:
-82595 still states second job / level 100; 82615 only changes maintenance time.
+82647 still states second job / level 100 after the September 10 maintenance.
 Version/date/counts below always come from the generated preview manifest.
 """
 
@@ -34,9 +34,8 @@ BASE = "https://mapleclassictools.com"
 PAGE_URL = BASE + "/guides/third-job-el-nath/"
 TITLE = "三轉與冰原雪域資料預覽：職業技能、地圖、怪物與補給"
 DESCRIPTION = "新楓之谷經典版三轉與天空之城、冰原雪域、廢礦資料預覽。整理技能逐級資料、怪物屬性與掉落、地圖索引、NPC商店及任務；拆包存在不代表正式開放。"
-OFFICIAL_DATE = "2026-09-09"
-OFFICIAL_STATUS = "https://maplestoryclassic.beanfun.com/bulletin?Bid=82595"
-OFFICIAL_MAINTENANCE = "https://maplestoryclassic.beanfun.com/bulletin?Bid=82615"
+OFFICIAL_DATE = "2026-09-10"
+OFFICIAL_STATUS = "https://maplestoryclassic.beanfun.com/bulletin?Bid=82647"
 THEME_BUTTON = '<button class="theme-toggle" id="themeToggle" type="button">暗色</button>\n'
 KINDS = {"monster": "monsters", "map": "maps", "item": "items",
          "npc": "npcs", "quest": "quests", "skill": "skills"}
@@ -306,7 +305,7 @@ def quest_section(manifest, quests, ids):
             level = f'Lv.{number(q.get("minLevel"))}' if q.get('minLevel') is not None else '等級未提供'
             if q.get('maxLevel') is not None:
                 level += f'～{number(q["maxLevel"])}'
-            late = '<p class="expansion-note">此任務需求超過官方9/3公告的Lv.100上限，只作後續關聯資料，不屬於已開放任務或三轉前置。</p>' if (q.get('minLevel') or 0) > 100 else ''
+            late = '<p class="expansion-note">此任務需求超過官方9/10公告的Lv.100上限，只作後續關聯資料，不屬於已開放任務或三轉前置。</p>' if (q.get('minLevel') or 0) > 100 else ''
             text = ''.join(f'<p><strong>{esc(t.get("label", "說明"))}：</strong>{esc(t["text"])}</p>' for t in q.get('texts', []) if t.get('text'))
             quest_cards.append('<article class="expansion-quest"><h3>' + link('quest', q['id'], q['name'])
                                + f'</h3><p>{level} · 接取／繳交：{npcs}</p>{late}'
@@ -447,7 +446,7 @@ def build():
         'author': {'@type': 'Person', 'name': 'xyzzxc00'},
         'publisher': {'@type': 'Person', 'name': 'xyzzxc00'},
         'datePublished': '2026-09-09', 'dateModified': date,
-        'citation': [OFFICIAL_STATUS, OFFICIAL_MAINTENANCE],
+        'citation': [OFFICIAL_STATUS],
     }
     missing = sum(bool(m.get('dataMissing')) for m in maps)
     html = f'''<!DOCTYPE html>
@@ -506,7 +505,7 @@ def build():
 </header>
 <aside class="expansion-status" aria-labelledby="preview-status-title">
 <h2 id="preview-status-title">這份資料不代表已開放</h2>
-<p>截至 {OFFICIAL_DATE} 的官方公告查核，<a href="{OFFICIAL_STATUS}">9/3 V001開機公告</a>仍列角色等級上限100、轉職開放至二轉。<a href="{OFFICIAL_MAINTENANCE}">9/4公告</a>將9/10維護調整為00:00～12:00，但沒有確認三轉或雪域的開放日期。</p>
+<p>依 {OFFICIAL_DATE} 的<a href="{OFFICIAL_STATUS}">9/10 V001開機公告</a>，角色等級上限仍為100、轉職開放至二轉。這次更新不代表三轉、天空之城、冰原雪域或廢礦已開放；後續開放時間仍待官方公告。</p>
 <p>{esc(manifest.get('notice') or '拆包存在不代表已開放。')}</p>
 <p>{section_link('db-skills', '開啟三轉技能資料庫')} · {section_link('db-maps', '開啟預覽地圖資料庫')} · <a href="#sources">查看資料限制</a></p>
 </aside>

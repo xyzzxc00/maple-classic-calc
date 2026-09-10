@@ -162,7 +162,7 @@ def main():
     write(OUTPUT / "shops.json", shops)
     metadata = raw["maps-data.js"].get("metadata") or {}
     manifest = {
-        "title": "三轉與冰原雪域預覽", "status": "preview", "checkedAt": "2026-09-09",
+        "title": "三轉與冰原雪域預覽", "status": "preview", "checkedAt": "2026-09-10",
         "gameVersion": metadata.get("gameVersion"),
         "provenanceSchemaVersion": 1,
         "excludedQuestItems": sorted(db.PREVIEW_EXCLUDED_QUEST_ITEMS),
